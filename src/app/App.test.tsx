@@ -45,6 +45,11 @@ describe("App", () => {
       screen.getByRole("heading", { name: "Signals" }),
     ).toBeInTheDocument();
     expect(
+      screen.getAllByRole("article", { name: /party card/i }),
+    ).toHaveLength(6);
+    expect(screen.getByText("Mira Vale")).toBeInTheDocument();
+    expect(screen.getByText("Lena Moss")).toBeInTheDocument();
+    expect(
       screen.queryByRole("region", { name: /timeline view/i }),
     ).not.toBeInTheDocument();
   });
