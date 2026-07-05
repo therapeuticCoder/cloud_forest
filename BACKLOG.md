@@ -176,7 +176,7 @@ Guilds are communities/contexts, not individual relationships.
 
 ### T-009: Build Signals accordion layer
 
-Status: ready
+Status: done
 Size: small
 
 Goal:

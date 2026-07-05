@@ -65,6 +65,14 @@ describe("App", () => {
       screen.getByText(/recurring creative workspace/i),
     ).toBeInTheDocument();
     expect(
+      screen.getAllByRole("article", { name: /signal row/i }),
+    ).toHaveLength(5);
+    expect(screen.getByText("City Budget Watch")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /climate lab/i }));
+    expect(
+      screen.getByText(/research and environmental updates/i),
+    ).toBeInTheDocument();
+    expect(
       screen.queryByRole("region", { name: /timeline view/i }),
     ).not.toBeInTheDocument();
   });
