@@ -91,7 +91,7 @@ Keep this PR mostly structural. Placeholder content is acceptable.
 
 ### T-005: Add Curator mock data
 
-Status: ready
+Status: done
 Size: small
 
 Goal:

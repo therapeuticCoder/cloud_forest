@@ -1,0 +1,244 @@
+import type {
+  CuratorGuild,
+  CuratorMockData,
+  CuratorNeighborhood,
+  CuratorPerson,
+  CuratorSignal,
+} from "@/types/curator";
+
+const tribeFirstNames = [
+  "Ari",
+  "Bea",
+  "Cleo",
+  "Dara",
+  "Eli",
+  "Faye",
+  "Gio",
+  "Hana",
+  "Ira",
+  "Jules",
+  "Kira",
+  "Len",
+  "Mara",
+  "Nico",
+  "Ola",
+  "Pax",
+  "Quin",
+  "Rhea",
+  "Sage",
+  "Tavi",
+  "Uma",
+  "Vale",
+  "Wren",
+  "Xan",
+  "Yara",
+  "Zed",
+  "Nell",
+  "Orin",
+  "Pia",
+  "Remy",
+];
+
+const neighborhoodSeeds = [
+  {
+    id: "nearby-family",
+    name: "Nearby Family",
+    description: "Extended family and long-running household-adjacent ties.",
+    suffix: "Vale",
+  },
+  {
+    id: "old-friends",
+    name: "Old Friends",
+    description: "People with shared history who do not need constant contact.",
+    suffix: "Lane",
+  },
+  {
+    id: "workshop",
+    name: "Workshop",
+    description: "Collaborators, peers, and people from making contexts.",
+    suffix: "Forge",
+  },
+  {
+    id: "neighbors",
+    name: "Neighbors",
+    description: "Local, civic, and place-based familiar faces.",
+    suffix: "Row",
+  },
+  {
+    id: "loose-orbit",
+    name: "Loose Orbit",
+    description: "Warm acquaintances and lightweight recurring connections.",
+    suffix: "Field",
+  },
+];
+
+function createInitials(displayName: string) {
+  return displayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("");
+}
+
+function createTribePeople(neighborhoodId: string, suffix: string) {
+  return tribeFirstNames.map((firstName, index): CuratorPerson => {
+    const displayName = `${firstName} ${suffix}`;
+
+    return {
+      id: `${neighborhoodId}-${index + 1}`,
+      displayName,
+      initials: createInitials(displayName),
+      relationshipNote: "Tribe",
+      recentStatus:
+        index % 3 === 0
+          ? "Quiet lately"
+          : index % 3 === 1
+            ? "Light check-in"
+            : "Recent overlap",
+    };
+  });
+}
+
+export const curatorPartyPeople: CuratorPerson[] = [
+  {
+    id: "mira",
+    displayName: "Mira Vale",
+    initials: "MV",
+    relationshipNote: "Daily life",
+    recentStatus: "Shared dinner plan",
+  },
+  {
+    id: "sol",
+    displayName: "Sol Arden",
+    initials: "SA",
+    relationshipNote: "Closest friend",
+    recentStatus: "Sent a voice note",
+  },
+  {
+    id: "anya",
+    displayName: "Anya Reed",
+    initials: "AR",
+    relationshipNote: "Sibling",
+    recentStatus: "Birthday thread active",
+  },
+  {
+    id: "dev",
+    displayName: "Dev Rowan",
+    initials: "DR",
+    relationshipNote: "Partner",
+    recentStatus: "Weekend logistics",
+  },
+  {
+    id: "ren",
+    displayName: "Ren Ellis",
+    initials: "RE",
+    relationshipNote: "Oldest friend",
+    recentStatus: "Needs a reply",
+  },
+  {
+    id: "lena",
+    displayName: "Lena Moss",
+    initials: "LM",
+    relationshipNote: "Chosen family",
+    recentStatus: "New photo shared",
+  },
+];
+
+export const curatorTribeNeighborhoods: CuratorNeighborhood[] =
+  neighborhoodSeeds.map((neighborhood) => ({
+    id: neighborhood.id,
+    name: neighborhood.name,
+    description: neighborhood.description,
+    people: createTribePeople(neighborhood.id, neighborhood.suffix),
+  }));
+
+export const curatorGuilds: CuratorGuild[] = [
+  {
+    id: "mutual-care",
+    name: "Mutual Care Circle",
+    description: "A small group organized around practical help and check-ins.",
+    memberCount: 18,
+    recentActivity: "Two people coordinated meal support.",
+  },
+  {
+    id: "studio-night",
+    name: "Studio Night",
+    description: "A recurring creative workspace for slow, shared making.",
+    memberCount: 34,
+    recentActivity: "Next open table was posted.",
+  },
+  {
+    id: "local-builders",
+    name: "Local Builders",
+    description:
+      "People trading notes on tools, repairs, and neighborhood projects.",
+    memberCount: 52,
+    recentActivity: "A repair thread picked up new replies.",
+  },
+  {
+    id: "reading-room",
+    name: "Reading Room",
+    description: "A low-pressure learning group for essays, books, and talks.",
+    memberCount: 27,
+    recentActivity: "Three links were collected for Sunday.",
+  },
+  {
+    id: "civic-table",
+    name: "Civic Table",
+    description: "A place-based group for local meetings and mutual awareness.",
+    memberCount: 41,
+    recentActivity: "New agenda notes landed quietly.",
+  },
+];
+
+export const curatorSignals: CuratorSignal[] = [
+  {
+    id: "city-budget",
+    name: "City Budget Watch",
+    domain: "Local government",
+    category: "local-civic",
+    description:
+      "Ambient civic context that may affect neighborhood priorities.",
+    recentActivity: "Public hearing dates were updated.",
+  },
+  {
+    id: "independent-radio",
+    name: "Independent Radio",
+    domain: "Music",
+    category: "music",
+    description:
+      "A low-volume cultural signal for new releases and local shows.",
+    recentActivity: "A weekend playlist was published.",
+  },
+  {
+    id: "small-screen-notes",
+    name: "Small Screen Notes",
+    domain: "Film",
+    category: "film",
+    description: "Film and documentary notes that can stay in the outer layer.",
+    recentActivity: "A review roundup mentioned three quiet releases.",
+  },
+  {
+    id: "public-tech",
+    name: "Public Technology",
+    domain: "Technology",
+    category: "technology",
+    description: "Broader technology changes worth noticing without urgency.",
+    recentActivity: "A standards discussion reached draft status.",
+  },
+  {
+    id: "climate-lab",
+    name: "Climate Lab",
+    domain: "Science",
+    category: "science",
+    description:
+      "Research and environmental updates held as ambient awareness.",
+    recentActivity: "A field report summarized seasonal measurements.",
+  },
+];
+
+export const curatorMockData: CuratorMockData = {
+  partyPeople: curatorPartyPeople,
+  tribeNeighborhoods: curatorTribeNeighborhoods,
+  guilds: curatorGuilds,
+  signals: curatorSignals,
+};
