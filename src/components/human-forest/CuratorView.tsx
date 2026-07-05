@@ -9,12 +9,14 @@ import {
 import {
   curatorGuilds,
   curatorPartyPeople,
+  curatorSignals,
   curatorTribeNeighborhoods,
 } from "@/data/humanForest";
 import { cn } from "@/lib/utils";
 
 import { GuildsLayer } from "./GuildsLayer";
 import { PartyLayer } from "./PartyLayer";
+import { SignalsLayer } from "./SignalsLayer";
 import { TribeLayer } from "./TribeLayer";
 
 type CuratorLayer = {
@@ -93,6 +95,8 @@ export function CuratorView() {
               <TribeLayer neighborhoods={curatorTribeNeighborhoods} />
             ) : layer.title === "Guilds" ? (
               <GuildsLayer guilds={curatorGuilds} />
+            ) : layer.title === "Signals" ? (
+              <SignalsLayer signals={curatorSignals} />
             ) : (
               <Card className="border-white/10 bg-slate-900/70 text-slate-100">
                 <CardHeader>
