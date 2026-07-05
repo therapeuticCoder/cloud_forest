@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { CuratorPlaceholderView } from "./CuratorPlaceholderView";
+import { CuratorView } from "./CuratorView";
 import { TimelineView } from "./TimelineView";
 import { type HumanForestView, ViewSwitcher } from "./ViewSwitcher";
 
@@ -13,11 +13,7 @@ export function DashboardShell() {
         <ViewSwitcher activeView={activeView} onViewChange={setActiveView} />
       </div>
 
-      {activeView === "timeline" ? (
-        <TimelineView />
-      ) : (
-        <CuratorPlaceholderView />
-      )}
+      {activeView === "timeline" ? <TimelineView /> : <CuratorView />}
     </main>
   );
 }

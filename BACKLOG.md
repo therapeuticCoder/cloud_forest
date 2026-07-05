@@ -69,7 +69,7 @@ Let the Galaxy view languish. Preserve it, but do not polish it.
 
 ### T-004: Add Curator View shell and vertical scroll stack
 
-Status: ready
+Status: done
 Size: medium
 
 Goal:

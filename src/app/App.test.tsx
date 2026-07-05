@@ -30,7 +30,7 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("switches from Timeline to the Curator placeholder", async () => {
+  it("switches from Timeline to the Curator layer stack", async () => {
     const user = userEvent.setup();
 
     render(<App />);
@@ -38,8 +38,11 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: /curator/i }));
 
     expect(screen.getByRole("region", { name: /curator view/i }));
+    expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tribe" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Guilds" })).toBeInTheDocument();
     expect(
-      screen.getByText(/the full curator view will organize party/i),
+      screen.getByRole("heading", { name: "Signals" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("region", { name: /timeline view/i }),
