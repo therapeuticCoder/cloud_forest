@@ -50,6 +50,13 @@ describe("App", () => {
     expect(screen.getByText("Mira Vale")).toBeInTheDocument();
     expect(screen.getByText("Lena Moss")).toBeInTheDocument();
     expect(
+      screen.getAllByRole("region", { name: /neighborhood/i }),
+    ).toHaveLength(5);
+    expect(screen.getByText("Nearby Family")).toBeInTheDocument();
+    expect(screen.getByText("Loose Orbit")).toBeInTheDocument();
+    expect(screen.getByText("Ari Vale")).toBeInTheDocument();
+    expect(screen.getByText("Remy Field")).toBeInTheDocument();
+    expect(
       screen.queryByRole("region", { name: /timeline view/i }),
     ).not.toBeInTheDocument();
   });

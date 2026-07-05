@@ -6,10 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { curatorPartyPeople } from "@/data/humanForest";
+import {
+  curatorPartyPeople,
+  curatorTribeNeighborhoods,
+} from "@/data/humanForest";
 import { cn } from "@/lib/utils";
 
 import { PartyLayer } from "./PartyLayer";
+import { TribeLayer } from "./TribeLayer";
 
 type CuratorLayer = {
   title: string;
@@ -83,6 +87,8 @@ export function CuratorView() {
 
             {layer.title === "Party" ? (
               <PartyLayer people={curatorPartyPeople} />
+            ) : layer.title === "Tribe" ? (
+              <TribeLayer neighborhoods={curatorTribeNeighborhoods} />
             ) : (
               <Card className="border-white/10 bg-slate-900/70 text-slate-100">
                 <CardHeader>

@@ -134,7 +134,7 @@ Party should feel intimate and spacious, not like a notification dashboard.
 
 ### T-007: Build Tribe horizontal neighborhood pager
 
-Status: ready
+Status: done
 Size: medium
 
 Goal:
