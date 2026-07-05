@@ -113,7 +113,7 @@ This can happen before or after the Curator shell PR. If done before, do not wir
 
 ### T-006: Build Party layer cards
 
-Status: ready
+Status: done
 Size: small
 
 Goal:

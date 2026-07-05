@@ -6,7 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { curatorPartyPeople } from "@/data/humanForest";
 import { cn } from "@/lib/utils";
+
+import { PartyLayer } from "./PartyLayer";
 
 type CuratorLayer = {
   title: string;
@@ -78,24 +81,28 @@ export function CuratorView() {
               </div>
             </div>
 
-            <Card className="border-white/10 bg-slate-900/70 text-slate-100">
-              <CardHeader>
-                <CardTitle>{layer.title} layer</CardTitle>
-                <CardDescription className="text-slate-400">
-                  Fixed viewport slice with vertical scroll snap.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div
-                  className={cn(
-                    "rounded-lg border p-5 text-sm leading-6",
-                    layer.accentClassName,
-                  )}
-                >
-                  {layer.placeholder}
-                </div>
-              </CardContent>
-            </Card>
+            {layer.title === "Party" ? (
+              <PartyLayer people={curatorPartyPeople} />
+            ) : (
+              <Card className="border-white/10 bg-slate-900/70 text-slate-100">
+                <CardHeader>
+                  <CardTitle>{layer.title} layer</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Fixed viewport slice with vertical scroll snap.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className={cn(
+                      "rounded-lg border p-5 text-sm leading-6",
+                      layer.accentClassName,
+                    )}
+                  >
+                    {layer.placeholder}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </article>
       ))}
