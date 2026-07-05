@@ -56,6 +56,14 @@ describe("App", () => {
     expect(screen.getByText("Loose Orbit")).toBeInTheDocument();
     expect(screen.getByText("Ari Vale")).toBeInTheDocument();
     expect(screen.getByText("Remy Field")).toBeInTheDocument();
+    expect(screen.getAllByRole("article", { name: /guild row/i })).toHaveLength(
+      5,
+    );
+    expect(screen.getByText("Mutual Care Circle")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /studio night/i }));
+    expect(
+      screen.getByText(/recurring creative workspace/i),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("region", { name: /timeline view/i }),
     ).not.toBeInTheDocument();

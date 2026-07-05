@@ -7,11 +7,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  curatorGuilds,
   curatorPartyPeople,
   curatorTribeNeighborhoods,
 } from "@/data/humanForest";
 import { cn } from "@/lib/utils";
 
+import { GuildsLayer } from "./GuildsLayer";
 import { PartyLayer } from "./PartyLayer";
 import { TribeLayer } from "./TribeLayer";
 
@@ -89,6 +91,8 @@ export function CuratorView() {
               <PartyLayer people={curatorPartyPeople} />
             ) : layer.title === "Tribe" ? (
               <TribeLayer neighborhoods={curatorTribeNeighborhoods} />
+            ) : layer.title === "Guilds" ? (
+              <GuildsLayer guilds={curatorGuilds} />
             ) : (
               <Card className="border-white/10 bg-slate-900/70 text-slate-100">
                 <CardHeader>
