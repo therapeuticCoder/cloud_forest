@@ -156,7 +156,7 @@ Horizontal movement is only within the Tribe layer. Avoid making the whole app f
 
 ### T-008: Build Guilds accordion layer
 
-Status: ready
+Status: done
 Size: small
 
 Goal:
