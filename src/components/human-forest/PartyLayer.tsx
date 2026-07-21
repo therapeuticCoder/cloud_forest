@@ -1,56 +1,43 @@
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import type { CuratorPerson } from "@/types/curator";
+import { UserRound } from "lucide-react";
+
+import type { CuratorPerson, CuratorSelection } from "@/types/curator";
+
+import { CuratorTile } from "./CuratorTile";
 
 type PartyLayerProps = {
+  onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
   people: CuratorPerson[];
+  user: CuratorPerson;
 };
 
-export function PartyLayer({ people }: PartyLayerProps) {
+export function PartyLayer({ onSelect, people, user }: PartyLayerProps) {
   return (
     <div
       aria-label="Party people"
-      className="grid grid-cols-2 gap-3 md:grid-cols-3"
+      className="grid h-full w-full grid-cols-2 grid-rows-3 gap-2 sm:gap-3 lg:grid-cols-3 lg:grid-rows-2"
     >
       {people.map((person) => (
-        <Card
+        <CuratorTile
           key={person.id}
-          aria-label={`${person.displayName} party card`}
-          className="min-h-36 border-white/10 bg-slate-900/70 text-slate-100"
-          role="article"
-        >
-          <CardHeader className="gap-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="grid size-12 shrink-0 place-items-center rounded-lg border border-emerald-200/25 bg-emerald-200/10 text-sm font-semibold text-emerald-100">
-                {person.initials}
-              </div>
-              <Badge
-                className="border-emerald-200/25 bg-emerald-200/10 text-emerald-100"
-                variant="outline"
-              >
-                Party
-              </Badge>
-            </div>
-            <div className="flex flex-col gap-1">
-              <CardTitle>{person.displayName}</CardTitle>
-              <CardDescription className="text-slate-400">
-                {person.relationshipNote}
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm leading-6 text-slate-300">
-              {person.recentStatus}
-            </p>
-          </CardContent>
-        </Card>
+          id={`party-${person.id}`}
+          label={person.displayName}
+          onSelect={(trigger) =>
+            onSelect({ layer: "party", item: person }, trigger)
+          }
+          tone="party"
+          visual={person.initials}
+        />
       ))}
+      <CuratorTile
+        id={`party-${user.id}`}
+        label={user.displayName}
+        onSelect={(trigger) =>
+          onSelect({ layer: "party", item: user }, trigger)
+        }
+        tone="party"
+        visual={<UserRound strokeWidth={1.5} />}
+        visualClassName="[&_svg]:size-[clamp(3rem,10vmin,7rem)]"
+      />
     </div>
   );
 }

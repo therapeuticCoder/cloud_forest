@@ -47,10 +47,11 @@ behavior should make relational priority tangible.
 
 ## D-011: Relationship layers have canonical limits
 
-The current canonical limits are 5 Party people, 100 Tribe people, 5 Guilds,
-and 10 Signals. The limits are intentional product constraints inspired by
-relational capacity, not growth or engagement targets. Existing prototype data
-may be reconciled in a focused follow-up task.
+The current canonical limits are 5 Party relationships, 100 Tribe people, 5
+Guilds, and 10 Signals. The Party gallery may also include a separate tile for
+the user; that tile does not consume a relationship slot. The limits are
+intentional product constraints inspired by relational capacity, not growth or
+engagement targets.
 
 ## D-012: Prefer user-controlled and interoperable data
 
@@ -65,3 +66,12 @@ architecture; those choices should wait for concrete requirements.
 Code should be clean and human-legible, with descriptive names and
 straightforward control flow. Responsive, smooth interactions are product
 requirements and should inform architectural choices from the beginning.
+
+## D-014: Curator uses a gallery interaction model
+
+Curator presents each relationship layer as a full-viewport gallery of
+media-ready tiles rather than cards, rows, or accordions. Tile scale decreases
+with relational distance. The layers retain vertical scroll snap, while Tribe
+alone retains horizontal neighborhood pagination. Selecting any tile opens a
+shared full-screen destination; layer-specific detail interfaces are deferred
+until their actions are defined.
