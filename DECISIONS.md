@@ -37,3 +37,31 @@ Child projects should avoid auth, databases, analytics, and backend services unt
 ## D-009: Curator, Timeline, and Galaxy are separate views
 
 Curator, Timeline, and Galaxy should not be treated as side-by-side panes. The active prototype should make Timeline and Curator switchable as separate views. Galaxy may remain in the codebase where reasonable, but it is not the current polish priority.
+
+## D-010: Human Forest facilitates community, not engagement
+
+The product should help people deliberately cultivate relationships and
+community. It should not optimize for entertainment, time in app, undifferentiated
+engagement, or attention capture. Not everything matters the same, and product
+behavior should make relational priority tangible.
+
+## D-011: Relationship layers have canonical limits
+
+The current canonical limits are 5 Party people, 100 Tribe people, 5 Guilds,
+and 10 Signals. The limits are intentional product constraints inspired by
+relational capacity, not growth or engagement targets. Existing prototype data
+may be reconciled in a focused follow-up task.
+
+## D-012: Prefer user-controlled and interoperable data
+
+Human Forest should support local, on-device curation and prefer retrieving or
+connecting to user-controlled data over becoming the central owner of a social
+data stream. Federation and interoperability are product values. This decision
+does not yet select an offline, synchronization, hosting, storage, or federation
+architecture; those choices should wait for concrete requirements.
+
+## D-013: Performance and legibility are foundation requirements
+
+Code should be clean and human-legible, with descriptive names and
+straightforward control flow. Responsive, smooth interactions are product
+requirements and should inform architectural choices from the beginning.

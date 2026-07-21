@@ -218,7 +218,30 @@ This is the first polish PR after all four Curator layers exist. Avoid broad red
 
 ## Draft Tasks
 
-### T-011: Reconsider exposing Galaxy View
+### T-011: Reconcile Curator data with canonical layer limits
+
+Status: draft
+Size: small
+
+Goal:
+Align the Curator prototype and mock data with the canonical limits of 5 Party
+people, 100 Tribe people, 5 Guilds, and 10 Signals.
+
+Acceptance criteria:
+
+- Party renders and describes a limit of 5 people
+- Tribe data supports no more than 100 people total
+- Guilds remains limited to 5 groups
+- Signals supports 10 intentionally selected sources
+- tests and user-facing copy reflect the same limits
+- the visual design remains calm and usable at each layer's maximum
+- `pnpm check` passes
+
+Notes:
+Keep this separate from the documentation update. Review how Tribe
+neighborhoods partition the 100-person limit before changing fixtures.
+
+### T-012: Reconsider exposing Galaxy View
 
 Status: draft
 Size: medium
