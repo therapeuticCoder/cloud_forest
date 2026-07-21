@@ -1,125 +1,151 @@
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   curatorGuilds,
   curatorPartyPeople,
   curatorSignals,
   curatorTribeNeighborhoods,
+  curatorUser,
 } from "@/data/humanForest";
 import { cn } from "@/lib/utils";
+import type { CuratorSelection } from "@/types/curator";
 
+import { CuratorDetailView } from "./CuratorDetailView";
 import { GuildsLayer } from "./GuildsLayer";
 import { PartyLayer } from "./PartyLayer";
 import { SignalsLayer } from "./SignalsLayer";
 import { TribeLayer } from "./TribeLayer";
 
-type CuratorLayer = {
-  title: string;
+type CuratorLayerSectionProps = {
+  children: React.ReactNode;
   label: string;
-  description: string;
-  placeholder: string;
-  accentClassName: string;
 };
 
-const curatorLayers: CuratorLayer[] = [
-  {
-    title: "Party",
-    label: "Closest",
-    description: "The innermost layer for the people who should feel spacious.",
-    placeholder: "Six large person cards will live here.",
-    accentClassName: "border-emerald-200/25 bg-emerald-200/10 text-emerald-100",
-  },
-  {
-    title: "Tribe",
-    label: "Nearby",
-    description: "Neighborhoods of relationships that can be browsed sideways.",
-    placeholder: "Five horizontal neighborhood pages will live here.",
-    accentClassName: "border-cyan-200/25 bg-cyan-200/10 text-cyan-100",
-  },
-  {
-    title: "Guilds",
-    label: "Containers",
-    description:
-      "Communities, contexts, and recurring groups without portraits.",
-    placeholder: "Five expandable guild rows will live here.",
-    accentClassName: "border-violet-200/25 bg-violet-200/10 text-violet-100",
-  },
-  {
-    title: "Signals",
-    label: "Ambient",
-    description:
-      "Outer-world domains that matter without taking over the view.",
-    placeholder: "Five low-priority signal rows will live here.",
-    accentClassName: "border-amber-200/25 bg-amber-200/10 text-amber-100",
-  },
-];
+function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+
+    if (!section || !("IntersectionObserver" in window)) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsActive(entry.isIntersecting),
+      { threshold: 0.55 },
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <article
+      ref={sectionRef}
+      aria-label={`${label} layer`}
+      className={cn(
+        "h-[100svh] snap-start snap-always px-2 pb-2 pt-16 transition-[opacity,transform] duration-500 ease-out sm:px-4 sm:pb-4",
+        isActive ? "translate-y-0 opacity-100" : "translate-y-2 opacity-75",
+        "motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none",
+      )}
+    >
+      {children}
+    </article>
+  );
+}
 
 export function CuratorView() {
+  const [selection, setSelection] = useState<CuratorSelection | null>(null);
+  const triggerIdRef = useRef<string | null>(null);
+  const scrollContainerRef = useRef<HTMLElement>(null);
+  const scrollPositionRef = useRef(0);
+
+  const restoreCurator = useCallback(() => {
+    setSelection(null);
+
+    requestAnimationFrame(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = scrollPositionRef.current;
+      }
+      if (triggerIdRef.current) {
+        const trigger = document.querySelector<HTMLButtonElement>(
+          `[data-curator-tile="${triggerIdRef.current}"]`,
+        );
+        trigger?.focus();
+      }
+    });
+  }, []);
+
+  const handleSelect = useCallback(
+    (nextSelection: CuratorSelection, trigger: HTMLButtonElement) => {
+      scrollPositionRef.current = scrollContainerRef.current?.scrollTop ?? 0;
+      triggerIdRef.current = trigger.dataset.curatorTile ?? null;
+      window.history.pushState(
+        { ...window.history.state, curatorSelection: true },
+        "",
+      );
+      setSelection(nextSelection);
+    },
+    [],
+  );
+
+  const handleBack = useCallback(() => {
+    restoreCurator();
+    window.history.back();
+  }, [restoreCurator]);
+
+  useEffect(() => {
+    if (!selection) {
+      return;
+    }
+
+    const handlePopState = () => restoreCurator();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleBack();
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleBack, restoreCurator, selection]);
+
+  if (selection) {
+    return <CuratorDetailView onBack={handleBack} selection={selection} />;
+  }
+
   return (
     <section
+      ref={scrollContainerRef}
       aria-label="Curator view"
-      className="h-screen snap-y snap-mandatory overflow-y-auto bg-slate-950"
+      className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-slate-950 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
-      {curatorLayers.map((layer) => (
-        <article
-          key={layer.title}
-          className="flex h-[100svh] snap-start snap-always items-center px-4 py-24 sm:px-6 lg:px-10"
-        >
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-            <div className="flex flex-col gap-3">
-              <Badge
-                className={cn("w-fit border", layer.accentClassName)}
-                variant="outline"
-              >
-                {layer.label}
-              </Badge>
-              <div className="flex flex-col gap-2">
-                <h2 className="text-3xl font-semibold text-white sm:text-5xl">
-                  {layer.title}
-                </h2>
-                <p className="max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                  {layer.description}
-                </p>
-              </div>
-            </div>
-
-            {layer.title === "Party" ? (
-              <PartyLayer people={curatorPartyPeople} />
-            ) : layer.title === "Tribe" ? (
-              <TribeLayer neighborhoods={curatorTribeNeighborhoods} />
-            ) : layer.title === "Guilds" ? (
-              <GuildsLayer guilds={curatorGuilds} />
-            ) : layer.title === "Signals" ? (
-              <SignalsLayer signals={curatorSignals} />
-            ) : (
-              <Card className="border-white/10 bg-slate-900/70 text-slate-100">
-                <CardHeader>
-                  <CardTitle>{layer.title} layer</CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Fixed viewport slice with vertical scroll snap.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div
-                    className={cn(
-                      "rounded-lg border p-5 text-sm leading-6",
-                      layer.accentClassName,
-                    )}
-                  >
-                    {layer.placeholder}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </article>
-      ))}
+      <CuratorLayerSection label="Party">
+        <PartyLayer
+          onSelect={handleSelect}
+          people={curatorPartyPeople}
+          user={curatorUser}
+        />
+      </CuratorLayerSection>
+      <CuratorLayerSection label="Tribe">
+        <TribeLayer
+          neighborhoods={curatorTribeNeighborhoods}
+          onSelect={handleSelect}
+        />
+      </CuratorLayerSection>
+      <CuratorLayerSection label="Guilds">
+        <GuildsLayer guilds={curatorGuilds} onSelect={handleSelect} />
+      </CuratorLayerSection>
+      <CuratorLayerSection label="Signals">
+        <SignalsLayer onSelect={handleSelect} signals={curatorSignals} />
+      </CuratorLayerSection>
     </section>
   );
 }

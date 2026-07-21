@@ -14,4 +14,5 @@ export {
   curatorPartyPeople,
   curatorSignals,
   curatorTribeNeighborhoods,
+  curatorUser,
 } from "./curatorMockData";

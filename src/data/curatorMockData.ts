@@ -80,7 +80,7 @@ function createInitials(displayName: string) {
 }
 
 function createTribePeople(neighborhoodId: string, suffix: string) {
-  return tribeFirstNames.map((firstName, index): CuratorPerson => {
+  return tribeFirstNames.slice(0, 20).map((firstName, index): CuratorPerson => {
     const displayName = `${firstName} ${suffix}`;
 
     return {
@@ -134,14 +134,15 @@ export const curatorPartyPeople: CuratorPerson[] = [
     relationshipNote: "Oldest friend",
     recentStatus: "Needs a reply",
   },
-  {
-    id: "lena",
-    displayName: "Lena Moss",
-    initials: "LM",
-    relationshipNote: "Chosen family",
-    recentStatus: "New photo shared",
-  },
 ];
+
+export const curatorUser: CuratorPerson = {
+  id: "you",
+  displayName: "You",
+  initials: "YOU",
+  relationshipNote: "Your profile",
+  recentStatus: "Your place in the forest",
+};
 
 export const curatorTribeNeighborhoods: CuratorNeighborhood[] =
   neighborhoodSeeds.map((neighborhood) => ({
@@ -234,9 +235,50 @@ export const curatorSignals: CuratorSignal[] = [
       "Research and environmental updates held as ambient awareness.",
     recentActivity: "A field report summarized seasonal measurements.",
   },
+  {
+    id: "statehouse-brief",
+    name: "Statehouse Brief",
+    domain: "Public affairs",
+    category: "politics",
+    description: "Selected state policy updates without the churn of a feed.",
+    recentActivity: "A committee calendar was published.",
+  },
+  {
+    id: "community-arts-calendar",
+    name: "Community Arts Calendar",
+    domain: "Arts",
+    category: "art",
+    description: "Nearby exhibitions, performances, and public art events.",
+    recentActivity: "Three neighborhood events were added.",
+  },
+  {
+    id: "open-source-ledger",
+    name: "Open Source Ledger",
+    domain: "Technology",
+    category: "technology",
+    description: "Measured updates from public-interest software projects.",
+    recentActivity: "A long-term support release shipped.",
+  },
+  {
+    id: "public-health-notes",
+    name: "Public Health Notes",
+    domain: "Science",
+    category: "science",
+    description: "Plain-language public health research and local guidance.",
+    recentActivity: "Seasonal guidance was refreshed.",
+  },
+  {
+    id: "independent-book-review",
+    name: "Independent Book Review",
+    domain: "Books",
+    category: "art",
+    description: "Thoughtful criticism and reading suggestions from afar.",
+    recentActivity: "The monthly reading list was posted.",
+  },
 ];
 
 export const curatorMockData: CuratorMockData = {
+  user: curatorUser,
   partyPeople: curatorPartyPeople,
   tribeNeighborhoods: curatorTribeNeighborhoods,
   guilds: curatorGuilds,

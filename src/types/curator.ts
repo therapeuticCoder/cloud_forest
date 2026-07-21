@@ -40,8 +40,15 @@ export type CuratorSignal = {
 };
 
 export type CuratorMockData = {
+  user: CuratorPerson;
   partyPeople: CuratorPerson[];
   tribeNeighborhoods: CuratorNeighborhood[];
   guilds: CuratorGuild[];
   signals: CuratorSignal[];
 };
+
+export type CuratorSelection =
+  | { layer: "party"; item: CuratorPerson }
+  | { layer: "tribe"; item: CuratorPerson }
+  | { layer: "guild"; item: CuratorGuild }
+  | { layer: "signal"; item: CuratorSignal };

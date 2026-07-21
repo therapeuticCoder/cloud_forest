@@ -78,8 +78,9 @@ architecture, introducing an external service, or materially expanding scope.
   entertainment, or engagement.
 - Relationship quality matters more than quantity, and not everything matters
   the same.
-- The canonical layer limits are 5 Party people, 100 Tribe people, 5 Guilds,
-  and 10 Signals.
+- The canonical layer limits are 5 Party relationships, 100 Tribe people, 5
+  Guilds, and 10 Signals. A separate Party-view tile may represent the user
+  without consuming a relationship slot.
 - Prefer user-controlled, interoperable data flows over central ownership of
   social data. Do not invent a storage or federation architecture before the
   product requires one.

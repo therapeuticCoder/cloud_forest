@@ -1,64 +1,58 @@
-import { Layers3 } from "lucide-react";
-
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import type { CuratorGuild } from "@/types/curator";
+  BookOpen,
+  Hammer,
+  HandHeart,
+  Landmark,
+  UsersRound,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import type { CuratorGuild, CuratorSelection } from "@/types/curator";
+
+import { CuratorTile } from "./CuratorTile";
 
 type GuildsLayerProps = {
   guilds: CuratorGuild[];
+  onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
 };
 
-export function GuildsLayer({ guilds }: GuildsLayerProps) {
+const guildIcons = {
+  "mutual-care": HandHeart,
+  "studio-night": UsersRound,
+  "local-builders": Hammer,
+  "reading-room": BookOpen,
+  "civic-table": Landmark,
+} as const;
+
+export function GuildsLayer({ guilds, onSelect }: GuildsLayerProps) {
   return (
-    <Accordion
-      aria-label="Guild rows"
-      className="flex flex-col gap-3"
-      collapsible
-      defaultValue={guilds[0]?.id}
-      type="single"
+    <div
+      aria-label="Guilds"
+      className="grid h-full w-full grid-cols-2 grid-rows-3 gap-2.5 sm:gap-3 lg:grid-cols-3 lg:grid-rows-2"
     >
-      {guilds.map((guild) => (
-        <Card
-          key={guild.id}
-          aria-label={`${guild.name} guild row`}
-          className="border-white/10 bg-slate-900/65 px-4 py-0 text-slate-100"
-          role="article"
-        >
-          <AccordionItem className="border-0" value={guild.id}>
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="grid size-10 shrink-0 place-items-center rounded-lg border border-violet-200/25 bg-violet-200/10 text-violet-100">
-                  <Layers3 aria-hidden="true" className="size-4" />
-                </div>
-                <div className="flex min-w-0 flex-col gap-1">
-                  <span className="truncate text-base font-medium text-slate-100">
-                    {guild.name}
-                  </span>
-                  <span className="truncate text-xs text-slate-400">
-                    {guild.recentActivity}
-                  </span>
-                </div>
-              </div>
-              <Badge
-                className="ml-auto shrink-0 border-violet-200/25 bg-violet-200/10 text-violet-100"
-                variant="outline"
-              >
-                {guild.memberCount} members
-              </Badge>
-            </AccordionTrigger>
-            <AccordionContent className="pl-13 text-sm leading-6 text-slate-300">
-              <p>{guild.description}</p>
-              <p className="mt-2 text-slate-400">{guild.recentActivity}</p>
-            </AccordionContent>
-          </AccordionItem>
-        </Card>
-      ))}
-    </Accordion>
+      {guilds.map((guild, index) => {
+        const GuildIcon =
+          guildIcons[guild.id as keyof typeof guildIcons] ?? UsersRound;
+
+        return (
+          <CuratorTile
+            key={guild.id}
+            className={cn(
+              index === guilds.length - 1 &&
+                "col-span-2 w-[calc(50%_-_0.3125rem)] justify-self-center sm:w-[calc(50%_-_0.375rem)] lg:col-span-1 lg:col-start-2 lg:w-full",
+            )}
+            id={`guild-${guild.id}`}
+            labelClassName="line-clamp-2 whitespace-normal leading-tight"
+            label={guild.name}
+            onSelect={(trigger) =>
+              onSelect({ layer: "guild", item: guild }, trigger)
+            }
+            tone="guild"
+            visual={<GuildIcon strokeWidth={1.5} />}
+            visualClassName="[&_svg]:size-[clamp(3rem,10vmin,7rem)]"
+          />
+        );
+      })}
+    </div>
   );
 }
