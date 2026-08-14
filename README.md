@@ -29,13 +29,23 @@ otherwise.
 
 ## Local development
 
-Use Node.js `20.19` or newer in the Node 20 line, or Node.js `22.12` or
-newer. This project pins pnpm `11.1.2` through the `packageManager` field.
+Use Node.js `22.23.2`. The repository records the version in `.nvmrc` and
+`.node-version` and pins pnpm `11.1.2` through the `packageManager` field.
+
+For the complete native Windows workstation, Docker, local service, Codex, and
+troubleshooting instructions, see [`docs/development.md`](docs/development.md).
 
 Install dependencies:
 
 ```bash
 pnpm install
+```
+
+Or run the repeatable environment setup, which verifies tool versions, installs
+from the lockfile, and runs the full project check:
+
+```powershell
+pnpm.cmd setup
 ```
 
 Run the app locally:
@@ -73,6 +83,14 @@ pnpm.cmd check
 The package scripts use cross-platform Node-based tools and work on both native
 Windows and Linux.
 
+Start the local PostgreSQL, email capture, and S3-compatible services after
+Docker Desktop is running:
+
+```powershell
+pnpm.cmd services:up
+pnpm.cmd services:status
+```
+
 ## Project structure
 
 ```text
@@ -97,6 +115,7 @@ task per agent session and read these files before making changes:
 - `BACKLOG.md`
 - `DECISIONS.md`
 - `docs/project-brief.md`
+- `docs/prototype-roadmap.md`
 - `docs/workflow.md`
 
 The human remains the product owner and reviewer. Keep changes small,
