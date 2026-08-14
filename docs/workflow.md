@@ -107,6 +107,11 @@ Codex may inspect Git history and diffs as part of normal work. Staging,
 committing, pushing, opening a pull request, merging, or otherwise publishing
 changes should happen only when the human requests or authorizes that action.
 
+Each implementation session starts from an up-to-date default branch with a
+clean worktree and uses a new `codex/` feature branch. Do not implement directly
+on the default branch. Publish every completed session through a pull request;
+keep independent outcomes in separate branches and pull requests.
+
 Before committing, review:
 
 - whether the requested outcome and acceptance criteria are met

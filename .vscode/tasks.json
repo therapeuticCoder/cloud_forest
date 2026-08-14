@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Human Forest: Run",
+      "type": "shell",
+      "command": "pnpm.cmd dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Human Forest: Check",
+      "type": "shell",
+      "command": "pnpm.cmd check",
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Human Forest: Start services",
+      "type": "shell",
+      "command": "pnpm.cmd services:up",
+      "problemMatcher": []
+    }
+  ]
+}

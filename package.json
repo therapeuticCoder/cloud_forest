@@ -1,13 +1,14 @@
 {
-  "name": "calm-react-starter",
+  "name": "human-forest",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "packageManager": "pnpm@11.1.2",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "22.23.2"
   },
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -15,7 +16,11 @@
     "format:check": "prettier . --check",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "pnpm lint && pnpm format:check && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm format:check && pnpm test && pnpm build",
+    "services:up": "node scripts/docker.mjs compose up -d --wait",
+    "services:down": "node scripts/docker.mjs compose down",
+    "services:status": "node scripts/docker.mjs compose ps",
+    "services:logs": "node scripts/docker.mjs compose logs --tail=100"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",

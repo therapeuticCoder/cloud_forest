@@ -105,3 +105,63 @@ Acceptance criteria:
 - each tile opens the shared destination
 - no Signal accordion remains
 - `pnpm check` passes
+
+## Working Prototype Roadmap
+
+### T-016: Establish the native Windows development environment
+
+Status: in progress
+Size: medium
+
+Goal:
+Make a clean Human Forest checkout reproducible for the product owner and Codex
+before changing the application architecture.
+
+Acceptance criteria:
+
+- Node 22.23.2 and pnpm 11.1.2 are pinned and verified
+- Docker Desktop, Compose, Python, Git, GitHub CLI, VS Code, and Codex tooling are
+  installed or have an explicit human-only authentication step
+- PostgreSQL, local email capture, and S3-compatible storage start through one
+  documented command
+- a shared Codex environment and VS Code recommendations expose working project
+  actions
+- a clean worktree completes setup and `pnpm check`
+- backup and restore instructions are verified
+
+### T-017: Calibrate the Human Forest visual direction
+
+Status: blocked on product-owner reference input
+Size: medium
+
+Goal:
+Create and approve a visual source of truth before further broad UI work.
+
+Acceptance criteria:
+
+- the product owner supplies annotated references, anti-references, and a current
+  UI critique
+- three distinct static directions are reviewed for one representative screen
+- one selected direction is implemented and approved at mobile and desktop sizes
+- accessibility, keyboard, motion, overflow, and content variation are reviewed
+- approved principles, tokens, patterns, and anti-patterns are recorded in the
+  repository
+
+### T-018: Create the application monorepo foundation
+
+Status: queued
+Size: large; split before implementation
+
+Goal:
+Establish the React PWA, Fastify API, worker, contracts, domain, database, local
+cache, and test boundaries through one thin client-to-database vertical slice.
+
+Acceptance criteria:
+
+- work is divided into small reviewable child tasks before editing
+- new dependencies are approved and introduced only with their owning child task
+- PostgreSQL migrations are reviewed SQL and run locally
+- the versioned API validates requests and responses and generates OpenAPI
+- database migration and E2E commands become working Codex actions
+- the existing visual prototype remains usable while mock-only data is replaced
+  incrementally

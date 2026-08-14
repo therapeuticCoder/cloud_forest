@@ -75,3 +75,33 @@ with relational distance. The layers retain vertical scroll snap, while Tribe
 alone retains horizontal neighborhood pagination. Selecting any tile opens a
 shared full-screen destination; layer-specific detail interfaces are deferred
 until their actions are defined.
+
+## D-015: Development is native Windows first
+
+The primary development environment uses the Windows filesystem, PowerShell,
+the Windows-native Codex agent, Node.js 22.23.2, pnpm 11.1.2, and Docker
+Desktop's WSL2 backend for Linux containers. Shared setup must work in clean
+Codex worktrees and use PowerShell-safe commands.
+
+## D-016: The prototype grows into a TypeScript modular monolith
+
+The planned production seed is a pnpm monorepo containing a React PWA, Fastify
+API, background worker, shared contracts, and domain packages. PostgreSQL is the
+primary server datastore, Drizzle manages reviewed SQL migrations, and durable
+jobs remain PostgreSQL-backed. Redis, microservices, and a second server language
+are not initial requirements.
+
+## D-017: Local-first is a client experience, not serverless social data
+
+Private curation, journals, cached reads, and drafts should remain useful on the
+device and synchronize across devices. The trusted service remains authoritative
+for identities, connections, posts, replies, Guild membership, and delivery and
+may decrypt authorized alpha content. End-to-end encryption is deferred.
+
+## D-018: Product architecture follows measured milestone gates
+
+The working prototype sequence is environment and design calibration, personal
+loop, multi-user network loop, trusted testing, optional one-way ActivityPub
+proof, and hardening. Federation proceeds only when the core network is stable.
+Approximately 25 to 30 percent of the eight-week window is reserved for
+integration, feedback, rework, accessibility, security, and recovery testing.

@@ -9,6 +9,10 @@ versions remain informal while the prototype evolves.
 
 ### Added
 
+- Native Windows development baseline with pinned Node and pnpm versions, local
+  PostgreSQL/email/S3-compatible services, Codex actions, VS Code recommendations,
+  and setup and recovery documentation.
+- Eight-week working prototype roadmap and initial implementation backlog.
 - Expanded product brief covering the intended user, community-building purpose,
   relationship limits, view responsibilities, product principles, data posture,
   and current milestone.
@@ -17,6 +21,7 @@ versions remain informal while the prototype evolves.
 
 ### Changed
 
+- Renamed the package from the inherited starter name to `human-forest`.
 - Clarified Human Forest's project summary and current Curator direction.
 - Recorded canonical layer limits of 5 Party people, 100 Tribe people, 5 Guilds,
   and 10 Signals.
