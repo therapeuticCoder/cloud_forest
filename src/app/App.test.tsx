@@ -8,7 +8,7 @@ async function openCurator() {
   const user = userEvent.setup();
 
   render(<App />);
-  await user.click(screen.getByRole("button", { name: /curator/i }));
+  await user.click(screen.getAllByRole("button", { name: /curator/i })[0]);
 
   return user;
 }
@@ -17,19 +17,14 @@ describe("App", () => {
   it("renders Timeline as a standalone default view", () => {
     render(<App />);
 
-    expect(
-      screen.getByRole("button", { name: /timeline/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /curator/i }),
-    ).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /timeline/i })).toHaveLength(
+      2,
+    );
+    expect(screen.getAllByRole("button", { name: /curator/i })).toHaveLength(2);
     expect(screen.getByRole("region", { name: /timeline view/i }));
-    expect(
-      screen.getByText(/not everything matters the same/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /field map/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /whole forest/i }));
+    expect(screen.getByRole("button", { name: /write/i })).toBeInTheDocument();
+    expect(screen.getByText(/yesterday/i)).toBeInTheDocument();
   });
 
   it("renders the four gallery layers at their canonical sizes", async () => {
