@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import { List, Sprout } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export type HumanForestView = "timeline" | "curator";
@@ -8,39 +9,31 @@ type ViewSwitcherProps = {
   onViewChange: (view: HumanForestView) => void;
 };
 
-const viewOptions: { label: string; value: HumanForestView }[] = [
-  { label: "Timeline", value: "timeline" },
-  { label: "Curator", value: "curator" },
+const viewOptions = [
+  { icon: List, label: "Timeline", value: "timeline" as const },
+  { icon: Sprout, label: "Curator", value: "curator" as const },
 ];
 
 export function ViewSwitcher({ activeView, onViewChange }: ViewSwitcherProps) {
   return (
-    <div
-      aria-label="Human Forest view"
-      className="inline-flex rounded-lg border border-white/10 bg-slate-950/70 p-1 shadow-[0_0_30px_rgba(15,23,42,0.28)]"
-      role="group"
-    >
+    <nav aria-label="Human Forest view" className="timeline-view-switcher">
       {viewOptions.map((option) => {
         const isActive = option.value === activeView;
-
+        const Icon = option.icon;
         return (
-          <Button
+          <button
             key={option.value}
-            aria-pressed={isActive}
-            className={cn(
-              "border-transparent bg-transparent text-slate-300 hover:bg-white/10 hover:text-white",
-              isActive &&
-                "border-emerald-200/25 bg-emerald-200/10 text-emerald-100 shadow-[0_0_24px_rgba(52,211,153,0.12)]",
-            )}
+            aria-current={isActive ? "page" : undefined}
+            aria-label={option.label}
+            className={cn(isActive && "is-active")}
             onClick={() => onViewChange(option.value)}
-            size="sm"
             type="button"
-            variant="ghost"
           >
-            {option.label}
-          </Button>
+            <Icon aria-hidden="true" />
+            <span>{option.label}</span>
+          </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

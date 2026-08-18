@@ -1,4 +1,5 @@
-import { Badge } from "@/components/ui/badge";
+import { Building2, RadioTower, Sprout, UsersRound } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import type {
   HumanForestActivity,
@@ -11,83 +12,83 @@ type TimelineLayer = Exclude<HumanForestLayer, "self">;
 type TimelineCardProps = {
   activity: HumanForestActivity;
   actor: HumanForestActor;
+  dateTime: string;
   time: string;
-  size?: "full" | "compact" | "mini";
 };
 
-const cardClasses: Record<TimelineLayer, string> = {
-  party:
-    "border-amber-200/28 bg-amber-200/[0.085] shadow-[0_0_38px_rgba(251,191,36,0.12)]",
-  tribe: "border-sky-200/18 bg-sky-200/[0.052]",
-  guild:
-    "border-violet-200/24 bg-violet-200/[0.065] shadow-[0_0_32px_rgba(167,139,250,0.08)]",
-  signal: "border-teal-200/14 bg-teal-200/[0.035] text-slate-400 opacity-85",
+const layerStyles: Record<TimelineLayer, string> = {
+  party: "timeline-card--party",
+  tribe: "timeline-card--tribe",
+  guild: "timeline-card--guild",
+  signal: "timeline-card--signal",
 };
 
-const badgeClasses: Record<TimelineLayer, string> = {
-  party: "border-amber-200/30 bg-amber-200/12 text-amber-100",
-  tribe: "border-sky-200/25 bg-sky-200/10 text-sky-100",
-  guild: "border-violet-200/25 bg-violet-200/10 text-violet-100",
-  signal: "border-teal-200/18 bg-teal-200/6 text-teal-100/70",
+const layerIcons: Record<TimelineLayer, typeof UsersRound> = {
+  party: UsersRound,
+  tribe: Sprout,
+  guild: Building2,
+  signal: RadioTower,
+};
+
+const portraitPositions: Record<string, string> = {
+  mira: "0% 0%",
+  ren: "100% 0%",
+  care: "0% 100%",
+  anya: "0% 100%",
+  soil: "100% 100%",
+  "work-jordan": "100% 100%",
 };
 
 function getTimelineLayer(actor: HumanForestActor): TimelineLayer {
   return actor.layer === "self" ? "party" : actor.layer;
 }
 
-function getTimelineLayerLabel(layer: TimelineLayer) {
-  return layer === "party" ? "Party" : layer === "guild" ? "Guilds" : layer;
+function TimelineIdentity({ actor }: { actor: HumanForestActor }) {
+  const layer = getTimelineLayer(actor);
+  const LayerIcon = layerIcons[layer];
+  const portraitPosition = portraitPositions[actor.id];
+
+  if (actor.sourceType === "person") {
+    return portraitPosition ? (
+      <span
+        aria-hidden="true"
+        className="timeline-portrait"
+        style={{ backgroundPosition: portraitPosition }}
+      />
+    ) : (
+      <span aria-hidden="true" className="timeline-initials">
+        {actor.initials ?? actor.displayName.slice(0, 2)}
+      </span>
+    );
+  }
+
+  return (
+    <span aria-hidden="true" className="timeline-source-mark">
+      <LayerIcon />
+    </span>
+  );
 }
 
 export function TimelineCard({
   activity,
   actor,
+  dateTime,
   time,
-  size = "full",
 }: TimelineCardProps) {
   const layer = getTimelineLayer(actor);
+  const LayerIcon = layerIcons[layer];
 
   return (
-    <article
-      className={cn(
-        "rounded-lg border",
-        size === "full" && "p-4",
-        size === "compact" && "p-3",
-        size === "mini" && "p-2.5",
-        cardClasses[layer],
-      )}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <Badge
-          className={cn(
-            "capitalize",
-            size === "mini" && "px-1.5 py-0 text-[0.58rem]",
-            badgeClasses[layer],
-          )}
-          variant="outline"
-        >
-          {getTimelineLayerLabel(layer)}
-        </Badge>
-        <span className="text-xs text-slate-500">{time}</span>
+    <article className={cn("timeline-card", layerStyles[layer])}>
+      <TimelineIdentity actor={actor} />
+      <div className="timeline-card__body">
+        <h3>{actor.displayName}</h3>
+        <p>{activity.content}</p>
+        <time dateTime={dateTime}>{time}</time>
       </div>
-      <div className={cn(size === "full" ? "mt-3" : "mt-2")}>
-        <p className="truncate text-xs text-slate-400">{actor.displayName}</p>
-        <h2
-          className={cn(
-            "mt-1 font-semibold text-slate-50",
-            layer === "guild" && "uppercase tracking-[0.12em]",
-            layer === "signal" && "text-slate-300/80",
-            size === "mini" ? "text-xs leading-4" : "text-sm",
-          )}
-        >
-          {activity.title}
-        </h2>
-        {size === "full" ? (
-          <p className="mt-2 text-sm leading-6 text-slate-300">
-            {activity.content}
-          </p>
-        ) : null}
-      </div>
+      <span aria-hidden="true" className="timeline-layer-mark">
+        <LayerIcon />
+      </span>
     </article>
   );
 }
