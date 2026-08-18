@@ -14,6 +14,7 @@ should be small enough for one focused agent session.
 - T-007: Build Tribe horizontal neighborhood pager
 - T-008: Build Guilds accordion layer
 - T-009: Build Signals accordion layer
+- T-016: Establish the native Windows development environment
 
 ## Gallery Refactor
 
@@ -110,7 +111,7 @@ Acceptance criteria:
 
 ### T-016: Establish the native Windows development environment
 
-Status: in progress
+Status: done
 Size: medium
 
 Goal:
@@ -131,7 +132,7 @@ Acceptance criteria:
 
 ### T-017: Calibrate the Human Forest visual direction
 
-Status: blocked on product-owner reference input
+Status: in review
 Size: medium
 
 Goal:
@@ -146,6 +147,14 @@ Acceptance criteria:
 - accessibility, keyboard, motion, overflow, and content variation are reviewed
 - approved principles, tokens, patterns, and anti-patterns are recorded in the
   repository
+
+Current state:
+
+- a selected direction has been implemented on the representative Timeline at
+  desktop and mobile sizes
+- browser review covered responsive layout, scrolling chrome, keyboard focus,
+  reduced-motion behavior, overflow, screenshots, and console health
+- product-owner approval and the repository design guidance remain outstanding
 
 ### T-018: Create the application monorepo foundation
 

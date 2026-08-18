@@ -107,13 +107,18 @@ will be decided when concrete product requirements make the tradeoffs clear.
 
 The current app is a front-end prototype built with React, TypeScript, Vite,
 Tailwind CSS, shadcn/ui, and Vitest. It contains separate Curator, Timeline, and
-Galaxy views. Curator has working structural representations of all four
-relationship layers, but some mock-data counts still differ from the target
-5/100/5/10 model.
+Galaxy views. Curator presents all four relationship layers at the canonical
+5/100/5/10 limits through responsive gallery interactions. Timeline now serves
+as the representative implementation of the provisionally selected visual
+direction, with relational layers encoded through card borders, identity, and
+marks rather than engagement metrics.
 
-The next milestone is a working, carefully polished Curator prototype. UI and UX
-quality, accessibility, performance, and a clean architectural foundation are
-part of that milestone rather than deferred concerns.
+The immediate milestone is product-owner browser review of the representative
+Timeline at mobile and desktop sizes, followed by explicit visual approval and
+documentation of the reusable visual grammar. Broad application restyling waits
+for that approval. UI and UX quality, accessibility, performance, and a clean
+architectural foundation remain part of the milestone rather than deferred
+concerns.
 
 ## Out of scope for the current prototype
 

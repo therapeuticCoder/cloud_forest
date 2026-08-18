@@ -101,6 +101,18 @@ obvious interaction or performance regressions.
 
 If a check cannot run, report the exact reason rather than implying success.
 
+For reference-driven UI work:
+
+- inspect every approved reference before implementation
+- treat references as visual specifications rather than page assets
+- verify desktop and mobile browser renders, interaction states, keyboard focus,
+  reduced motion, overflow, and console health
+- capture implementation screenshots and compare them directly with the
+  references before handoff
+- record intentional differences rather than silently inventing product areas
+- keep a selected direction provisional until the human approves the rendered
+  implementation
+
 ## Git and review boundaries
 
 Codex may inspect Git history and diffs as part of normal work. Staging,
@@ -120,3 +132,16 @@ Before committing, review:
 - whether the diff is understandable and appropriately scoped
 - which automated and visual checks passed or failed
 - whether new durable decisions or follow-up tasks need to be recorded
+
+## Pull request review suggestions
+
+Codex may attach inline suggestions or review comments to a pull request when a
+specific line-level change would help the human evaluate the work. These are
+review proposals, not accepted changes or new requirements. The human decides
+whether to apply them, request a revision, defer them to the backlog, or reject
+them.
+
+Codex should keep suggestions scoped, explain the user-visible or maintenance
+impact, and avoid turning optional polish into an implied blocker. Implementing
+a suggestion in a later task still requires the same human authority and scope
+rules as any other change.
