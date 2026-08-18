@@ -34,6 +34,8 @@ Use Node.js `22.23.2`. The repository records the version in `.nvmrc` and
 
 For the complete native Windows workstation, Docker, local service, Codex, and
 troubleshooting instructions, see [`docs/development.md`](docs/development.md).
+For the approved visual principles, semantic palette, responsive patterns, and
+anti-patterns, see [`docs/design-guide.md`](docs/design-guide.md).
 
 Install dependencies:
 

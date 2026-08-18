@@ -9,6 +9,9 @@ versions remain informal while the prototype evolves.
 
 ### Added
 
+- Approved Human Forest design guide covering visual principles, semantic color
+  tokens, typography, identity, layout, floating chrome, motion, accessibility,
+  content boundaries, and anti-patterns.
 - Representative responsive Timeline design with portrait-led identity,
   relationship-layer borders and marks, calm day separation, and detached
   desktop and mobile chrome.
@@ -28,8 +31,7 @@ versions remain informal while the prototype evolves.
 ### Changed
 
 - Reworked Timeline from a density-tiered prototype panel into a wide,
-  chronological representative screen using the provisionally selected visual
-  direction.
+  chronological representative screen using the approved visual direction.
 - Updated responsive navigation presentation while preserving the existing
   Timeline and Curator destinations.
 - Renamed the package from the inherited starter name to `human-forest`.

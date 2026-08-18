@@ -15,6 +15,7 @@ should be small enough for one focused agent session.
 - T-008: Build Guilds accordion layer
 - T-009: Build Signals accordion layer
 - T-016: Establish the native Windows development environment
+- T-017: Calibrate the Human Forest visual direction
 
 ## Gallery Refactor
 
@@ -132,7 +133,7 @@ Acceptance criteria:
 
 ### T-017: Calibrate the Human Forest visual direction
 
-Status: in review
+Status: done
 Size: medium
 
 Goal:
@@ -148,13 +149,15 @@ Acceptance criteria:
 - approved principles, tokens, patterns, and anti-patterns are recorded in the
   repository
 
-Current state:
+Completed state:
 
 - a selected direction has been implemented on the representative Timeline at
   desktop and mobile sizes
 - browser review covered responsive layout, scrolling chrome, keyboard focus,
   reduced-motion behavior, overflow, screenshots, and console health
-- product-owner approval and the repository design guidance remain outstanding
+- the product owner approved the implemented direction
+- the reusable principles, tokens, component patterns, responsive behavior, and
+  anti-patterns are recorded in `docs/design-guide.md`
 
 ### T-018: Create the application monorepo foundation
 

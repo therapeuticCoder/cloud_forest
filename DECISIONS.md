@@ -105,3 +105,11 @@ loop, multi-user network loop, trusted testing, optional one-way ActivityPub
 proof, and hardening. Federation proceeds only when the core network is stable.
 Approximately 25 to 30 percent of the eight-week window is reserved for
 integration, feedback, rework, accessibility, security, and recovery testing.
+
+## D-019: Timeline establishes the approved visual grammar
+
+The product owner approved the representative responsive Timeline direction as
+the visual foundation for Human Forest. The durable principles, semantic tokens,
+component patterns, responsive behavior, motion, accessibility expectations, and
+anti-patterns are recorded in `docs/design-guide.md`. Future screens should reuse
+that grammar without forcing Timeline-specific anatomy onto unrelated workflows.

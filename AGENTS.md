@@ -10,6 +10,7 @@ full Codex app operating workflow.
 - Work one task at a time.
 - Prefer small, reviewable changes.
 - Read `README.md`, `BACKLOG.md`, and `DECISIONS.md` before making changes.
+- Read `docs/design-guide.md` before changing user-facing UI or visual styles.
 - Do not complete unrelated tasks.
 - Do not add dependencies without asking.
 - Do not delete large sections or restructure the project without asking.
