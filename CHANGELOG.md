@@ -9,6 +9,12 @@ versions remain informal while the prototype evolves.
 
 ### Added
 
+- Representative responsive Timeline design with portrait-led identity,
+  relationship-layer borders and marks, calm day separation, and detached
+  desktop and mobile chrome.
+- Scroll-direction chrome behavior that withdraws on downward scrolling and
+  returns on upward scrolling or keyboard focus, with reduced-motion handling.
+- Fictional portrait artwork for representative Timeline people.
 - Native Windows development baseline with pinned Node and pnpm versions, local
   PostgreSQL/email/S3-compatible services, Codex actions, VS Code recommendations,
   and setup and recovery documentation.
@@ -21,11 +27,16 @@ versions remain informal while the prototype evolves.
 
 ### Changed
 
+- Reworked Timeline from a density-tiered prototype panel into a wide,
+  chronological representative screen using the provisionally selected visual
+  direction.
+- Updated responsive navigation presentation while preserving the existing
+  Timeline and Curator destinations.
 - Renamed the package from the inherited starter name to `human-forest`.
 - Clarified Human Forest's project summary and current Curator direction.
 - Recorded canonical layer limits of 5 Party people, 100 Tribe people, 5 Guilds,
   and 10 Signals.
-- Added a backlog task to reconcile prototype data with the canonical limits.
+- Reconciled Curator prototype data with the canonical layer limits.
 
 ## 2026-07-05
 

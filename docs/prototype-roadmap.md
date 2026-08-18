@@ -62,11 +62,18 @@ relational posts is recalculated from current connection, layer, and block state
 
 ## Design gate
 
-Broad UI implementation waits for annotated references and anti-references from
-the product owner. Codex will create three distinct static directions for one
-representative screen, implement only the selected direction at mobile and
-desktop widths, and record the approved visual grammar before applying it to
-later stories.
+The product owner supplied visual direction and selected a provisional approach
+for the representative Timeline screen. That direction is now implemented at
+mobile and desktop widths and has completed an initial browser QA pass covering
+responsive layout, keyboard focus, motion, overflow, console health, and direct
+screenshot comparison.
+
+The design gate remains open until the product owner reviews the real browser
+render, requests any revisions, and explicitly approves it. After approval, the
+repository should record the durable principles, tokens, component patterns,
+and anti-patterns before the visual grammar is applied to later stories. The
+current implementation is evidence for that decision, not yet the final design
+guide.
 
 Third-party reference screenshots remain uncommitted unless storage permission
 is clear. The repository stores derived principles and original Human Forest

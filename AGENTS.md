@@ -17,6 +17,9 @@ full Codex app operating workflow.
 - Inspect `git status` and relevant diffs before editing. Preserve unrelated
   human changes already in the worktree.
 - After editing, run the relevant checks listed in `README.md`.
+- For reference-driven UI work, inspect the supplied references before editing,
+  verify the rendered result in the browser at the relevant viewport sizes, and
+  compare final screenshots directly with the references.
 - Summarize what changed and what checks were run.
 
 ## Safety
@@ -98,3 +101,5 @@ architecture, introducing an external service, or materially expanding scope.
 - Treat responsiveness and smooth interaction as product requirements. Avoid
   unnecessary rendering, data work, and architectural complexity.
 - Run `pnpm check` after code changes when practical.
+- Treat an implemented visual direction as provisional until the human approves
+  the browser-reviewed result and its reusable design guidance is recorded.
