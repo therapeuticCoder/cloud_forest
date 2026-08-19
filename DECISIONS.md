@@ -113,3 +113,12 @@ the visual foundation for Human Forest. The durable principles, semantic tokens,
 component patterns, responsive behavior, motion, accessibility expectations, and
 anti-patterns are recorded in `docs/design-guide.md`. Future screens should reuse
 that grammar without forcing Timeline-specific anatomy onto unrelated workflows.
+
+## D-020: The first database-backed vertical slice starts with Timeline
+
+The first thin client-to-database slice will load one read-only Timeline item
+from PostgreSQL through the versioned Fastify API and generated typed client.
+All other Timeline data remains mock-backed during that slice so the migration
+stays small and the working prototype remains usable. IndexedDB caching and
+durable background jobs are not required for this first slice and remain
+separate follow-up boundaries unless a later approved requirement needs them.
