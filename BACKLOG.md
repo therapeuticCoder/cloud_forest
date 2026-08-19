@@ -196,10 +196,10 @@ Planning notes:
 #### Critical path and deferrable work
 
 Critical path:
-T-018A -> T-018B -> human slice decision -> T-018C -> T-018D -> T-018E ->
-T-018F -> T-018G -> T-018J -> T-018K. T-018I joins the path before T-018J if
-the chosen slice reads through the local cache. T-018H joins before T-018J only
-if the chosen slice requires a durable job.
+T-018A -> T-018B -> T-018C -> T-018D -> T-018E -> T-018F -> T-018G -> T-018J
+-> T-018K. T-018I joins the path before T-018J if a later approved revision
+adds local caching to the slice. T-018H joins before T-018J only if a later
+approved revision adds a durable job.
 
 Can safely wait:
 T-018H can wait until a product flow needs asynchronous work. T-018I can wait
@@ -208,19 +208,12 @@ can wait until T-018E establishes real migration commands, but must finish
 before the final E2E gate. None of these deferrals changes the approved
 architecture.
 
-#### Open human decision before T-018J
+#### Resolved vertical-slice decision
 
-Choose the first product-shaped vertical slice before implementation:
-
-- a read-only Timeline item loaded from PostgreSQL through the API and typed
-  client, while all remaining Timeline data stays mocked; or
-- a read-only Curator relationship loaded through the same path, while all
-  remaining Curator data stays mocked.
-
-The choice changes the first domain model, migration, endpoint, cache key, and
-browser acceptance path. Do not choose implicitly. Whether the first slice must
-also exercise IndexedDB or a durable job is a separate scope decision; default
-to neither unless the product owner explicitly includes it.
+Per D-020, the first product-shaped vertical slice is a read-only Timeline item
+loaded from PostgreSQL through the API and typed client while all remaining
+Timeline data stays mocked. IndexedDB and durable jobs remain separate tasks and
+are not prerequisites for this slice.
 
 ### T-018A: Define pnpm workspace and package boundaries
 
@@ -332,7 +325,7 @@ Checks:
 Package typecheck/tests plus `pnpm check`.
 
 Prerequisites and ordering:
-Requires T-018A and the T-018J slice decision. Precedes API, database mapping,
+Requires T-018A. The slice is fixed by D-020. Precedes API, database mapping,
 OpenAPI, and typed-client implementation for that slice.
 
 Out of scope:
@@ -410,8 +403,8 @@ database; schema inspection; `pnpm check`. Any destructive database reset must
 be an explicit, separately confirmed test action.
 
 Prerequisites and ordering:
-Requires T-018A, T-018C, the T-018J slice decision, and a running local
-PostgreSQL service. Precedes T-018J.
+Requires T-018A, T-018C, and a running local PostgreSQL service. The initial
+schema is limited by D-020. Precedes T-018J.
 
 Out of scope:
 Production hosting, backups beyond existing development guidance, seed systems
@@ -570,8 +563,8 @@ IndexedDB adapter tests, account isolation and upgrade tests, offline/reload
 browser check if integrated, and `pnpm check`.
 
 Prerequisites and ordering:
-Requires T-018B, T-018C, and the T-018J slice decision. May wait unless the
-product owner includes cached/offline behavior in the first slice.
+Requires T-018B and T-018C. Per D-020, it can wait until a later product slice
+requires cached or offline behavior.
 
 Out of scope:
 Full synchronization, conflict resolution, background sync, authentication,
@@ -580,19 +573,19 @@ only on device.
 
 ### T-018J: Implement one thin client/API/PostgreSQL slice
 
-Status: blocked on human slice selection
+Status: queued
 Size: medium
 
 Concrete goal:
-Replace exactly one mock-backed read path with a database-backed read through
-the versioned Fastify endpoint and typed client while leaving all other
-prototype data and interactions unchanged.
+Replace exactly one mock-backed Timeline-item read path with a database-backed
+read through the versioned Fastify endpoint and typed client while leaving all
+other prototype data and interactions unchanged.
 
 Likely files or boundaries:
-The selected model in `packages/domain`, its contract in
+The Timeline-item model in `packages/domain`, its contract in
 `packages/api-contracts`, one table/repository in `packages/database`, one
-`apps/api` route, one `packages/api-client` operation, and the smallest adapter
-and rendering seam in `apps/web`.
+`apps/api` route, one `packages/api-client` operation, and the smallest Timeline
+adapter and rendering seam in `apps/web`.
 
 Dependency additions requiring separate human approval:
 None beyond dependencies separately approved in T-018C through T-018F. If the
@@ -600,7 +593,8 @@ slice includes caching or jobs, T-018I or T-018H owns those approvals.
 
 Acceptance criteria:
 
-- the product owner has selected the Timeline-item or Curator-relationship path
+- D-020 is preserved: the slice reads one Timeline item and does not require
+  IndexedDB or a durable job
 - one fictional record is created by reviewed SQL migration/fixture and read
   from PostgreSQL through the API and typed client
 - loading, empty, success, and recoverable error behavior are explicit and
