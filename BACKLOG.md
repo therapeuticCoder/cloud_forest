@@ -196,17 +196,18 @@ Planning notes:
 #### Critical path and deferrable work
 
 Critical path:
-T-018A -> T-018B -> T-018C -> T-018D -> T-018E -> T-018F -> T-018G -> T-018J
--> T-018K. T-018I joins the path before T-018J if a later approved revision
-adds local caching to the slice. T-018H joins before T-018J only if a later
-approved revision adds a durable job.
+T-018A -> T-018B -> T-018L -> T-018C -> T-018D -> T-018E -> T-018F -> T-018G
+-> T-018J -> T-018K. T-018I joins the path before T-018J if a later approved
+revision adds local caching to the slice. T-018H joins before T-018J only if a
+later approved revision adds a durable job.
 
 Can safely wait:
 T-018H can wait until a product flow needs asynchronous work. T-018I can wait
 until a specific offline/cache behavior is part of the selected slice. T-018G
 can wait until T-018E establishes real migration commands, but must finish
-before the final E2E gate. None of these deferrals changes the approved
-architecture.
+before the final E2E gate. T-018L can wait until the web move is verified, but
+must finish before T-018K and before the parent milestone is complete. None of
+these deferrals changes the approved architecture.
 
 #### Resolved vertical-slice decision
 
@@ -653,10 +654,58 @@ run desktop and mobile browser smoke/visual checks; inspect browser console;
 run `pnpm check` and `pnpm format:check`.
 
 Prerequisites and ordering:
-Requires T-018J and the relevant command portion of T-018G. Final critical-path
-task for the monorepo foundation milestone.
+Requires T-018J, T-018L, and the relevant command portion of T-018G. Final
+critical-path task for the monorepo foundation milestone.
 
 Out of scope:
 Complete product E2E coverage, hosted browsers, production smoke tests,
 cross-browser matrix expansion, broad screenshot baselines, load testing, and
 CI/CD deployment gates.
+
+### T-018L: Establish the installable React PWA shell
+
+Status: queued
+Size: small
+
+Concrete goal:
+Make `apps/web` an installable current-evergreen PWA with a valid web app
+manifest, an application-shell service worker, explicit update behavior, and
+Human Forest-owned install icons while preserving the existing prototype.
+
+Likely files or boundaries:
+`apps/web` Vite configuration and entry point, `apps/web/public` manifest and
+icon assets, focused PWA tests, root web build scripts, and development
+documentation.
+
+Dependency additions requiring separate human approval:
+The exact Vite PWA/service-worker integration and any Workbox packages it uses.
+Review the generated output, maintenance model, and runtime behavior before
+approving a package; do not silently add a PWA plugin.
+
+Acceptance criteria:
+
+- the production web build emits a valid manifest with approved Human Forest
+  name, colors, display mode, start URL, and original local icons
+- the installed app launches the existing prototype through the `apps/web`
+  boundary without changing Curator, Timeline, or Galaxy behavior
+- the service worker caches only the static application shell; API responses,
+  account data, and user content are excluded
+- first load, offline shell reload, update discovery, and activation behavior
+  are explicit and recover without trapping users on a stale build
+- development mode does not leave a production service worker registered
+- installability does not depend on production hosting or a third-party service
+
+Checks:
+`pnpm check`; production web build and manifest inspection; browser
+installability audit on a secure local origin; online first-load, offline shell
+reload, and new-build update checks; mobile and desktop smoke checks for all
+three views; keyboard, reduced-motion, overflow, and console-error checks.
+
+Prerequisites and ordering:
+Requires T-018B. May run independently of the API and database tasks after the
+web move, but must finish before T-018K and before T-018 is complete.
+
+Out of scope:
+Offline API-response caching, IndexedDB data synchronization, offline mutation
+replay, background sync, push notifications, authentication, analytics,
+production hosting, and changes to the approved visual direction.
