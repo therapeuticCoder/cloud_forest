@@ -133,6 +133,10 @@ Before committing, review:
 - which automated and visual checks passed or failed
 - whether new durable decisions or follow-up tasks need to be recorded
 
+Before a pull request is merged, review and update the relevant task status in
+`BACKLOG.md` and any related task documentation so they match the accepted
+implementation and completed checks.
+
 ## Pull request review suggestions
 
 Codex may attach inline suggestions or review comments to a pull request when a
