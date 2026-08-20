@@ -99,6 +99,20 @@ importers:
         specifier: ^4.1.6
         version: 4.1.6(@types/node@24.12.4)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@24.12.4)(typescript@6.0.3))(vite@8.0.13(@types/node@24.12.4)(jiti@2.7.0))
 
+  apps/api: {}
+
+  apps/web: {}
+
+  apps/worker: {}
+
+  packages/api-client: {}
+
+  packages/api-contracts: {}
+
+  packages/database: {}
+
+  packages/domain: {}
+
 packages:
   "@adobe/css-tools@4.4.4":
     resolution:
