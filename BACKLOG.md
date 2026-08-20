@@ -218,7 +218,7 @@ are not prerequisites for this slice.
 
 ### T-018A: Define pnpm workspace and package boundaries
 
-Status: queued
+Status: done
 Size: small
 
 Concrete goal:
@@ -257,7 +257,7 @@ deployment, authentication, and adding a monorepo task runner.
 
 ### T-018B: Move the working React prototype into `apps/web`
 
-Status: queued
+Status: done
 Size: medium
 
 Concrete goal:
@@ -278,7 +278,8 @@ Acceptance criteria:
 
 - `apps/web` contains the existing application with history preserved by a
   reviewable move
-- Curator, Timeline, and Galaxy remain switchable and mock-backed
+- Timeline and Curator remain switchable and mock-backed; Galaxy remains
+  preserved as the existing dormant experiment
 - root development and check commands still operate on the web app
 - no visible or behavioral change is introduced
 

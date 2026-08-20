@@ -98,27 +98,24 @@ pnpm.cmd services:status
 ```text
 apps/
   api/             # reserved API application boundary
-  web/             # reserved web application boundary
+  web/             # working Vite/React prototype
+    src/
+      app/
+      components/
+      data/
+      lib/
+      test/
   worker/          # reserved background-worker application boundary
 packages/
   api-client/      # shared typed API client boundary
   api-contracts/   # shared transport contract boundary
   database/        # shared server-side database boundary
   domain/          # shared framework-neutral domain boundary
-src/
-  app/
-  components/
-    human-forest/
-    layout/
-    ui/
-  data/
-  lib/
-  test/
 ```
 
-The working Vite prototype remains at the repository root until T-018B. The
-workspace directories currently contain boundary-only manifests and no
-application or package implementation.
+The working Vite prototype lives in `apps/web`. The other workspace directories
+currently contain boundary-only manifests and no application or package
+implementation.
 
 ### Workspace conventions
 
