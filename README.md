@@ -96,6 +96,15 @@ pnpm.cmd services:status
 ## Project structure
 
 ```text
+apps/
+  api/             # reserved API application boundary
+  web/             # reserved web application boundary
+  worker/          # reserved background-worker application boundary
+packages/
+  api-client/      # shared typed API client boundary
+  api-contracts/   # shared transport contract boundary
+  database/        # shared server-side database boundary
+  domain/          # shared framework-neutral domain boundary
 src/
   app/
   components/
@@ -106,6 +115,30 @@ src/
   lib/
   test/
 ```
+
+The working Vite prototype remains at the repository root until T-018B. The
+workspace directories currently contain boundary-only manifests and no
+application or package implementation.
+
+### Workspace conventions
+
+Workspace packages use the private `@human-forest/*` scope, with names matching
+their directory names. Applications may depend on shared packages; shared
+packages must never depend on an application package.
+
+The intended shared-package dependency direction is:
+
+```text
+apps/* -> packages/*
+api-client -> api-contracts -> domain
+database -> domain
+domain -> no workspace package
+```
+
+Other shared-package dependencies should be introduced only by the task that
+needs them. Use pnpm's `workspace:` protocol when an approved implementation
+adds an internal dependency. The database package is server-only and must not
+be consumed by the web application or API client.
 
 ## Agentic workflow
 
