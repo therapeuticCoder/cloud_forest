@@ -606,6 +606,65 @@ button:focus-visible {
   }
 }
 
+.pwa-notice {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 100;
+  display: flex;
+  max-width: min(420px, calc(100vw - 36px));
+  align-items: center;
+  gap: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(228, 236, 217, 0.2);
+  border-radius: 14px;
+  color: #f0f2e7;
+  background: rgba(5, 34, 23, 0.98);
+  box-shadow: 0 10px 32px rgba(8, 12, 8, 0.3);
+}
+
+.pwa-notice p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.pwa-notice__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.pwa-notice button {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--forest-pine);
+  background: var(--forest-amber);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.pwa-notice button:last-child:not(:first-child),
+.pwa-notice button:only-child {
+  color: #f0f2e7;
+  background: transparent;
+}
+
+.pwa-notice button:focus-visible {
+  outline: 3px solid #f0f2e7;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .pwa-notice {
+    right: 16px;
+    bottom: 102px;
+    left: 16px;
+    justify-content: space-between;
+  }
+}
+
 .human-forest-stars {
   background-image:
     radial-gradient(circle, rgba(236, 253, 245, 0.52) 0 1px, transparent 1.4px),
