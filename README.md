@@ -56,6 +56,31 @@ Run the app locally:
 pnpm dev
 ```
 
+Development mode does not register the production service worker. If the same
+development origin was previously used for a production preview, startup also
+unregisters that origin's existing workers. The production worker always tries
+online navigations first, so an available Vite development page can load and
+perform that cleanup instead of being hidden behind the cached shell.
+
+Build and preview the installable PWA locally:
+
+```bash
+pnpm build
+pnpm --filter @human-forest/web exec vite preview
+```
+
+The production build emits the web app manifest, Human Forest-owned install
+icons, and a service worker. The first online load installs a cache containing
+only the static application shell. It does not runtime-cache API responses,
+account data, user content, or future dynamic requests. A cached shell can
+reload offline; content that is not part of that shell still requires its normal
+source.
+
+When a new build is discovered, the current build remains active until the app
+offers **Update now**. Accepting activates the waiting worker and reloads the
+page; choosing **Later** keeps the current session and the app checks again when
+it becomes visible and at least hourly while open.
+
 Run the full project check:
 
 ```bash

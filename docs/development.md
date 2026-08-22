@@ -130,6 +130,34 @@ Production backup and restore procedures will be separate and provider-managed.
 
 ## Verification checklist
 
+### PWA development and local verification
+
+`pnpm.cmd dev` runs the normal Vite development server without generating or
+registering the production worker. It also unregisters workers left on that
+development origin. The production worker handles navigations network-first
+without caching their responses, so an available development page can load and
+perform that cleanup instead of being masked by the offline shell.
+
+Use the production build and Vite preview when checking installability and
+offline behavior:
+
+```powershell
+pnpm.cmd build
+pnpm.cmd --filter @human-forest/web exec vite preview
+```
+
+`localhost` is a browser-trusted local origin. Load it online once and wait for
+the offline-ready notice before testing an offline reload. The cached boundary
+contains the HTML, compiled JavaScript and CSS, local fonts, interface symbol
+sheet, and install icons. It intentionally excludes the mock portrait sprite,
+API paths, account data, user content, and all runtime request caching.
+
+For an update check, keep the first preview open, produce a changed build, and
+serve it from the same origin. The browser installs the new worker in the
+waiting state and the app displays an update notice. **Update now** activates it
+and reloads; **Later** preserves the current session. The app checks the worker
+again when the page becomes visible and at least hourly while it remains open.
+
 Step Zero is complete when all of these succeed:
 
 ```powershell

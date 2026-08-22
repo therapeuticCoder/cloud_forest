@@ -665,7 +665,7 @@ CI/CD deployment gates.
 
 ### T-018L: Establish the installable React PWA shell
 
-Status: queued
+Status: done
 Size: small
 
 Concrete goal:
