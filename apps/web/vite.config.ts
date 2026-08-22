@@ -4,11 +4,15 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
+      disable: mode === "test",
+      strategies: "injectManifest",
+      srcDir: "src/pwa",
+      filename: "serviceWorker.ts",
       injectRegister: null,
       manifest: {
         id: "/",
@@ -33,13 +37,9 @@ export default defineConfig({
         ],
       },
       registerType: "prompt",
-      workbox: {
-        cleanupOutdatedCaches: true,
+      injectManifest: {
         globPatterns: ["**/*.{html,js,css,woff2}", "app-icon.svg", "icons.svg"],
-        inlineWorkboxRuntime: true,
-        navigateFallback: "index.html",
-        navigateFallbackDenylist: [/^\/api(?:\/|$)/],
-        runtimeCaching: [],
+        rollupFormat: "iife",
       },
     }),
   ],
@@ -56,4 +56,4 @@ export default defineConfig({
     maxWorkers: 1,
     fileParallelism: false,
   },
-});
+}));

@@ -19,6 +19,15 @@ function setPwaNotice(notice: PwaNotice) {
   listeners.forEach((listener) => listener());
 }
 
+export function announceWaitingPwaUpdate(
+  hasWaitingWorker: boolean,
+  hasController: boolean,
+) {
+  if (hasWaitingWorker && hasController) {
+    setPwaNotice("update-ready");
+  }
+}
+
 export function dismissPwaNotice() {
   setPwaNotice(null);
 }
@@ -45,16 +54,20 @@ async function registerProductionWorker() {
   }
 
   const hadController = Boolean(navigator.serviceWorker.controller);
-  const registration = await navigator.serviceWorker.register("/sw.js", {
-    scope: "/",
-    updateViaCache: "none",
-  });
+  const registration = await navigator.serviceWorker.register(
+    "/serviceWorker.js",
+    {
+      scope: "/",
+      updateViaCache: "none",
+    },
+  );
   workerRegistration = registration;
 
   const announceWaitingUpdate = () => {
-    if (registration.waiting && navigator.serviceWorker.controller) {
-      setPwaNotice("update-ready");
-    }
+    announceWaitingPwaUpdate(
+      Boolean(registration.waiting),
+      Boolean(navigator.serviceWorker.controller),
+    );
   };
 
   announceWaitingUpdate();
@@ -76,8 +89,10 @@ async function registerProductionWorker() {
   }
 
   const checkForUpdate = () => {
+    announceWaitingUpdate();
+
     if (navigator.onLine) {
-      void registration.update();
+      void registration.update().then(announceWaitingUpdate);
     }
   };
 

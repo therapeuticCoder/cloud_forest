@@ -58,7 +58,9 @@ pnpm dev
 
 Development mode does not register the production service worker. If the same
 development origin was previously used for a production preview, startup also
-unregisters that origin's existing workers.
+unregisters that origin's existing workers. The production worker always tries
+online navigations first, so an available Vite development page can load and
+perform that cleanup instead of being hidden behind the cached shell.
 
 Build and preview the installable PWA locally:
 

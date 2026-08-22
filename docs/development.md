@@ -134,7 +134,9 @@ Production backup and restore procedures will be separate and provider-managed.
 
 `pnpm.cmd dev` runs the normal Vite development server without generating or
 registering the production worker. It also unregisters workers left on that
-development origin, preventing a production cache from masking source changes.
+development origin. The production worker handles navigations network-first
+without caching their responses, so an available development page can load and
+perform that cleanup instead of being masked by the offline shell.
 
 Use the production build and Vite preview when checking installability and
 offline behavior:
