@@ -66,7 +66,7 @@ Build and preview the installable PWA locally:
 
 ```bash
 pnpm build
-pnpm --filter @human-forest/web exec vite preview
+pnpm --filter @cloud-forest/web exec vite preview
 ```
 
 The production build emits the web app manifest, Cloud Forest-owned install
@@ -144,7 +144,7 @@ implementation.
 
 ### Workspace conventions
 
-Workspace packages use the private `@human-forest/*` scope, with names matching
+Workspace packages use the private `@cloud-forest/*` scope, with names matching
 their directory names. Applications may depend on shared packages; shared
 packages must never depend on an application package.
 
