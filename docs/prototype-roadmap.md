@@ -1,6 +1,6 @@
 # Working Prototype Roadmap
 
-Human Forest is moving from a front-end visual prototype toward a portable,
+Cloud Forest is moving from a front-end visual prototype toward a portable,
 production-seed alpha for at most 100 trusted testers. Work remains incremental:
 one reviewable backlog task per Codex session, with a working demonstration every
 two or three days and a weekly reforecast based on accepted outcomes and rework.
@@ -73,5 +73,5 @@ anti-patterns to carry into later stories. Future screens should apply the
 grammar to their own tasks rather than copying Timeline-specific anatomy.
 
 Third-party reference screenshots remain uncommitted unless storage permission
-is clear. The repository stores derived principles and original Human Forest
+is clear. The repository stores derived principles and original Cloud Forest
 artifacts.

@@ -5,7 +5,7 @@ should be small enough for one focused agent session.
 
 ## Completed
 
-- T-001: Refresh project docs for Human Forest
+- T-001: Refresh project docs for Cloud Forest
 - T-002: Rename the relationship layer from pod to party
 - T-003: Decouple Galaxy and Timeline into switchable views
 - T-004: Add Curator View shell and vertical scroll stack
@@ -15,7 +15,7 @@ should be small enough for one focused agent session.
 - T-008: Build Guilds accordion layer
 - T-009: Build Signals accordion layer
 - T-016: Establish the native Windows development environment
-- T-017: Calibrate the Human Forest visual direction
+- T-017: Calibrate the Cloud Forest visual direction
 
 ## Gallery Refactor
 
@@ -116,7 +116,7 @@ Status: done
 Size: medium
 
 Goal:
-Make a clean Human Forest checkout reproducible for the product owner and Codex
+Make a clean Cloud Forest checkout reproducible for the product owner and Codex
 before changing the application architecture.
 
 Acceptance criteria:
@@ -131,7 +131,7 @@ Acceptance criteria:
 - a clean worktree completes setup and `pnpm check`
 - backup and restore instructions are verified
 
-### T-017: Calibrate the Human Forest visual direction
+### T-017: Calibrate the Cloud Forest visual direction
 
 Status: done
 Size: medium
@@ -671,7 +671,7 @@ Size: small
 Concrete goal:
 Make `apps/web` an installable current-evergreen PWA with a valid web app
 manifest, an application-shell service worker, explicit update behavior, and
-Human Forest-owned install icons while preserving the existing prototype.
+Cloud Forest-owned install icons while preserving the existing prototype.
 
 Likely files or boundaries:
 `apps/web` Vite configuration and entry point, `apps/web/public` manifest and
@@ -685,7 +685,7 @@ approving a package; do not silently add a PWA plugin.
 
 Acceptance criteria:
 
-- the production web build emits a valid manifest with approved Human Forest
+- the production web build emits a valid manifest with approved Cloud Forest
   name, colors, display mode, start URL, and original local icons
 - the installed app launches the existing prototype through the `apps/web`
   boundary without changing Curator, Timeline, or Galaxy behavior

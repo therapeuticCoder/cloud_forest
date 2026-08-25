@@ -16,8 +16,8 @@ export default defineConfig(({ mode }) => ({
       injectRegister: null,
       manifest: {
         id: "/",
-        name: "Human Forest",
-        short_name: "Human Forest",
+        name: "Cloud Forest",
+        short_name: "Cloud Forest",
         description:
           "Deliberately cultivate a smaller, community-centered social world.",
         theme_color: "#082419",

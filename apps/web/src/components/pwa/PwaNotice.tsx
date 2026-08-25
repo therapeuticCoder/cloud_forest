@@ -24,8 +24,8 @@ export function PwaNotice() {
     <section className="pwa-notice" aria-live="polite" aria-atomic="true">
       <p>
         {updateReady
-          ? "A new Human Forest version is ready."
-          : "Human Forest is ready for offline use."}
+          ? "A new Cloud Forest version is ready."
+          : "Cloud Forest is ready for offline use."}
       </p>
       <div className="pwa-notice__actions">
         {updateReady ? (

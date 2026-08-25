@@ -30,7 +30,7 @@ export function DashboardShell() {
         data-hidden={chromeHidden}
         onFocusCapture={revealChrome}
       >
-        <div className="timeline-brand">Human Forest</div>
+        <div className="timeline-brand">Cloud Forest</div>
         <div className="timeline-desktop-nav">
           <ViewSwitcher activeView={activeView} onViewChange={setActiveView} />
         </div>

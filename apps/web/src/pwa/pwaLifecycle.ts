@@ -108,7 +108,7 @@ export function initializePwa() {
   initialization ??= import.meta.env.PROD
     ? registerProductionWorker().catch((error: unknown) => {
         console.error(
-          "Human Forest service worker registration failed.",
+          "Cloud Forest service worker registration failed.",
           error,
         );
       })

@@ -1,6 +1,6 @@
-# Human Forest
+# Cloud Forest
 
-Human Forest is a React prototype for helping people deliberately cultivate a
+Cloud Forest is a React prototype for helping people deliberately cultivate a
 smaller, community-centered social world. It organizes people, groups, and
 public sources by relational depth so that not everything competes for attention
 on equal terms. The prototype has three views:
@@ -69,7 +69,7 @@ pnpm build
 pnpm --filter @human-forest/web exec vite preview
 ```
 
-The production build emits the web app manifest, Human Forest-owned install
+The production build emits the web app manifest, Cloud Forest-owned install
 icons, and a service worker. The first online load installs a cache containing
 only the static application shell. It does not runtime-cache API responses,
 account data, user content, or future dynamic requests. A cached shell can

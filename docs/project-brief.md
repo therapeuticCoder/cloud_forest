@@ -2,16 +2,16 @@
 
 ## Project name
 
-Human Forest
+Cloud Forest
 
 ## Product vision
 
-Human Forest is a community-building application for people who find value in
+Cloud Forest is a community-building application for people who find value in
 social media but also see how attention-driven platforms can isolate, overwhelm,
 and radicalize. It is for people who long for community but do not know how to
 build or tend one for themselves.
 
-Human Forest helps a person deliberately curate a smaller social world. It
+Cloud Forest helps a person deliberately curate a smaller social world. It
 starts from the belief that relationship quality matters more than quantity and
 that not everything matters the same. Choice should create clarity and calm.
 
@@ -22,7 +22,7 @@ security through actual community.
 ## Product metaphor
 
 A tree in a forest does not live only for itself. It cooperates with what it
-touches. Human Forest uses that metaphor to help people remember how to form
+touches. Cloud Forest uses that metaphor to help people remember how to form
 communities in which people support one another and participate in something
 larger than themselves.
 
@@ -40,7 +40,7 @@ supervision, and future contributors evaluating or extending the product.
 
 ## Relationship model
 
-Human Forest organizes a person's social world by relational depth. Each layer
+Cloud Forest organizes a person's social world by relational depth. Each layer
 is deliberately bounded, drawing loosely on the idea behind Dunbar's number.
 
 - **Party — 5 people:** the crew or squad who can be relied on in a crisis and
@@ -94,7 +94,7 @@ preserved but is not the current product priority.
 
 ## Data posture
 
-Human Forest should be capable of local, on-device curation and should be able
+Cloud Forest should be capable of local, on-device curation and should be able
 to work with user-controlled sources such as device contacts. Where practical,
 it should retrieve or connect to data rather than become the permanent owner of
 the user's social data.
@@ -131,7 +131,7 @@ concerns.
 
 ## Success criteria
 
-Human Forest succeeds at this stage when:
+Cloud Forest succeeds at this stage when:
 
 - Curator makes the four bounded layers understandable and manageable
 - the interface communicates relational priority without producing attention

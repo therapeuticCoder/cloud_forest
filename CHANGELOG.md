@@ -1,6 +1,6 @@
 # Changelog
 
-Notable changes to Human Forest are documented here.
+Notable changes to Cloud Forest are documented here.
 
 The project loosely follows the spirit of semantic versioning, but early
 versions remain informal while the prototype evolves.
@@ -9,7 +9,7 @@ versions remain informal while the prototype evolves.
 
 ### Added
 
-- Approved Human Forest design guide covering visual principles, semantic color
+- Approved Cloud Forest design guide covering visual principles, semantic color
   tokens, typography, identity, layout, floating chrome, motion, accessibility,
   content boundaries, and anti-patterns.
 - Representative responsive Timeline design with portrait-led identity,
@@ -35,7 +35,7 @@ versions remain informal while the prototype evolves.
 - Updated responsive navigation presentation while preserving the existing
   Timeline and Curator destinations.
 - Renamed the package from the inherited starter name to `human-forest`.
-- Clarified Human Forest's project summary and current Curator direction.
+- Clarified Cloud Forest's project summary and current Curator direction.
 - Recorded canonical layer limits of 5 Party people, 100 Tribe people, 5 Guilds,
   and 10 Signals.
 - Reconciled Curator prototype data with the canonical layer limits.
@@ -56,18 +56,18 @@ versions remain informal while the prototype evolves.
 
 - Separate, switchable Timeline and Curator views.
 - Preserved Galaxy as a separate experimental view.
-- Human Forest-specific project brief and repository decisions.
+- Cloud Forest-specific project brief and repository decisions.
 
 ### Changed
 
 - Renamed the innermost relationship layer from Pod to Party.
-- Replaced inherited starter documentation with Human Forest product language.
+- Replaced inherited starter documentation with Cloud Forest product language.
 
 ## 2026-05-30
 
 ### Added
 
-- Initial Human Forest visual prototype with relationship field, timeline,
+- Initial Cloud Forest visual prototype with relationship field, timeline,
   controls, typed domain model, and representative mock data.
 
 ## 2026-05-17

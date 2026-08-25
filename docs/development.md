@@ -1,6 +1,6 @@
 # Development Environment
 
-Human Forest uses a native Windows development workflow. Keep the repository on
+Cloud Forest uses a native Windows development workflow. Keep the repository on
 the Windows filesystem, run Codex with its Windows-native agent, and use Docker
 Desktop's WSL2 backend for Linux containers.
 
@@ -185,7 +185,7 @@ the rendered app opens without browser console errors.
 - **A service port is occupied:** stop the other local service before changing
   committed ports; shared defaults should remain consistent.
 - **GitHub authentication fails:** rerun `gh auth login -h github.com`.
-- **Codex worktree lacks dependencies:** confirm the Human Forest local
+- **Codex worktree lacks dependencies:** confirm the Cloud Forest local
   environment is selected when creating the worktree and inspect its setup log.
 - **Local data must be reset:** back it up first; volume deletion is destructive
   and should be intentional.

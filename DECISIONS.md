@@ -14,21 +14,21 @@ Important project context should live in this repository, not only in chat histo
 
 Agents should ask before adding new packages, services, frameworks, or integrations.
 
-## D-004: This repository is now Human Forest
+## D-004: This repository is now Cloud Forest
 
-This repository is the Human Forest prototype, and project documentation should describe the Human Forest product direction rather than inherited project language.
+This repository is the Cloud Forest prototype, and project documentation should describe the Cloud Forest product direction rather than inherited project language.
 
 ## D-005: Human review is required
 
 Agent changes should be reviewed before they are committed. Git history is the safety rail.
 
-## D-006: Human Forest uses relational-depth language
+## D-006: Cloud Forest uses relational-depth language
 
 The product organizes relationships by relational depth. The innermost layer should be called Party, followed by Tribe, Guilds, and Signals.
 
 ## D-007: Use React, TypeScript, Vite, Tailwind, and shadcn/ui
 
-Human Forest uses a lightweight front-end stack intended for small, polished, agent-friendly web applications.
+Cloud Forest uses a lightweight front-end stack intended for small, polished, agent-friendly web applications.
 
 ## D-008: Prefer simple local front-end apps first
 
@@ -38,7 +38,7 @@ Child projects should avoid auth, databases, analytics, and backend services unt
 
 Curator, Timeline, and Galaxy should not be treated as side-by-side panes. The active prototype should make Timeline and Curator switchable as separate views. Galaxy may remain in the codebase where reasonable, but it is not the current polish priority.
 
-## D-010: Human Forest facilitates community, not engagement
+## D-010: Cloud Forest facilitates community, not engagement
 
 The product should help people deliberately cultivate relationships and
 community. It should not optimize for entertainment, time in app, undifferentiated
@@ -55,7 +55,7 @@ engagement targets.
 
 ## D-012: Prefer user-controlled and interoperable data
 
-Human Forest should support local, on-device curation and prefer retrieving or
+Cloud Forest should support local, on-device curation and prefer retrieving or
 connecting to user-controlled data over becoming the central owner of a social
 data stream. Federation and interoperability are product values. This decision
 does not yet select an offline, synchronization, hosting, storage, or federation
@@ -109,7 +109,7 @@ integration, feedback, rework, accessibility, security, and recovery testing.
 ## D-019: Timeline establishes the approved visual grammar
 
 The product owner approved the representative responsive Timeline direction as
-the visual foundation for Human Forest. The durable principles, semantic tokens,
+the visual foundation for Cloud Forest. The durable principles, semantic tokens,
 component patterns, responsive behavior, motion, accessibility expectations, and
 anti-patterns are recorded in `docs/design-guide.md`. Future screens should reuse
 that grammar without forcing Timeline-specific anatomy onto unrelated workflows.

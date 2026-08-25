@@ -31,7 +31,7 @@ describe("PwaNotice", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /later/i }));
     expect(
-      screen.queryByText(/new human forest version/i),
+      screen.queryByText(/new cloud forest version/i),
     ).not.toBeInTheDocument();
   });
 });

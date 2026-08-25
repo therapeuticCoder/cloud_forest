@@ -1,16 +1,16 @@
-# Human Forest Design Guide
+# Cloud Forest Design Guide
 
 Status: approved visual direction
 
 This guide records the visual grammar approved from the representative Timeline
 implementation in August 2026. It is the source of truth for extending the
-direction to later Human Forest screens. The Timeline remains the reference
+direction to later Cloud Forest screens. The Timeline remains the reference
 implementation; its exact dimensions are examples, not universal component
 requirements.
 
 ## Design intent
 
-Human Forest should feel like contemporary ecology and quiet wellness: grounded,
+Cloud Forest should feel like contemporary ecology and quiet wellness: grounded,
 alive, calm, and deliberate. The interface should make relational depth tangible
 without turning it into status, competition, or explanation-heavy taxonomy.
 
@@ -153,7 +153,7 @@ Motion must never be required to understand state or reach a control.
 
 ## Content boundaries
 
-Human Forest does not use likes, reposts, follower counts, unread counts,
+Cloud Forest does not use likes, reposts, follower counts, unread counts,
 popularity metrics, engagement controls, behavioral ranking, search, or filters
 unless a separately approved product requirement introduces them. Do not invent
 navigation destinations or product areas to make a composition feel fuller.

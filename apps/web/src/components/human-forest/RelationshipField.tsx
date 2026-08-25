@@ -39,7 +39,7 @@ export function RelationshipField() {
 
       <div className="relative z-30">
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm font-semibold text-white">Human Forest</p>
+          <p className="text-sm font-semibold text-white">Cloud Forest</p>
           <div className="grid h-9 w-9 place-items-center rounded-lg border border-emerald-200/25 bg-emerald-200/10 text-emerald-100 shadow-[0_0_34px_rgba(16,185,129,0.25)]">
             <Sprout aria-hidden="true" className="h-4 w-4" />
           </div>

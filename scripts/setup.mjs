@@ -54,4 +54,4 @@ if (pnpmVersion.stdout.trim() !== requiredPnpmVersion) {
 run(pnpmCommand, ["install", "--frozen-lockfile"]);
 run(pnpmCommand, ["check"]);
 
-console.log("Human Forest environment setup completed successfully.");
+console.log("Cloud Forest environment setup completed successfully.");

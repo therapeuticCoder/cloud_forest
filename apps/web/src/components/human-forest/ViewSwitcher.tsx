@@ -16,7 +16,7 @@ const viewOptions = [
 
 export function ViewSwitcher({ activeView, onViewChange }: ViewSwitcherProps) {
   return (
-    <nav aria-label="Human Forest view" className="timeline-view-switcher">
+    <nav aria-label="Cloud Forest view" className="timeline-view-switcher">
       {viewOptions.map((option) => {
         const isActive = option.value === activeView;
         const Icon = option.icon;

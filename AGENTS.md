@@ -78,7 +78,7 @@ architecture, introducing an external service, or materially expanding scope.
 
 ## Product principles
 
-- Human Forest facilitates real community; it does not optimize for attention,
+- Cloud Forest facilitates real community; it does not optimize for attention,
   entertainment, or engagement.
 - Relationship quality matters more than quantity, and not everything matters
   the same.
