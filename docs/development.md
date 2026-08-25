@@ -143,7 +143,7 @@ offline behavior:
 
 ```powershell
 pnpm.cmd build
-pnpm.cmd --filter @human-forest/web exec vite preview
+pnpm.cmd --filter @cloud-forest/web exec vite preview
 ```
 
 `localhost` is a browser-trusted local origin. Load it online once and wait for

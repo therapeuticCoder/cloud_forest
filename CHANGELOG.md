@@ -34,7 +34,7 @@ versions remain informal while the prototype evolves.
   chronological representative screen using the approved visual direction.
 - Updated responsive navigation presentation while preserving the existing
   Timeline and Curator destinations.
-- Renamed the package from the inherited starter name to `human-forest`.
+- Renamed the package from the inherited starter name to `cloud-forest`.
 - Clarified Cloud Forest's project summary and current Curator direction.
 - Recorded canonical layer limits of 5 Party people, 100 Tribe people, 5 Guilds,
   and 10 Signals.
