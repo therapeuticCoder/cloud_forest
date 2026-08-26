@@ -12,6 +12,6 @@
   },
   "dependencies": {
     "@cloud-forest/domain": "workspace:*",
-    "typebox": "1.3.7"
+    "typebox": "1.3.6"
   }
 }

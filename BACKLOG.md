@@ -336,7 +336,7 @@ clients, authentication, authorization policy, and UI integration.
 
 ### T-018D: Create the Fastify API foundation
 
-Status: queued
+Status: done
 Size: small
 
 Concrete goal:
