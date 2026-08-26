@@ -64,6 +64,24 @@ pnpm.cmd dev
 pnpm versions, installs dependencies from the frozen lockfile, and runs the
 complete project check.
 
+### Local API
+
+Start the Fastify API with file watching in a separate terminal:
+
+```powershell
+pnpm.cmd dev:api
+```
+
+The default address is `http://127.0.0.1:3001`, and the database-independent
+health endpoint is `GET /api/v1/health`. Set `API_HOST` or `API_PORT` in the
+process environment to override the defaults. Invalid values fail before the
+server listens. Docker services are not required for the API foundation or its
+focused check:
+
+```powershell
+pnpm.cmd check:api
+```
+
 The local services are:
 
 | Service             | Endpoint                | Purpose                    |

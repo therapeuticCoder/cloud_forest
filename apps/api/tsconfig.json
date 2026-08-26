@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
@@ -14,9 +14,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "paths": {
-      "@cloud-forest/domain": ["../domain/src/index.ts"]
-    }
+    "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

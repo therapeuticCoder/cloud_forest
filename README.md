@@ -56,6 +56,16 @@ Run the app locally:
 pnpm dev
 ```
 
+Run the versioned API locally in a separate terminal:
+
+```bash
+pnpm dev:api
+```
+
+The API defaults to `http://127.0.0.1:3001`. Override `API_HOST` or `API_PORT`
+in the process environment when needed. `GET /api/v1/health` is independent of
+Docker and the database. Run its focused checks with `pnpm check:api`.
+
 Development mode does not register the production service worker. If the same
 development origin was previously used for a production preview, startup also
 unregisters that origin's existing workers. The production worker always tries
@@ -122,7 +132,7 @@ pnpm.cmd services:status
 
 ```text
 apps/
-  api/             # reserved API application boundary
+  api/             # versioned Fastify API service
   web/             # working Vite/React prototype
     src/
       app/
@@ -138,9 +148,9 @@ packages/
   domain/          # shared framework-neutral domain boundary
 ```
 
-The working Vite prototype lives in `apps/web`. The other workspace directories
-currently contain boundary-only manifests and no application or package
-implementation.
+The working Vite prototype lives in `apps/web`, and the Fastify service lives in
+`apps/api`. The remaining reserved workspace directories contain boundary-only
+manifests until their owning backlog tasks implement them.
 
 ### Workspace conventions
 

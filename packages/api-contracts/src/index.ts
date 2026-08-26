@@ -14,4 +14,15 @@ export {
   type GetTimelineItemErrorResponse,
   type GetTimelineItemRequest,
   type GetTimelineItemSuccessResponse,
-} from "./timelineItemContract.js";
+} from "./timelineItemContract.ts";
+
+export {
+  healthPath,
+  healthRequestSchema,
+  healthResponseExample,
+  healthResponseSchema,
+  isHealthRequest,
+  isHealthResponse,
+  type HealthRequest,
+  type HealthResponse,
+} from "./healthContract.ts";
