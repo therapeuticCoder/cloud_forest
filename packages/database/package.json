@@ -1,5 +1,31 @@
 {
   "name": "@cloud-forest/database",
   "private": true,
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate --config=drizzle.config.ts",
+    "migrations:check": "drizzle-kit check --config=drizzle.config.ts",
+    "migrate": "node --env-file-if-exists=../../.env --experimental-strip-types src/migrate.ts",
+    "status": "node --env-file-if-exists=../../.env --experimental-strip-types src/status.ts",
+    "inspect": "node --env-file-if-exists=../../.env --experimental-strip-types src/inspect.ts",
+    "test:prepare": "node --env-file-if-exists=../../.env --experimental-strip-types src/prepareTestDatabase.ts",
+    "typecheck": "pnpm --dir ../../apps/web exec tsc --project ../../packages/database/tsconfig.json",
+    "test": "node --experimental-strip-types --test test/config.test.mjs",
+    "test:integration": "node --env-file-if-exists=../../.env --experimental-strip-types --test test/database.test.mjs",
+    "check": "pnpm typecheck && pnpm migrations:check && pnpm test"
+  },
+  "dependencies": {
+    "@cloud-forest/domain": "workspace:*",
+    "drizzle-orm": "0.45.2",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1",
+    "drizzle-kit": "0.31.10"
+  }
 }

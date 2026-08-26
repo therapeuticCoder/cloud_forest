@@ -18,8 +18,8 @@
     "lint": "eslint .",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "typecheck": "pnpm --filter @cloud-forest/domain typecheck && pnpm --filter @cloud-forest/api-contracts typecheck && pnpm --filter @cloud-forest/api typecheck",
-    "test": "pnpm test:environment && pnpm --filter @cloud-forest/api-contracts test && pnpm --filter @cloud-forest/api test && pnpm --filter @cloud-forest/web test",
+    "typecheck": "pnpm --filter @cloud-forest/domain typecheck && pnpm --filter @cloud-forest/api-contracts typecheck && pnpm --filter @cloud-forest/database typecheck && pnpm --filter @cloud-forest/api typecheck",
+    "test": "pnpm test:environment && pnpm --filter @cloud-forest/api-contracts test && pnpm --filter @cloud-forest/database test && pnpm --filter @cloud-forest/api test && pnpm --filter @cloud-forest/web test",
     "test:environment": "node --test scripts/*.test.mjs",
     "check:api": "pnpm --filter @cloud-forest/api check",
     "test:watch": "pnpm --filter @cloud-forest/web test:watch",
@@ -27,7 +27,14 @@
     "services:up": "node scripts/docker.mjs compose up -d --wait",
     "services:down": "node scripts/docker.mjs compose down",
     "services:status": "node scripts/docker.mjs compose ps",
-    "services:logs": "node scripts/docker.mjs compose logs --tail=100"
+    "services:logs": "node scripts/docker.mjs compose logs --tail=100",
+    "db:generate": "pnpm --filter @cloud-forest/database generate",
+    "db:migrations:check": "pnpm --filter @cloud-forest/database migrations:check",
+    "db:migrate": "pnpm --filter @cloud-forest/database migrate",
+    "db:status": "pnpm --filter @cloud-forest/database status",
+    "db:inspect": "pnpm --filter @cloud-forest/database inspect",
+    "db:test:prepare": "pnpm --filter @cloud-forest/database test:prepare",
+    "test:database": "pnpm db:test:prepare && pnpm --filter @cloud-forest/database migrate -- --test && pnpm --filter @cloud-forest/database test:integration"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

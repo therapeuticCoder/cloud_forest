@@ -8,4 +8,5 @@ packages:
   - packages/database
 
 allowBuilds:
+  esbuild: true
   msw: true

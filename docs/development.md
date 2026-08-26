@@ -94,6 +94,23 @@ The local services are:
 Values in `.env.example` are safe development-only defaults. Never reuse them
 outside the local machine.
 
+Copy `.env.example` to `.env` before using database commands. The normal
+`DATABASE_URL` targets `cloud_forest`; `TEST_DATABASE_URL` must target a
+separate local database whose name contains `test`. Prepare and verify the
+disposable database without resetting existing data:
+
+```powershell
+pnpm.cmd db:test:prepare
+pnpm.cmd test:database
+pnpm.cmd --filter @cloud-forest/database status -- --test
+pnpm.cmd --filter @cloud-forest/database inspect -- --test
+```
+
+Test preparation only creates the named database when it is absent. Migration
+apply is forward-only and repeatable. No command automatically drops a
+database, schema, table, Docker volume, or migration. Confirm the exact target
+separately before any destructive database reset.
+
 Stop the services without deleting their volumes:
 
 ```powershell
@@ -134,14 +151,14 @@ Create the ignored backup directory and dump the local database:
 
 ```powershell
 New-Item -ItemType Directory -Force backups | Out-Null
-docker compose exec -T postgres pg_dump --clean --if-exists --no-owner --username human_forest human_forest | Set-Content -Encoding utf8 backups\human_forest.sql
+docker compose exec -T postgres pg_dump --clean --if-exists --no-owner --username cloud_forest cloud_forest | Set-Content -Encoding utf8 backups\cloud_forest.sql
 ```
 
 Restoring replaces current local application data. Confirm the target first,
 then run:
 
 ```powershell
-Get-Content -Raw backups\human_forest.sql | docker compose exec -T postgres psql --username human_forest --dbname human_forest
+Get-Content -Raw backups\cloud_forest.sql | docker compose exec -T postgres psql --username cloud_forest --dbname cloud_forest
 ```
 
 Production backup and restore procedures will be separate and provider-managed.
@@ -256,6 +273,12 @@ Classify failures from evidence rather than assuming they are harmless:
 - A failure tied to antivirus, filesystem ACLs, locked files, Docker Desktop,
   or machine-installed tools is a workstation issue when repository checks and
   clean worktrees do not reproduce it.
+
+The workspace explicitly permits the `esbuild` and `msw` dependency build
+scripts in `pnpm-workspace.yaml`. Both are required by tracked tooling. If pnpm
+reports `ERR_PNPM_IGNORED_BUILDS`, inspect that allowlist instead of repeatedly
+rebuilding `node_modules`; an unclassified build script must be reviewed before
+it is allowed or denied.
 
 Approval escalation is appropriate only when the required in-scope operation
 is blocked by sandbox or workstation permissions and its exact target is known.
