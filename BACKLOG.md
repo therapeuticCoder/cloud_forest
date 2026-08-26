@@ -159,6 +159,31 @@ Completed state:
 - the reusable principles, tokens, component patterns, responsive behavior, and
   anti-patterns are recorded in `docs/design-guide.md`
 
+### T-019: Establish safe environment cleanup and dependency recovery
+
+Status: done
+Size: small
+
+Goal:
+Provide PowerShell-safe, Codex-friendly commands for removing explicitly
+disposable generated artifacts and rebuilding a damaged pnpm dependency layout
+from the committed lockfile without making purging part of healthy setup.
+
+Acceptance criteria:
+
+- generated cleanup has a dry run and removes only `dist`, `dist-ssr`,
+  `coverage`, `.vite`, and TypeScript build-info artifacts outside protected
+  state directories
+- dependency repair previews its targets, requires explicit confirmation before
+  removing workspace `node_modules`, and installs with `--frozen-lockfile`
+- neither command removes the pnpm store, Docker volumes, backups, `.env` files,
+  source files, or user data
+- environment, permission, sandbox, install, and build errors must be
+  investigated and may be deferred only with an explicit documented reason
+- isolated fixture tests cover target listing, protected state, safe removal,
+  and repeated execution
+- `pnpm format:check` and `pnpm check` pass
+
 ### T-018: Create the application monorepo foundation
 
 Status: split; child tasks queued

@@ -9,6 +9,8 @@
   },
   "scripts": {
     "setup": "node scripts/setup.mjs",
+    "clean:generated": "node scripts/clean-generated.mjs",
+    "deps:repair": "node scripts/repair-dependencies.mjs",
     "dev": "pnpm --filter @cloud-forest/web dev",
     "dev:api": "pnpm --filter @cloud-forest/api dev",
     "start:api": "pnpm --filter @cloud-forest/api start",
@@ -17,7 +19,8 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "typecheck": "pnpm --filter @cloud-forest/domain typecheck && pnpm --filter @cloud-forest/api-contracts typecheck && pnpm --filter @cloud-forest/api typecheck",
-    "test": "pnpm --filter @cloud-forest/api-contracts test && pnpm --filter @cloud-forest/api test && pnpm --filter @cloud-forest/web test",
+    "test": "pnpm test:environment && pnpm --filter @cloud-forest/api-contracts test && pnpm --filter @cloud-forest/api test && pnpm --filter @cloud-forest/web test",
+    "test:environment": "node --test scripts/*.test.mjs",
     "check:api": "pnpm --filter @cloud-forest/api check",
     "test:watch": "pnpm --filter @cloud-forest/web test:watch",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build",

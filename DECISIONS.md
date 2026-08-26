@@ -122,3 +122,13 @@ All other Timeline data remains mock-backed during that slice so the migration
 stays small and the working prototype remains usable. IndexedDB caching and
 durable background jobs are not required for this first slice and remain
 separate follow-up boundaries unless a later approved requirement needs them.
+
+## D-021: Environment recovery is explicit, bounded, and evidence-led
+
+Routine setup uses the committed pnpm lockfile without purging a healthy
+environment. Repository cleanup removes only an explicit allowlist of disposable
+generated artifacts. Rebuilding dependencies requires an explicit confirmation
+because it removes workspace `node_modules`; it does not remove the pnpm store,
+Docker volumes, backups, environment files, source files, or user data.
+Environment and build failures must be investigated and classified using their
+observable behavior before an approval escalation or documented deferral.

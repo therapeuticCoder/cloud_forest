@@ -50,6 +50,24 @@ from the lockfile, and runs the full project check:
 pnpm.cmd setup
 ```
 
+Routine setup uses `pnpm install --frozen-lockfile` and does not purge a healthy
+environment. To inspect or remove disposable build and test output, use:
+
+```powershell
+pnpm.cmd clean:generated -- --dry-run
+pnpm.cmd clean:generated
+```
+
+For a damaged dependency layout, preview and then explicitly confirm a rebuild:
+
+```powershell
+pnpm.cmd deps:repair
+pnpm.cmd deps:repair -- --confirm
+```
+
+See [`docs/development.md`](docs/development.md#environment-hygiene-and-recovery)
+for the exact deletion boundaries and troubleshooting procedure.
+
 Run the app locally:
 
 ```bash

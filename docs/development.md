@@ -194,6 +194,76 @@ Also verify that VS Code sees the recommended extensions, the Codex action bar
 shows the shared actions, a clean Codex worktree completes its setup script, and
 the rendered app opens without browser console errors.
 
+## Environment hygiene and recovery
+
+Healthy setup is deliberately non-destructive: `pnpm.cmd setup` verifies the
+pinned tools, runs `pnpm install --frozen-lockfile`, and checks the project. It
+does not purge dependencies, caches, or build output.
+
+Preview the disposable generated artifacts known to the repository before
+removing them:
+
+```powershell
+pnpm.cmd clean:generated -- --dry-run
+pnpm.cmd clean:generated
+```
+
+The cleanup command may delete directories named `dist`, `dist-ssr`,
+`coverage`, or `.vite`, plus files ending in `.tsbuildinfo`, while walking the
+repository. It does not enter `.git`, `.pnpm-store`, `backups`, or
+`node_modules`, and it ignores symbolic links. It must never be expanded to
+cover `.env` files, source files, Docker volumes, backups, or user data. A
+cleanup involving those categories requires a separate, exact plan and human
+confirmation; Docker volumes and backups are outside this command entirely.
+
+If pnpm reports an unexpected modules layout, incompatible virtual store, or
+store-index/linking error, first record the exact error and verify
+`node --version`, `pnpm.cmd --version`, and `git status --short --branch`. Retry
+the deterministic install without deleting anything:
+
+```powershell
+pnpm.cmd install --frozen-lockfile
+```
+
+If the same dependency-layout error persists, preview the repair targets and
+then explicitly confirm the rebuild:
+
+```powershell
+pnpm.cmd deps:repair
+pnpm.cmd deps:repair -- --confirm
+```
+
+The confirmed command removes only directories named `node_modules` inside the
+repository, then runs `pnpm install --frozen-lockfile`. It preserves the pnpm
+content-addressable store and every protected data category above. Run
+`pnpm.cmd check` afterward. Repeating the preview or confirmed repair is safe;
+the install reconstructs the same layout from `pnpm-lock.yaml`.
+
+If pnpm still identifies a corrupt global store index, run `pnpm.cmd store
+status` and record its output. `pnpm store prune` can discard an expensive
+shared cache and redownload packages, so it is not part of repository cleanup;
+run it only after explicit human confirmation. Do not manually delete an
+unknown store path.
+
+Classify failures from evidence rather than assuming they are harmless:
+
+- A failure reproduced in a normal PowerShell terminal or a second clean
+  worktree points toward tracked configuration, the lockfile, or another
+  repository defect.
+- A permission denial naming `.git` or a path outside the Codex writable scope,
+  followed by success for the same command with narrow approval, identifies a
+  sandbox boundary.
+- A failure tied to antivirus, filesystem ACLs, locked files, Docker Desktop,
+  or machine-installed tools is a workstation issue when repository checks and
+  clean worktrees do not reproduce it.
+
+Approval escalation is appropriate only when the required in-scope operation
+is blocked by sandbox or workstation permissions and its exact target is known.
+Do not escalate broad deletion, weaken execution policy, or use approval to hide
+a repository defect. Setup, permission, sandbox, dependency-install, and build
+errors must be investigated when discovered; if work must stop, document the
+command, output, classification evidence, and explicit reason for deferral.
+
 ## Troubleshooting
 
 - **Wrong Node version:** run `nvm use 22.23.2`, then open a new terminal.
