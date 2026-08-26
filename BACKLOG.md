@@ -398,7 +398,7 @@ production logging services, and background work.
 
 ### T-018E: Establish PostgreSQL and Drizzle with reviewed SQL migrations
 
-Status: queued
+Status: done
 Size: medium
 
 Concrete goal:
