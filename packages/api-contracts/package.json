@@ -1,5 +1,17 @@
 {
   "name": "@cloud-forest/api-contracts",
   "private": true,
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "pnpm --dir ../../apps/web exec tsc --project ../../packages/api-contracts/tsconfig.json",
+    "test": "node --experimental-strip-types --test src/*.test.mjs"
+  },
+  "dependencies": {
+    "@cloud-forest/domain": "workspace:*",
+    "typebox": "1.3.7"
+  }
 }
