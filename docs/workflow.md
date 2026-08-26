@@ -100,6 +100,19 @@ relevant viewport sizes, keyboard and focus behavior, console errors, and
 obvious interaction or performance regressions.
 
 If a check cannot run, report the exact reason rather than implying success.
+Environment setup, permission, sandbox, dependency-install, and build failures
+must be investigated when they are discovered. Do not treat them as normal
+workstation noise or defer them without recording the reason and the evidence
+that separates a repository defect from an environment boundary.
+
+Start with the failing command and its exact output. If it fails consistently in
+an ordinary terminal or clean worktree, inspect repository configuration and
+tracked files as a likely repository defect. If the same command succeeds
+outside the Codex sandbox, or the error names a denied path outside the writable
+scope, treat it as a sandbox or workstation permission issue. Request approval
+only for the narrow operation needed to verify or complete the in-scope task;
+do not weaken machine policy, broaden filesystem access, or use escalation to
+bypass a repository failure.
 
 For reference-driven UI work:
 

@@ -18,6 +18,9 @@ full Codex app operating workflow.
 - Inspect `git status` and relevant diffs before editing. Preserve unrelated
   human changes already in the worktree.
 - After editing, run the relevant checks listed in `README.md`.
+- Investigate environment setup, permission, sandbox, dependency-install, and
+  build errors when discovered. Do not silently ignore, normalize, or defer an
+  error without recording the explicit reason.
 - For reference-driven UI work, inspect the supplied references before editing,
   verify the rendered result in the browser at the relevant viewport sizes, and
   compare final screenshots directly with the references.
