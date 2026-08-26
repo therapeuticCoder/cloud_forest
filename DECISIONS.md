@@ -132,3 +132,18 @@ because it removes workspace `node_modules`; it does not remove the pnpm store,
 Docker volumes, backups, environment files, source files, or user data.
 Environment and build failures must be investigated and classified using their
 observable behavior before an approval escalation or documented deferral.
+
+## D-022: Database changes use a server-only reviewed SQL boundary
+
+`packages/database` owns local PostgreSQL configuration, Drizzle schema code,
+and database access. It may depend on the framework-neutral domain package, but
+domain and API-contract packages do not contain database configuration. The
+initial driver is `pg`, with Drizzle ORM as the typed SQL layer.
+
+Schema changes are generated as human-readable SQL, reviewed with their Drizzle
+metadata, committed, and applied forward. Direct schema push, automatic down
+migrations, and automatic destructive reset are not supported. Migration apply
+is repeatable, while migration status and schema inspection are read-only.
+Database integration tests require an explicitly separate local disposable
+database and fictional data; destructive reset always requires separate human
+confirmation.

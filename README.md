@@ -146,6 +146,31 @@ pnpm.cmd services:up
 pnpm.cmd services:status
 ```
 
+### Local database migrations
+
+`packages/database` is a server-only package. It connects only to the existing
+local PostgreSQL service and keeps database configuration out of the domain and
+API-contract packages. Schema changes use generated, reviewed SQL migrations:
+
+```powershell
+pnpm.cmd db:generate
+pnpm.cmd db:migrations:check
+pnpm.cmd db:status
+pnpm.cmd db:migrate
+pnpm.cmd db:inspect
+```
+
+Review every generated SQL file and its Drizzle metadata before applying it.
+`db:migrate` applies pending migrations forward and is a successful no-op when
+the database is current. `db:status` and `db:inspect` are read-only. Direct
+schema push and automatic rollback are not supported.
+
+Database integration tests require `TEST_DATABASE_URL` to name a distinct local
+database containing `test`. `pnpm.cmd test:database` creates that database when
+absent, applies migrations, and runs isolated fictional fixtures. It never
+drops or resets a database. Any destructive reset requires separate explicit
+confirmation.
+
 ## Project structure
 
 ```text
