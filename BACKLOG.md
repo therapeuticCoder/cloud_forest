@@ -297,7 +297,7 @@ routing, authentication, persistence, and new dependencies.
 
 ### T-018C: Establish shared domain and API-contract packages
 
-Status: queued
+Status: done
 Size: small
 
 Concrete goal:
