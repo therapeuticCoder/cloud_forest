@@ -53,6 +53,30 @@ test("invalid success responses fail runtime validation", () => {
     }),
     false,
   );
+  assert.equal(
+    isGetTimelineItemSuccessResponse({
+      apiVersion: "v1",
+      data: {
+        timelineItem: {
+          ...getTimelineItemSuccessResponseExample.data.timelineItem,
+          publishedAt: "2026-99-99T25:61:61Z",
+        },
+      },
+    }),
+    false,
+  );
+  assert.equal(
+    isGetTimelineItemSuccessResponse({
+      apiVersion: "v1",
+      data: {
+        timelineItem: {
+          ...getTimelineItemSuccessResponseExample.data.timelineItem,
+          publishedAt: "2026-02-29T15:30:00Z",
+        },
+      },
+    }),
+    false,
+  );
 });
 
 test("invalid error responses fail runtime validation", () => {

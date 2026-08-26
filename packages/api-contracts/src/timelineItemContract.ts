@@ -7,8 +7,8 @@ export const timelineItemPath = "/api/v1/timeline-items/:timelineItemId";
 
 const opaqueIdSchema = Type.String({ minLength: 1, maxLength: 128 });
 const isoDateTimeSchema = Type.String({
-  pattern:
-    "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$",
+  format: "date-time",
+  pattern: "Z$",
 });
 
 export const timelineItemSchema = Type.Object(
