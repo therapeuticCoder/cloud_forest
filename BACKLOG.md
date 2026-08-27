@@ -440,7 +440,7 @@ and automatic destructive migration rollback.
 
 ### T-018F: Generate OpenAPI and a typed client at explicit boundaries
 
-Status: queued
+Status: done
 Size: medium
 
 Concrete goal:

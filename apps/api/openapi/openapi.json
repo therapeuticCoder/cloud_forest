@@ -1,0 +1,302 @@
+{
+  "components": {
+    "schemas": {}
+  },
+  "info": {
+    "title": "Cloud Forest API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "getHealthV1",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "ok"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Check API health",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/v1/timeline-items/{timelineItemId}": {
+      "get": {
+        "operationId": "getTimelineItemV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timelineItemId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "timelineItem": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "actor": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "avatarUrl": {
+                                  "maxLength": 2048,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "maxLength": 200,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "id": {
+                                  "maxLength": 128,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "initials": {
+                                  "maxLength": 8,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "layer": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "party"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tribe"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "guild"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "signal"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName",
+                                "layer"
+                              ],
+                              "type": "object"
+                            },
+                            "content": {
+                              "maxLength": 10000,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "id": {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "publishedAt": {
+                              "format": "date-time",
+                              "pattern": "Z$",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "actor",
+                            "content",
+                            "publishedAt"
+                          ],
+                          "title": "TimelineItem",
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "timelineItem"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "INVALID_REQUEST"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TIMELINE_ITEM_NOT_FOUND"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "INVALID_REQUEST"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TIMELINE_ITEM_NOT_FOUND"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get one Timeline item",
+        "tags": [
+          "Timeline"
+        ]
+      }
+    }
+  }
+}

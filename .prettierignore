@@ -1,0 +1,3 @@
+# Generated deterministically by the OpenAPI workflow.
+apps/api/openapi/openapi.json
+packages/api-client/src/generated/openapi.ts
