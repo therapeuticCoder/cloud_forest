@@ -160,9 +160,10 @@ metadata. Missing or stale generated artifacts fail the root check.
 for approved versioned operations. It uses the platform `fetch` implementation
 and distinguishes typed success, documented HTTP errors, network failures, and
 unexpected responses. Its transport types come from generated OpenAPI output
-rather than parallel handwritten definitions. The package and its web
-consumers must not import Fastify, API implementation code, Drizzle, `pg`, or
-`packages/database`.
+rather than parallel handwritten definitions. Existing API-contract validators
+check response bodies before the client returns typed results. The package and
+its web consumers must not import Fastify, API implementation code, Drizzle,
+`pg`, or `packages/database`.
 
 The v1 Timeline-item route accepts an injected resolver and defaults to its
 typed not-found result. This establishes the API and client seam without

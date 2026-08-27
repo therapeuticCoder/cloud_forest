@@ -221,7 +221,7 @@ The intended shared-package dependency direction is:
 ```text
 apps/* -> packages/*
 api-client -> generated OpenAPI transport types
-api-contracts -> domain
+api-client -> api-contracts -> domain
 database -> domain
 domain -> no workspace package
 ```

@@ -1,3 +1,9 @@
+import {
+  isGetTimelineItemErrorResponse,
+  isGetTimelineItemSuccessResponse,
+  isHealthResponse,
+} from "@cloud-forest/api-contracts";
+
 import type { operations } from "./generated/openapi.ts";
 
 type JsonResponseBody<Response> = Response extends {
@@ -126,11 +132,11 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
       const result = await get("/api/v1/health");
       if (result.kind === "network") return result;
 
-      if (result.status === 200) {
+      if (result.status === 200 && isHealthResponse(result.body)) {
         return {
           ok: true,
           status: 200,
-          value: result.body as HealthResponse,
+          value: result.body,
         };
       }
 
@@ -147,20 +153,26 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
       const result = await get(`/api/v1/timeline-items/${timelineItemId}`);
       if (result.kind === "network") return result;
 
-      if (result.status === 200) {
+      if (
+        result.status === 200 &&
+        isGetTimelineItemSuccessResponse(result.body)
+      ) {
         return {
           ok: true,
           status: 200,
-          value: result.body as GetTimelineItemResponse,
+          value: result.body,
         };
       }
 
-      if (result.status === 400 || result.status === 404) {
+      if (
+        (result.status === 400 || result.status === 404) &&
+        isGetTimelineItemErrorResponse(result.body)
+      ) {
         return {
           ok: false,
           kind: "http",
           status: result.status,
-          error: result.body as GetTimelineItemErrorResponse,
+          error: result.body,
         };
       }
 

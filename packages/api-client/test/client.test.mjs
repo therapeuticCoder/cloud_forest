@@ -102,3 +102,61 @@ test("undocumented statuses preserve the response for explicit handling", async 
     body: "fictional gateway response",
   });
 });
+
+test("malformed success bodies become unexpected responses", async () => {
+  const malformedBody = { apiVersion: "v1", data: {} };
+  const client = createApiClient({
+    baseUrl: "https://api.example.test",
+    fetch: async () => jsonResponse(malformedBody),
+  });
+
+  assert.deepEqual(
+    await client.getTimelineItem({ timelineItemId: "timeline-item-001" }),
+    {
+      ok: false,
+      kind: "unexpected-response",
+      status: 200,
+      body: malformedBody,
+    },
+  );
+});
+
+test("malformed documented error bodies become unexpected responses", async () => {
+  const malformedBody = {
+    apiVersion: "v1",
+    error: { code: "UNKNOWN_ERROR", message: "Fictional error." },
+  };
+  const client = createApiClient({
+    baseUrl: "https://api.example.test",
+    fetch: async () => jsonResponse(malformedBody, 404),
+  });
+
+  assert.deepEqual(
+    await client.getTimelineItem({ timelineItemId: "timeline-item-001" }),
+    {
+      ok: false,
+      kind: "unexpected-response",
+      status: 404,
+      body: malformedBody,
+    },
+  );
+});
+
+test("HTML fallbacks cannot masquerade as typed health responses", async () => {
+  const client = createApiClient({
+    baseUrl: "https://web.example.test",
+    fetch: async () => ({
+      status: 200,
+      async text() {
+        return "<html>Fictional Vite fallback</html>";
+      },
+    }),
+  });
+
+  assert.deepEqual(await client.getHealth(), {
+    ok: false,
+    kind: "unexpected-response",
+    status: 200,
+    body: "<html>Fictional Vite fallback</html>",
+  });
+});

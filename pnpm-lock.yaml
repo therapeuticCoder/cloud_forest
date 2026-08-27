@@ -133,6 +133,10 @@ importers:
   apps/worker: {}
 
   packages/api-client:
+    dependencies:
+      "@cloud-forest/api-contracts":
+        specifier: workspace:*
+        version: link:../api-contracts
     devDependencies:
       openapi-typescript:
         specifier: 7.13.0

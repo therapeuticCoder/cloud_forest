@@ -112,9 +112,12 @@ affected file. `pnpm.cmd check` includes this drift check.
 `packages/api-client` is a transport-only browser-safe package. Its public
 surface is `createApiClient`, the two versioned read operations, and their
 result types. Documented HTTP responses are distinct from network failures and
-undocumented responses. The package has no Fastify, Drizzle, PostgreSQL, or
-database-package dependency. The Timeline route defaults to a typed not-found
-result until T-018J supplies its database-backed resolver.
+undocumented or schema-invalid responses. Runtime validators are reused from
+`packages/api-contracts`; malformed JSON and HTML fallbacks are reported as
+unexpected responses rather than asserted into generated types. The package
+has no Fastify, Drizzle, PostgreSQL, or database-package dependency. The
+Timeline route defaults to a typed not-found result until T-018J supplies its
+database-backed resolver.
 
 The local services are:
 

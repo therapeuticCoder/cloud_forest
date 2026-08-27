@@ -13,6 +13,9 @@
     "test": "node --experimental-strip-types --test test/*.test.mjs",
     "check": "pnpm generated:check && pnpm typecheck && pnpm test"
   },
+  "dependencies": {
+    "@cloud-forest/api-contracts": "workspace:*"
+  },
   "devDependencies": {
     "openapi-typescript": "7.13.0",
     "typescript": "5.9.3"
