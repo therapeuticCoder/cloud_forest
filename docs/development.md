@@ -82,6 +82,43 @@ focused check:
 pnpm.cmd check:api
 ```
 
+### OpenAPI and typed client generation
+
+Fastify generates OpenAPI 3.0.3 from the runtime TypeBox schemas registered for
+the versioned health and Timeline-item routes. Regenerate the committed server
+document and client types after an approved route-contract change:
+
+```powershell
+pnpm.cmd openapi:generate
+```
+
+This writes:
+
+- `apps/api/openapi/openapi.json`
+- `packages/api-client/src/generated/openapi.ts`
+
+Do not edit either file manually. Generation uses fixed metadata, canonical
+JSON key ordering, pinned tooling, and no environment-specific server URL or
+timestamp. Verify that committed artifacts match a clean regeneration with:
+
+```powershell
+pnpm.cmd openapi:check
+```
+
+The check generates the expected content in memory and compares it byte for
+byte with both artifacts. Missing or stale output exits nonzero and names the
+affected file. `pnpm.cmd check` includes this drift check.
+
+`packages/api-client` is a transport-only browser-safe package. Its public
+surface is `createApiClient`, the two versioned read operations, and their
+result types. Documented HTTP responses are distinct from network failures and
+undocumented or schema-invalid responses. Runtime validators are reused from
+`packages/api-contracts`; malformed JSON and HTML fallbacks are reported as
+unexpected responses rather than asserted into generated types. The package
+has no Fastify, Drizzle, PostgreSQL, or database-package dependency. The
+Timeline route defaults to a typed not-found result until T-018J supplies its
+database-backed resolver.
+
 The local services are:
 
 | Service             | Endpoint                | Purpose                    |

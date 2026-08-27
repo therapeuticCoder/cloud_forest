@@ -9,7 +9,10 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["scripts/**/*.mjs"],
+    files: [
+      "scripts/**/*.mjs",
+      "packages/api-client/{scripts,test}/**/*.{mjs,ts}",
+    ],
     languageOptions: {
       globals: globals.node,
     },

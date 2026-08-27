@@ -11,6 +11,9 @@ export const healthRoutes: FastifyPluginAsyncTypebox = async (server) => {
     healthPath,
     {
       schema: {
+        operationId: "getHealthV1",
+        summary: "Check API health",
+        tags: ["Health"],
         querystring: healthRequestSchema,
         response: { 200: healthResponseSchema },
       },

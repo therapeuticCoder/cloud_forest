@@ -147,3 +147,24 @@ is repeatable, while migration status and schema inspection are read-only.
 Database integration tests require an explicitly separate local disposable
 database and fictional data; destructive reset always requires separate human
 confirmation.
+
+## D-023: OpenAPI is generated at the API boundary and narrows the client boundary
+
+Registered Fastify TypeBox request and response schemas are the source for the
+OpenAPI 3 document. The deterministic JSON document is committed under
+`apps/api`, and `openapi-typescript` derives committed client types from it.
+Generation contains no timestamp, workstation URL, or environment-dependent
+metadata. Missing or stale generated artifacts fail the root check.
+
+`packages/api-client` is a transport-only package with a curated public surface
+for approved versioned operations. It uses the platform `fetch` implementation
+and distinguishes typed success, documented HTTP errors, network failures, and
+unexpected responses. Its transport types come from generated OpenAPI output
+rather than parallel handwritten definitions. Existing API-contract validators
+check response bodies before the client returns typed results. The package and
+its web consumers must not import Fastify, API implementation code, Drizzle,
+`pg`, or `packages/database`.
+
+The v1 Timeline-item route accepts an injected resolver and defaults to its
+typed not-found result. This establishes the API and client seam without
+database access; T-018J owns the PostgreSQL-backed resolver and web integration.

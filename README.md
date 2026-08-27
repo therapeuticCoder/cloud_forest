@@ -84,6 +84,21 @@ The API defaults to `http://127.0.0.1:3001`. Override `API_HOST` or `API_PORT`
 in the process environment when needed. `GET /api/v1/health` is independent of
 Docker and the database. Run its focused checks with `pnpm check:api`.
 
+The API's registered TypeBox route schemas generate the committed OpenAPI
+artifact at `apps/api/openapi/openapi.json`. That document generates the
+transport types used by `packages/api-client`:
+
+```powershell
+pnpm.cmd openapi:generate
+pnpm.cmd openapi:check
+```
+
+Generation is deterministic and `openapi:check` fails when either the OpenAPI
+document or generated client types differ from their committed form. The API
+client exposes only the versioned health and Timeline-item reads. It uses the
+platform `fetch` implementation and returns distinct typed success, documented
+HTTP error, network error, and unexpected-response results.
+
 Development mode does not register the production service worker. If the same
 development origin was previously used for a production preview, startup also
 unregisters that origin's existing workers. The production worker always tries
@@ -185,7 +200,7 @@ apps/
       test/
   worker/          # reserved background-worker application boundary
 packages/
-  api-client/      # shared typed API client boundary
+  api-client/      # generated types and transport-only API client boundary
   api-contracts/   # shared transport contract boundary
   database/        # shared server-side database boundary
   domain/          # shared framework-neutral domain boundary
@@ -205,6 +220,7 @@ The intended shared-package dependency direction is:
 
 ```text
 apps/* -> packages/*
+api-client -> generated OpenAPI transport types
 api-client -> api-contracts -> domain
 database -> domain
 domain -> no workspace package
@@ -214,6 +230,9 @@ Other shared-package dependencies should be introduced only by the task that
 needs them. Use pnpm's `workspace:` protocol when an approved implementation
 adds an internal dependency. The database package is server-only and must not
 be consumed by the web application or API client.
+
+`apps/web` may consume `@cloud-forest/api-client`. The client must not import
+Fastify, API implementation modules, Drizzle, `pg`, or `packages/database`.
 
 ## Agentic workflow
 
