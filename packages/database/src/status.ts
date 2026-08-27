@@ -18,6 +18,7 @@ const useTestDatabase = isTestDatabaseRequest(process.argv.slice(2));
 const connectionString = useTestDatabase
   ? getTestDatabaseUrl(process.env)
   : getDatabaseUrl(process.env);
+const targetVariable = useTestDatabase ? "TEST_DATABASE_URL" : "DATABASE_URL";
 const localMigrations = readMigrationFiles({ migrationsFolder });
 const pool = new Pool({ connectionString });
 
@@ -43,7 +44,9 @@ try {
       (migration, index) => localMigrations[index]?.hash !== migration.hash,
     );
 
-  console.log(`Database: ${new URL(connectionString).pathname.slice(1)}`);
+  console.log(
+    `Target: ${targetVariable} (${new URL(connectionString).pathname.slice(1)})`,
+  );
   console.log(`Applied: ${appliedCount}`);
   console.log(`Pending: ${pendingCount}`);
   console.log(`Divergent: ${divergent ? "yes" : "no"}`);

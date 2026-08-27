@@ -168,3 +168,17 @@ its web consumers must not import Fastify, API implementation code, Drizzle,
 The v1 Timeline-item route accepts an injected resolver and defaults to its
 typed not-found result. This establishes the API and client seam without
 database access; T-018J owns the PostgreSQL-backed resolver and web integration.
+
+## D-024: Root database commands name their target and E2E starts at an isolated boundary
+
+Migration generation and artifact checking remain disconnected from database
+execution. Normal apply, status, and inspection commands explicitly use
+`DATABASE_URL`; their `:test` counterparts explicitly use the guarded
+`TEST_DATABASE_URL`. Test preparation may create the named local test database
+when absent but never drops, resets, truncates, or rolls it back automatically.
+
+The root E2E command prepares, migrates, and inspects that disposable database
+through the same root commands used by humans and Codex. Before T-018K, it does
+not start the API, web app, browser, or persistent child processes. T-018K owns
+the approved browser runner, product test, service lifecycle, signal forwarding,
+and guaranteed child-process cleanup.

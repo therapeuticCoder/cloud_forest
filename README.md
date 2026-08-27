@@ -176,6 +176,20 @@ pnpm.cmd db:inspect
 ```
 
 Review every generated SQL file and its Drizzle metadata before applying it.
+`db:generate` only writes migration artifacts; it never connects to a database
+or applies SQL. `db:migrations:check` validates the committed SQL and metadata
+without connecting to a database. The remaining commands explicitly report the
+environment variable and database name they target.
+
+Normal local database commands use `DATABASE_URL`. Their disposable-test
+counterparts require the guarded `TEST_DATABASE_URL`:
+
+```powershell
+pnpm.cmd db:migrate:test
+pnpm.cmd db:status:test
+pnpm.cmd db:inspect:test
+```
+
 `db:migrate` applies pending migrations forward and is a successful no-op when
 the database is current. `db:status` and `db:inspect` are read-only. Direct
 schema push and automatic rollback are not supported.
@@ -185,6 +199,19 @@ database containing `test`. `pnpm.cmd test:database` creates that database when
 absent, applies migrations, and runs isolated fictional fixtures. It never
 drops or resets a database. Any destructive reset requires separate explicit
 confirmation.
+
+The E2E project boundary currently prepares and verifies that same isolated test
+database without starting the API, web app, or a browser:
+
+```powershell
+pnpm.cmd test:e2e
+```
+
+Local PostgreSQL must already be running. The command stops at the first failed
+child command, returns a nonzero exit code, and prints the command that failed.
+It starts no persistent child processes, so there is nothing to clean up in this
+pre-runner shell. It reports success with an explicit notice that T-018K still
+needs to register the browser runner and first product E2E test.
 
 ## Project structure
 

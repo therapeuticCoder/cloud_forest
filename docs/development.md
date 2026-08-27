@@ -139,14 +139,42 @@ disposable database without resetting existing data:
 ```powershell
 pnpm.cmd db:test:prepare
 pnpm.cmd test:database
-pnpm.cmd --filter @cloud-forest/database status -- --test
-pnpm.cmd --filter @cloud-forest/database inspect -- --test
+pnpm.cmd db:migrate:test
+pnpm.cmd db:status:test
+pnpm.cmd db:inspect:test
 ```
 
 Test preparation only creates the named database when it is absent. Migration
 apply is forward-only and repeatable. No command automatically drops a
 database, schema, table, Docker volume, or migration. Confirm the exact target
 separately before any destructive database reset.
+
+Migration generation and checking are separate from database execution:
+
+```powershell
+pnpm.cmd db:generate
+pnpm.cmd db:migrations:check
+```
+
+Generation writes reviewable SQL and Drizzle metadata only and never applies
+SQL. The check validates those artifacts without connecting to PostgreSQL.
+Normal apply, status, and inspection commands use `DATABASE_URL`; the `:test`
+variants use the guarded `TEST_DATABASE_URL`. Each database command reports the
+selected variable and database name without printing credentials.
+
+Before T-018K supplies a browser runner and product test, verify the complete
+disposable E2E database boundary with:
+
+```powershell
+pnpm.cmd test:e2e
+```
+
+PostgreSQL must already be available through the existing local Compose
+service. The command prepares the test database when absent, applies reviewed
+migrations, and runs test-target status and schema inspection. It stops on the
+first failure and returns a nonzero exit code. The current shell starts no API,
+web, browser, or persistent child process; T-018K owns process startup, signal
+forwarding, and guaranteed cleanup when its approved runner is introduced.
 
 Stop the services without deleting their volumes:
 
