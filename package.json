@@ -33,10 +33,14 @@
     "db:generate": "pnpm --filter @cloud-forest/database generate",
     "db:migrations:check": "pnpm --filter @cloud-forest/database migrations:check",
     "db:migrate": "pnpm --filter @cloud-forest/database migrate",
+    "db:migrate:test": "pnpm --filter @cloud-forest/database migrate -- --test",
     "db:status": "pnpm --filter @cloud-forest/database status",
+    "db:status:test": "pnpm --filter @cloud-forest/database status -- --test",
     "db:inspect": "pnpm --filter @cloud-forest/database inspect",
+    "db:inspect:test": "pnpm --filter @cloud-forest/database inspect -- --test",
     "db:test:prepare": "pnpm --filter @cloud-forest/database test:prepare",
-    "test:database": "pnpm db:test:prepare && pnpm --filter @cloud-forest/database migrate -- --test && pnpm --filter @cloud-forest/database test:integration"
+    "test:database": "pnpm db:test:prepare && pnpm db:migrate:test && pnpm --filter @cloud-forest/database test:integration",
+    "test:e2e": "node --env-file-if-exists=.env scripts/e2e.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

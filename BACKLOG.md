@@ -479,7 +479,7 @@ authentication, retries, offline queues, and broad endpoint generation.
 
 ### T-018G: Add root database-migration and E2E project commands
 
-Status: queued
+Status: done
 Size: small
 
 Concrete goal:

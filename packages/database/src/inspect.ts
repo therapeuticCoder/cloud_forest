@@ -10,6 +10,7 @@ const useTestDatabase = isTestDatabaseRequest(process.argv.slice(2));
 const connectionString = useTestDatabase
   ? getTestDatabaseUrl(process.env)
   : getDatabaseUrl(process.env);
+const targetVariable = useTestDatabase ? "TEST_DATABASE_URL" : "DATABASE_URL";
 const pool = new Pool({ connectionString });
 
 try {
@@ -28,7 +29,14 @@ try {
 
   console.log(
     JSON.stringify(
-      { columns: columns.rows, constraints: constraints.rows },
+      {
+        target: {
+          variable: targetVariable,
+          database: new URL(connectionString).pathname.slice(1),
+        },
+        columns: columns.rows,
+        constraints: constraints.rows,
+      },
       null,
       2,
     ),

@@ -29,3 +29,28 @@ command = "pnpm.cmd services:up"
 name = "Service status"
 icon = "tool"
 command = "pnpm.cmd services:status"
+
+[[actions]]
+name = "Check database migrations"
+icon = "tool"
+command = "pnpm.cmd db:migrations:check"
+
+[[actions]]
+name = "Show database status"
+icon = "tool"
+command = "pnpm.cmd db:status"
+
+[[actions]]
+name = "Apply database migrations"
+icon = "run"
+command = "pnpm.cmd db:migrate"
+
+[[actions]]
+name = "Run database tests"
+icon = "tool"
+command = "pnpm.cmd test:database"
+
+[[actions]]
+name = "Run E2E boundary"
+icon = "tool"
+command = "pnpm.cmd test:e2e"
