@@ -1,12 +1,12 @@
 export {
   activityActors,
   appConfig,
-  humanForestActivities,
-  humanForestActors,
-  humanForestConnections,
-  humanForestGuilds,
+  cloudForestActivities,
+  cloudForestActors,
+  cloudForestConnections,
+  cloudForestGuilds,
   mockNowIso,
-} from "./humanForestMockData";
+} from "./cloudForestMockData";
 
 export {
   curatorGuilds,

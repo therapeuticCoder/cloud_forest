@@ -6,7 +6,7 @@ import {
   curatorSignals,
   curatorTribeNeighborhoods,
   curatorUser,
-} from "@/data/humanForest";
+} from "@/data/cloudForest";
 import { cn } from "@/lib/utils";
 import type { CuratorSelection } from "@/types/curator";
 

@@ -182,3 +182,17 @@ through the same root commands used by humans and Codex. Before T-018K, it does
 not start the API, web app, browser, or persistent child processes. T-018K owns
 the approved browser runner, product test, service lifecycle, signal forwarding,
 and guaranteed child-process cleanup.
+
+## D-025: The repository owns an LF text policy
+
+Tracked text files use LF in the Git index and worktree on every supported
+platform. `.gitattributes` is authoritative for checkout and commit
+normalization, `.editorconfig` guides editors, and Prettier enforces LF for the
+files it formats. Machine-level `core.autocrlf` settings must not override the
+repository policy.
+
+Generated OpenAPI and typed-client artifacts remain strict byte-for-byte drift
+checks. Their generators emit LF, so native Windows checks use the same bytes as
+Linux and clean Codex worktrees instead of weakening artifact validation.
+
+Binary assets are explicitly marked binary and are never line-normalized.

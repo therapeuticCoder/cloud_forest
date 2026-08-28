@@ -16,6 +16,7 @@ should be small enough for one focused agent session.
 - T-009: Build Signals accordion layer
 - T-016: Establish the native Windows development environment
 - T-017: Calibrate the Cloud Forest visual direction
+- T-025: Establish repository line-ending and name hygiene
 
 ## Gallery Refactor
 
@@ -182,6 +183,28 @@ Acceptance criteria:
   investigated and may be deferred only with an explicit documented reason
 - isolated fixture tests cover target listing, protected state, safe removal,
   and repeated execution
+- `pnpm format:check` and `pnpm check` pass
+
+### T-025: Establish repository line-ending and name hygiene
+
+Status: done
+Size: small
+
+Goal:
+Make LF line endings deterministic across native Windows, Linux, generators,
+Codex worktrees, and CI while removing obsolete internal Human Forest names.
+
+Acceptance criteria:
+
+- repository attributes keep tracked text files LF and preserve binary assets
+- Prettier enforces the same LF policy
+- committed OpenAPI and typed-client artifacts pass byte-for-byte drift checks
+  on native Windows
+- fictional Garage defaults and internal web identifiers use Cloud Forest names
+- the service worker removes shell caches that use the obsolete Human Forest
+  prefix without touching unrelated origin caches
+- existing Docker containers, volumes, databases, caches, and user data remain
+  unchanged
 - `pnpm format:check` and `pnpm check` pass
 
 ### T-018: Create the application monorepo foundation

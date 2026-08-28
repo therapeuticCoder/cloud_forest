@@ -1,6 +1,6 @@
-export type HumanForestLayer = "self" | "party" | "tribe" | "guild" | "signal";
+export type CloudForestLayer = "self" | "party" | "tribe" | "guild" | "signal";
 
-export type HumanForestSourceType =
+export type CloudForestSourceType =
   | "person"
   | "group"
   | "institution"
@@ -9,37 +9,37 @@ export type HumanForestSourceType =
   | "topic"
   | "system";
 
-export type HumanForestPlatform =
+export type CloudForestPlatform =
   | "activitypub"
   | "bluesky"
   | "discord"
   | "mock";
 
-export type HumanForestPosition = {
+export type CloudForestPosition = {
   x: number;
   y: number;
 };
 
-export type HumanForestSize = {
+export type CloudForestSize = {
   width: number;
   height: number;
 };
 
-export type HumanForestActor = {
+export type CloudForestActor = {
   id: string;
   displayName: string;
   handle: string;
-  sourceType: HumanForestSourceType;
-  platform: HumanForestPlatform;
-  layer: HumanForestLayer;
+  sourceType: CloudForestSourceType;
+  platform: CloudForestPlatform;
+  layer: CloudForestLayer;
   avatarUrl?: string;
   initials?: string;
-  position: HumanForestPosition;
+  position: CloudForestPosition;
   relationshipLabel?: string;
   notes?: string;
 };
 
-export type HumanForestGuildType =
+export type CloudForestGuildType =
   | "care"
   | "builder"
   | "learning"
@@ -47,29 +47,29 @@ export type HumanForestGuildType =
   | "creative"
   | "other";
 
-export type HumanForestGuild = {
+export type CloudForestGuild = {
   id: string;
   name: string;
   description?: string;
-  guildType: HumanForestGuildType;
-  position: HumanForestPosition;
-  size: HumanForestSize;
+  guildType: CloudForestGuildType;
+  position: CloudForestPosition;
+  size: CloudForestSize;
   rotation?: number;
   memberActorIds: string[];
 };
 
-export type HumanForestConnectionType =
+export type CloudForestConnectionType =
   | "close"
   | "known"
   | "guild"
   | "inferred"
   | "signal";
 
-export type HumanForestConnection = {
+export type CloudForestConnection = {
   id: string;
   fromActorId: string;
   toActorId: string;
-  connectionType: HumanForestConnectionType;
+  connectionType: CloudForestConnectionType;
   strength: number;
 };
 
@@ -87,7 +87,7 @@ export type ActivityPubActivityType =
   | "Follow"
   | "Update";
 
-export type HumanForestActivity = {
+export type CloudForestActivity = {
   id: string;
   activityType: ActivityPubActivityType;
   objectType: ActivityPubObjectType;
@@ -99,7 +99,7 @@ export type HumanForestActivity = {
   content: string;
   url?: string;
   tags?: string[];
-  sourcePlatform: HumanForestPlatform;
+  sourcePlatform: CloudForestPlatform;
   sourceUrl?: string;
 };
 

@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
 
+import { shellCachePrefix, shouldDeleteShellCache } from "./cachePolicy";
+
 export {};
 
 type PrecacheEntry = {
@@ -30,8 +32,7 @@ function hashPrecacheEntries(entries: PrecacheEntry[]) {
   return (hash >>> 0).toString(16);
 }
 
-const cachePrefix = "human-forest-shell-";
-const cacheName = `${cachePrefix}${hashPrecacheEntries(precacheEntries)}`;
+const cacheName = `${shellCachePrefix}${hashPrecacheEntries(precacheEntries)}`;
 const shellUrl = new URL("index.html", worker.registration.scope).href;
 
 worker.addEventListener("install", (event) => {
@@ -47,10 +48,8 @@ worker.addEventListener("activate", (event) => {
       .then((cacheNames) =>
         Promise.all(
           cacheNames
-            .filter(
-              (existingCacheName) =>
-                existingCacheName.startsWith(cachePrefix) &&
-                existingCacheName !== cacheName,
+            .filter((existingCacheName) =>
+              shouldDeleteShellCache(existingCacheName, cacheName),
             )
             .map((existingCacheName) => caches.delete(existingCacheName)),
         ),

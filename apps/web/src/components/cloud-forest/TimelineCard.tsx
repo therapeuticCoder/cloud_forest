@@ -2,16 +2,16 @@ import { Building2, RadioTower, Sprout, UsersRound } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type {
-  HumanForestActivity,
-  HumanForestActor,
-  HumanForestLayer,
-} from "@/types/humanForest";
+  CloudForestActivity,
+  CloudForestActor,
+  CloudForestLayer,
+} from "@/types/cloudForest";
 
-type TimelineLayer = Exclude<HumanForestLayer, "self">;
+type TimelineLayer = Exclude<CloudForestLayer, "self">;
 
 type TimelineCardProps = {
-  activity: HumanForestActivity;
-  actor: HumanForestActor;
+  activity: CloudForestActivity;
+  actor: CloudForestActor;
   dateTime: string;
   time: string;
 };
@@ -39,11 +39,11 @@ const portraitPositions: Record<string, string> = {
   "work-jordan": "100% 100%",
 };
 
-function getTimelineLayer(actor: HumanForestActor): TimelineLayer {
+function getTimelineLayer(actor: CloudForestActor): TimelineLayer {
   return actor.layer === "self" ? "party" : actor.layer;
 }
 
-function TimelineIdentity({ actor }: { actor: HumanForestActor }) {
+function TimelineIdentity({ actor }: { actor: CloudForestActor }) {
   const layer = getTimelineLayer(actor);
   const LayerIcon = layerIcons[layer];
   const portraitPosition = portraitPositions[actor.id];

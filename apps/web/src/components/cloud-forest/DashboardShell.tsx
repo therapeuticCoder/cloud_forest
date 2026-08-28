@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "react";
 
 import { CuratorView } from "./CuratorView";
 import { TimelineView } from "./TimelineView";
-import { type HumanForestView, ViewSwitcher } from "./ViewSwitcher";
+import { type CloudForestView, ViewSwitcher } from "./ViewSwitcher";
 
 export function DashboardShell() {
-  const [activeView, setActiveView] = useState<HumanForestView>("timeline");
+  const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -24,7 +24,7 @@ export function DashboardShell() {
   const revealChrome = () => setChromeHidden(false);
 
   return (
-    <main className="human-forest-app">
+    <main className="cloud-forest-app">
       <div
         className="timeline-chrome timeline-chrome--top"
         data-hidden={chromeHidden}
