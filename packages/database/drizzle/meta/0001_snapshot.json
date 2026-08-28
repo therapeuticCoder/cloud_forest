@@ -1,0 +1,109 @@
+{
+  "id": "0f4c6a87-138b-4b72-b1ef-04a3c42d7b0c",
+  "prevId": "b93ab3d6-5309-4ea2-aa24-969929faff04",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.timeline_items": {
+      "name": "timeline_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(128)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_display_name": {
+          "name": "actor_display_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_layer": {
+          "name": "actor_layer",
+          "type": "varchar(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_initials": {
+          "name": "actor_initials",
+          "type": "varchar(8)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actor_avatar_url": {
+          "name": "actor_avatar_url",
+          "type": "varchar(2048)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "timeline_items_id_length": {
+          "name": "timeline_items_id_length",
+          "value": "char_length(\"timeline_items\".\"id\") >= 1"
+        },
+        "timeline_items_actor_id_length": {
+          "name": "timeline_items_actor_id_length",
+          "value": "char_length(\"timeline_items\".\"actor_id\") >= 1"
+        },
+        "timeline_items_actor_display_name_length": {
+          "name": "timeline_items_actor_display_name_length",
+          "value": "char_length(\"timeline_items\".\"actor_display_name\") >= 1"
+        },
+        "timeline_items_actor_layer_allowed": {
+          "name": "timeline_items_actor_layer_allowed",
+          "value": "\"timeline_items\".\"actor_layer\" in ('party', 'tribe', 'guild', 'signal')"
+        },
+        "timeline_items_actor_initials_length": {
+          "name": "timeline_items_actor_initials_length",
+          "value": "\"timeline_items\".\"actor_initials\" is null or char_length(\"timeline_items\".\"actor_initials\") >= 1"
+        },
+        "timeline_items_actor_avatar_url_length": {
+          "name": "timeline_items_actor_avatar_url_length",
+          "value": "\"timeline_items\".\"actor_avatar_url\" is null or char_length(\"timeline_items\".\"actor_avatar_url\") >= 1"
+        },
+        "timeline_items_content_length": {
+          "name": "timeline_items_content_length",
+          "value": "char_length(\"timeline_items\".\"content\") between 1 and 10000"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

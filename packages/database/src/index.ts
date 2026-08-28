@@ -9,3 +9,7 @@ export {
   type NewTimelineItemRow,
   type TimelineItemRow,
 } from "./schema.ts";
+export {
+  createTimelineItemRepository,
+  type TimelineItemRepository,
+} from "./timelineItemRepository.ts";

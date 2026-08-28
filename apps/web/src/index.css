@@ -204,6 +204,34 @@ button:focus-visible {
   gap: 7px;
 }
 
+.timeline-remote-state {
+  display: flex;
+  min-height: 96px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border: 2px solid color-mix(in srgb, var(--forest-party) 68%, transparent);
+  border-radius: 19px;
+  background: color-mix(in srgb, var(--forest-card) 92%, transparent);
+  color: var(--forest-ink);
+  padding: 24px;
+  text-align: center;
+}
+
+.timeline-remote-state button {
+  border-radius: 999px;
+  background: var(--forest-pine);
+  color: var(--forest-card);
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 16px;
+}
+
+.timeline-remote-state button:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 3px;
+}
+
 .timeline-card {
   --timeline-accent: var(--forest-party);
   position: relative;

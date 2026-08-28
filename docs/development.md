@@ -82,6 +82,11 @@ focused check:
 pnpm.cmd check:api
 ```
 
+The browser uses same-origin `/api` URLs. The local Vite server proxies that
+path to `http://127.0.0.1:3001`, so no CORS configuration is needed for local
+development. Start both `pnpm.cmd dev:api` and `pnpm.cmd dev` when verifying the
+database-backed Timeline item.
+
 ### OpenAPI and typed client generation
 
 Fastify generates OpenAPI 3.0.3 from the runtime TypeBox schemas registered for

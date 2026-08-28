@@ -623,7 +623,7 @@ only on device.
 
 ### T-018J: Implement one thin client/API/PostgreSQL slice
 
-Status: queued
+Status: done
 Size: medium
 
 Concrete goal:
@@ -667,6 +667,19 @@ Precedes T-018K.
 Out of scope:
 Writes, authentication, authorization, broad mock replacement, synchronization,
 optimistic UI, notifications, production data, deployment, and visual redesign.
+
+Completed state:
+
+- the existing fictional Mira soup-offer item is installed by a reviewed
+  forward-only migration and read through a narrow database repository
+- production API startup injects the PostgreSQL resolver and closes its pool on
+  shutdown, while route tests retain an isolated injected-resolver boundary
+- the generated typed client loads exactly that first Timeline card through the
+  same-origin `/api` path; the other seven visible cards remain mock-backed
+- loading, typed-empty, recoverable-error with retry, and success states are
+  accessible and preserve the approved desktop and mobile Timeline treatment
+- guarded repository and API integration tests pass against the separate
+  `cloud_forest_t018j_test` database with two migrations applied and none pending
 
 ### T-018K: Add vertical-slice E2E coverage and prototype regression gate
 

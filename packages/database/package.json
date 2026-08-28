@@ -16,7 +16,7 @@
     "test:prepare": "node --env-file-if-exists=../../.env --experimental-strip-types src/prepareTestDatabase.ts",
     "typecheck": "pnpm --dir ../../apps/web exec tsc --project ../../packages/database/tsconfig.json",
     "test": "node --experimental-strip-types --test test/config.test.mjs",
-    "test:integration": "node --env-file-if-exists=../../.env --experimental-strip-types --test test/database.test.mjs",
+    "test:integration": "node --env-file-if-exists=../../.env --experimental-strip-types --test test/*.test.mjs",
     "check": "pnpm typecheck && pnpm migrations:check && pnpm test"
   },
   "dependencies": {

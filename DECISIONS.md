@@ -196,3 +196,11 @@ checks. Their generators emit LF, so native Windows checks use the same bytes as
 Linux and clean Codex worktrees instead of weakening artifact validation.
 
 Binary assets are explicitly marked binary and are never line-normalized.
+
+## D-026: The web application uses a same-origin API boundary
+
+Browser clients request versioned API routes from the same origin under `/api`.
+The local Vite development server proxies that path to the Fastify service at
+`127.0.0.1:3001`; deployed environments should route the same path to the API at
+their ingress boundary. This avoids browser-specific API URLs and an unnecessary
+cross-origin dependency while keeping the generated client transport-only.

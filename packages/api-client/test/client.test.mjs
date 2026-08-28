@@ -68,6 +68,38 @@ test("getTimelineItem encodes its path parameter and returns typed errors", asyn
   );
 });
 
+test("getTimelineItem returns the validated typed success result", async () => {
+  const timelineItem = {
+    id: "timeline-item-mira-soup-001",
+    actor: {
+      id: "mira",
+      displayName: "Mira",
+      layer: "party",
+      initials: "M",
+    },
+    content:
+      "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?",
+    publishedAt: "2026-05-30T17:00:00.000Z",
+  };
+  const client = createApiClient({
+    baseUrl: "https://api.example.test",
+    fetch: async () =>
+      jsonResponse({
+        apiVersion: "v1",
+        data: { timelineItem },
+      }),
+  });
+
+  assert.deepEqual(
+    await client.getTimelineItem({ timelineItemId: timelineItem.id }),
+    {
+      ok: true,
+      status: 200,
+      value: { apiVersion: "v1", data: { timelineItem } },
+    },
+  );
+});
+
 test("transport failures are distinct from HTTP errors", async () => {
   const cause = new Error("fictional network failure");
   const client = createApiClient({

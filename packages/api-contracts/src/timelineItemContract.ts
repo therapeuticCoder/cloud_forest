@@ -105,19 +105,20 @@ export function isGetTimelineItemErrorResponse(
 }
 
 export const getTimelineItemRequestExample = {
-  timelineItemId: "timeline-item-001",
+  timelineItemId: "timeline-item-mira-soup-001",
 } satisfies GetTimelineItemRequest;
 
 const timelineItemExample = {
-  id: "timeline-item-001",
+  id: "timeline-item-mira-soup-001",
   actor: {
-    id: "actor-mira",
-    displayName: "Mira Chen",
+    id: "mira",
+    displayName: "Mira",
     layer: "party",
-    initials: "MC",
+    initials: "M",
   },
-  content: "Shared notes from the neighborhood garden planning session.",
-  publishedAt: "2026-08-25T15:30:00.000Z",
+  content:
+    "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?",
+  publishedAt: "2026-05-30T17:00:00.000Z",
 } satisfies TimelineItem;
 
 export const getTimelineItemSuccessResponseExample = {
