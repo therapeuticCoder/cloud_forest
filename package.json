@@ -21,7 +21,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "typecheck": "pnpm --filter @cloud-forest/domain typecheck && pnpm --filter @cloud-forest/api-contracts typecheck && pnpm --filter @cloud-forest/database typecheck && pnpm --filter @cloud-forest/api typecheck && pnpm --filter @cloud-forest/api-client typecheck",
-    "test": "pnpm test:environment && pnpm --filter @cloud-forest/api-contracts test && pnpm --filter @cloud-forest/database test && pnpm --filter @cloud-forest/api test && pnpm --filter @cloud-forest/api-client test && pnpm --filter @cloud-forest/web test",
+    "test": "pnpm test:environment && pnpm --filter @cloud-forest/domain test && pnpm --filter @cloud-forest/api-contracts test && pnpm --filter @cloud-forest/database test && pnpm --filter @cloud-forest/api test && pnpm --filter @cloud-forest/api-client test && pnpm --filter @cloud-forest/web test",
     "test:environment": "node --test scripts/*.test.mjs",
     "check:api": "pnpm --filter @cloud-forest/api check",
     "test:watch": "pnpm --filter @cloud-forest/web test:watch",
@@ -39,7 +39,7 @@
     "db:inspect": "pnpm --filter @cloud-forest/database inspect",
     "db:inspect:test": "pnpm --filter @cloud-forest/database inspect -- --test",
     "db:test:prepare": "pnpm --filter @cloud-forest/database test:prepare",
-    "test:database": "pnpm db:test:prepare && pnpm db:migrate:test && pnpm --filter @cloud-forest/database test:integration",
+    "test:database": "pnpm db:test:prepare && pnpm db:migrate:test && pnpm --filter @cloud-forest/database test:integration && pnpm --filter @cloud-forest/api test:integration",
     "test:e2e": "node --env-file-if-exists=.env scripts/e2e.mjs"
   },
   "devDependencies": {

@@ -84,6 +84,12 @@ The API defaults to `http://127.0.0.1:3001`. Override `API_HOST` or `API_PORT`
 in the process environment when needed. `GET /api/v1/health` is independent of
 Docker and the database. Run its focused checks with `pnpm check:api`.
 
+The web application requests versioned routes from the same-origin `/api`
+boundary. During local development, Vite proxies that path to the default API
+address, so run `pnpm dev` and `pnpm dev:api` in separate terminals. The first
+Timeline card is loaded through this boundary; the rest of the Timeline remains
+temporarily mock-backed under T-018J.
+
 The API's registered TypeBox route schemas generate the committed OpenAPI
 artifact at `apps/api/openapi/openapi.json`. That document generates the
 transport types used by `packages/api-client`:

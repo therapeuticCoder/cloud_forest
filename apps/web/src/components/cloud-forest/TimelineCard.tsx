@@ -1,18 +1,22 @@
 import { Building2, RadioTower, Sprout, UsersRound } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type {
-  CloudForestActivity,
-  CloudForestActor,
-  CloudForestLayer,
-} from "@/types/cloudForest";
+import type { CloudForestActor, CloudForestLayer } from "@/types/cloudForest";
 
 type TimelineLayer = Exclude<CloudForestLayer, "self">;
 
+export type TimelineCardItem = {
+  id: string;
+  actor: Pick<
+    CloudForestActor,
+    "id" | "displayName" | "sourceType" | "layer" | "initials" | "avatarUrl"
+  >;
+  content: string;
+  publishedAt: string;
+};
+
 type TimelineCardProps = {
-  activity: CloudForestActivity;
-  actor: CloudForestActor;
-  dateTime: string;
+  item: TimelineCardItem;
   time: string;
 };
 
@@ -39,11 +43,11 @@ const portraitPositions: Record<string, string> = {
   "work-jordan": "100% 100%",
 };
 
-function getTimelineLayer(actor: CloudForestActor): TimelineLayer {
+function getTimelineLayer(actor: TimelineCardItem["actor"]): TimelineLayer {
   return actor.layer === "self" ? "party" : actor.layer;
 }
 
-function TimelineIdentity({ actor }: { actor: CloudForestActor }) {
+function TimelineIdentity({ actor }: { actor: TimelineCardItem["actor"] }) {
   const layer = getTimelineLayer(actor);
   const LayerIcon = layerIcons[layer];
   const portraitPosition = portraitPositions[actor.id];
@@ -69,12 +73,8 @@ function TimelineIdentity({ actor }: { actor: CloudForestActor }) {
   );
 }
 
-export function TimelineCard({
-  activity,
-  actor,
-  dateTime,
-  time,
-}: TimelineCardProps) {
+export function TimelineCard({ item, time }: TimelineCardProps) {
+  const { actor } = item;
   const layer = getTimelineLayer(actor);
   const LayerIcon = layerIcons[layer];
 
@@ -83,8 +83,8 @@ export function TimelineCard({
       <TimelineIdentity actor={actor} />
       <div className="timeline-card__body">
         <h3>{actor.displayName}</h3>
-        <p>{activity.content}</p>
-        <time dateTime={dateTime}>{time}</time>
+        <p>{item.content}</p>
+        <time dateTime={item.publishedAt}>{time}</time>
       </div>
       <span aria-hidden="true" className="timeline-layer-mark">
         <LayerIcon />

@@ -34,6 +34,9 @@ importers:
       "@cloud-forest/api-contracts":
         specifier: workspace:*
         version: link:../../packages/api-contracts
+      "@cloud-forest/database":
+        specifier: workspace:*
+        version: link:../../packages/database
       "@fastify/swagger":
         specifier: 9.8.1
         version: 9.8.1

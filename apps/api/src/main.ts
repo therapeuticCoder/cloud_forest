@@ -1,6 +1,30 @@
-import { startApi, stopApi } from "./lifecycle.ts";
+import {
+  createDatabaseClient,
+  createTimelineItemRepository,
+  getDatabaseUrl,
+} from "@cloud-forest/database";
+import type { FastifyInstance } from "fastify";
 
-const server = await startApi();
+import { startApi, stopApi } from "./lifecycle.ts";
+import { createTimelineItemResolver } from "./timelineItemResolver.ts";
+
+const { database, pool } = createDatabaseClient(getDatabaseUrl());
+const timelineItemRepository = createTimelineItemRepository(database);
+
+let server: FastifyInstance;
+
+try {
+  server = await startApi({
+    serverOptions: {
+      logger: true,
+      timelineItemResolver: createTimelineItemResolver(timelineItemRepository),
+    },
+  });
+} catch (error) {
+  await pool.end();
+  throw error;
+}
+
 let isShuttingDown = false;
 
 async function shutDown(signal: NodeJS.Signals): Promise<void> {
@@ -14,6 +38,8 @@ async function shutDown(signal: NodeJS.Signals): Promise<void> {
   } catch (error) {
     server.log.error(error, "API shutdown failed");
     process.exitCode = 1;
+  } finally {
+    await pool.end();
   }
 }
 

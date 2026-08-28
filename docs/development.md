@@ -66,6 +66,13 @@ complete project check.
 
 ### Local API
 
+After copying `.env` and starting the local PostgreSQL service, apply the
+reviewed migrations to the configured normal development database:
+
+```powershell
+pnpm.cmd db:migrate
+```
+
 Start the Fastify API with file watching in a separate terminal:
 
 ```powershell
@@ -81,6 +88,12 @@ focused check:
 ```powershell
 pnpm.cmd check:api
 ```
+
+The browser uses same-origin `/api` URLs. The local Vite server proxies that
+path to `http://127.0.0.1:3001`, so no CORS configuration is needed for local
+development. Start both `pnpm.cmd dev:api` and `pnpm.cmd dev` when verifying the
+database-backed Timeline item. The API scripts load the same root `.env` used by
+the migration commands, so both processes select the same `DATABASE_URL`.
 
 ### OpenAPI and typed client generation
 

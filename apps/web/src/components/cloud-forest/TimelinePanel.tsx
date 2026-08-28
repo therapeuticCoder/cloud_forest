@@ -1,4 +1,10 @@
+import {
+  createApiClient,
+  type ApiClient,
+  type GetTimelineItemResponse,
+} from "@cloud-forest/api-client";
 import { Building2, RadioTower, Sprout, UsersRound } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import {
   activityActors,
@@ -7,15 +13,25 @@ import {
 } from "@/data/cloudForestMockData";
 import type { CloudForestActivity } from "@/types/cloudForest";
 
-import { TimelineCard } from "./TimelineCard";
+import { TimelineCard, type TimelineCardItem } from "./TimelineCard";
 
 const actorsById = new Map(activityActors.map((actor) => [actor.id, actor]));
-const visibleActivityIds = ["p1", "p2", "g1", "s1", "t2", "p4", "g2", "s2"];
+const selectedTimelineItemId = "timeline-item-mira-soup-001";
+const visibleActivityIds = ["p2", "g1", "s1", "t2", "p4", "g2", "s2"];
 const visibleActivities = visibleActivityIds
   .map((id) => cloudForestActivities.find((activity) => activity.id === id))
   .filter(
     (activity): activity is CloudForestActivity => activity !== undefined,
   );
+const timelineApiClient = createApiClient({ baseUrl: "" });
+
+type RemoteTimelineItem = GetTimelineItemResponse["data"]["timelineItem"];
+
+type TimelineItemState =
+  | { status: "loading" }
+  | { status: "success"; item: RemoteTimelineItem }
+  | { status: "empty" }
+  | { status: "error" };
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -39,24 +55,128 @@ function isToday(publishedAt: string) {
   );
 }
 
+function mockActivityToCardItem(
+  activity: CloudForestActivity,
+): TimelineCardItem | null {
+  const actor = actorsById.get(activity.actorId);
+  if (!actor) return null;
+
+  return {
+    id: activity.id,
+    actor,
+    content: activity.content,
+    publishedAt: activity.publishedAt,
+  };
+}
+
+function remoteTimelineItemToCardItem(
+  item: RemoteTimelineItem,
+): TimelineCardItem {
+  return {
+    id: item.id,
+    actor: {
+      ...item.actor,
+      sourceType:
+        item.actor.layer === "party" || item.actor.layer === "tribe"
+          ? "person"
+          : "system",
+    },
+    content: item.content,
+    publishedAt: item.publishedAt,
+  };
+}
+
 function ActivityList({ activities }: { activities: CloudForestActivity[] }) {
   return activities.map((activity) => {
-    const actor = actorsById.get(activity.actorId);
-    if (!actor) return null;
+    const item = mockActivityToCardItem(activity);
+    if (!item) return null;
 
     return (
       <TimelineCard
         key={activity.id}
-        activity={activity}
-        actor={actor}
-        dateTime={activity.publishedAt}
+        item={item}
         time={formatActivityTime(activity.publishedAt)}
       />
     );
   });
 }
 
-export function TimelinePanel() {
+function RemoteTimelineSlot({
+  apiClient,
+}: {
+  apiClient: Pick<ApiClient, "getTimelineItem">;
+}) {
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState<TimelineItemState>({ status: "loading" });
+
+  useEffect(() => {
+    let active = true;
+
+    void apiClient
+      .getTimelineItem({ timelineItemId: selectedTimelineItemId })
+      .then((result) => {
+        if (!active) return;
+
+        if (result.ok) {
+          setState({
+            status: "success",
+            item: result.value.data.timelineItem,
+          });
+        } else if (result.kind === "http" && result.status === 404) {
+          setState({ status: "empty" });
+        } else {
+          setState({ status: "error" });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [apiClient, attempt]);
+
+  if (state.status === "success") {
+    const item = remoteTimelineItemToCardItem(state.item);
+    return (
+      <TimelineCard item={item} time={formatActivityTime(item.publishedAt)} />
+    );
+  }
+
+  if (state.status === "empty") {
+    return (
+      <div aria-live="polite" className="timeline-remote-state" role="status">
+        No live Timeline item is available.
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    const retry = () => {
+      setState({ status: "loading" });
+      setAttempt((value) => value + 1);
+    };
+
+    return (
+      <div className="timeline-remote-state" role="alert">
+        <span>One live Timeline item could not be loaded.</span>
+        <button type="button" onClick={retry}>
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div aria-live="polite" className="timeline-remote-state" role="status">
+      Loading one live Timeline item…
+    </div>
+  );
+}
+
+export function TimelinePanel({
+  apiClient = timelineApiClient,
+}: {
+  apiClient?: Pick<ApiClient, "getTimelineItem">;
+}) {
   const todayActivities = visibleActivities.filter((activity) =>
     isToday(activity.publishedAt),
   );
@@ -84,6 +204,7 @@ export function TimelinePanel() {
         </span>
       </div>
       <div className="timeline-list">
+        <RemoteTimelineSlot apiClient={apiClient} />
         <ActivityList activities={todayActivities} />
         <div className="timeline-day-divider" role="separator">
           <span>Yesterday</span>
