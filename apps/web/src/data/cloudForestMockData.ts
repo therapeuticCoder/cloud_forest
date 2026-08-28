@@ -1,10 +1,10 @@
 import type {
   AppConfig,
-  HumanForestActivity,
-  HumanForestActor,
-  HumanForestConnection,
-  HumanForestGuild,
-} from "@/types/humanForest";
+  CloudForestActivity,
+  CloudForestActor,
+  CloudForestConnection,
+  CloudForestGuild,
+} from "@/types/cloudForest";
 
 export const appConfig: AppConfig = {
   partyMaxNumber: 5,
@@ -15,7 +15,7 @@ export const appConfig: AppConfig = {
 
 export const mockNowIso = "2026-05-30T17:00:00.000Z";
 
-export const humanForestActors: HumanForestActor[] = [
+export const cloudForestActors: CloudForestActor[] = [
   {
     id: "you",
     displayName: "You",
@@ -308,7 +308,7 @@ export const humanForestActors: HumanForestActor[] = [
   },
 ];
 
-export const humanForestConnections: HumanForestConnection[] = [
+export const cloudForestConnections: CloudForestConnection[] = [
   {
     id: "you-mira",
     fromActorId: "you",
@@ -507,7 +507,7 @@ export const humanForestConnections: HumanForestConnection[] = [
   },
 ];
 
-export const humanForestGuilds: HumanForestGuild[] = [
+export const cloudForestGuilds: CloudForestGuild[] = [
   {
     id: "care-plane",
     name: "Care Guild",
@@ -537,7 +537,7 @@ export const humanForestGuilds: HumanForestGuild[] = [
   },
 ];
 
-export const humanForestActivities: HumanForestActivity[] = [
+export const cloudForestActivities: CloudForestActivity[] = [
   {
     id: "p1",
     activityType: "Create",
@@ -696,8 +696,8 @@ export const humanForestActivities: HumanForestActivity[] = [
   },
 ];
 
-export const activityActors: HumanForestActor[] = [
-  ...humanForestActors,
+export const activityActors: CloudForestActor[] = [
+  ...cloudForestActors,
   {
     id: "work-jordan",
     displayName: "Jordan from work",

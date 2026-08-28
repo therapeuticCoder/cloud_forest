@@ -2,11 +2,11 @@ import { List, Sprout } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export type HumanForestView = "timeline" | "curator";
+export type CloudForestView = "timeline" | "curator";
 
 type ViewSwitcherProps = {
-  activeView: HumanForestView;
-  onViewChange: (view: HumanForestView) => void;
+  activeView: CloudForestView;
+  onViewChange: (view: CloudForestView) => void;
 };
 
 const viewOptions = [

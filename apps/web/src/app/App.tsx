@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/components/human-forest/DashboardShell";
+import { DashboardShell } from "@/components/cloud-forest/DashboardShell";
 import { PwaNotice } from "@/components/pwa/PwaNotice";
 
 export function App() {

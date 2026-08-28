@@ -2,19 +2,19 @@ import { Building2, RadioTower, Sprout, UsersRound } from "lucide-react";
 
 import {
   activityActors,
-  humanForestActivities,
+  cloudForestActivities,
   mockNowIso,
-} from "@/data/humanForestMockData";
-import type { HumanForestActivity } from "@/types/humanForest";
+} from "@/data/cloudForestMockData";
+import type { CloudForestActivity } from "@/types/cloudForest";
 
 import { TimelineCard } from "./TimelineCard";
 
 const actorsById = new Map(activityActors.map((actor) => [actor.id, actor]));
 const visibleActivityIds = ["p1", "p2", "g1", "s1", "t2", "p4", "g2", "s2"];
 const visibleActivities = visibleActivityIds
-  .map((id) => humanForestActivities.find((activity) => activity.id === id))
+  .map((id) => cloudForestActivities.find((activity) => activity.id === id))
   .filter(
-    (activity): activity is HumanForestActivity => activity !== undefined,
+    (activity): activity is CloudForestActivity => activity !== undefined,
   );
 
 const formatter = new Intl.DateTimeFormat("en-US", {
@@ -39,7 +39,7 @@ function isToday(publishedAt: string) {
   );
 }
 
-function ActivityList({ activities }: { activities: HumanForestActivity[] }) {
+function ActivityList({ activities }: { activities: CloudForestActivity[] }) {
   return activities.map((activity) => {
     const actor = actorsById.get(activity.actorId);
     if (!actor) return null;

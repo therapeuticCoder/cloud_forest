@@ -345,6 +345,27 @@ reports `ERR_PNPM_IGNORED_BUILDS`, inspect that allowlist instead of repeatedly
 rebuilding `node_modules`; an unclassified build script must be reviewed before
 it is allowed or denied.
 
+## Line endings
+
+The repository owns its line-ending policy. `.gitattributes` keeps detected
+text files LF in both the Git index and worktree on Windows and Linux, while
+tracked binary assets are marked binary. `.editorconfig` and Prettier use the
+same LF policy. Do not change machine-level `core.autocrlf` settings to work on
+this repository; repository attributes take precedence.
+
+Generated OpenAPI and typed-client artifacts are compared byte for byte and
+their generators emit LF. A native Windows checkout must therefore retain LF
+for those artifacts. Inspect effective policy and tracked state with:
+
+```powershell
+git check-attr text eol -- README.md apps/api/openapi/openapi.json apps/web/public/pwa-192x192.png
+git ls-files --eol
+```
+
+When the policy itself changes, use `git add --renormalize .` once and review
+the complete staged diff before committing. Routine development does not need
+renormalization.
+
 Approval escalation is appropriate only when the required in-scope operation
 is blocked by sandbox or workstation permissions and its exact target is known.
 Do not escalate broad deletion, weaken execution policy, or use approval to hide

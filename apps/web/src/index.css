@@ -155,7 +155,7 @@ button:focus-visible {
   outline-offset: 4px;
 }
 
-.human-forest-app {
+.cloud-forest-app {
   min-height: 100vh;
   color: var(--forest-ink);
   background:
@@ -665,7 +665,7 @@ button:focus-visible {
   }
 }
 
-.human-forest-stars {
+.cloud-forest-stars {
   background-image:
     radial-gradient(circle, rgba(236, 253, 245, 0.52) 0 1px, transparent 1.4px),
     radial-gradient(circle, rgba(125, 211, 252, 0.34) 0 1px, transparent 1.5px),
@@ -680,7 +680,7 @@ button:focus-visible {
     152px 152px;
 }
 
-.human-forest-guild-plane {
+.cloud-forest-guild-plane {
   --guild-glow: rgba(255, 255, 255, 0.14);
   --guild-thread: rgba(255, 255, 255, 0.16);
   background-image:
@@ -699,7 +699,7 @@ button:focus-visible {
     );
 }
 
-.human-forest-guild-plane::after {
+.cloud-forest-guild-plane::after {
   background: linear-gradient(
     90deg,
     transparent,
@@ -716,17 +716,17 @@ button:focus-visible {
   width: 16%;
 }
 
-.human-forest-guild-plane-green {
+.cloud-forest-guild-plane-green {
   --guild-glow: rgba(52, 211, 153, 0.13);
   --guild-thread: rgba(167, 243, 208, 0.1);
 }
 
-.human-forest-guild-plane-cyan {
+.cloud-forest-guild-plane-cyan {
   --guild-glow: rgba(34, 211, 238, 0.12);
   --guild-thread: rgba(165, 243, 252, 0.1);
 }
 
-.human-forest-guild-plane-violet {
+.cloud-forest-guild-plane-violet {
   --guild-glow: rgba(167, 139, 250, 0.13);
   --guild-thread: rgba(221, 214, 254, 0.1);
 }

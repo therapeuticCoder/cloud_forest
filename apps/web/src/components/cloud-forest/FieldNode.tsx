@@ -1,17 +1,17 @@
 import type { CSSProperties } from "react";
 
 import { cn } from "@/lib/utils";
-import type { HumanForestActor, HumanForestLayer } from "@/types/humanForest";
+import type { CloudForestActor, CloudForestLayer } from "@/types/cloudForest";
 
-export type FieldMapActor = HumanForestActor & {
-  layer: Exclude<HumanForestLayer, "guild">;
+export type FieldMapActor = CloudForestActor & {
+  layer: Exclude<CloudForestLayer, "guild">;
 };
 
 type FieldNodeProps = {
   node: FieldMapActor;
 };
 
-const layerClasses: Record<Exclude<HumanForestLayer, "guild">, string> = {
+const layerClasses: Record<Exclude<CloudForestLayer, "guild">, string> = {
   self: "h-24 w-24 border-emerald-200/80 bg-emerald-100/18 text-emerald-50 shadow-[0_0_70px_rgba(94,234,212,0.58)]",
   party:
     "h-18 w-18 border-amber-100/85 bg-amber-200/22 text-amber-50 shadow-[0_0_64px_rgba(251,191,36,0.54)]",

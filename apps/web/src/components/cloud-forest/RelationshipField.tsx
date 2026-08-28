@@ -1,22 +1,22 @@
 import { Sprout } from "lucide-react";
 
 import {
-  humanForestActors,
-  humanForestConnections,
-  humanForestGuilds,
-} from "@/data/humanForestMockData";
+  cloudForestActors,
+  cloudForestConnections,
+  cloudForestGuilds,
+} from "@/data/cloudForestMockData";
 
 import { FieldNode, type FieldMapActor } from "./FieldNode";
 import { FieldControlBar } from "./FieldControlBar";
 import { GuildPlane } from "./GuildPlane";
 
 function isFieldMapActor(
-  actor: (typeof humanForestActors)[number],
+  actor: (typeof cloudForestActors)[number],
 ): actor is FieldMapActor {
   return actor.layer !== "guild";
 }
 
-const fieldMapActors = humanForestActors.filter(isFieldMapActor);
+const fieldMapActors = cloudForestActors.filter(isFieldMapActor);
 const actorsById = new Map(fieldMapActors.map((actor) => [actor.id, actor]));
 
 const ambientFilaments = [
@@ -35,7 +35,7 @@ export function RelationshipField() {
       className="relative h-full min-h-[38rem] overflow-hidden rounded-lg border border-white/10 bg-slate-950/45 p-5 shadow-[inset_0_0_110px_rgba(20,184,166,0.08)] lg:min-h-0"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(20,184,166,0.24),transparent_28%),radial-gradient(circle_at_20%_18%,rgba(132,204,22,0.16),transparent_20%),radial-gradient(circle_at_84%_76%,rgba(251,191,36,0.12),transparent_18%)]" />
-      <div className="human-forest-stars absolute inset-0 opacity-65" />
+      <div className="cloud-forest-stars absolute inset-0 opacity-65" />
 
       <div className="relative z-30">
         <div className="flex flex-wrap items-center gap-3">
@@ -91,7 +91,7 @@ export function RelationshipField() {
             strokeWidth="0.13"
           />
         </g>
-        {humanForestConnections.map((connection) => {
+        {cloudForestConnections.map((connection) => {
           const from = actorsById.get(connection.fromActorId);
           const to = actorsById.get(connection.toActorId);
 
@@ -132,7 +132,7 @@ export function RelationshipField() {
         })}
       </svg>
 
-      {humanForestGuilds.map((guild) => (
+      {cloudForestGuilds.map((guild) => (
         <GuildPlane key={guild.id} guild={guild} />
       ))}
 
