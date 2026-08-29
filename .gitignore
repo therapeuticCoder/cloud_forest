@@ -31,3 +31,7 @@ dist-ssr
 .env.*
 !.env.example
 backups/
+
+# Local browser-test output. Reviewed visual baselines remain tracked in e2e/snapshots.
+playwright-report/
+test-results/

@@ -683,7 +683,7 @@ Completed state:
 
 ### T-018K: Add vertical-slice E2E coverage and prototype regression gate
 
-Status: queued
+Status: done
 Size: medium
 
 Concrete goal:
@@ -705,7 +705,7 @@ Acceptance criteria:
   starts required local processes, and exercises the selected browser path
 - test setup is isolated from the developer's normal local data
 - the test proves the browser received database-backed data through the API
-- Curator, Timeline, and Galaxy smoke checks preserve current navigation and
+- Curator and Timeline smoke checks preserve current navigation and
   representative behavior
 - approved mobile and desktop visual comparisons show no unintended regression
 - failures leave actionable logs and processes shut down cleanly
@@ -723,6 +723,64 @@ Out of scope:
 Complete product E2E coverage, hosted browsers, production smoke tests,
 cross-browser matrix expansion, broad screenshot baselines, load testing, and
 CI/CD deployment gates.
+
+Completed state:
+
+- `pnpm.cmd test:e2e` fails closed through the existing guarded test-database
+  commands, applies only reviewed forward migrations, and starts the API with
+  `DATABASE_URL` scoped to `TEST_DATABASE_URL`
+- pinned Playwright Chromium runs one deterministic Timeline and Curator path at
+  1440 by 900 and 390 by 844 through Vite's same-origin `/api` proxy
+- the browser asserts the exact migrated Mira response and rendered card,
+  representative mock content, keyboard focus recovery, Curator detail return,
+  page overflow, development service-worker cleanup, and console health
+- two committed Timeline baselines protect the approved desktop and mobile
+  visual treatment; failure-only screenshots and traces remain ignored
+- API, Vite, and browser output is actionable, startup and total runtime are
+  bounded, and the root runner handles interruption and owns complete
+  process-tree cleanup on success, failure, timeout, and repeated execution
+
+### T-026: Remove the dormant Galaxy prototype boundary
+
+Status: queued
+Size: small
+
+Concrete goal:
+Remove the dormant Galaxy view and its remaining app and documentation
+references so the prototype reflects the product's current functional
+priorities without preserving an unused visual experiment.
+
+Likely files or boundaries:
+The Galaxy and relationship-field components in `apps/web`, Galaxy-only mock
+data and styles, focused web tests, and repository documentation that still
+describes Galaxy as a preserved view.
+
+Dependency additions requiring separate human approval:
+None expected.
+
+Acceptance criteria:
+
+- Galaxy view, relationship-field presentation, and Galaxy-only controls are
+  removed from the web application
+- mock data, styles, assets, and exports used only by Galaxy are removed after
+  their ownership is verified
+- Timeline and Curator behavior, responsive treatment, and navigation remain
+  unchanged
+- current documentation no longer presents Galaxy as an available or preserved
+  product view
+- the change does not replace Galaxy with a new view or expand product scope
+
+Checks:
+Focused web tests; repository search for remaining Galaxy references; desktop
+and mobile Timeline and Curator smoke checks; `pnpm check`.
+
+Prerequisites and ordering:
+Run immediately after T-018K so the E2E gate is established without adding
+temporary Galaxy coverage that would be deleted in the next task.
+
+Out of scope:
+New views, product redesign, new navigation, broader mock-data replacement, and
+unrelated visual cleanup.
 
 ### T-018L: Establish the installable React PWA shell
 

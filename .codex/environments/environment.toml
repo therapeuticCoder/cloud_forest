@@ -51,6 +51,6 @@ icon = "tool"
 command = "pnpm.cmd test:database"
 
 [[actions]]
-name = "Run E2E boundary"
+name = "Run E2E gate"
 icon = "tool"
 command = "pnpm.cmd test:e2e"

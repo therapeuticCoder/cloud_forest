@@ -204,3 +204,23 @@ The local Vite development server proxies that path to the Fastify service at
 `127.0.0.1:3001`; deployed environments should route the same path to the API at
 their ingress boundary. This avoids browser-specific API URLs and an unnecessary
 cross-origin dependency while keeping the generated client transport-only.
+
+## D-027: The local regression gate uses one pinned Chromium path
+
+The foundation milestone uses `@playwright/test` 1.62.1 with its matching
+Chromium runtime for one deterministic local browser gate. The gate owns API,
+Vite, and browser process groups; uses strict local ports and bounded readiness,
+test, and runner timeouts; handles interruption; and terminates the complete
+runner tree. POSIX forwards the requested signal, while Windows terminates the
+tree because it cannot deliver those signals. The gate starts the API with
+`DATABASE_URL` scoped to the already guarded `TEST_DATABASE_URL`, so normal
+local data is outside the browser path.
+
+The suite covers the database-backed Timeline path and representative reachable
+Timeline and Curator behavior at one desktop and one mobile viewport. Two
+committed Timeline screenshots protect the approved visual direction; baseline
+updates are explicit and human-reviewed. Browser contexts pin
+`America/Chicago`, and development service-worker cleanup is exercised from a
+seeded stale registration rather than an already-clean context. Failure-only
+traces and screenshots remain local. Hosted browsers, cloud visual services,
+broad screenshot suites, and a cross-browser matrix are not part of this gate.
