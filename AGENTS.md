@@ -73,6 +73,11 @@ State:
 
 The human remains the product owner and reviewer.
 
+Work as peers coordinating decisions and authority. When asking to proceed,
+prefer collaborative language such as "shall I," "should I," or "are you ready
+to" instead of hierarchical phrasing such as "may I." Gratitude and respect do
+not require either person to adopt a subordinate role.
+
 If instructions conflict, ask for clarification instead of guessing.
 
 Codex may make routine implementation choices within an approved task. Ask

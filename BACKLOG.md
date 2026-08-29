@@ -705,7 +705,7 @@ Acceptance criteria:
   starts required local processes, and exercises the selected browser path
 - test setup is isolated from the developer's normal local data
 - the test proves the browser received database-backed data through the API
-- Curator, Timeline, and Galaxy smoke checks preserve current navigation and
+- Curator and Timeline smoke checks preserve current navigation and
   representative behavior
 - approved mobile and desktop visual comparisons show no unintended regression
 - failures leave actionable logs and processes shut down cleanly
@@ -723,6 +723,48 @@ Out of scope:
 Complete product E2E coverage, hosted browsers, production smoke tests,
 cross-browser matrix expansion, broad screenshot baselines, load testing, and
 CI/CD deployment gates.
+
+### T-026: Remove the dormant Galaxy prototype boundary
+
+Status: queued
+Size: small
+
+Concrete goal:
+Remove the dormant Galaxy view and its remaining app and documentation
+references so the prototype reflects the product's current functional
+priorities without preserving an unused visual experiment.
+
+Likely files or boundaries:
+The Galaxy and relationship-field components in `apps/web`, Galaxy-only mock
+data and styles, focused web tests, and repository documentation that still
+describes Galaxy as a preserved view.
+
+Dependency additions requiring separate human approval:
+None expected.
+
+Acceptance criteria:
+
+- Galaxy view, relationship-field presentation, and Galaxy-only controls are
+  removed from the web application
+- mock data, styles, assets, and exports used only by Galaxy are removed after
+  their ownership is verified
+- Timeline and Curator behavior, responsive treatment, and navigation remain
+  unchanged
+- current documentation no longer presents Galaxy as an available or preserved
+  product view
+- the change does not replace Galaxy with a new view or expand product scope
+
+Checks:
+Focused web tests; repository search for remaining Galaxy references; desktop
+and mobile Timeline and Curator smoke checks; `pnpm check`.
+
+Prerequisites and ordering:
+Run immediately after T-018K so the E2E gate is established without adding
+temporary Galaxy coverage that would be deleted in the next task.
+
+Out of scope:
+New views, product redesign, new navigation, broader mock-data replacement, and
+unrelated visual cleanup.
 
 ### T-018L: Establish the installable React PWA shell
 
