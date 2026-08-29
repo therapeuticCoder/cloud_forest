@@ -222,8 +222,10 @@ when `TEST_DATABASE_URL` is missing or unsafe, applies only reviewed forward
 migrations, proves the migrated Mira item reaches the rendered Timeline through
 PostgreSQL and the API, and smoke-checks representative Timeline and Curator
 behavior. It also checks keyboard focus recovery, page overflow, development
-service-worker cleanup, browser console health, and committed desktop/mobile
-Timeline screenshots.
+service-worker cleanup by seeding and removing a stale registration, browser
+console health, and committed desktop/mobile Timeline screenshots. Snapshot
+contexts use the fixed `America/Chicago` timezone so fixture times are portable
+across workstations.
 
 API, Vite, and browser logs stream to the terminal. Failure screenshots and
 traces are written below ignored `test-results/`. Playwright owns the service

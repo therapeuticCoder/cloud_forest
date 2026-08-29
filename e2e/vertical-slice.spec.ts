@@ -33,7 +33,47 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
 }
 
-async function expectDevelopmentPwaIsClean(page: Page) {
+async function seedAndExpectDevelopmentPwaCleanup(page: Page) {
+  await page.goto("/");
+  await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.register(
+      "/e2e-stale-service-worker.js",
+      { scope: "/" },
+    );
+    await navigator.serviceWorker.ready;
+    if (!registration.active) {
+      await new Promise<void>((resolve) => {
+        registration.addEventListener("updatefound", () => {
+          registration.installing?.addEventListener("statechange", () => {
+            if (registration.active) resolve();
+          });
+        });
+      });
+    }
+  });
+
+  await expect
+    .poll(() =>
+      page.evaluate(async () =>
+        navigator.serviceWorker
+          ? (await navigator.serviceWorker.getRegistrations()).length
+          : 0,
+      ),
+    )
+    .toBe(1);
+
+  await page.reload();
+  await expect
+    .poll(() =>
+      page.evaluate(async () =>
+        navigator.serviceWorker
+          ? (await navigator.serviceWorker.getRegistrations()).length
+          : 0,
+      ),
+    )
+    .toBe(0);
+
+  await page.reload();
   const state = await page.evaluate(async () => ({
     controlled: Boolean(navigator.serviceWorker?.controller),
     registrations: navigator.serviceWorker
@@ -76,13 +116,14 @@ test("database-backed Timeline and prototype regression path", async ({
   page,
 }, testInfo: TestInfo) => {
   const browserFailures = collectBrowserFailures(page);
+  await seedAndExpectDevelopmentPwaCleanup(page);
   const miraResponsePromise = page.waitForResponse(
     (response) =>
       response.url().endsWith(miraEndpoint) &&
       response.request().method() === "GET",
   );
 
-  await page.goto("/");
+  await page.reload();
   await expect(page).toHaveTitle("Cloud Forest");
   await expect(
     page.getByRole("region", { name: "Timeline view" }),
@@ -118,7 +159,6 @@ test("database-backed Timeline and prototype regression path", async ({
   await expect(
     page.getByRole("button", { name: "Write", exact: true }),
   ).toBeVisible();
-  await expectDevelopmentPwaIsClean(page);
   await expectNoHorizontalOverflow(page);
 
   await page.evaluate(() => window.scrollTo(0, 0));

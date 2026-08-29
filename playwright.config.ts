@@ -36,6 +36,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:5173",
     reducedMotion: "reduce",
     screenshot: "only-on-failure",
+    timezoneId: "America/Chicago",
     trace: "retain-on-failure",
     video: "off",
   },
@@ -62,7 +63,7 @@ export default defineConfig({
     },
     {
       name: "Web",
-      command: `${nodeCommand} apps/web/node_modules/vite/bin/vite.js apps/web --host 127.0.0.1 --port 5173 --strictPort`,
+      command: `${nodeCommand} apps/web/node_modules/vite/bin/vite.js apps/web --mode e2e --host 127.0.0.1 --port 5173 --strictPort`,
       url: "http://127.0.0.1:5173",
       timeout: 20_000,
       reuseExistingServer: false,

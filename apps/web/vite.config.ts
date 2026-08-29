@@ -6,6 +6,24 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig(({ mode }) => ({
   plugins: [
+    {
+      name: "e2e-stale-service-worker",
+      apply: (_config, environment) =>
+        mode === "e2e" && environment.command === "serve",
+      configureServer(server) {
+        server.middlewares.use(
+          "/e2e-stale-service-worker.js",
+          (_request, response) => {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "text/javascript");
+            response.setHeader("Service-Worker-Allowed", "/");
+            response.end(
+              "self.addEventListener('install', () => self.skipWaiting()); self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));",
+            );
+          },
+        );
+      },
+    },
     react(),
     tailwindcss(),
     VitePWA({

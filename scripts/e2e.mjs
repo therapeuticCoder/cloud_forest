@@ -60,9 +60,11 @@ export function runBrowserSuite({
   arguments_: browserArguments = [],
   browserTimeoutMilliseconds = 135_000,
   environment = process.env,
+  platform = process.platform,
   spawnProcess = spawn,
   signals = process,
-  terminateTree = terminateProcessTree,
+  terminateTree = (child, signal) =>
+    terminateProcessTree(child, signal, spawnSync, platform),
 } = {}) {
   const normalizedArguments =
     browserArguments[0] === "--" ? browserArguments.slice(1) : browserArguments;
@@ -76,6 +78,7 @@ export function runBrowserSuite({
         env: environment,
         stdio: "inherit",
         shell: false,
+        detached: platform !== "win32",
       },
     );
 
@@ -136,12 +139,18 @@ export function terminateProcessTree(
   signal,
   runSync = spawnSync,
   platform = process.platform,
+  killProcess = process.kill,
 ) {
   if (platform === "win32" && child.pid) {
     runSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
       stdio: "inherit",
       windowsHide: true,
     });
+    return;
+  }
+
+  if (child.pid) {
+    killProcess(-child.pid, signal);
     return;
   }
 

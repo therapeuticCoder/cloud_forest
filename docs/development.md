@@ -196,15 +196,18 @@ pnpm.cmd exec playwright install chromium
 
 The browser gate verifies the migrated Mira response and rendered card,
 representative Timeline and Curator interactions, keyboard focus recovery,
-page-level horizontal overflow, development service-worker cleanup, console
-and page errors, and two committed Timeline visual baselines. Failure traces
-and screenshots are ignored under `test-results/`; API and Vite output remains
+page-level horizontal overflow, development cleanup of a deliberately seeded
+stale service worker, console and page errors, and two committed Timeline visual
+baselines. Browser contexts use `America/Chicago` so fixture timestamps and
+screenshots do not vary with the workstation timezone. Failure traces and
+screenshots are ignored under `test-results/`; API and Vite output remains
 visible in the terminal. Ports 3001 and 5173 are strict, readiness and total
 runtime are bounded, and the complete runner tree is terminated after success,
-failure, timeout, or interruption. POSIX forwards the requested interruption
-signal. Windows terminates the child tree because it does not support those
-signals, so Codex must have process-control permission; otherwise the browser
-assertions can pass while sandboxed teardown is denied.
+failure, timeout, or interruption. POSIX runs the browser gate as a dedicated
+process group and signals that whole group. Windows terminates the child tree
+because it does not support those signals, so Codex must have process-control
+permission; otherwise the browser assertions can pass while sandboxed teardown
+is denied.
 
 Update visual baselines only after the rendered change is approved and review
 the resulting PNG diff:

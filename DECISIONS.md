@@ -219,6 +219,8 @@ local data is outside the browser path.
 The suite covers the database-backed Timeline path and representative reachable
 Timeline and Curator behavior at one desktop and one mobile viewport. Two
 committed Timeline screenshots protect the approved visual direction; baseline
-updates are explicit and human-reviewed. Failure-only traces and screenshots
-remain local. Hosted browsers, cloud visual services, broad screenshot suites,
-and a cross-browser matrix are not part of this gate.
+updates are explicit and human-reviewed. Browser contexts pin
+`America/Chicago`, and development service-worker cleanup is exercised from a
+seeded stale registration rather than an already-clean context. Failure-only
+traces and screenshots remain local. Hosted browsers, cloud visual services,
+broad screenshot suites, and a cross-browser matrix are not part of this gate.

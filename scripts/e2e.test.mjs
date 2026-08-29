@@ -98,6 +98,7 @@ test("browser runner receives the current isolated environment and arguments", a
   assert.equal(invocation.arguments_.includes("--"), false);
   assert.equal(invocation.options.env, environment);
   assert.equal(invocation.options.shell, false);
+  assert.equal(invocation.options.detached, false);
 });
 
 test("browser failure is reported with its exit code", async () => {
@@ -169,5 +170,36 @@ test("Windows process cleanup targets the runner PID and descendants", () => {
     arguments_: ["/PID", "42", "/T", "/F"],
     options: { stdio: "inherit", windowsHide: true },
   });
+  assert.deepEqual(child.killedWith, []);
+});
+
+test("POSIX runner owns and terminates a dedicated process group", async () => {
+  const child = createChildProcess();
+  let invocation;
+
+  await runBrowserSuite({
+    platform: "linux",
+    spawnProcess: (command, arguments_, options) => {
+      invocation = { command, arguments_, options };
+      queueMicrotask(() => child.emit("exit", 0, null));
+      return child;
+    },
+    signals: new EventEmitter(),
+  });
+
+  assert.equal(invocation.options.detached, true);
+
+  let killedGroup;
+  terminateProcessTree(
+    child,
+    "SIGKILL",
+    () => assert.fail("taskkill must not run on POSIX"),
+    "linux",
+    (processId, signal) => {
+      killedGroup = { processId, signal };
+    },
+  );
+
+  assert.deepEqual(killedGroup, { processId: -42, signal: "SIGKILL" });
   assert.deepEqual(child.killedWith, []);
 });
