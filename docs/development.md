@@ -175,8 +175,7 @@ Normal apply, status, and inspection commands use `DATABASE_URL`; the `:test`
 variants use the guarded `TEST_DATABASE_URL`. Each database command reports the
 selected variable and database name without printing credentials.
 
-Before T-018K supplies a browser runner and product test, verify the complete
-disposable E2E database boundary with:
+Run the complete local vertical-slice and prototype regression gate with:
 
 ```powershell
 pnpm.cmd test:e2e
@@ -184,10 +183,35 @@ pnpm.cmd test:e2e
 
 PostgreSQL must already be available through the existing local Compose
 service. The command prepares the test database when absent, applies reviewed
-migrations, and runs test-target status and schema inspection. It stops on the
-first failure and returns a nonzero exit code. The current shell starts no API,
-web, browser, or persistent child process; T-018K owns process startup, signal
-forwarding, and guaranteed cleanup when its approved runner is introduced.
+migrations, and runs test-target status and schema inspection. It then starts
+the API with `DATABASE_URL` scoped to the guarded `TEST_DATABASE_URL`, starts
+Vite on `127.0.0.1:5173` with the same-origin `/api` proxy, and runs the pinned
+Playwright Chromium suite at 1440 by 900 and 390 by 844.
+
+Install the matching local browser runtime once after dependency installation:
+
+```powershell
+pnpm.cmd exec playwright install chromium
+```
+
+The browser gate verifies the migrated Mira response and rendered card,
+representative Timeline and Curator interactions, keyboard focus recovery,
+page-level horizontal overflow, development service-worker cleanup, console
+and page errors, and two committed Timeline visual baselines. Failure traces
+and screenshots are ignored under `test-results/`; API and Vite output remains
+visible in the terminal. Ports 3001 and 5173 are strict, readiness and total
+runtime are bounded, and the complete runner tree is terminated after success,
+failure, timeout, or interruption. POSIX forwards the requested interruption
+signal. Windows terminates the child tree because it does not support those
+signals, so Codex must have process-control permission; otherwise the browser
+assertions can pass while sandboxed teardown is denied.
+
+Update visual baselines only after the rendered change is approved and review
+the resulting PNG diff:
+
+```powershell
+pnpm.cmd test:e2e -- --update-snapshots
+```
 
 Stop the services without deleting their volumes:
 

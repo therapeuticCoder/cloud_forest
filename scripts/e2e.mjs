@@ -1,5 +1,7 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { pathToFileURL } from "node:url";
 
 const preparationCommands = [
@@ -41,21 +43,128 @@ export function prepareE2eBoundary(runCommand = runRootCommand) {
     runCommand(command);
   }
 
-  console.log(
-    "E2E database boundary is ready. No product E2E suite is registered yet; T-018K will add the browser runner and first product test.",
-  );
+  console.log("E2E database boundary is ready.");
 }
 
-function main() {
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = path.resolve(scriptDirectory, "..");
+const playwrightCli = path.join(
+  repositoryRoot,
+  "node_modules",
+  "@playwright",
+  "test",
+  "cli.js",
+);
+
+export function runBrowserSuite({
+  arguments_: browserArguments = [],
+  browserTimeoutMilliseconds = 135_000,
+  environment = process.env,
+  spawnProcess = spawn,
+  signals = process,
+  terminateTree = terminateProcessTree,
+} = {}) {
+  const normalizedArguments =
+    browserArguments[0] === "--" ? browserArguments.slice(1) : browserArguments;
+
+  return new Promise((resolve, reject) => {
+    const child = spawnProcess(
+      process.execPath,
+      [playwrightCli, "test", ...normalizedArguments],
+      {
+        cwd: repositoryRoot,
+        env: environment,
+        stdio: "inherit",
+        shell: false,
+      },
+    );
+
+    let forwardedSignal;
+    const timeout = setTimeout(() => {
+      console.error(
+        `Browser test runner exceeded ${browserTimeoutMilliseconds}ms; terminating its process tree.`,
+      );
+      terminateTree(child, "SIGKILL");
+    }, browserTimeoutMilliseconds);
+
+    const forwardSignal = (signal) => {
+      if (forwardedSignal) {
+        terminateTree(child, "SIGKILL");
+        return;
+      }
+
+      forwardedSignal = signal;
+      console.error(`Handling ${signal} for the browser test runner.`);
+      terminateTree(child, signal);
+    };
+
+    const handleSigint = () => forwardSignal("SIGINT");
+    const handleSigterm = () => forwardSignal("SIGTERM");
+
+    signals.once("SIGINT", handleSigint);
+    signals.once("SIGTERM", handleSigterm);
+
+    const removeSignalHandlers = () => {
+      clearTimeout(timeout);
+      signals.off("SIGINT", handleSigint);
+      signals.off("SIGTERM", handleSigterm);
+    };
+
+    child.once("error", (error) => {
+      removeSignalHandlers();
+      reject(
+        new Error(`Browser test runner could not start: ${error.message}`),
+      );
+    });
+
+    child.once("exit", (code, signal) => {
+      removeSignalHandlers();
+
+      if (code === 0) {
+        resolve();
+        return;
+      }
+
+      const outcome = signal ? `signal ${signal}` : `code ${code ?? "unknown"}`;
+      reject(new Error(`Browser test runner exited with ${outcome}.`));
+    });
+  });
+}
+
+export function terminateProcessTree(
+  child,
+  signal,
+  runSync = spawnSync,
+  platform = process.platform,
+) {
+  if (platform === "win32" && child.pid) {
+    runSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
+      stdio: "inherit",
+      windowsHide: true,
+    });
+    return;
+  }
+
+  child.kill(signal);
+}
+
+export async function runE2e(options = {}) {
+  prepareE2eBoundary(options.runCommand);
+  await runBrowserSuite(options.browserSuiteOptions);
+}
+
+async function main() {
   try {
-    prepareE2eBoundary();
+    await runE2e({
+      browserSuiteOptions: { arguments_: process.argv.slice(2) },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`E2E boundary preparation failed: ${message}`);
+    console.error(`E2E failed: ${message}`);
     process.exitCode = 1;
   }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main();
+  await main();
 }

@@ -206,18 +206,38 @@ absent, applies migrations, and runs isolated fictional fixtures. It never
 drops or resets a database. Any destructive reset requires separate explicit
 confirmation.
 
-The E2E project boundary currently prepares and verifies that same isolated test
-database without starting the API, web app, or a browser:
+The local E2E gate prepares and verifies that same isolated test database, then
+starts the API against `TEST_DATABASE_URL`, starts Vite with its same-origin
+`/api` proxy, and runs one deterministic Chromium suite at desktop and mobile
+sizes:
 
 ```powershell
 pnpm.cmd test:e2e
 ```
 
-Local PostgreSQL must already be running. The command stops at the first failed
-child command, returns a nonzero exit code, and prints the command that failed.
-It starts no persistent child processes, so there is nothing to clean up in this
-pre-runner shell. It reports success with an explicit notice that T-018K still
-needs to register the browser runner and first product E2E test.
+Local PostgreSQL and the Playwright Chromium runtime must already be available.
+Install that runtime after a fresh dependency install with
+`pnpm.cmd exec playwright install chromium`. The command fails before mutation
+when `TEST_DATABASE_URL` is missing or unsafe, applies only reviewed forward
+migrations, proves the migrated Mira item reaches the rendered Timeline through
+PostgreSQL and the API, and smoke-checks representative Timeline and Curator
+behavior. It also checks keyboard focus recovery, page overflow, development
+service-worker cleanup, browser console health, and committed desktop/mobile
+Timeline screenshots.
+
+API, Vite, and browser logs stream to the terminal. Failure screenshots and
+traces are written below ignored `test-results/`. Playwright owns the service
+process groups, and the root runner handles interruption and enforces a bounded
+process-tree cleanup. POSIX forwards the requested signal; Windows terminates
+the complete child tree because it does not support those signals. Existing
+listeners on ports 3001 or 5173 fail startup instead of being reused.
+
+Reviewed visual baselines live in `e2e/snapshots`. Update them only for an
+approved visual change, then inspect their Git diff directly:
+
+```powershell
+pnpm.cmd test:e2e -- --update-snapshots
+```
 
 ## Project structure
 

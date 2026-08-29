@@ -683,7 +683,7 @@ Completed state:
 
 ### T-018K: Add vertical-slice E2E coverage and prototype regression gate
 
-Status: queued
+Status: done
 Size: medium
 
 Concrete goal:
@@ -723,6 +723,22 @@ Out of scope:
 Complete product E2E coverage, hosted browsers, production smoke tests,
 cross-browser matrix expansion, broad screenshot baselines, load testing, and
 CI/CD deployment gates.
+
+Completed state:
+
+- `pnpm.cmd test:e2e` fails closed through the existing guarded test-database
+  commands, applies only reviewed forward migrations, and starts the API with
+  `DATABASE_URL` scoped to `TEST_DATABASE_URL`
+- pinned Playwright Chromium runs one deterministic Timeline and Curator path at
+  1440 by 900 and 390 by 844 through Vite's same-origin `/api` proxy
+- the browser asserts the exact migrated Mira response and rendered card,
+  representative mock content, keyboard focus recovery, Curator detail return,
+  page overflow, development service-worker cleanup, and console health
+- two committed Timeline baselines protect the approved desktop and mobile
+  visual treatment; failure-only screenshots and traces remain ignored
+- API, Vite, and browser output is actionable, startup and total runtime are
+  bounded, and the root runner handles interruption and owns complete
+  process-tree cleanup on success, failure, timeout, and repeated execution
 
 ### T-026: Remove the dormant Galaxy prototype boundary
 
