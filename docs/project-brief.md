@@ -74,12 +74,6 @@ Timeline presents messages and activity from the layers in a way that makes
 their relative importance tangible. Content from every layer should not compete
 for attention on equal terms.
 
-### Galaxy
-
-Galaxy is an experimental visualization of the relationship model. It may
-eventually become an alternative to Curator or find another purpose. It is
-preserved but is not the current product priority.
-
 ## Product principles
 
 - Quality matters more than quantity in personal relationships.
@@ -106,12 +100,12 @@ will be decided when concrete product requirements make the tradeoffs clear.
 ## Current prototype scope
 
 The current app is a front-end prototype built with React, TypeScript, Vite,
-Tailwind CSS, shadcn/ui, and Vitest. It contains separate Curator, Timeline, and
-Galaxy views. Curator presents all four relationship layers at the canonical
-5/100/5/10 limits through responsive gallery interactions. Timeline now serves
-as the representative implementation of the provisionally selected visual
-direction, with relational layers encoded through card borders, identity, and
-marks rather than engagement metrics.
+Tailwind CSS, shadcn/ui, and Vitest. It contains separate Curator and Timeline
+views. Curator presents all four relationship layers at the canonical 5/100/5/10
+limits through responsive gallery interactions. Timeline now serves as the
+representative implementation of the provisionally selected visual direction,
+with relational layers encoded through card borders, identity, and marks rather
+than engagement metrics.
 
 The immediate milestone is product-owner browser review of the representative
 Timeline at mobile and desktop sizes, followed by explicit visual approval and

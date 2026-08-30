@@ -36,6 +36,8 @@ Child projects should avoid auth, databases, analytics, and backend services unt
 
 ## D-009: Curator, Timeline, and Galaxy are separate views
 
+Status: superseded by D-028
+
 Curator, Timeline, and Galaxy should not be treated as side-by-side panes. The active prototype should make Timeline and Curator switchable as separate views. Galaxy may remain in the codebase where reasonable, but it is not the current polish priority.
 
 ## D-010: Cloud Forest facilitates community, not engagement
@@ -224,3 +226,12 @@ updates are explicit and human-reviewed. Browser contexts pin
 seeded stale registration rather than an already-clean context. Failure-only
 traces and screenshots remain local. Hosted browsers, cloud visual services,
 broad screenshot suites, and a cross-browser matrix are not part of this gate.
+
+## D-028: The active prototype contains Timeline and Curator
+
+The dormant Galaxy relationship-map experiment is removed rather than preserved
+or replaced. Timeline and Curator remain the active, switchable product views,
+and their existing navigation, responsive treatment, and interaction behavior
+remain unchanged. Any future visualization or additional view requires its own
+concrete product need and approved task rather than inheriting the former Galaxy
+boundary.

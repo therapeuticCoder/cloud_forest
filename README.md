@@ -3,18 +3,15 @@
 Cloud Forest is a React prototype for helping people deliberately cultivate a
 smaller, community-centered social world. It organizes people, groups, and
 public sources by relational depth so that not everything competes for attention
-on equal terms. The prototype has three views:
+on equal terms. The prototype has two views:
 
 - Curator: the primary layered view for selecting and managing Party, Tribe,
   Guilds, and Signals.
 - Timeline: the currently active chronological view of relationship activity.
-- Galaxy: an existing relationship-map experiment that is preserved for now but
-  is not the product priority.
 
-Timeline and Curator are switchable in the current app. The immediate milestone
-is a carefully polished Curator prototype. Galaxy code may remain where useful,
-but new polish should focus on Curator and Timeline unless the backlog says
-otherwise.
+Timeline and Curator are switchable in the current app. Current product work
+prioritizes making these functional paths durable while preserving their
+approved responsive and accessible interaction patterns.
 
 ## Tech stack
 
