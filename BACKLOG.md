@@ -742,7 +742,7 @@ Completed state:
 
 ### T-026: Remove the dormant Galaxy prototype boundary
 
-Status: queued
+Status: done
 Size: small
 
 Concrete goal:
@@ -781,6 +781,17 @@ temporary Galaxy coverage that would be deleted in the next task.
 Out of scope:
 New views, product redesign, new navigation, broader mock-data replacement, and
 unrelated visual cleanup.
+
+Completed state:
+
+- the unreachable Galaxy view and its relationship-field controls, nodes, guild
+  planes, map connections, layout data, and exclusive styles are removed
+- Timeline and Curator remain the only application views, with their existing
+  navigation, responsive behavior, keyboard interactions, and E2E path intact
+- current product documentation describes Timeline and Curator, while D-009 and
+  earlier backlog and changelog statements remain as honest historical records
+- no replacement view, dependency, API, database, generated artifact, or visual
+  baseline change is introduced
 
 ### T-018L: Establish the installable React PWA shell
 

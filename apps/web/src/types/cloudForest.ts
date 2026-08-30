@@ -15,16 +15,6 @@ export type CloudForestPlatform =
   | "discord"
   | "mock";
 
-export type CloudForestPosition = {
-  x: number;
-  y: number;
-};
-
-export type CloudForestSize = {
-  width: number;
-  height: number;
-};
-
 export type CloudForestActor = {
   id: string;
   displayName: string;
@@ -34,43 +24,8 @@ export type CloudForestActor = {
   layer: CloudForestLayer;
   avatarUrl?: string;
   initials?: string;
-  position: CloudForestPosition;
   relationshipLabel?: string;
   notes?: string;
-};
-
-export type CloudForestGuildType =
-  | "care"
-  | "builder"
-  | "learning"
-  | "civic"
-  | "creative"
-  | "other";
-
-export type CloudForestGuild = {
-  id: string;
-  name: string;
-  description?: string;
-  guildType: CloudForestGuildType;
-  position: CloudForestPosition;
-  size: CloudForestSize;
-  rotation?: number;
-  memberActorIds: string[];
-};
-
-export type CloudForestConnectionType =
-  | "close"
-  | "known"
-  | "guild"
-  | "inferred"
-  | "signal";
-
-export type CloudForestConnection = {
-  id: string;
-  fromActorId: string;
-  toActorId: string;
-  connectionType: CloudForestConnectionType;
-  strength: number;
 };
 
 export type ActivityPubObjectType =

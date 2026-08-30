@@ -21,6 +21,12 @@ describe("App", () => {
       2,
     );
     expect(screen.getAllByRole("button", { name: /curator/i })).toHaveLength(2);
+    expect(
+      screen.queryByRole("button", { name: /galaxy/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: /galaxy view/i }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("region", { name: /timeline view/i }));
     expect(screen.getByRole("heading", { name: /whole forest/i }));
     expect(screen.getByRole("button", { name: /write/i })).toBeInTheDocument();
