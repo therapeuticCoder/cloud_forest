@@ -348,8 +348,7 @@ in to Tailscale on both the Windows workstation and phone and enabling HTTPS for
 the private tailnet. Those are human-controlled external-service steps, not
 repository setup.
 
-Prepare the local data and API, then build and preview the production web app on
-the workstation loopback interface:
+Prepare the local data and API:
 
 ```powershell
 pnpm.cmd services:up
@@ -357,22 +356,33 @@ pnpm.cmd db:migrate
 pnpm.cmd dev:api
 ```
 
-```powershell
-pnpm.cmd build
-pnpm.cmd --filter @cloud-forest/web exec vite preview --host 127.0.0.1 --port 4173 --strictPort
-```
-
-In another terminal, expose only that loopback preview to the private tailnet:
+In another terminal, expose the not-yet-started loopback preview to the private
+tailnet and copy the exact `*.ts.net` hostname that Tailscale prints:
 
 ```powershell
 tailscale serve 4173
 ```
 
-Open the HTTPS `*.ts.net` URL printed by Tailscale on the connected phone. Use
-the browser's install or **Add to Home Screen** action; on iPhone, enable
-**Open as Web App**. Load the app online once and wait for its offline-ready
-notice before testing an offline reload. Build a changed version and restart the
-preview on the same origin to test **Update now** and **Later**.
+Before starting Vite preview, allow only that exact Tailscale hostname in the
+preview terminal. Replace the example value with the hostname printed above;
+do not use `*.ts.net`, `.ts.net`, or an unrestricted host allowlist:
+
+```powershell
+$env:__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS = "<workstation-name>.<tailnet-name>.ts.net"
+pnpm.cmd build
+pnpm.cmd --filter @cloud-forest/web exec vite preview --host 127.0.0.1 --port 4173 --strictPort
+```
+
+Vite preview inherits the development server's narrow host policy. The
+`__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` value admits the reverse-proxied
+request without allowing unrelated hostnames and applies only to that terminal
+session.
+
+Open the printed HTTPS URL on the connected phone. Use the browser's install or
+**Add to Home Screen** action; on iPhone, enable **Open as Web App**. Load the
+app online once and wait for its offline-ready notice before testing an offline
+reload. Build a changed version and restart the preview on the same origin to
+test **Update now** and **Later**.
 
 Keep Serve in the foreground and stop it with `Ctrl+C` after testing. Use
 Tailscale Serve only; never substitute Tailscale Funnel, which would expose the
