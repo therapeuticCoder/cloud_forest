@@ -1,11 +1,19 @@
 # Changelog
 
-Notable changes to Cloud Forest are documented here.
-
-The project loosely follows the spirit of semantic versioning, but early
-versions remain informal while the prototype evolves.
+Notable changes to Cloud Forest are documented here. The private monorepo uses
+one pre-1.0 product version: accepted milestones increment the minor version,
+and compatible fixes increment the patch version. Release tags are created from
+`main` after the release commit is accepted.
 
 ## [Unreleased]
+
+## [0.1.0] - 2026-08-31
+
+The first working-prototype foundation milestone includes an approved visual
+grammar; active Timeline and Curator views; an installable React PWA; Fastify,
+OpenAPI, typed-client, and PostgreSQL/Drizzle boundaries; one database-backed
+Timeline item; a guarded desktop/mobile Chromium gate; and removal of the
+dormant Galaxy experiment.
 
 ### Added
 
@@ -27,6 +35,15 @@ versions remain informal while the prototype evolves.
   and current milestone.
 - Codex app-centered repository workflow and product-specific agent guidance.
 - Node and pnpm version guidance, including native Windows PowerShell commands.
+- Installable React PWA shell with explicit offline-shell and update behavior.
+- Fastify API, shared domain and runtime contracts, deterministic OpenAPI, and a
+  transport-only typed client.
+- PostgreSQL/Drizzle server boundary with reviewed forward SQL migrations and
+  guarded normal and disposable-test commands.
+- One fictional database-backed Timeline item flowing through PostgreSQL,
+  Fastify, the typed client, and React while the remaining cards stay mocked.
+- Deterministic pinned-Chromium desktop/mobile regression gate for the vertical
+  slice and representative Timeline and Curator behavior.
 
 ### Changed
 
@@ -39,6 +56,8 @@ versions remain informal while the prototype evolves.
 - Recorded canonical layer limits of 5 Party people, 100 Tribe people, 5 Guilds,
   and 10 Signals.
 - Reconciled Curator prototype data with the canonical layer limits.
+- Removed the dormant Galaxy experiment so Timeline and Curator are the only
+  active prototype views.
 
 ## 2026-07-05
 

@@ -99,27 +99,32 @@ will be decided when concrete product requirements make the tradeoffs clear.
 
 ## Current prototype scope
 
-The current app is a front-end prototype built with React, TypeScript, Vite,
-Tailwind CSS, shadcn/ui, and Vitest. It contains separate Curator and Timeline
-views. Curator presents all four relationship layers at the canonical 5/100/5/10
-limits through responsive gallery interactions. Timeline now serves as the
-representative implementation of the provisionally selected visual direction,
-with relational layers encoded through card borders, identity, and marks rather
-than engagement metrics.
+The current prototype runs in a pnpm TypeScript monorepo. `apps/web` is an
+installable React PWA with separate Curator and Timeline views, and `apps/api`
+is a versioned Fastify service backed by PostgreSQL through reviewed Drizzle SQL
+migrations. Shared domain and runtime-validated contract packages generate a
+committed OpenAPI document and transport-only typed client.
 
-The immediate milestone is product-owner browser review of the representative
-Timeline at mobile and desktop sizes, followed by explicit visual approval and
-documentation of the reusable visual grammar. Broad application restyling waits
-for that approval. UI and UX quality, accessibility, performance, and a clean
-architectural foundation remain part of the milestone rather than deferred
-concerns.
+Curator presents all four relationship layers at the canonical 5/100/5/10
+limits through responsive mock-backed gallery interactions. Timeline carries
+the approved visual grammar, with relational layers encoded through card
+borders, identity, and marks rather than engagement metrics. Its first fictional
+item is read from PostgreSQL through the API and typed client; the other seven
+visible cards remain intentionally mocked for later incremental product slices.
+
+The design gate and monorepo-foundation milestone are complete. A guarded local
+Chromium gate verifies the database-backed path and representative Timeline and
+Curator behavior at desktop and mobile sizes. The next milestone is the durable,
+local-first personal loop; selecting its first product slice remains separate
+backlog planning.
 
 ## Out of scope for the current prototype
 
 - authentication
 - analytics or attention tracking
-- backend services and production integrations
+- production hosting and external-service integrations
 - a final persistence or synchronization architecture
+- cross-device synchronization and background job processing
 - real client, patient, or other sensitive data
 - engagement mechanics intended primarily to increase time in the app
 

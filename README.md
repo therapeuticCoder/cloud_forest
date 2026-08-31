@@ -1,9 +1,11 @@
 # Cloud Forest
 
-Cloud Forest is a React prototype for helping people deliberately cultivate a
-smaller, community-centered social world. It organizes people, groups, and
-public sources by relational depth so that not everything competes for attention
-on equal terms. The prototype has two views:
+Cloud Forest is a working product prototype for helping people deliberately
+cultivate a smaller, community-centered social world. It organizes people,
+groups, and public sources by relational depth so that not everything competes
+for attention on equal terms. The prototype runs in a pnpm TypeScript monorepo
+with an installable React PWA, a versioned Fastify API, shared contract and
+domain packages, and a PostgreSQL data boundary. It has two views:
 
 - Curator: the primary layered view for selecting and managing Party, Tribe,
   Guilds, and Signals.
@@ -15,14 +17,13 @@ approved responsive and accessible interaction patterns.
 
 ## Tech stack
 
-- Vite
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Vitest
-- ESLint
-- Prettier
+- TypeScript and pnpm workspaces
+- React PWA with Vite, Tailwind CSS, and shadcn/ui
+- Fastify with TypeBox-validated versioned contracts
+- generated OpenAPI and a transport-only typed API client
+- PostgreSQL with Drizzle and reviewed SQL migrations
+- Vitest, Node test runner, and pinned Playwright Chromium
+- ESLint and Prettier
 
 ## Local development
 
@@ -84,8 +85,9 @@ Docker and the database. Run its focused checks with `pnpm check:api`.
 The web application requests versioned routes from the same-origin `/api`
 boundary. During local development, Vite proxies that path to the default API
 address, so run `pnpm dev` and `pnpm dev:api` in separate terminals. The first
-Timeline card is loaded through this boundary; the rest of the Timeline remains
-temporarily mock-backed under T-018J.
+Timeline card is loaded through this boundary from PostgreSQL. The other seven
+visible cards remain intentionally mock-backed until later product slices
+replace them through similarly narrow seams.
 
 The API's registered TypeBox route schemas generate the committed OpenAPI
 artifact at `apps/api/openapi/openapi.json`. That document generates the
