@@ -5,6 +5,12 @@ production-seed alpha for at most 100 trusted testers. Work remains incremental:
 one reviewable backlog task per Codex session, with a working demonstration every
 two or three days and a weekly reforecast based on accepted outcomes and rework.
 
+Environment and design calibration and the monorepo-foundation milestone are
+complete. The working prototype now has an installable React PWA, versioned API,
+reviewed PostgreSQL migrations, a generated typed client, and a guarded browser
+regression path. The personal loop is the next product milestone; its first
+functional slice will be selected separately in the backlog.
+
 ## Eight-week sequence
 
 1. **Environment and design:** verify the Windows/Codex workflow, calibrate the
@@ -26,14 +32,16 @@ current milestone before it expands scope.
 
 ## Architecture direction
 
-- pnpm monorepo with a React PWA, Fastify API, background worker, shared API
-  contracts, and domain packages
+- pnpm monorepo with a React PWA, Fastify API, shared API contracts, and domain
+  packages; the background-worker package is reserved until a concrete
+  asynchronous product behavior requires it
 - TypeScript throughout, PostgreSQL with Drizzle and reviewed SQL migrations
 - versioned JSON API with runtime validation, OpenAPI, and a typed client
 - Better Auth with invite-only email magic links
 - Dexie and IndexedDB for account-scoped cache, private offline mutations, and
-  drafts
-- PostgreSQL-backed durable jobs without Redis or microservices
+  drafts, introduced only with a concrete local-first product behavior
+- PostgreSQL-backed durable jobs without Redis or microservices, introduced only
+  when an approved product flow requires asynchronous work
 - Render and managed PostgreSQL in a US region, Cloudflare R2 through an S3
   adapter, and Resend through a portable email adapter
 - installable current-evergreen PWA, with local Docker services for development

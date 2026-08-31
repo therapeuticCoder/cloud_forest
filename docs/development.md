@@ -129,8 +129,9 @@ undocumented or schema-invalid responses. Runtime validators are reused from
 `packages/api-contracts`; malformed JSON and HTML fallbacks are reported as
 unexpected responses rather than asserted into generated types. The package
 has no Fastify, Drizzle, PostgreSQL, or database-package dependency. The
-Timeline route defaults to a typed not-found result until T-018J supplies its
-database-backed resolver.
+Timeline route retains an injected resolver seam: production startup supplies
+the PostgreSQL-backed resolver, while isolated route tests can supply a fixture
+resolver or exercise the typed not-found default.
 
 The local services are:
 

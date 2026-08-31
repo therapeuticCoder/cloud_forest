@@ -209,12 +209,15 @@ Acceptance criteria:
 
 ### T-018: Create the application monorepo foundation
 
-Status: split; child tasks queued
+Status: done
 Size: large; execute only through the child tasks below
 
 Goal:
-Establish the React PWA, Fastify API, worker, contracts, domain, database, local
-cache, and test boundaries through one thin client-to-database vertical slice.
+Establish an incremental monorepo foundation with an installable React PWA,
+Fastify API, shared domain and contracts, generated typed client,
+PostgreSQL/Drizzle database boundary, and guarded test tooling, proven through
+one thin client-to-database vertical slice. Reserve worker and account-scoped
+local-data boundaries until concrete product behavior requires them.
 
 Acceptance criteria:
 
@@ -225,6 +228,23 @@ Acceptance criteria:
 - database migration and E2E commands become working Codex actions
 - the existing visual prototype remains usable while mock-only data is replaced
   incrementally
+
+Completed state:
+
+- the working prototype runs as an installable React PWA in `apps/web`, with
+  Timeline and Curator preserved as the active responsive and accessible views
+- the versioned Fastify API, framework-neutral domain and contract packages,
+  deterministic OpenAPI generation, and transport-only typed client establish
+  the approved application and package boundaries
+- reviewed forward-only PostgreSQL/Drizzle migrations and guarded normal/test
+  database commands provide the server data boundary without destructive reset
+- one fictional Timeline item travels from PostgreSQL through the API and typed
+  client into the existing UI while the other seven visible cards remain mocked
+- `pnpm.cmd test:e2e` proves that slice and representative Timeline and Curator
+  behavior in pinned Chromium at desktop and mobile sizes
+- T-018H and T-018I remain deferred follow-ups, not incomplete prerequisites;
+  they activate only when an approved product behavior requires durable jobs or
+  account-scoped offline/cache behavior
 
 Planning notes:
 
@@ -241,21 +261,17 @@ Planning notes:
 - Reviewed SQL files are the migration artifacts. Generated migration metadata
   may accompany them, but schema changes must remain inspectable as SQL.
 
-#### Critical path and deferrable work
+#### Completed critical path and deferred follow-ups
 
-Critical path:
+Completed critical path:
 T-018A -> T-018B -> T-018L -> T-018C -> T-018D -> T-018E -> T-018F -> T-018G
--> T-018J -> T-018K. T-018I joins the path before T-018J if a later approved
-revision adds local caching to the slice. T-018H joins before T-018J only if a
-later approved revision adds a durable job.
+-> T-018J -> T-018K.
 
-Can safely wait:
-T-018H can wait until a product flow needs asynchronous work. T-018I can wait
-until a specific offline/cache behavior is part of the selected slice. T-018G
-can wait until T-018E establishes real migration commands, but must finish
-before the final E2E gate. T-018L can wait until the web move is verified, but
-must finish before T-018K and before the parent milestone is complete. None of
-these deferrals changes the approved architecture.
+Deferred follow-ups:
+T-018H waits until a product flow needs asynchronous work. T-018I waits until a
+specific offline/cache behavior is part of an approved product slice. Per
+D-020, neither was required for the completed read-only Timeline slice, and
+their deferral does not change the approved architecture.
 
 #### Resolved vertical-slice decision
 
@@ -543,7 +559,7 @@ and replacing existing service commands.
 
 ### T-018H: Establish the worker and PostgreSQL-backed durable-job boundary
 
-Status: queued
+Status: deferred; activate only for a concrete product requirement
 Size: medium
 
 Concrete goal:
@@ -583,7 +599,7 @@ production operations, dashboards, and unbounded retry policies.
 
 ### T-018I: Define the account-scoped IndexedDB/Dexie cache boundary
 
-Status: queued
+Status: deferred; activate only for a concrete product requirement
 Size: medium
 
 Concrete goal:
