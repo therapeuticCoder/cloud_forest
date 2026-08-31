@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { shellCachePrefix, shouldDeleteShellCache } from "./cachePolicy";
+import {
+  createShellCacheMatchOptions,
+  shellCachePrefix,
+  shouldDeleteShellCache,
+} from "./cachePolicy";
 
 describe("service-worker shell cache cleanup", () => {
   const currentCacheName = `${shellCachePrefix}current`;
@@ -24,5 +28,12 @@ describe("service-worker shell cache cleanup", () => {
     expect(shouldDeleteShellCache("another-app-shell", currentCacheName)).toBe(
       false,
     );
+  });
+
+  it("matches precached shell assets across Vite Origin variations", () => {
+    expect(createShellCacheMatchOptions(currentCacheName)).toEqual({
+      cacheName: currentCacheName,
+      ignoreVary: true,
+    });
   });
 });

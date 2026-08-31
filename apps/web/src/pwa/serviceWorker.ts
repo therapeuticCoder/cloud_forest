@@ -1,6 +1,11 @@
 /// <reference lib="webworker" />
 
-import { shellCachePrefix, shouldDeleteShellCache } from "./cachePolicy";
+import {
+  createShellCacheMatchOptions,
+  shellCachePrefix,
+  shouldDeleteShellCache,
+} from "./cachePolicy";
+import { resolveNetworkFirst } from "./navigationPolicy";
 
 export {};
 
@@ -16,7 +21,6 @@ const precacheEntries = self.__WB_MANIFEST as PrecacheEntry[];
 const precacheUrls = precacheEntries.map(
   (entry) => new URL(entry.url, worker.registration.scope).href,
 );
-const precacheUrlSet = new Set(precacheUrls);
 
 function hashPrecacheEntries(entries: PrecacheEntry[]) {
   const source = entries
@@ -34,6 +38,7 @@ function hashPrecacheEntries(entries: PrecacheEntry[]) {
 
 const cacheName = `${shellCachePrefix}${hashPrecacheEntries(precacheEntries)}`;
 const shellUrl = new URL("index.html", worker.registration.scope).href;
+const shellCacheMatchOptions = createShellCacheMatchOptions(cacheName);
 
 worker.addEventListener("install", (event) => {
   event.waitUntil(
@@ -43,17 +48,20 @@ worker.addEventListener("install", (event) => {
 
 worker.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((cacheNames) =>
-        Promise.all(
-          cacheNames
-            .filter((existingCacheName) =>
-              shouldDeleteShellCache(existingCacheName, cacheName),
-            )
-            .map((existingCacheName) => caches.delete(existingCacheName)),
+    Promise.all([
+      caches
+        .keys()
+        .then((cacheNames) =>
+          Promise.all(
+            cacheNames
+              .filter((existingCacheName) =>
+                shouldDeleteShellCache(existingCacheName, cacheName),
+              )
+              .map((existingCacheName) => caches.delete(existingCacheName)),
+          ),
         ),
-      ),
+      worker.clients.claim(),
+    ]),
   );
 });
 
@@ -79,19 +87,25 @@ worker.addEventListener("fetch", (event) => {
     }
 
     event.respondWith(
-      fetch(event.request).catch(async () => {
-        const cachedShell = await caches.match(shellUrl, { cacheName });
-        return cachedShell ?? Response.error();
+      resolveNetworkFirst({
+        network: () => fetch(event.request),
+        fallback: async () => {
+          const cachedShell = await caches.match(
+            shellUrl,
+            shellCacheMatchOptions,
+          );
+          return cachedShell ?? Response.error();
+        },
       }),
     );
     return;
   }
 
-  if (precacheUrlSet.has(requestUrl.href)) {
-    event.respondWith(
-      caches.match(event.request, { cacheName }).then((cachedResponse) => {
+  event.respondWith(
+    caches
+      .match(event.request, shellCacheMatchOptions)
+      .then((cachedResponse) => {
         return cachedResponse ?? fetch(event.request);
       }),
-    );
-  }
+  );
 });

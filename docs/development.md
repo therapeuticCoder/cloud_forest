@@ -357,10 +357,11 @@ pnpm.cmd dev:api
 ```
 
 In another terminal, expose the not-yet-started loopback preview to the private
-tailnet and copy the exact `*.ts.net` hostname that Tailscale prints:
+tailnet in the background and copy the exact `*.ts.net` hostname that Tailscale
+prints:
 
 ```powershell
-tailscale serve 4173
+tailscale serve --bg 4173
 ```
 
 Before starting Vite preview, allow only that exact Tailscale hostname in the
@@ -378,15 +379,26 @@ Vite preview inherits the development server's narrow host policy. The
 request without allowing unrelated hostnames and applies only to that terminal
 session.
 
-Open the printed HTTPS URL on the connected phone. Use the browser's install or
-**Add to Home Screen** action; on iPhone, enable **Open as Web App**. Load the
-app online once and wait for its offline-ready notice before testing an offline
-reload. Build a changed version and restart the preview on the same origin to
-test **Update now** and **Later**.
+Open the printed HTTPS URL on the connected phone. In Android Chrome, use
+**Install app** from the three-dot menu; on iPhone, use **Add to Home Screen**
+and enable **Open as Web App**. Load the app online once and wait for its
+offline-ready notice before testing an offline reload. The installed shell and
+text-backed mock content remain available offline. The portrait sprite is not
+part of the current shell cache, and the database-backed Timeline card remains
+in its loading state or shows its accessible error state while the API is
+unavailable. Build a changed version and restart the preview on the same origin
+to test **Update now** and **Later**.
 
-Keep Serve in the foreground and stop it with `Ctrl+C` after testing. Use
-Tailscale Serve only; never substitute Tailscale Funnel, which would expose the
-preview publicly. Vite preview is a local build-inspection server, not a
+Background Serve configuration persists for later demo sessions and only
+forwards successfully while the loopback preview is running. Stop the API and
+preview terminals when testing ends. To remove the HTTPS listener, run:
+
+```powershell
+tailscale serve --https=443 off
+```
+
+Use Tailscale Serve only; never substitute Tailscale Funnel, which would expose
+the preview publicly. Vite preview is a local build-inspection server, not a
 production host.
 
 Official references:
