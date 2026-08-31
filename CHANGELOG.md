@@ -7,7 +7,7 @@ and compatible fixes increment the patch version. Release tags are created from
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-08-31
+## [0.2.0] - 2026-08-31
 
 The first working-prototype foundation milestone includes an approved visual
 grammar; active Timeline and Curator views; an installable React PWA; Fastify,
