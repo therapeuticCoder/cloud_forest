@@ -299,6 +299,94 @@ waiting state and the app displays an update notice. **Update now** activates it
 and reloads; **Later** preserves the current session. The app checks the worker
 again when the page becomes visible and at least hourly while it remains open.
 
+### Phone demo and PWA testing
+
+Use a spare phone for real touch, viewport, browser-chrome, and installed-PWA
+checks. Keep all demo data fictional. Two workflows cover different goals.
+
+#### Quick trusted-LAN browser test
+
+This path needs no phone software and is appropriate for responsive layout,
+touch, scrolling, navigation, and ordinary interaction checks. It is not an
+installability or offline-shell test because an HTTP LAN address is not a secure
+browser context.
+
+Connect the workstation and phone to the same trusted private Wi-Fi. Prepare the
+normal local database, then run the API and a LAN-visible Vite development
+server in separate PowerShell terminals:
+
+```powershell
+pnpm.cmd services:up
+pnpm.cmd db:migrate
+pnpm.cmd dev:api
+```
+
+```powershell
+pnpm.cmd --filter @cloud-forest/web dev -- --host 0.0.0.0 --port 5173 --strictPort
+```
+
+Find the workstation's active private IPv4 address:
+
+```powershell
+Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' -and $_.PrefixOrigin -ne 'WellKnown' }
+```
+
+On the phone, open `http://<workstation-ip>:5173`. The browser still uses the
+same-origin `/api` path; Vite proxies it inside the workstation to the API on
+`127.0.0.1:3001`, so the API does not need a LAN binding or CORS policy.
+
+If Windows asks about Node.js network access, allow only the current private
+network. Do not set Vite's allowed hosts or CORS policy to unrestricted values,
+do not use this workflow on public Wi-Fi, and do not create a broad persistent
+firewall rule. Stop the Vite and API terminals when the test ends.
+
+#### Private HTTPS installed-PWA test with Tailscale Serve
+
+Use this path for service-worker installation, standalone display, update
+prompts, and offline-shell checks. It requires separately installing and signing
+in to Tailscale on both the Windows workstation and phone and enabling HTTPS for
+the private tailnet. Those are human-controlled external-service steps, not
+repository setup.
+
+Prepare the local data and API, then build and preview the production web app on
+the workstation loopback interface:
+
+```powershell
+pnpm.cmd services:up
+pnpm.cmd db:migrate
+pnpm.cmd dev:api
+```
+
+```powershell
+pnpm.cmd build
+pnpm.cmd --filter @cloud-forest/web exec vite preview --host 127.0.0.1 --port 4173 --strictPort
+```
+
+In another terminal, expose only that loopback preview to the private tailnet:
+
+```powershell
+tailscale serve 4173
+```
+
+Open the HTTPS `*.ts.net` URL printed by Tailscale on the connected phone. Use
+the browser's install or **Add to Home Screen** action; on iPhone, enable
+**Open as Web App**. Load the app online once and wait for its offline-ready
+notice before testing an offline reload. Build a changed version and restart the
+preview on the same origin to test **Update now** and **Later**.
+
+Keep Serve in the foreground and stop it with `Ctrl+C` after testing. Use
+Tailscale Serve only; never substitute Tailscale Funnel, which would expose the
+preview publicly. Vite preview is a local build-inspection server, not a
+production host.
+
+Official references:
+
+- [Vite server options](https://vite.dev/config/server-options)
+- [Vite preview options](https://vite.dev/config/preview-options)
+- [MDN secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts)
+- [Tailscale Serve](https://tailscale.com/docs/reference/tailscale-cli/serve)
+- [Install a web app on iPhone](https://support.apple.com/guide/iphone/iphea86e5236/ios)
+
 Step Zero is complete when all of these succeed:
 
 ```powershell
