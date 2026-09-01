@@ -13,6 +13,7 @@ import solArdenPortrait from "@/assets/curator/sol-arden.png";
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 type PartyLayerProps = {
+  onAdd: () => void;
   onNavigateToTimeline: () => void;
   onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
   people: CuratorPerson[];
@@ -39,21 +40,31 @@ const portraitPositionStyles: Record<PortraitPosition, string> = {
   "bottom-right": "100% 100%",
 };
 
-const partyPhrases: Record<string, string> = {
-  mira: "my calm in the storm",
-  sol: "always in my corner",
-  anya: "keeps me grounded",
-  dev: "my steady place",
-  ren: "always makes me laugh",
-};
-
 export function Portrait({
+  initials,
   personId,
+  portraitUrl,
   small = false,
 }: {
+  initials?: string;
   personId: string;
+  portraitUrl?: string;
   small?: boolean;
 }) {
+  if (portraitUrl) {
+    return (
+      <img
+        alt=""
+        className={
+          small
+            ? "party-self-portrait"
+            : "party-portrait party-portrait--single"
+        }
+        src={portraitUrl}
+      />
+    );
+  }
+
   if (personId === "sol") {
     return (
       <img
@@ -79,6 +90,21 @@ export function Portrait({
         }
       >
         Y
+      </span>
+    );
+  }
+
+  if (!portraitPositions[personId] && initials) {
+    return (
+      <span
+        aria-hidden="true"
+        className={
+          small
+            ? "party-self-portrait party-self-portrait--fallback"
+            : "party-portrait party-portrait--fallback"
+        }
+      >
+        {initials}
       </span>
     );
   }
@@ -116,15 +142,17 @@ function PartyCard({
       type="button"
     >
       <span className="party-card__portrait">
-        <Portrait personId={person.id} />
+        <Portrait
+          initials={person.initials}
+          personId={person.id}
+          portraitUrl={person.portraitUrl}
+        />
         <span className="party-card__name">
           {person.displayName.split(" ")[0]}
         </span>
       </span>
       <span className="party-card__nameplate">
-        <span className="party-card__note">
-          {partyPhrases[person.id] ?? person.recentStatus}
-        </span>
+        <span className="party-card__note">{person.relationshipTitle}</span>
       </span>
     </button>
   );
@@ -133,14 +161,23 @@ function PartyCard({
 export function PartyAction({
   children,
   icon: Icon,
+  onClick,
+  disabled = false,
   tone,
 }: {
   children: string;
+  disabled?: boolean;
   icon: typeof Gift;
+  onClick?: () => void;
   tone: "primary" | "quiet";
 }) {
   return (
-    <button className={`party-action party-action--${tone}`} type="button">
+    <button
+      className={`party-action party-action--${tone}`}
+      disabled={disabled}
+      onClick={onClick}
+      type="button"
+    >
       <Icon aria-hidden="true" strokeWidth={1.7} />
       <span>{children}</span>
     </button>
@@ -149,13 +186,19 @@ export function PartyAction({
 
 export function PartyActions({
   activeView,
+  onAdd,
+  partyIsFull,
 }: {
   activeView: "timeline" | "curator";
+  onAdd?: () => void;
+  partyIsFull?: boolean;
 }) {
   return (
     <div aria-label="Party actions" className="party-actions">
       <PartyAction
         icon={activeView === "timeline" ? PenLine : UserRoundPlus}
+        onClick={activeView === "curator" ? onAdd : undefined}
+        disabled={activeView === "curator" && partyIsFull}
         tone="primary"
       >
         {activeView === "timeline" ? "Write" : "Add"}
@@ -172,6 +215,7 @@ export function PartyActions({
 
 export function PartyLayer({
   onNavigateToTimeline,
+  onAdd,
   onSelect,
   people,
   user,
@@ -211,6 +255,19 @@ export function PartyLayer({
             person={person}
           />
         ))}
+        {people.length < 5 ? (
+          <button
+            aria-label="Add a Party member"
+            className="party-card party-card--empty"
+            data-curator-tile="party-add"
+            onClick={onAdd}
+            type="button"
+          >
+            <span className="party-card__portrait party-card__portrait--empty">
+              <UserRoundPlus aria-hidden="true" strokeWidth={1.4} />
+            </span>
+          </button>
+        ) : null}
       </div>
 
       <div aria-hidden="true" className="party-ornament party-ornament--left">

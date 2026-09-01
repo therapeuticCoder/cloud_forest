@@ -2,14 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   curatorGuilds,
-  curatorPartyPeople,
   curatorSignals,
   curatorTribeNeighborhoods,
   curatorUser,
 } from "@/data/cloudForest";
 import { cn } from "@/lib/utils";
-import type { CuratorSelection } from "@/types/curator";
+import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
+import {
+  AddPartyMemberWizard,
+  type AddPartyMemberDraft,
+} from "./AddPartyMemberWizard";
 import { CuratorDetailView } from "./CuratorDetailView";
 import { GuildsLayer } from "./GuildsLayer";
 import { PartyLayer } from "./PartyLayer";
@@ -19,13 +22,24 @@ import { TribeLayer } from "./TribeLayer";
 type CuratorLayerSectionProps = {
   children: React.ReactNode;
   label: string;
+  onActiveChange: (isActive: boolean) => void;
 };
 
 type CuratorViewProps = {
+  addWizardOpen: boolean;
+  onAddPartyMember: () => void;
+  onCancelAdd: () => void;
+  onCompleteAdd: (draft: AddPartyMemberDraft) => void;
+  onLayerActiveChange: (label: string, isActive: boolean) => void;
   onNavigateToTimeline: () => void;
+  partyPeople: CuratorPerson[];
 };
 
-function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
+function CuratorLayerSection({
+  children,
+  label,
+  onActiveChange,
+}: CuratorLayerSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [isActive, setIsActive] = useState(true);
 
@@ -37,13 +51,16 @@ function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => setIsActive(entry.isIntersecting),
+      ([entry]) => {
+        setIsActive(entry.isIntersecting);
+        onActiveChange(entry.isIntersecting);
+      },
       { threshold: 0.55 },
     );
 
     observer.observe(section);
     return () => observer.disconnect();
-  }, []);
+  }, [label, onActiveChange]);
 
   return (
     <article
@@ -60,7 +77,15 @@ function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
   );
 }
 
-export function CuratorView({ onNavigateToTimeline }: CuratorViewProps) {
+export function CuratorView({
+  addWizardOpen,
+  onAddPartyMember,
+  onCancelAdd,
+  onCompleteAdd,
+  onLayerActiveChange,
+  onNavigateToTimeline,
+  partyPeople,
+}: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
   const triggerIdRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLElement>(null);
@@ -121,6 +146,12 @@ export function CuratorView({ onNavigateToTimeline }: CuratorViewProps) {
     };
   }, [handleBack, restoreCurator, selection]);
 
+  if (addWizardOpen) {
+    return (
+      <AddPartyMemberWizard onCancel={onCancelAdd} onComplete={onCompleteAdd} />
+    );
+  }
+
   if (selection) {
     return <CuratorDetailView onBack={handleBack} selection={selection} />;
   }
@@ -131,24 +162,37 @@ export function CuratorView({ onNavigateToTimeline }: CuratorViewProps) {
       aria-label="Curator view"
       className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-slate-950 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
-      <CuratorLayerSection label="Party">
+      <CuratorLayerSection
+        label="Party"
+        onActiveChange={(isActive) => onLayerActiveChange("party", isActive)}
+      >
         <PartyLayer
+          onAdd={onAddPartyMember}
           onNavigateToTimeline={onNavigateToTimeline}
           onSelect={handleSelect}
-          people={curatorPartyPeople}
+          people={partyPeople}
           user={curatorUser}
         />
       </CuratorLayerSection>
-      <CuratorLayerSection label="Tribe">
+      <CuratorLayerSection
+        label="Tribe"
+        onActiveChange={(isActive) => onLayerActiveChange("tribe", isActive)}
+      >
         <TribeLayer
           neighborhoods={curatorTribeNeighborhoods}
           onSelect={handleSelect}
         />
       </CuratorLayerSection>
-      <CuratorLayerSection label="Guilds">
+      <CuratorLayerSection
+        label="Guilds"
+        onActiveChange={(isActive) => onLayerActiveChange("guilds", isActive)}
+      >
         <GuildsLayer guilds={curatorGuilds} onSelect={handleSelect} />
       </CuratorLayerSection>
-      <CuratorLayerSection label="Signals">
+      <CuratorLayerSection
+        label="Signals"
+        onActiveChange={(isActive) => onLayerActiveChange("signals", isActive)}
+      >
         <SignalsLayer onSelect={handleSelect} signals={curatorSignals} />
       </CuratorLayerSection>
     </section>

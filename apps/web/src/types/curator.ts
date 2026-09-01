@@ -2,8 +2,10 @@ export type CuratorPerson = {
   id: string;
   displayName: string;
   initials: string;
+  relationshipTitle: string;
   relationshipNote: string;
   recentStatus: string;
+  portraitUrl?: string;
 };
 
 export type CuratorNeighborhood = {
