@@ -107,6 +107,9 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: /open nia/i }),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /open nia/i })).toHaveFocus(),
+    );
     expect(
       screen.queryByRole("button", { name: /add a party member/i }),
     ).not.toBeInTheDocument();
@@ -130,6 +133,11 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: /add a party member/i }),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /add a party member/i }),
+      ).toHaveFocus(),
+    );
   });
 
   it("closes the selected destination with Escape or browser back", async () => {

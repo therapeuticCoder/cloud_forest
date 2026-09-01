@@ -13,10 +13,10 @@ import { type CloudForestView } from "./ViewSwitcher";
 export function DashboardShell() {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [addWizardOpen, setAddWizardOpen] = useState(false);
-  const [activeCuratorLayer, setActiveCuratorLayer] = useState("party");
   const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
     curatorPartyPeople.slice(0, 4),
   );
+  const focusTargetIdRef = useRef<string | null>(null);
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -34,10 +34,12 @@ export function DashboardShell() {
   const revealChrome = () => setChromeHidden(false);
   const openAddWizard = () => {
     if (partyPeople.length < 5) {
+      focusTargetIdRef.current = "party-add";
       setAddWizardOpen(true);
     }
   };
   const completeAdd = (draft: AddPartyMemberDraft) => {
+    const newMemberId = `party-member-${Date.now()}`;
     const initials = draft.displayName
       .split(/\s+/)
       .map((part) => part[0])
@@ -49,19 +51,30 @@ export function DashboardShell() {
       ...currentPeople,
       {
         ...draft,
-        id: `party-member-${Date.now()}`,
+        id: newMemberId,
         initials,
         recentStatus: "Newly added",
       },
     ]);
-    setActiveCuratorLayer("party");
+    focusTargetIdRef.current = `party-${newMemberId}`;
     setAddWizardOpen(false);
   };
-  const handleLayerActiveChange = (label: string, isActive: boolean) => {
-    if (isActive) {
-      setActiveCuratorLayer(label);
+
+  useEffect(() => {
+    if (addWizardOpen || !focusTargetIdRef.current) {
+      return;
     }
-  };
+
+    const focusTargetId = focusTargetIdRef.current;
+    focusTargetIdRef.current = null;
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLButtonElement>(
+          `[data-curator-tile="${focusTargetId}"]`,
+        )
+        ?.focus();
+    });
+  }, [addWizardOpen, partyPeople.length]);
 
   return (
     <main className="cloud-forest-app" data-active-view={activeView}>
@@ -93,7 +106,6 @@ export function DashboardShell() {
           onAddPartyMember={openAddWizard}
           onCancelAdd={() => setAddWizardOpen(false)}
           onCompleteAdd={completeAdd}
-          onLayerActiveChange={handleLayerActiveChange}
           onNavigateToTimeline={() => setActiveView("timeline")}
           partyPeople={partyPeople}
         />
@@ -107,11 +119,7 @@ export function DashboardShell() {
           <PartyActions
             activeView={activeView}
             onAdd={openAddWizard}
-            partyIsFull={
-              activeView === "curator" &&
-              activeCuratorLayer !== "tribe" &&
-              partyPeople.length >= 5
-            }
+            partyIsFull={activeView === "curator" && partyPeople.length >= 5}
           />
         </div>
       ) : null}

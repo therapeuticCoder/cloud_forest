@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, ImagePlus, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -42,9 +42,10 @@ export function AddPartyMemberWizard({
 }: AddPartyMemberWizardProps) {
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
-  const [portraitUrl, setPortraitUrl] = useState<string>();
+  const [portraitUrl, setPortraitUrl] = useState<string | undefined>(undefined);
   const [relationshipNote, setRelationshipNote] = useState("");
   const [relationshipTitle, setRelationshipTitle] = useState("");
+  const portraitUrlRef = useRef<string | undefined>(undefined);
 
   const canContinue =
     (step === 0 && displayName.trim().length > 0) ||
@@ -55,9 +56,31 @@ export function AddPartyMemberWizard({
 
   const choosePortrait = (file: File | undefined) => {
     if (file) {
-      setPortraitUrl(URL.createObjectURL(file));
+      if (portraitUrlRef.current) {
+        URL.revokeObjectURL(portraitUrlRef.current);
+      }
+      const nextPortraitUrl = URL.createObjectURL(file);
+      portraitUrlRef.current = nextPortraitUrl;
+      setPortraitUrl(nextPortraitUrl);
     }
     setStep(2);
+  };
+
+  const skipPortrait = () => {
+    if (portraitUrlRef.current) {
+      URL.revokeObjectURL(portraitUrlRef.current);
+      portraitUrlRef.current = undefined;
+      setPortraitUrl(undefined);
+    }
+    setStep(2);
+  };
+
+  const handleCancel = () => {
+    if (portraitUrlRef.current) {
+      URL.revokeObjectURL(portraitUrlRef.current);
+      portraitUrlRef.current = undefined;
+    }
+    onCancel();
   };
 
   const handleNext = () => {
@@ -85,7 +108,7 @@ export function AddPartyMemberWizard({
           aria-label={step === 0 ? "Close wizard" : "Back"}
           className="party-wizard__icon-button"
           onClick={
-            step === 0 ? onCancel : () => setStep((current) => current - 1)
+            step === 0 ? handleCancel : () => setStep((current) => current - 1)
           }
           size="icon-lg"
           type="button"
@@ -103,7 +126,7 @@ export function AddPartyMemberWizard({
         <Button
           aria-label="Cancel adding Party member"
           className="party-wizard__cancel"
-          onClick={onCancel}
+          onClick={handleCancel}
           type="button"
           variant="ghost"
         >
@@ -155,7 +178,7 @@ export function AddPartyMemberWizard({
               </label>
               <Button
                 className="party-wizard__skip"
-                onClick={() => setStep(2)}
+                onClick={skipPortrait}
                 size="lg"
                 type="button"
                 variant="outline"

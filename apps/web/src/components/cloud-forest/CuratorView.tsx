@@ -22,7 +22,6 @@ import { TribeLayer } from "./TribeLayer";
 type CuratorLayerSectionProps = {
   children: React.ReactNode;
   label: string;
-  onActiveChange: (isActive: boolean) => void;
 };
 
 type CuratorViewProps = {
@@ -30,16 +29,11 @@ type CuratorViewProps = {
   onAddPartyMember: () => void;
   onCancelAdd: () => void;
   onCompleteAdd: (draft: AddPartyMemberDraft) => void;
-  onLayerActiveChange: (label: string, isActive: boolean) => void;
   onNavigateToTimeline: () => void;
   partyPeople: CuratorPerson[];
 };
 
-function CuratorLayerSection({
-  children,
-  label,
-  onActiveChange,
-}: CuratorLayerSectionProps) {
+function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [isActive, setIsActive] = useState(true);
 
@@ -51,16 +45,13 @@ function CuratorLayerSection({
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsActive(entry.isIntersecting);
-        onActiveChange(entry.isIntersecting);
-      },
+      ([entry]) => setIsActive(entry.isIntersecting),
       { threshold: 0.55 },
     );
 
     observer.observe(section);
     return () => observer.disconnect();
-  }, [label, onActiveChange]);
+  }, []);
 
   return (
     <article
@@ -82,7 +73,6 @@ export function CuratorView({
   onAddPartyMember,
   onCancelAdd,
   onCompleteAdd,
-  onLayerActiveChange,
   onNavigateToTimeline,
   partyPeople,
 }: CuratorViewProps) {
@@ -162,10 +152,7 @@ export function CuratorView({
       aria-label="Curator view"
       className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-slate-950 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
-      <CuratorLayerSection
-        label="Party"
-        onActiveChange={(isActive) => onLayerActiveChange("party", isActive)}
-      >
+      <CuratorLayerSection label="Party">
         <PartyLayer
           onAdd={onAddPartyMember}
           onNavigateToTimeline={onNavigateToTimeline}
@@ -174,25 +161,16 @@ export function CuratorView({
           user={curatorUser}
         />
       </CuratorLayerSection>
-      <CuratorLayerSection
-        label="Tribe"
-        onActiveChange={(isActive) => onLayerActiveChange("tribe", isActive)}
-      >
+      <CuratorLayerSection label="Tribe">
         <TribeLayer
           neighborhoods={curatorTribeNeighborhoods}
           onSelect={handleSelect}
         />
       </CuratorLayerSection>
-      <CuratorLayerSection
-        label="Guilds"
-        onActiveChange={(isActive) => onLayerActiveChange("guilds", isActive)}
-      >
+      <CuratorLayerSection label="Guilds">
         <GuildsLayer guilds={curatorGuilds} onSelect={handleSelect} />
       </CuratorLayerSection>
-      <CuratorLayerSection
-        label="Signals"
-        onActiveChange={(isActive) => onLayerActiveChange("signals", isActive)}
-      >
+      <CuratorLayerSection label="Signals">
         <SignalsLayer onSelect={handleSelect} signals={curatorSignals} />
       </CuratorLayerSection>
     </section>
