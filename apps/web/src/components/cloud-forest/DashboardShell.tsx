@@ -1,15 +1,22 @@
 import { Sprout } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { curatorUser } from "@/data/cloudForest";
+import { curatorPartyPeople, curatorUser } from "@/data/cloudForest";
+import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
+import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
 import { PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 
 export function DashboardShell() {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
+  const [addWizardOpen, setAddWizardOpen] = useState(false);
+  const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
+    curatorPartyPeople.slice(0, 4),
+  );
+  const focusTargetIdRef = useRef<string | null>(null);
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -25,6 +32,49 @@ export function DashboardShell() {
   }, []);
 
   const revealChrome = () => setChromeHidden(false);
+  const openAddWizard = () => {
+    if (partyPeople.length < 5) {
+      focusTargetIdRef.current = "party-add";
+      setAddWizardOpen(true);
+    }
+  };
+  const completeAdd = (draft: AddPartyMemberDraft) => {
+    const newMemberId = `party-member-${Date.now()}`;
+    const initials = draft.displayName
+      .split(/\s+/)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 3)
+      .toUpperCase();
+
+    setPartyPeople((currentPeople) => [
+      ...currentPeople,
+      {
+        ...draft,
+        id: newMemberId,
+        initials,
+        recentStatus: "Newly added",
+      },
+    ]);
+    focusTargetIdRef.current = `party-${newMemberId}`;
+    setAddWizardOpen(false);
+  };
+
+  useEffect(() => {
+    if (addWizardOpen || !focusTargetIdRef.current) {
+      return;
+    }
+
+    const focusTargetId = focusTargetIdRef.current;
+    focusTargetIdRef.current = null;
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLButtonElement>(
+          `[data-curator-tile="${focusTargetId}"]`,
+        )
+        ?.focus();
+    });
+  }, [addWizardOpen, partyPeople.length]);
 
   return (
     <main className="cloud-forest-app" data-active-view={activeView}>
@@ -51,15 +101,28 @@ export function DashboardShell() {
       {activeView === "timeline" ? (
         <TimelineView />
       ) : (
-        <CuratorView onNavigateToTimeline={() => setActiveView("timeline")} />
+        <CuratorView
+          addWizardOpen={addWizardOpen}
+          onAddPartyMember={openAddWizard}
+          onCancelAdd={() => setAddWizardOpen(false)}
+          onCompleteAdd={completeAdd}
+          onNavigateToTimeline={() => setActiveView("timeline")}
+          partyPeople={partyPeople}
+        />
       )}
-      <div
-        className="timeline-chrome timeline-chrome--bottom"
-        data-hidden={chromeHidden}
-        onFocusCapture={revealChrome}
-      >
-        <PartyActions activeView={activeView} />
-      </div>
+      {activeView === "timeline" || !addWizardOpen ? (
+        <div
+          className="timeline-chrome timeline-chrome--bottom"
+          data-hidden={chromeHidden}
+          onFocusCapture={revealChrome}
+        >
+          <PartyActions
+            activeView={activeView}
+            onAdd={openAddWizard}
+            partyIsFull={activeView === "curator" && partyPeople.length >= 5}
+          />
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -88,6 +88,58 @@ describe("App", () => {
     });
   });
 
+  it("adds a Party member through the mobile wizard", async () => {
+    const user = await openCurator();
+
+    await user.click(screen.getByRole("button", { name: /add$/i }));
+    await user.type(screen.getByPlaceholderText("Their name"), "Nia");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Skip for now" }));
+    await user.click(screen.getByRole("button", { name: "Relative" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.type(
+      screen.getByPlaceholderText("They are..."),
+      "my bright spot",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Add to Party" }));
+
+    expect(
+      screen.getByRole("button", { name: /open nia/i }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /open nia/i })).toHaveFocus(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /add a party member/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^add$/i })).toBeDisabled();
+  });
+
+  it("opens and cancels the wizard from the empty Party slot", async () => {
+    const user = await openCurator();
+
+    await user.click(
+      screen.getByRole("button", { name: /add a party member/i }),
+    );
+    expect(
+      screen.getByRole("region", { name: /add a party member/i }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: /cancel adding party member/i }),
+    );
+    expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /add a party member/i }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /add a party member/i }),
+      ).toHaveFocus(),
+    );
+  });
+
   it("closes the selected destination with Escape or browser back", async () => {
     const user = await openCurator();
 

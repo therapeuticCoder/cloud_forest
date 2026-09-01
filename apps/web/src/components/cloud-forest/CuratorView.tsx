@@ -2,14 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   curatorGuilds,
-  curatorPartyPeople,
   curatorSignals,
   curatorTribeNeighborhoods,
   curatorUser,
 } from "@/data/cloudForest";
 import { cn } from "@/lib/utils";
-import type { CuratorSelection } from "@/types/curator";
+import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
+import {
+  AddPartyMemberWizard,
+  type AddPartyMemberDraft,
+} from "./AddPartyMemberWizard";
 import { CuratorDetailView } from "./CuratorDetailView";
 import { GuildsLayer } from "./GuildsLayer";
 import { PartyLayer } from "./PartyLayer";
@@ -22,7 +25,12 @@ type CuratorLayerSectionProps = {
 };
 
 type CuratorViewProps = {
+  addWizardOpen: boolean;
+  onAddPartyMember: () => void;
+  onCancelAdd: () => void;
+  onCompleteAdd: (draft: AddPartyMemberDraft) => void;
   onNavigateToTimeline: () => void;
+  partyPeople: CuratorPerson[];
 };
 
 function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
@@ -60,7 +68,14 @@ function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
   );
 }
 
-export function CuratorView({ onNavigateToTimeline }: CuratorViewProps) {
+export function CuratorView({
+  addWizardOpen,
+  onAddPartyMember,
+  onCancelAdd,
+  onCompleteAdd,
+  onNavigateToTimeline,
+  partyPeople,
+}: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
   const triggerIdRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLElement>(null);
@@ -121,6 +136,12 @@ export function CuratorView({ onNavigateToTimeline }: CuratorViewProps) {
     };
   }, [handleBack, restoreCurator, selection]);
 
+  if (addWizardOpen) {
+    return (
+      <AddPartyMemberWizard onCancel={onCancelAdd} onComplete={onCompleteAdd} />
+    );
+  }
+
   if (selection) {
     return <CuratorDetailView onBack={handleBack} selection={selection} />;
   }
@@ -133,9 +154,10 @@ export function CuratorView({ onNavigateToTimeline }: CuratorViewProps) {
     >
       <CuratorLayerSection label="Party">
         <PartyLayer
+          onAdd={onAddPartyMember}
           onNavigateToTimeline={onNavigateToTimeline}
           onSelect={handleSelect}
-          people={curatorPartyPeople}
+          people={partyPeople}
           user={curatorUser}
         />
       </CuratorLayerSection>
