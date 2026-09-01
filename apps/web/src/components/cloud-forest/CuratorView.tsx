@@ -21,6 +21,10 @@ type CuratorLayerSectionProps = {
   label: string;
 };
 
+type CuratorViewProps = {
+  onNavigateToTimeline: () => void;
+};
+
 function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [isActive, setIsActive] = useState(true);
@@ -56,7 +60,7 @@ function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
   );
 }
 
-export function CuratorView() {
+export function CuratorView({ onNavigateToTimeline }: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
   const triggerIdRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLElement>(null);
@@ -129,6 +133,7 @@ export function CuratorView() {
     >
       <CuratorLayerSection label="Party">
         <PartyLayer
+          onNavigateToTimeline={onNavigateToTimeline}
           onSelect={handleSelect}
           people={curatorPartyPeople}
           user={curatorUser}

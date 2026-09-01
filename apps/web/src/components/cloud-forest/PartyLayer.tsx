@@ -1,7 +1,8 @@
 import {
   Gift,
   HandHeart,
-  Leaf,
+  List,
+  PenLine,
   Sprout,
   UserRoundPlus,
   UsersRound,
@@ -12,6 +13,7 @@ import solArdenPortrait from "@/assets/curator/sol-arden.png";
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 type PartyLayerProps = {
+  onNavigateToTimeline: () => void;
   onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
   people: CuratorPerson[];
   user: CuratorPerson;
@@ -45,7 +47,7 @@ const partyPhrases: Record<string, string> = {
   ren: "always makes me laugh",
 };
 
-function Portrait({
+export function Portrait({
   personId,
   small = false,
 }: {
@@ -63,6 +65,21 @@ function Portrait({
         }
         src={solArdenPortrait}
       />
+    );
+  }
+
+  if (personId === "you") {
+    return (
+      <span
+        aria-hidden="true"
+        className={
+          small
+            ? "party-self-portrait party-self-portrait--fallback"
+            : "party-portrait party-portrait--fallback"
+        }
+      >
+        Y
+      </span>
     );
   }
 
@@ -113,7 +130,7 @@ function PartyCard({
   );
 }
 
-function PartyAction({
+export function PartyAction({
   children,
   icon: Icon,
   tone,
@@ -130,7 +147,35 @@ function PartyAction({
   );
 }
 
-export function PartyLayer({ onSelect, people, user }: PartyLayerProps) {
+export function PartyActions({
+  activeView,
+}: {
+  activeView: "timeline" | "curator";
+}) {
+  return (
+    <div aria-label="Party actions" className="party-actions">
+      <PartyAction
+        icon={activeView === "timeline" ? PenLine : UserRoundPlus}
+        tone="primary"
+      >
+        {activeView === "timeline" ? "Write" : "Add"}
+      </PartyAction>
+      <PartyAction icon={Gift} tone="quiet">
+        Give
+      </PartyAction>
+      <PartyAction icon={HandHeart} tone="quiet">
+        Receive
+      </PartyAction>
+    </div>
+  );
+}
+
+export function PartyLayer({
+  onNavigateToTimeline,
+  onSelect,
+  people,
+  user,
+}: PartyLayerProps) {
   return (
     <div aria-label="Party people" className="party-layer">
       <header className="party-header">
@@ -143,12 +188,17 @@ export function PartyLayer({ onSelect, people, user }: PartyLayerProps) {
           }
           type="button"
         >
-          <Portrait personId="mira" small />
+          <Portrait personId={user.id} small />
         </button>
         <h1>Party</h1>
-        <div aria-label="Cloud Forest" className="party-wordmark">
-          Cloud Forest <Leaf aria-hidden="true" strokeWidth={1.5} />
-        </div>
+        <button
+          aria-label="Go to Timeline"
+          className="party-wordmark"
+          onClick={onNavigateToTimeline}
+          type="button"
+        >
+          Timeline <List aria-hidden="true" strokeWidth={1.5} />
+        </button>
       </header>
 
       <div className="party-grid">
@@ -168,18 +218,6 @@ export function PartyLayer({ onSelect, people, user }: PartyLayerProps) {
       </div>
       <div aria-hidden="true" className="party-ornament party-ornament--right">
         <Sprout strokeWidth={1.3} />
-      </div>
-
-      <div aria-label="Party actions" className="party-actions">
-        <PartyAction icon={UserRoundPlus} tone="primary">
-          Add
-        </PartyAction>
-        <PartyAction icon={Gift} tone="quiet">
-          Give
-        </PartyAction>
-        <PartyAction icon={HandHeart} tone="quiet">
-          Receive
-        </PartyAction>
       </div>
 
       <div aria-label="Continue to Tribe" className="party-continuation">

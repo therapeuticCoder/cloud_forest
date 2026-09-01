@@ -17,10 +17,10 @@ describe("App", () => {
   it("renders Timeline as a standalone default view", () => {
     render(<App />);
 
-    expect(screen.getAllByRole("button", { name: /timeline/i })).toHaveLength(
-      2,
+    expect(screen.queryAllByRole("button", { name: /timeline/i })).toHaveLength(
+      0,
     );
-    expect(screen.getAllByRole("button", { name: /curator/i })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /curator/i })).toHaveLength(1);
     expect(
       screen.queryByRole("button", { name: /galaxy/i }),
     ).not.toBeInTheDocument();
@@ -28,7 +28,9 @@ describe("App", () => {
       screen.queryByRole("region", { name: /galaxy view/i }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("region", { name: /timeline view/i }));
-    expect(screen.getByRole("heading", { name: /whole forest/i }));
+    expect(
+      screen.queryByRole("heading", { name: /whole forest/i }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /write/i })).toBeInTheDocument();
     expect(screen.getByText(/yesterday/i)).toBeInTheDocument();
   });
