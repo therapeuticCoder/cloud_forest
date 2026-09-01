@@ -186,9 +186,6 @@ export function TimelinePanel({
 
   return (
     <div className="timeline-feed">
-      <header className="timeline-heading">
-        <h1>Whole Forest</h1>
-      </header>
       <div aria-label="Relationship layers" className="timeline-layer-key">
         <span className="timeline-key--party">
           <UsersRound />

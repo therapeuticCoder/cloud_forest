@@ -1,9 +1,12 @@
-import { PenLine } from "lucide-react";
+import { Sprout } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { curatorUser } from "@/data/cloudForest";
+
 import { CuratorView } from "./CuratorView";
+import { PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
-import { type CloudForestView, ViewSwitcher } from "./ViewSwitcher";
+import { type CloudForestView } from "./ViewSwitcher";
 
 export function DashboardShell() {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
@@ -24,28 +27,38 @@ export function DashboardShell() {
   const revealChrome = () => setChromeHidden(false);
 
   return (
-    <main className="cloud-forest-app">
+    <main className="cloud-forest-app" data-active-view={activeView}>
       <div
-        className="timeline-chrome timeline-chrome--top"
+        className="timeline-chrome timeline-chrome--top global-view-chrome"
         data-hidden={chromeHidden}
         onFocusCapture={revealChrome}
       >
-        <div className="timeline-brand">Cloud Forest</div>
-        <div className="timeline-desktop-nav">
-          <ViewSwitcher activeView={activeView} onViewChange={setActiveView} />
-        </div>
-        <button className="timeline-compose" type="button">
-          <PenLine aria-hidden="true" />
-          Write
-        </button>
+        <header className="party-header">
+          <span className="party-self global-view-self">
+            <Portrait personId={curatorUser.id} small />
+          </span>
+          <h1>Timeline</h1>
+          <button
+            aria-label="Go to Curator"
+            className="party-wordmark"
+            onClick={() => setActiveView("curator")}
+            type="button"
+          >
+            Curator <Sprout aria-hidden="true" strokeWidth={1.5} />
+          </button>
+        </header>
       </div>
-      {activeView === "timeline" ? <TimelineView /> : <CuratorView />}
+      {activeView === "timeline" ? (
+        <TimelineView />
+      ) : (
+        <CuratorView onNavigateToTimeline={() => setActiveView("timeline")} />
+      )}
       <div
         className="timeline-chrome timeline-chrome--bottom"
         data-hidden={chromeHidden}
         onFocusCapture={revealChrome}
       >
-        <ViewSwitcher activeView={activeView} onViewChange={setActiveView} />
+        <PartyActions activeView={activeView} />
       </div>
     </main>
   );

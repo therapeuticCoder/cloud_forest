@@ -67,6 +67,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   server: {
+    allowedHosts: ["scollinsstudio.tail7ad917.ts.net"],
     proxy: {
       "/api": "http://127.0.0.1:3001",
     },
