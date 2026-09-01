@@ -772,12 +772,12 @@ article[aria-label="Party layer"] {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  gap: 0.2rem;
   padding: 0;
-  border: 0.45rem solid var(--forest-party);
+  border: 0;
   border-radius: 1.25rem;
-  background: var(--forest-party);
-  box-shadow: 0 0.35rem 0.8rem rgba(6, 10, 3, 0.24);
+  background: transparent;
   color: var(--forest-ink);
   cursor: pointer;
   text-align: left;
@@ -807,6 +807,9 @@ article[aria-label="Party layer"] {
   min-height: 0;
   flex: 1;
   overflow: hidden;
+  border: 0.45rem solid var(--forest-party);
+  border-radius: 1.25rem;
+  box-shadow: 0 0.35rem 0.8rem rgba(6, 10, 3, 0.24);
   background: #879087;
 }
 
@@ -847,22 +850,27 @@ article[aria-label="Party layer"] {
   letter-spacing: -0.04em;
   line-height: 1;
   text-shadow: 0 2px 7px rgba(0, 0, 0, 0.46);
+  text-align: center;
 }
 
 .party-card__nameplate {
   display: flex;
-  min-height: 3.1rem;
+  min-height: 2.7rem;
   flex-direction: column;
   justify-content: center;
   gap: 0.12rem;
   padding: 0.35rem 0.4rem 0.42rem;
+  border: 0.2rem solid var(--forest-party);
+  border-radius: 0.85rem;
   background: #e9eedc;
+  box-shadow: 0 0.25rem 0.6rem rgba(6, 10, 3, 0.16);
   text-align: center;
 }
 
 .party-card__note {
   color: var(--forest-ink);
-  font-size: clamp(0.8rem, 3.2vw, 1.08rem);
+  font-size: clamp(0.9rem, 3.6vw, 1.15rem);
+  font-weight: 560;
   line-height: 1.12;
 }
 
