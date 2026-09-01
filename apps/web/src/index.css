@@ -684,6 +684,331 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
+/* Party visual shell: a narrow, portrait-led first pass for the Curator. */
+article[aria-label="Party layer"] {
+  padding: 1rem 0.75rem 1.25rem;
+  background: var(--forest-bark);
+}
+
+.cloud-forest-app[data-active-view="curator"] .timeline-chrome {
+  display: none;
+}
+
+.party-layer {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 auto;
+  max-width: 56rem;
+  color: #e7e8d8;
+}
+
+.party-header {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 3.6rem;
+}
+
+.party-header h1 {
+  margin: 0;
+  color: #f0f1e8;
+  font-size: clamp(2rem, 9vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.party-self {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0.18rem;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid var(--forest-party);
+  border-radius: 50%;
+  background: #18220f;
+  cursor: pointer;
+}
+
+.party-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(188, 151, 83, 0.52);
+  font-size: clamp(0.75rem, 3.5vw, 1.25rem);
+  font-weight: 520;
+  white-space: nowrap;
+}
+
+.party-wordmark svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.party-self:focus-visible,
+.party-card:focus-visible,
+.party-action:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 3px;
+}
+
+.party-grid {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.party-card {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  border: 0.45rem solid var(--forest-party);
+  border-radius: 1.25rem;
+  background: var(--forest-party);
+  box-shadow: 0 0.35rem 0.8rem rgba(6, 10, 3, 0.24);
+  color: var(--forest-ink);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 160ms ease,
+    filter 160ms ease;
+}
+
+.party-card:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.party-card:active {
+  transform: translateY(0);
+}
+
+.party-card--anya {
+  grid-column: 1 / -1;
+  width: calc(50% - 0.325rem);
+  justify-self: center;
+}
+
+.party-card__portrait {
+  position: relative;
+  display: block;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background: #879087;
+}
+
+.party-portrait,
+.party-portrait--single {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-size: 200% 200%;
+  background-color: #879087;
+  object-fit: cover;
+}
+
+.party-portrait--single {
+  object-position: center;
+}
+
+.party-card__portrait::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 52%, rgba(8, 14, 9, 0.62));
+  content: "";
+  pointer-events: none;
+}
+
+.party-card__name {
+  position: absolute;
+  z-index: 1;
+  right: 0.65rem;
+  bottom: 0.5rem;
+  left: 0.65rem;
+  color: #f5f3e7;
+  font-size: clamp(1.1rem, 5.8vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-shadow: 0 2px 7px rgba(0, 0, 0, 0.46);
+}
+
+.party-card__nameplate {
+  display: flex;
+  min-height: 3.1rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.12rem;
+  padding: 0.35rem 0.4rem 0.42rem;
+  background: #e9eedc;
+  text-align: center;
+}
+
+.party-card__note {
+  color: var(--forest-ink);
+  font-size: clamp(0.8rem, 3.2vw, 1.08rem);
+  line-height: 1.12;
+}
+
+.party-self-portrait {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.party-self-portrait--sheet {
+  background-repeat: no-repeat;
+  background-size: 200% 200%;
+}
+
+.party-ornament {
+  position: absolute;
+  top: 48%;
+  color: rgba(105, 128, 39, 0.8);
+  pointer-events: none;
+}
+
+.party-ornament::after {
+  position: absolute;
+  top: 50%;
+  width: 5rem;
+  height: 1px;
+  background: rgba(105, 128, 39, 0.34);
+  content: "";
+}
+
+.party-ornament--left {
+  left: -0.35rem;
+}
+
+.party-ornament--left::after {
+  left: 1.75rem;
+  transform: rotate(13deg);
+  transform-origin: left;
+}
+
+.party-ornament--right {
+  right: -0.35rem;
+}
+
+.party-ornament--right::after {
+  right: 1.75rem;
+  transform: rotate(-13deg);
+  transform-origin: right;
+}
+
+.party-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+.party-action {
+  display: flex;
+  min-height: 4.2rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 1px solid rgba(172, 142, 66, 0.58);
+  border-radius: 1.1rem;
+  color: #e8e8d8;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.party-action svg {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.party-action--primary {
+  border-color: #6f8c2e;
+  background: #607d27;
+}
+
+.party-action--quiet {
+  background: #082419;
+}
+
+.party-continuation {
+  display: grid;
+  grid-template-columns: 1fr auto auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  color: rgba(190, 155, 88, 0.7);
+}
+
+.party-continuation span {
+  height: 1px;
+  background: rgba(190, 155, 88, 0.55);
+}
+
+.party-continuation svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.party-continuation strong {
+  font-size: 1.05rem;
+  font-weight: 560;
+}
+
+@media (min-width: 700px) {
+  article[aria-label="Party layer"] {
+    padding: 4.5rem 2rem 2rem;
+  }
+
+  .party-layer {
+    min-height: 0;
+    gap: 1rem;
+  }
+
+  .party-grid {
+    gap: 0.9rem;
+  }
+
+  .party-portrait {
+    background-size: 200% auto;
+  }
+
+  .party-card__nameplate {
+    min-height: 4.2rem;
+  }
+
+  .party-action {
+    min-height: 5.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-card {
+    transition: none;
+  }
+}
+
 @media (max-width: 700px) {
   .pwa-notice {
     right: 16px;

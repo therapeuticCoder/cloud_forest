@@ -41,7 +41,7 @@ describe("App", () => {
     const guildLayer = screen.getByRole("article", { name: /guilds layer/i });
     const signalLayer = screen.getByRole("article", { name: /signals layer/i });
 
-    expect(within(partyLayer).getAllByRole("button")).toHaveLength(6);
+    expect(partyLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(6);
     expect(
       within(partyLayer).getByRole("button", { name: /open you/i }),
     ).toBeInTheDocument();
@@ -51,9 +51,7 @@ describe("App", () => {
     expect(
       within(tribeLayer).getAllByRole("region", { name: /neighborhood/i }),
     ).toHaveLength(5);
-    expect(
-      screen.queryByRole("heading", { name: "Party" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /studio night/i }),
     ).toBeInTheDocument();

@@ -24,7 +24,7 @@ export function DashboardShell() {
   const revealChrome = () => setChromeHidden(false);
 
   return (
-    <main className="cloud-forest-app">
+    <main className="cloud-forest-app" data-active-view={activeView}>
       <div
         className="timeline-chrome timeline-chrome--top"
         data-hidden={chromeHidden}
