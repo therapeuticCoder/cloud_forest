@@ -140,6 +140,103 @@ describe("App", () => {
     );
   });
 
+  it("asks the Party for a meal from Timeline and prepends an open request", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Receive" }));
+    expect(
+      screen.getByRole("button", { name: "Transportation" }),
+    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Meal" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.type(
+      screen.getByPlaceholderText("Tonight after 6"),
+      "Tonight after 6",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.type(
+      screen.getByPlaceholderText("Soup, rice, or something easy"),
+      "Soup or rice",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(
+      screen.getByRole("button", { name: "Leave it at my door" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(
+      screen.getByText("This request will be shared with your Party."),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ask my Party" }));
+
+    const request = screen.getByRole("article", {
+      name: "Open meal care request",
+    });
+    expect(request).toHaveTextContent("A meal");
+    expect(request).toHaveTextContent("Open");
+    expect(request).toHaveTextContent("Shared with: Party");
+    expect(screen.getByRole("heading", { name: "Ren" })).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Filter to Receive care requests" }),
+    );
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("article", { name: "Open meal care request" }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Filter to Receive care requests" }),
+    );
+    expect(screen.getByRole("heading", { name: "Ren" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Receive" }));
+    await user.click(screen.getByRole("button", { name: "Meal" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.type(
+      screen.getByPlaceholderText("Tonight after 6"),
+      "Tomorrow morning",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.type(
+      screen.getByPlaceholderText("Soup, rice, or something easy"),
+      "Toast",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "I’m flexible" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Ask my Party" }));
+
+    expect(
+      screen.getAllByRole("article", { name: "Open meal care request" }),
+    ).toHaveLength(2);
+    await user.click(
+      within(
+        screen.getAllByRole("article", { name: "Open meal care request" })[0],
+      ).getByRole("button", { name: "Withdraw request" }),
+    );
+    expect(
+      screen.getAllByRole("article", { name: "Open meal care request" }),
+    ).toHaveLength(1);
+  });
+
+  it("opens Receive from Curator and returns to Timeline after asking", async () => {
+    const user = await openCurator();
+
+    await user.click(screen.getByRole("button", { name: "Receive" }));
+    expect(
+      screen.getByRole("region", { name: /ask my party for a meal/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
+    await user.click(
+      screen.getByRole("button", { name: /cancel asking for care/i }),
+    );
+    expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
+  });
+
   it("closes the selected destination with Escape or browser back", async () => {
     const user = await openCurator();
 

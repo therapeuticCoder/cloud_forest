@@ -3,7 +3,13 @@ import {
   type ApiClient,
   type GetTimelineItemResponse,
 } from "@cloud-forest/api-client";
-import { Building2, RadioTower, Sprout, UsersRound } from "lucide-react";
+import {
+  Building2,
+  HandHeart,
+  RadioTower,
+  Sprout,
+  UsersRound,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -12,7 +18,9 @@ import {
   mockNowIso,
 } from "@/data/cloudForestMockData";
 import type { CloudForestActivity } from "@/types/cloudForest";
+import type { ReceiveCareRequest } from "@/types/careRequest";
 
+import { CareRequestCard } from "./CareRequestCard";
 import { TimelineCard, type TimelineCardItem } from "./TimelineCard";
 
 const actorsById = new Map(activityActors.map((actor) => [actor.id, actor]));
@@ -174,9 +182,14 @@ function RemoteTimelineSlot({
 
 export function TimelinePanel({
   apiClient = timelineApiClient,
+  careRequests = [],
+  onWithdraw = () => undefined,
 }: {
   apiClient?: Pick<ApiClient, "getTimelineItem">;
+  careRequests?: ReceiveCareRequest[];
+  onWithdraw?: (requestId: string) => void;
 }) {
+  const [showCareRequestsOnly, setShowCareRequestsOnly] = useState(false);
   const todayActivities = visibleActivities.filter((activity) =>
     isToday(activity.publishedAt),
   );
@@ -199,14 +212,52 @@ export function TimelinePanel({
         <span className="timeline-key--signal">
           <RadioTower />
         </span>
+        <button
+          aria-label="Filter to Receive care requests"
+          aria-pressed={showCareRequestsOnly}
+          className="timeline-key--receive"
+          onClick={() => setShowCareRequestsOnly((current) => !current)}
+          type="button"
+        >
+          <HandHeart aria-hidden="true" />
+        </button>
       </div>
       <div className="timeline-list">
-        <RemoteTimelineSlot apiClient={apiClient} />
-        <ActivityList activities={todayActivities} />
-        <div className="timeline-day-divider" role="separator">
-          <span>Yesterday</span>
-        </div>
-        <ActivityList activities={yesterdayActivities} />
+        {showCareRequestsOnly ? (
+          careRequests.length > 0 ? (
+            careRequests.map((request) => (
+              <CareRequestCard
+                key={request.id}
+                onWithdraw={onWithdraw}
+                request={request}
+              />
+            ))
+          ) : (
+            <div
+              aria-live="polite"
+              className="timeline-remote-state"
+              role="status"
+            >
+              No open care requests.
+            </div>
+          )
+        ) : (
+          <>
+            {careRequests.map((request) => (
+              <CareRequestCard
+                key={request.id}
+                onWithdraw={onWithdraw}
+                request={request}
+              />
+            ))}
+            <RemoteTimelineSlot apiClient={apiClient} />
+            <ActivityList activities={todayActivities} />
+            <div className="timeline-day-divider" role="separator">
+              <span>Yesterday</span>
+            </div>
+            <ActivityList activities={yesterdayActivities} />
+          </>
+        )}
       </div>
     </div>
   );
