@@ -20,7 +20,7 @@ const careOptions = [
 ];
 const handoffOptions = [
   "I can deliver it",
-  "Pickup works",
+  "They will pick up",
   "Share the meal with them",
   "I’m flexible",
 ];
