@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, HandHeart, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { ReceiveCareRequest } from "@/types/careRequest";
@@ -29,12 +29,21 @@ export function ReceiveCareWizard({
   onCancel,
   onComplete,
 }: ReceiveCareWizardProps) {
+  const wizardRef = useRef<HTMLElement>(null);
   const [step, setStep] = useState(0);
   const [careType, setCareType] = useState("");
   const [helpfulWhen, setHelpfulWhen] = useState("");
   const [foodWorks, setFoodWorks] = useState("");
   const [foodDoesNotWork, setFoodDoesNotWork] = useState("");
   const [handoffStyle, setHandoffStyle] = useState("");
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      wizardRef.current
+        ?.querySelector<HTMLElement>("[data-wizard-focus]")
+        ?.focus();
+    });
+  }, []);
 
   const canContinue =
     (step === 0 && careType.length > 0) ||
@@ -65,7 +74,11 @@ export function ReceiveCareWizard({
   };
 
   return (
-    <section aria-label="Ask my Party for a meal" className="party-wizard">
+    <section
+      ref={wizardRef}
+      aria-label="Ask my Party for a meal"
+      className="party-wizard"
+    >
       <header className="party-wizard__header">
         <Button
           aria-label={step === 0 ? "Close wizard" : "Back"}
@@ -120,6 +133,9 @@ export function ReceiveCareWizard({
                 <Button
                   aria-pressed={careType === option.value}
                   className="party-wizard__option"
+                  data-wizard-focus={
+                    option.value === "meal" ? "true" : undefined
+                  }
                   disabled={!option.enabled}
                   key={option.value}
                   onClick={() => setCareType(option.value)}
