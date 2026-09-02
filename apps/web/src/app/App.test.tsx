@@ -144,7 +144,10 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Receive" }));
+    await user.click(screen.getAllByRole("button", { name: "Receive" })[1]);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Meal" })).toHaveFocus(),
+    );
     expect(
       screen.getByRole("button", { name: "Transportation" }),
     ).toBeDisabled();
@@ -193,7 +196,7 @@ describe("App", () => {
     );
     expect(screen.getByRole("heading", { name: "Ren" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Receive" }));
+    await user.click(screen.getAllByRole("button", { name: "Receive" })[1]);
     await user.click(screen.getByRole("button", { name: "Meal" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.type(

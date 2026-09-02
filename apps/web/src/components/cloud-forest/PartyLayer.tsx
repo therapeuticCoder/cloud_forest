@@ -164,8 +164,10 @@ export function PartyAction({
   onClick,
   disabled = false,
   tone,
+  className,
 }: {
   children: string;
+  className?: string;
   disabled?: boolean;
   icon: typeof Gift;
   onClick?: () => void;
@@ -173,7 +175,7 @@ export function PartyAction({
 }) {
   return (
     <button
-      className={`party-action party-action--${tone}`}
+      className={`party-action party-action--${tone}${className ? ` ${className}` : ""}`}
       data-party-action={children.toLowerCase()}
       disabled={disabled}
       onClick={onClick}

@@ -1,4 +1,4 @@
-import { Sprout } from "lucide-react";
+import { HandHeart, Sprout } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { curatorPartyPeople, curatorUser } from "@/data/cloudForest";
@@ -7,7 +7,7 @@ import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
 import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
-import { PartyActions, Portrait } from "./PartyLayer";
+import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard } from "./ReceiveCareWizard";
@@ -106,7 +106,7 @@ export function DashboardShell() {
         data-hidden={chromeHidden}
         onFocusCapture={revealChrome}
       >
-        <header className="party-header">
+        <header className="party-header timeline-header">
           <span className="party-self global-view-self">
             <Portrait personId={curatorUser.id} small />
           </span>
@@ -119,6 +119,16 @@ export function DashboardShell() {
           >
             Curator <Sprout aria-hidden="true" strokeWidth={1.5} />
           </button>
+          {!receiveWizardOpen && activeView === "timeline" ? (
+            <PartyAction
+              className="timeline-desktop-receive"
+              icon={HandHeart}
+              onClick={openReceiveWizard}
+              tone="quiet"
+            >
+              Receive
+            </PartyAction>
+          ) : null}
         </header>
       </div>
       {receiveWizardOpen ? (

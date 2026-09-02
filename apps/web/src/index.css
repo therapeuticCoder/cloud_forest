@@ -196,7 +196,38 @@ button:focus-visible {
 }
 
 .timeline-layer-key {
-  display: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.timeline-layer-key span,
+.timeline-layer-key button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  color: white;
+}
+
+.timeline-layer-key span svg,
+.timeline-layer-key button svg {
+  width: 24px;
+  height: 24px;
+}
+
+.timeline-key--receive {
+  background: var(--forest-pine);
+  cursor: pointer;
+}
+
+.timeline-layer-key button[aria-pressed="true"],
+.timeline-layer-key button:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 2px;
 }
 
 .timeline-list {
@@ -482,6 +513,23 @@ button:focus-visible {
   display: none;
 }
 
+.timeline-desktop-receive {
+  display: inline-flex;
+  min-height: 3rem;
+  padding: 0.5rem 0.8rem;
+  border-color: rgba(172, 142, 66, 0.58);
+  border-radius: 0.8rem;
+}
+
+.timeline-header {
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto auto;
+}
+
+.timeline-desktop-receive svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
 .timeline-chrome[data-hidden="true"] {
   opacity: 0;
   transform: translateY(-10px);
@@ -509,6 +557,7 @@ button:focus-visible {
     justify-content: center;
     gap: 14px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
   }
   .timeline-layer-key span {
     display: grid;
@@ -536,6 +585,12 @@ button:focus-visible {
   .timeline-layer-key button:focus-visible {
     outline: 3px solid var(--forest-amber);
     outline-offset: 2px;
+  }
+  .timeline-desktop-receive {
+    display: none;
+  }
+  .timeline-header {
+    grid-template-columns: 3.25rem minmax(0, 1fr) auto;
   }
   .timeline-layer-key svg {
     width: 30px;
@@ -668,6 +723,18 @@ button:focus-visible {
     right: 8px;
     bottom: 2px;
     left: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .timeline-layer-key {
+    gap: 6px;
+  }
+
+  .timeline-layer-key span,
+  .timeline-layer-key button {
+    width: 48px;
+    height: 48px;
   }
 }
 
@@ -1394,6 +1461,12 @@ article[aria-label="Party layer"] {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+@media (min-width: 701px) {
+  .timeline-chrome--top .timeline-header {
+    grid-template-columns: 3.25rem minmax(0, 1fr) auto auto;
+  }
 }
 
 .cloud-forest-app[data-receive-open="true"] .timeline-chrome--top {
