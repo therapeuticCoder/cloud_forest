@@ -1,15 +1,15 @@
-import { ArrowLeft, Check, HandHeart, X } from "lucide-react";
+import { ArrowLeft, Check, Gift, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { ReceiveCareRequest } from "@/types/careRequest";
+import type { GiveCareOffer } from "@/types/careRequest";
 
-type ReceiveCareWizardProps = {
+type GiveCareWizardProps = {
   onCancel: () => void;
-  onComplete: (request: ReceiveCareRequest) => void;
+  onComplete: (offer: GiveCareOffer) => void;
 };
 
-const steps = ["Care", "Timing", "Food", "Handoff", "Review"];
+const steps = ["Care", "Meal", "Timing", "Handoff", "Review"];
 const careOptions = [
   { label: "Meal", value: "meal", enabled: true },
   { label: "Transportation", value: "transportation", enabled: false },
@@ -19,22 +19,18 @@ const careOptions = [
   { label: "Skilled time", value: "skilled-time", enabled: false },
 ];
 const handoffOptions = [
-  "Leave it at my door",
-  "Hand it to me",
-  "Share the meal with me",
+  "I can deliver it",
+  "They will pick up",
+  "Share the meal with them",
   "I’m flexible",
 ];
 
-export function ReceiveCareWizard({
-  onCancel,
-  onComplete,
-}: ReceiveCareWizardProps) {
+export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
   const wizardRef = useRef<HTMLElement>(null);
   const [step, setStep] = useState(0);
   const [careType, setCareType] = useState("");
-  const [helpfulWhen, setHelpfulWhen] = useState("");
-  const [foodWorks, setFoodWorks] = useState("");
-  const [foodDoesNotWork, setFoodDoesNotWork] = useState("");
+  const [mealDescription, setMealDescription] = useState("");
+  const [availableWhen, setAvailableWhen] = useState("");
   const [handoffStyle, setHandoffStyle] = useState("");
 
   useEffect(() => {
@@ -47,8 +43,8 @@ export function ReceiveCareWizard({
 
   const canContinue =
     (step === 0 && careType.length > 0) ||
-    (step === 1 && helpfulWhen.trim().length > 0) ||
-    (step === 2 && foodWorks.trim().length > 0) ||
+    (step === 1 && mealDescription.trim().length > 0) ||
+    (step === 2 && availableWhen.trim().length > 0) ||
     (step === 3 && handoffStyle.length > 0) ||
     step === 4;
 
@@ -60,16 +56,15 @@ export function ReceiveCareWizard({
     }
 
     onComplete({
-      id: `care-request-${Date.now()}`,
+      id: `care-offer-${Date.now()}`,
       kind: "meal",
-      direction: "receive",
-      need: "A meal",
-      helpfulWhen: helpfulWhen.trim(),
-      foodWorks: foodWorks.trim(),
-      foodDoesNotWork: foodDoesNotWork.trim(),
+      direction: "give",
+      offer: "A meal",
+      mealDescription: mealDescription.trim(),
+      availableWhen: availableWhen.trim(),
       handoffStyle,
       audience: "Party",
-      status: "open",
+      status: "available",
       createdAt: new Date().toISOString(),
     });
   };
@@ -77,7 +72,7 @@ export function ReceiveCareWizard({
   return (
     <section
       ref={wizardRef}
-      aria-label="Ask my Party for a meal"
+      aria-label="Offer a meal to my Party"
       className="party-wizard"
     >
       <header className="party-wizard__header">
@@ -101,7 +96,7 @@ export function ReceiveCareWizard({
           {step + 1} of {steps.length}
         </span>
         <Button
-          aria-label="Cancel asking for care"
+          aria-label="Cancel offering care"
           className="party-wizard__cancel"
           onClick={onCancel}
           type="button"
@@ -121,10 +116,10 @@ export function ReceiveCareWizard({
         {step === 0 ? (
           <div className="party-wizard__question">
             <h1 className="party-wizard__title">
-              What kind of care would help?
+              What kind of care would you like to offer?
             </h1>
             <span className="party-wizard__hint">
-              Choose what you need most right now.
+              Choose what you can offer your Party right now.
             </span>
             <div
               aria-label="Types of care"
@@ -153,55 +148,45 @@ export function ReceiveCareWizard({
 
         {step === 1 ? (
           <label className="party-wizard__question">
-            <span className="party-wizard__title">When would a meal help?</span>
+            <span className="party-wizard__title">
+              What meal could you offer?
+            </span>
+            <span className="party-wizard__hint">
+              Share a simple description of what you could provide.
+            </span>
+            <textarea
+              autoFocus
+              className="party-wizard__input party-wizard__textarea"
+              onChange={(event) => setMealDescription(event.target.value)}
+              placeholder="Soup, rice, or something easy"
+              value={mealDescription}
+            />
+          </label>
+        ) : null}
+
+        {step === 2 ? (
+          <label className="party-wizard__question">
+            <span className="party-wizard__title">
+              When could you provide it?
+            </span>
             <span className="party-wizard__hint">
               A day or time is enough. You can keep it simple.
             </span>
             <input
               autoFocus
               className="party-wizard__input"
-              onChange={(event) => setHelpfulWhen(event.target.value)}
-              placeholder="Tonight after 6"
-              value={helpfulWhen}
+              onChange={(event) => setAvailableWhen(event.target.value)}
+              placeholder="Saturday afternoon"
+              value={availableWhen}
             />
           </label>
         ) : null}
 
-        {step === 2 ? (
-          <div className="party-wizard__question">
-            <h1 className="party-wizard__title">What food works for you?</h1>
-            <span className="party-wizard__hint">
-              Share what would feel good, and anything your Party should avoid.
-            </span>
-            <label className="party-wizard__field">
-              <span>Works for me</span>
-              <textarea
-                autoFocus
-                className="party-wizard__input party-wizard__textarea"
-                onChange={(event) => setFoodWorks(event.target.value)}
-                placeholder="Soup, rice, or something easy"
-                value={foodWorks}
-              />
-            </label>
-            <label className="party-wizard__field">
-              <span>Doesn’t work for me</span>
-              <textarea
-                className="party-wizard__input party-wizard__textarea"
-                onChange={(event) => setFoodDoesNotWork(event.target.value)}
-                placeholder="Anything to avoid? (Optional)"
-                value={foodDoesNotWork}
-              />
-            </label>
-          </div>
-        ) : null}
-
         {step === 3 ? (
           <div className="party-wizard__question">
-            <h1 className="party-wizard__title">
-              How would you like to receive it?
-            </h1>
+            <h1 className="party-wizard__title">How could you share it?</h1>
             <span className="party-wizard__hint">
-              Choose the handoff that asks the least of you right now.
+              Choose the handoff that feels right for you.
             </span>
             <div
               aria-label="Preferred handoff style"
@@ -226,26 +211,23 @@ export function ReceiveCareWizard({
 
         {step === 4 ? (
           <div className="party-wizard__question party-wizard__preview-wrap">
-            <HandHeart aria-hidden="true" className="receive-care-icon" />
-            <h1 className="party-wizard__title">Ready to ask your Party?</h1>
+            <Gift aria-hidden="true" className="give-care-icon" />
+            <h1 className="party-wizard__title">
+              Ready to offer your Party a meal?
+            </h1>
             <div className="receive-care-review">
               <p>
-                <strong>Would help:</strong> {helpfulWhen}
+                <strong>Meal:</strong> {mealDescription}
               </p>
               <p>
-                <strong>Works for me:</strong> {foodWorks}
+                <strong>Available:</strong> {availableWhen}
               </p>
-              {foodDoesNotWork.trim() ? (
-                <p>
-                  <strong>Please avoid:</strong> {foodDoesNotWork}
-                </p>
-              ) : null}
               <p>
                 <strong>Handoff:</strong> {handoffStyle}
               </p>
             </div>
             <p className="party-wizard__hint">
-              This request will be shared with your Party.
+              This offer will be shared with your Party.
             </p>
           </div>
         ) : null}
@@ -260,7 +242,7 @@ export function ReceiveCareWizard({
           type="button"
         >
           {step === 4 ? <Check aria-hidden="true" /> : null}
-          {step === 4 ? "Ask my Party" : "Continue"}
+          {step === 4 ? "Offer to my Party" : "Continue"}
         </Button>
       </footer>
     </section>

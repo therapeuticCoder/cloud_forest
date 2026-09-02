@@ -56,7 +56,12 @@ export default defineConfig(({ mode }) => ({
       },
       registerType: "prompt",
       injectManifest: {
-        globPatterns: ["**/*.{html,js,css,woff2}", "app-icon.svg", "icons.svg"],
+        globPatterns: [
+          "**/*.{html,js,css,woff2,png}",
+          "app-icon.svg",
+          "icons.svg",
+        ],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         rollupFormat: "iife",
       },
     }),

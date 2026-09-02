@@ -290,8 +290,8 @@ pnpm.cmd --filter @cloud-forest/web exec vite preview
 `localhost` is a browser-trusted local origin. Load it online once and wait for
 the offline-ready notice before testing an offline reload. The cached boundary
 contains the HTML, compiled JavaScript and CSS, local fonts, interface symbol
-sheet, and install icons. It intentionally excludes the mock portrait sprite,
-API paths, account data, user content, and all runtime request caching.
+sheet, install icons, and fictional mock portrait assets. It excludes API paths,
+account data, user content, and all runtime request caching.
 
 For an update check, keep the first preview open, produce a changed build, and
 serve it from the same origin. The browser installs the new worker in the
@@ -362,7 +362,16 @@ prints:
 
 ```powershell
 tailscale serve --bg 4173
+tailscale serve status
 ```
+
+On this Windows workstation, reading or changing the Tailscale Serve
+configuration may require an elevated PowerShell session because the Tailscale
+daemon is protected by Windows administrators-only IPC. If the command reports
+`Access is denied`, rerun only that Tailscale command in an approved elevated
+session; do not broaden the Vite host policy or grant the application access to
+the whole filesystem. A healthy mapping reports the exact tailnet URL and
+`proxy http://127.0.0.1:4173`.
 
 Before starting Vite preview, allow only that exact Tailscale hostname in the
 preview terminal. Replace the example value with the hostname printed above;
@@ -374,6 +383,22 @@ pnpm.cmd build
 pnpm.cmd --filter @cloud-forest/web exec vite preview --host 127.0.0.1 --port 4173 --strictPort
 ```
 
+If filtered `pnpm.cmd ... exec vite preview` says that `vite` is not
+recognized, use the workspace-local executable from the web package instead.
+Run it from `apps/web`, because Vite resolves `dist` relative to its current
+directory:
+
+```powershell
+Set-Location apps/web
+$env:__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS = "<workstation-name>.<tailnet-name>.ts.net"
+.\node_modules\.bin\vite.cmd preview --host 127.0.0.1 --port 4173 --strictPort
+```
+
+If preview says `The directory "dist" does not exist`, build first with
+`pnpm.cmd --filter @cloud-forest/web build`, then start preview from
+`apps/web`. Keep this preview terminal running while testing; Tailscale Serve
+forwards only to the live loopback process.
+
 Vite preview inherits the development server's narrow host policy. The
 `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` value admits the reverse-proxied
 request without allowing unrelated hostnames and applies only to that terminal
@@ -382,16 +407,22 @@ session.
 Open the printed HTTPS URL on the connected phone. In Android Chrome, use
 **Install app** from the three-dot menu; on iPhone, use **Add to Home Screen**
 and enable **Open as Web App**. Load the app online once and wait for its
-offline-ready notice before testing an offline reload. The installed shell and
-text-backed mock content remain available offline. The portrait sprite is not
-part of the current shell cache, and the database-backed Timeline card remains
+offline-ready notice before testing an offline reload. The installed shell,
+portrait assets, and text-backed mock content remain available offline. The
+database-backed Timeline card remains
 in its loading state or shows its accessible error state while the API is
 unavailable. Build a changed version and restart the preview on the same origin
 to test **Update now** and **Later**.
 
 Background Serve configuration persists for later demo sessions and only
-forwards successfully while the loopback preview is running. Stop the API and
-preview terminals when testing ends. To remove the HTTPS listener, run:
+forwards successfully while the loopback preview is running. For Cloud Forest
+UI work, keep this private URL as the standing browser-review path across
+tasks: rebuild when source changes, restart the preview on port 4173, and
+reload the exact `*.ts.net` URL. If an installed PWA offers an update, choose
+**Update now** before judging the new build; an older service worker can keep
+showing the previous bundle. Stop the API and preview terminals when testing
+ends if the workstation should not remain available. To remove the HTTPS
+listener, run:
 
 ```powershell
 tailscale serve --https=443 off

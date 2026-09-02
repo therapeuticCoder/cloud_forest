@@ -5,6 +5,7 @@ import {
 } from "@cloud-forest/api-client";
 import {
   Building2,
+  Gift,
   HandHeart,
   RadioTower,
   Sprout,
@@ -18,8 +19,9 @@ import {
   mockNowIso,
 } from "@/data/cloudForestMockData";
 import type { CloudForestActivity } from "@/types/cloudForest";
-import type { ReceiveCareRequest } from "@/types/careRequest";
+import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 
+import { CareOfferCard } from "./CareOfferCard";
 import { CareRequestCard } from "./CareRequestCard";
 import { TimelineCard, type TimelineCardItem } from "./TimelineCard";
 
@@ -109,6 +111,36 @@ function ActivityList({ activities }: { activities: CloudForestActivity[] }) {
   });
 }
 
+type CareListing =
+  | { kind: "give"; item: GiveCareOffer }
+  | { kind: "receive"; item: ReceiveCareRequest };
+
+function CareListings({
+  listings,
+  onWithdraw,
+  onWithdrawOffer,
+}: {
+  listings: CareListing[];
+  onWithdraw: (requestId: string) => void;
+  onWithdrawOffer: (offerId: string) => void;
+}) {
+  return listings.map((listing) =>
+    listing.kind === "give" ? (
+      <CareOfferCard
+        key={listing.item.id}
+        offer={listing.item}
+        onWithdraw={onWithdrawOffer}
+      />
+    ) : (
+      <CareRequestCard
+        key={listing.item.id}
+        onWithdraw={onWithdraw}
+        request={listing.item}
+      />
+    ),
+  );
+}
+
 function RemoteTimelineSlot({
   apiClient,
 }: {
@@ -182,14 +214,35 @@ function RemoteTimelineSlot({
 
 export function TimelinePanel({
   apiClient = timelineApiClient,
+  careOffers = [],
   careRequests = [],
   onWithdraw = () => undefined,
+  onWithdrawOffer = () => undefined,
 }: {
   apiClient?: Pick<ApiClient, "getTimelineItem">;
+  careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
   onWithdraw?: (requestId: string) => void;
+  onWithdrawOffer?: (offerId: string) => void;
 }) {
-  const [showCareRequestsOnly, setShowCareRequestsOnly] = useState(false);
+  const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
+    "all",
+  );
+  const careListings = [
+    ...careOffers.map((offer) => ({ kind: "give" as const, item: offer })),
+    ...careRequests.map((request) => ({
+      kind: "receive" as const,
+      item: request,
+    })),
+  ].sort(
+    (first, second) =>
+      new Date(second.item.createdAt).getTime() -
+      new Date(first.item.createdAt).getTime(),
+  );
+  const visibleCareListings = careListings.filter(
+    (listing) => careFilter === "all" || listing.kind === careFilter,
+  );
+  const showCareListingsOnly = careFilter !== "all";
   const todayActivities = visibleActivities.filter((activity) =>
     isToday(activity.publishedAt),
   );
@@ -200,56 +253,67 @@ export function TimelinePanel({
   return (
     <div className="timeline-feed">
       <div aria-label="Relationship layers" className="timeline-layer-key">
-        <span className="timeline-key--party">
+        <span className="timeline-key timeline-key--party">
           <UsersRound />
         </span>
-        <span className="timeline-key--tribe">
+        <span className="timeline-key timeline-key--tribe">
           <Sprout />
         </span>
-        <span className="timeline-key--guild">
+        <span className="timeline-key timeline-key--guild">
           <Building2 />
         </span>
-        <span className="timeline-key--signal">
+        <span className="timeline-key timeline-key--signal">
           <RadioTower />
         </span>
         <button
-          aria-label="Filter to Receive care requests"
-          aria-pressed={showCareRequestsOnly}
-          className="timeline-key--receive"
-          onClick={() => setShowCareRequestsOnly((current) => !current)}
+          aria-label="Filter to Give offers"
+          aria-pressed={careFilter === "give"}
+          className="timeline-key timeline-key--give"
+          onClick={() =>
+            setCareFilter((current) => (current === "give" ? "all" : "give"))
+          }
+          type="button"
+        >
+          <Gift aria-hidden="true" />
+        </button>
+        <button
+          aria-label="Filter to Receive requests"
+          aria-pressed={careFilter === "receive"}
+          className="timeline-key timeline-key--receive"
+          onClick={() =>
+            setCareFilter((current) =>
+              current === "receive" ? "all" : "receive",
+            )
+          }
           type="button"
         >
           <HandHeart aria-hidden="true" />
         </button>
       </div>
       <div className="timeline-list">
-        {showCareRequestsOnly ? (
-          careRequests.length > 0 ? (
-            careRequests.map((request) => (
-              <CareRequestCard
-                key={request.id}
-                onWithdraw={onWithdraw}
-                request={request}
-              />
-            ))
+        {showCareListingsOnly ? (
+          visibleCareListings.length > 0 ? (
+            <CareListings
+              listings={visibleCareListings}
+              onWithdraw={onWithdraw}
+              onWithdrawOffer={onWithdrawOffer}
+            />
           ) : (
             <div
               aria-live="polite"
               className="timeline-remote-state"
               role="status"
             >
-              No open care requests.
+              No care listings yet.
             </div>
           )
         ) : (
           <>
-            {careRequests.map((request) => (
-              <CareRequestCard
-                key={request.id}
-                onWithdraw={onWithdraw}
-                request={request}
-              />
-            ))}
+            <CareListings
+              listings={careListings}
+              onWithdraw={onWithdraw}
+              onWithdrawOffer={onWithdrawOffer}
+            />
             <RemoteTimelineSlot apiClient={apiClient} />
             <ActivityList activities={todayActivities} />
             <div className="timeline-day-divider" role="separator">
