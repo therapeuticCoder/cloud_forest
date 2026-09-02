@@ -174,6 +174,7 @@ export function PartyAction({
   return (
     <button
       className={`party-action party-action--${tone}`}
+      data-party-action={children.toLowerCase()}
       disabled={disabled}
       onClick={onClick}
       type="button"
@@ -187,10 +188,12 @@ export function PartyAction({
 export function PartyActions({
   activeView,
   onAdd,
+  onReceive,
   partyIsFull,
 }: {
   activeView: "timeline" | "curator";
   onAdd?: () => void;
+  onReceive?: () => void;
   partyIsFull?: boolean;
 }) {
   return (
@@ -206,7 +209,7 @@ export function PartyActions({
       <PartyAction icon={Gift} tone="quiet">
         Give
       </PartyAction>
-      <PartyAction icon={HandHeart} tone="quiet">
+      <PartyAction icon={HandHeart} onClick={onReceive} tone="quiet">
         Receive
       </PartyAction>
     </div>
