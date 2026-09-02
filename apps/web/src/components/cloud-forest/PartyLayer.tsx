@@ -190,11 +190,13 @@ export function PartyAction({
 export function PartyActions({
   activeView,
   onAdd,
+  onGive,
   onReceive,
   partyIsFull,
 }: {
   activeView: "timeline" | "curator";
   onAdd?: () => void;
+  onGive?: () => void;
   onReceive?: () => void;
   partyIsFull?: boolean;
 }) {
@@ -208,7 +210,7 @@ export function PartyActions({
       >
         {activeView === "timeline" ? "Write" : "Add"}
       </PartyAction>
-      <PartyAction icon={Gift} tone="quiet">
+      <PartyAction icon={Gift} onClick={onGive} tone="quiet">
         Give
       </PartyAction>
       <PartyAction icon={HandHeart} onClick={onReceive} tone="quiet">

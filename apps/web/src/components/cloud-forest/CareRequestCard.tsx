@@ -25,7 +25,6 @@ export function CareRequestCard({
         <div className="care-request-card__heading">
           <div>
             <span className="care-request-card__eyebrow">Meal request</span>
-            <h2>{request.need}</h2>
           </div>
           <span className="care-request-card__status">Open</span>
         </div>

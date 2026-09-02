@@ -1,8 +1,8 @@
-import { HandHeart, Sprout } from "lucide-react";
+import { Gift, HandHeart, Sprout } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { curatorPartyPeople, curatorUser } from "@/data/cloudForest";
-import type { ReceiveCareRequest } from "@/types/careRequest";
+import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
@@ -11,12 +11,15 @@ import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard } from "./ReceiveCareWizard";
+import { GiveCareWizard } from "./GiveCareWizard";
 
 export function DashboardShell() {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
+  const [giveWizardOpen, setGiveWizardOpen] = useState(false);
   const [careRequests, setCareRequests] = useState<ReceiveCareRequest[]>([]);
+  const [careOffers, setCareOffers] = useState<GiveCareOffer[]>([]);
   const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
     curatorPartyPeople.slice(0, 4),
   );
@@ -69,6 +72,11 @@ export function DashboardShell() {
     setReceiveWizardOpen(false);
     setActiveView("timeline");
   };
+  const completeGive = (offer: GiveCareOffer) => {
+    setCareOffers((currentOffers) => [offer, ...currentOffers]);
+    setGiveWizardOpen(false);
+    setActiveView("timeline");
+  };
   const withdrawCareRequest = (requestId: string) => {
     setCareRequests((currentRequests) =>
       currentRequests.filter((request) => request.id !== requestId),
@@ -78,9 +86,18 @@ export function DashboardShell() {
     focusTargetIdRef.current = "receive";
     setReceiveWizardOpen(true);
   };
+  const openGiveWizard = () => {
+    focusTargetIdRef.current = "give";
+    setGiveWizardOpen(true);
+  };
 
   useEffect(() => {
-    if (addWizardOpen || receiveWizardOpen || !focusTargetIdRef.current) {
+    if (
+      addWizardOpen ||
+      receiveWizardOpen ||
+      giveWizardOpen ||
+      !focusTargetIdRef.current
+    ) {
       return;
     }
 
@@ -88,18 +105,19 @@ export function DashboardShell() {
     focusTargetIdRef.current = null;
     requestAnimationFrame(() => {
       const selector =
-        focusTargetId === "receive"
-          ? '[data-party-action="receive"]'
+        focusTargetId === "receive" || focusTargetId === "give"
+          ? `[data-party-action="${focusTargetId}"]`
           : `[data-curator-tile="${focusTargetId}"]`;
       document.querySelector<HTMLButtonElement>(selector)?.focus();
     });
-  }, [addWizardOpen, partyPeople.length, receiveWizardOpen]);
+  }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 
   return (
     <main
       className="cloud-forest-app"
       data-active-view={activeView}
       data-receive-open={receiveWizardOpen}
+      data-give-open={giveWizardOpen}
     >
       <div
         className="timeline-chrome timeline-chrome--top global-view-chrome"
@@ -119,15 +137,21 @@ export function DashboardShell() {
           >
             Curator <Sprout aria-hidden="true" strokeWidth={1.5} />
           </button>
-          {!receiveWizardOpen && activeView === "timeline" ? (
-            <PartyAction
-              className="timeline-desktop-receive"
-              icon={HandHeart}
-              onClick={openReceiveWizard}
-              tone="quiet"
-            >
-              Receive
-            </PartyAction>
+          {!receiveWizardOpen &&
+          !giveWizardOpen &&
+          activeView === "timeline" ? (
+            <div className="timeline-desktop-care-actions">
+              <PartyAction icon={Gift} onClick={openGiveWizard} tone="quiet">
+                Give
+              </PartyAction>
+              <PartyAction
+                icon={HandHeart}
+                onClick={openReceiveWizard}
+                tone="quiet"
+              >
+                Receive
+              </PartyAction>
+            </div>
           ) : null}
         </header>
       </div>
@@ -136,10 +160,21 @@ export function DashboardShell() {
           onCancel={() => setReceiveWizardOpen(false)}
           onComplete={completeReceive}
         />
+      ) : giveWizardOpen ? (
+        <GiveCareWizard
+          onCancel={() => setGiveWizardOpen(false)}
+          onComplete={completeGive}
+        />
       ) : activeView === "timeline" ? (
         <TimelineView
+          careOffers={careOffers}
           careRequests={careRequests}
           onWithdraw={withdrawCareRequest}
+          onWithdrawOffer={(offerId) =>
+            setCareOffers((currentOffers) =>
+              currentOffers.filter((offer) => offer.id !== offerId),
+            )
+          }
         />
       ) : (
         <CuratorView
@@ -151,7 +186,9 @@ export function DashboardShell() {
           partyPeople={partyPeople}
         />
       )}
-      {!receiveWizardOpen && (activeView === "timeline" || !addWizardOpen) ? (
+      {!receiveWizardOpen &&
+      !giveWizardOpen &&
+      (activeView === "timeline" || !addWizardOpen) ? (
         <div
           className="timeline-chrome timeline-chrome--bottom"
           data-hidden={chromeHidden}
@@ -160,6 +197,7 @@ export function DashboardShell() {
           <PartyActions
             activeView={activeView}
             onAdd={openAddWizard}
+            onGive={openGiveWizard}
             onReceive={openReceiveWizard}
             partyIsFull={activeView === "curator" && partyPeople.length >= 5}
           />

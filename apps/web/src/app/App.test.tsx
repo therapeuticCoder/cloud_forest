@@ -177,13 +177,13 @@ describe("App", () => {
     const request = screen.getByRole("article", {
       name: "Open meal care request",
     });
-    expect(request).toHaveTextContent("A meal");
+    expect(request).toHaveTextContent("Meal request");
     expect(request).toHaveTextContent("Open");
     expect(request).toHaveTextContent("Shared with: Party");
     expect(screen.getByRole("heading", { name: "Ren" })).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole("button", { name: "Filter to Receive care requests" }),
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
     );
     expect(
       screen.queryByRole("heading", { name: "Ren" }),
@@ -192,7 +192,7 @@ describe("App", () => {
       screen.getByRole("article", { name: "Open meal care request" }),
     ).toBeInTheDocument();
     await user.click(
-      screen.getByRole("button", { name: "Filter to Receive care requests" }),
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
     );
     expect(screen.getByRole("heading", { name: "Ren" })).toBeInTheDocument();
 
@@ -236,6 +236,80 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
     await user.click(
       screen.getByRole("button", { name: /cancel asking for care/i }),
+    );
+    expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
+  });
+
+  it("offers a meal from Timeline and withdraws the available offer", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getAllByRole("button", { name: "Give" })[1]);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Meal" })).toHaveFocus(),
+    );
+    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Transportation" }),
+    ).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Meal" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.type(
+      screen.getByPlaceholderText("Soup, rice, or something easy"),
+      "A pot of soup",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.type(
+      screen.getByPlaceholderText("Saturday afternoon"),
+      "Saturday afternoon",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "I’m flexible" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(
+      screen.getByText("This offer will be shared with your Party."),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Offer to my Party" }));
+
+    const offer = screen.getByRole("article", {
+      name: "Open meal care offer",
+    });
+    expect(offer).toHaveTextContent("Meal offer");
+    expect(offer).toHaveTextContent("A pot of soup");
+    expect(offer).toHaveTextContent("Saturday afternoon");
+    expect(offer).toHaveTextContent("Open");
+    expect(offer).toHaveTextContent("Shared with: Party");
+
+    await user.click(
+      screen.getByRole("button", { name: "Filter to Give offers" }),
+    );
+    expect(
+      screen.getByRole("article", { name: "Open meal care offer" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      within(offer).getByRole("button", { name: "Withdraw offer" }),
+    );
+    expect(
+      screen.queryByRole("article", { name: "Open meal care offer" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens Give from Curator and returns to Curator when cancelled", async () => {
+    const user = await openCurator();
+
+    await user.click(screen.getByRole("button", { name: "Give" }));
+    expect(
+      screen.getByRole("region", { name: /offer a meal to my party/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
+    await user.click(
+      screen.getByRole("button", { name: /cancel offering care/i }),
     );
     expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
   });
