@@ -173,6 +173,11 @@ describe("App", () => {
       screen.getByText("This request will be shared with your Party."),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Ask my Party" }));
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("button", { name: "Receive" })[1],
+      ).toHaveFocus(),
+    );
 
     const request = screen.getByRole("article", {
       name: "Open meal care request",
@@ -272,6 +277,9 @@ describe("App", () => {
       screen.getByText("This offer will be shared with your Party."),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Offer to my Party" }));
+    await waitFor(() =>
+      expect(screen.getAllByRole("button", { name: "Give" })[1]).toHaveFocus(),
+    );
 
     const offer = screen.getByRole("article", {
       name: "Open meal care offer",
@@ -312,6 +320,9 @@ describe("App", () => {
       screen.getByRole("button", { name: /cancel offering care/i }),
     );
     expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Give" })).toHaveFocus(),
+    );
   });
 
   it("closes the selected destination with Escape or browser back", async () => {

@@ -104,11 +104,27 @@ export function DashboardShell() {
     const focusTargetId = focusTargetIdRef.current;
     focusTargetIdRef.current = null;
     requestAnimationFrame(() => {
-      const selector =
-        focusTargetId === "receive" || focusTargetId === "give"
-          ? `[data-party-action="${focusTargetId}"]`
-          : `[data-curator-tile="${focusTargetId}"]`;
-      document.querySelector<HTMLButtonElement>(selector)?.focus();
+      if (focusTargetId === "receive" || focusTargetId === "give") {
+        const actionButtons = [
+          ...document.querySelectorAll<HTMLButtonElement>(
+            `[data-party-action="${focusTargetId}"]`,
+          ),
+        ];
+        const visibleAction =
+          actionButtons.find(
+            (button) =>
+              !button.disabled &&
+              (button.getClientRects().length > 0 || button.offsetParent),
+          ) ?? actionButtons.at(-1);
+        visibleAction?.focus();
+        return;
+      }
+
+      document
+        .querySelector<HTMLButtonElement>(
+          `[data-curator-tile="${focusTargetId}"]`,
+        )
+        ?.focus();
     });
   }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 

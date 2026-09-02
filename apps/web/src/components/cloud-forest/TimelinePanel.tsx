@@ -111,6 +111,36 @@ function ActivityList({ activities }: { activities: CloudForestActivity[] }) {
   });
 }
 
+type CareListing =
+  | { kind: "give"; item: GiveCareOffer }
+  | { kind: "receive"; item: ReceiveCareRequest };
+
+function CareListings({
+  listings,
+  onWithdraw,
+  onWithdrawOffer,
+}: {
+  listings: CareListing[];
+  onWithdraw: (requestId: string) => void;
+  onWithdrawOffer: (offerId: string) => void;
+}) {
+  return listings.map((listing) =>
+    listing.kind === "give" ? (
+      <CareOfferCard
+        key={listing.item.id}
+        offer={listing.item}
+        onWithdraw={onWithdrawOffer}
+      />
+    ) : (
+      <CareRequestCard
+        key={listing.item.id}
+        onWithdraw={onWithdraw}
+        request={listing.item}
+      />
+    ),
+  );
+}
+
 function RemoteTimelineSlot({
   apiClient,
 }: {
@@ -198,8 +228,20 @@ export function TimelinePanel({
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
     "all",
   );
-  const visibleCareOffers = careFilter === "receive" ? [] : careOffers;
-  const visibleCareRequests = careFilter === "give" ? [] : careRequests;
+  const careListings = [
+    ...careOffers.map((offer) => ({ kind: "give" as const, item: offer })),
+    ...careRequests.map((request) => ({
+      kind: "receive" as const,
+      item: request,
+    })),
+  ].sort(
+    (first, second) =>
+      new Date(second.item.createdAt).getTime() -
+      new Date(first.item.createdAt).getTime(),
+  );
+  const visibleCareListings = careListings.filter(
+    (listing) => careFilter === "all" || listing.kind === careFilter,
+  );
   const showCareListingsOnly = careFilter !== "all";
   const todayActivities = visibleActivities.filter((activity) =>
     isToday(activity.publishedAt),
@@ -250,23 +292,12 @@ export function TimelinePanel({
       </div>
       <div className="timeline-list">
         {showCareListingsOnly ? (
-          visibleCareOffers.length > 0 || visibleCareRequests.length > 0 ? (
-            <>
-              {visibleCareOffers.map((offer) => (
-                <CareOfferCard
-                  key={offer.id}
-                  offer={offer}
-                  onWithdraw={onWithdrawOffer}
-                />
-              ))}
-              {visibleCareRequests.map((request) => (
-                <CareRequestCard
-                  key={request.id}
-                  onWithdraw={onWithdraw}
-                  request={request}
-                />
-              ))}
-            </>
+          visibleCareListings.length > 0 ? (
+            <CareListings
+              listings={visibleCareListings}
+              onWithdraw={onWithdraw}
+              onWithdrawOffer={onWithdrawOffer}
+            />
           ) : (
             <div
               aria-live="polite"
@@ -278,20 +309,11 @@ export function TimelinePanel({
           )
         ) : (
           <>
-            {careOffers.map((offer) => (
-              <CareOfferCard
-                key={offer.id}
-                offer={offer}
-                onWithdraw={onWithdrawOffer}
-              />
-            ))}
-            {careRequests.map((request) => (
-              <CareRequestCard
-                key={request.id}
-                onWithdraw={onWithdraw}
-                request={request}
-              />
-            ))}
+            <CareListings
+              listings={careListings}
+              onWithdraw={onWithdraw}
+              onWithdrawOffer={onWithdrawOffer}
+            />
             <RemoteTimelineSlot apiClient={apiClient} />
             <ActivityList activities={todayActivities} />
             <div className="timeline-day-divider" role="separator">

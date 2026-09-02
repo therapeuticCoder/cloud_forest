@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { GetTimelineItemResult } from "@cloud-forest/api-client";
 
+import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+
 import { TimelinePanel } from "./TimelinePanel";
 
 const timelineItem = {
@@ -19,6 +21,55 @@ const timelineItem = {
 };
 
 describe("TimelinePanel live item seam", () => {
+  it("orders Give and Receive listings newest first", () => {
+    const offer: GiveCareOffer = {
+      id: "offer-1",
+      kind: "meal",
+      direction: "give",
+      offer: "A meal",
+      mealDescription: "Soup",
+      availableWhen: "Tonight",
+      handoffStyle: "I can deliver it",
+      audience: "Party",
+      status: "available",
+      createdAt: "2026-09-02T18:00:00.000Z",
+    };
+    const request: ReceiveCareRequest = {
+      id: "request-1",
+      kind: "meal",
+      direction: "receive",
+      need: "A meal",
+      helpfulWhen: "Tomorrow",
+      foodWorks: "Rice",
+      foodDoesNotWork: "None",
+      handoffStyle: "Leave it at my door",
+      audience: "Party",
+      status: "open",
+      createdAt: "2026-09-02T19:00:00.000Z",
+    };
+
+    render(
+      <TimelinePanel
+        apiClient={{
+          getTimelineItem: vi.fn().mockResolvedValue({
+            ok: false,
+            kind: "network",
+            cause: new Error("offline"),
+          }),
+        }}
+        careOffers={[offer]}
+        careRequests={[request]}
+      />,
+    );
+
+    const cards = screen
+      .getAllByRole("article")
+      .filter((article) => article.classList.contains("care-request-card"));
+    expect(cards).toHaveLength(2);
+    expect(cards[0]).toHaveTextContent("Meal request");
+    expect(cards[1]).toHaveTextContent("Meal offer");
+  });
+
   it("shows loading and then renders the API-backed item among mock content", async () => {
     let resolveRequest: ((value: GetTimelineItemResult) => void) | undefined;
     const apiClient = {
