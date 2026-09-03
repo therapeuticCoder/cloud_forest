@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import type { CareClaim } from "@/types/careRequest";
+import type { LegacyCareClaim } from "@/types/careRequest";
 
 import {
   CARE_CLAIMS_STORAGE_KEY,
@@ -12,7 +12,7 @@ describe("care claim prototype storage", () => {
   beforeEach(() => window.localStorage.clear());
 
   it("round-trips only the versioned minimal claim record", () => {
-    const claims: CareClaim[] = [
+    const claims: LegacyCareClaim[] = [
       {
         listingId: "care-request-anya-meal-001",
         state: "claimed",

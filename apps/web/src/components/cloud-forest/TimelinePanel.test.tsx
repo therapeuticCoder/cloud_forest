@@ -44,8 +44,13 @@ describe("TimelinePanel live item seam", () => {
       foodDoesNotWork: "None",
       handoffStyle: "Leave it at my door",
       audience: "Party",
+      audienceSnapshot: {
+        partyMemberIds: ["mira"],
+        tribeMemberIds: ["neighbors-1"],
+      },
       status: "open",
       createdAt: "2026-09-02T19:00:00.000Z",
+      expiresAt: "2030-09-02T19:00:00.000Z",
       requester: { kind: "self", id: "you", displayName: "You" },
     };
 

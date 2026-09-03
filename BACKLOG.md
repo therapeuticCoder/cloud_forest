@@ -57,8 +57,10 @@ from the current claim-only record.
 
 Acceptance criteria:
 
-- request, claim, pass, seen, completion, disposition, history, and gratitude
-  records have explicit typed identities and timestamps
+- request, claim, pass, seen, completion, disposition, and history records have
+  explicit typed identities and timestamps
+- the gratitude record shape is typed, but its transitions, persistence, and
+  publication timing are explicitly deferred to T-031
 - allowed transitions and invalid-transition behavior are deterministic and
   tested, including prevention of a second claim
 - Timeline and profile visibility are derived for a supplied viewer rather
@@ -71,46 +73,103 @@ Acceptance criteria:
 
 Out of scope:
 New user-facing lifecycle controls, accounts, API/database work, synchronization,
-new dependencies, Give-offer claiming, and production authorization rules.
+new dependencies, Give-offer claiming, gratitude behavior, and production
+authorization rules.
 
-### T-028: Add Receive-care Timeline lifespan, seen state, passing, and perspectives
+### T-028A: Add Receive-care Timeline lifespan and seen presentation
 
 Status: planned; requires T-027
 Size: medium
 
 Concrete goal:
-Implement the Timeline portion of the request lifecycle: expiry, first-seen
-presentation, calm minimization, Party passing and Tribe demotion, claiming
-visibility, and a prototype-only fictional-person switcher for reviewing each
-participant's Timeline perspective.
+Implement the lifespan and per-viewer presentation portion of the request
+lifecycle: expire unclaimed requests, keep active care ahead of ordinary
+Timeline activity, and calmly minimize a request after that viewer has seen it.
 
 Likely files or boundaries:
 `ReceiveCareWizard.tsx`, `CareRequestCard.tsx`, `TimelinePanel.tsx`,
-`TimelineView.tsx`, `DashboardShell.tsx`, lifecycle selectors/fixtures, focused
-component tests, and narrowly scoped styles in `apps/web/src/index.css`.
+`DashboardShell.tsx`, lifespan and seen-state selectors, focused component
+tests, and narrowly scoped styles in `apps/web/src/index.css`.
 
 Acceptance criteria:
 
-- a request receives an explicit lifespan and disappears from active Timelines
-  when its unclaimed lifespan expires
+- an unclaimed request disappears from active Timelines when its explicit
+  lifespan expires while remaining available to private history selectors
 - care remains ahead of ordinary Timeline activity and minimizes per viewer
   after it has been seen, with an accessible way to expand it again
+- seen and minimized presentation is derived independently for each supplied
+  viewer
+- expiry and seen behavior are exercised in focused reducer, selector, and
+  component tests
+
+Out of scope:
+Passing and Tribe demotion, the perspective switcher, completion, gratitude,
+Give-offer lifecycle parity, and production scheduling or notifications.
+
+### T-028B: Add Party passing and Tribe demotion
+
+Status: planned; requires T-028A
+Size: medium
+
+Concrete goal:
+Let each eligible Party member independently pass an open request and demote
+the still-unclaimed request to its snapshotted Tribe audience only after every
+snapshotted Party recipient has passed.
+
+Likely files or boundaries:
+`CareRequestCard.tsx`, `TimelinePanel.tsx`, `DashboardShell.tsx`, lifecycle
+selectors and fixtures, focused component tests, and narrowly scoped styles in
+`apps/web/src/index.css`.
+
+Acceptance criteria:
+
 - one Party member can pass without affecting other Party members' Timelines
 - once every snapshotted Party recipient passes, the open request leaves Party
   Timelines and appears for the intended Tribe audience
+- passing and demotion change derived visibility without deleting the request
+- ineligible viewers, duplicate passes, expired requests, and claimed requests
+  cannot create a valid pass
+
+Out of scope:
+The perspective switcher, claim presentation changes, completion, gratitude,
+Give-offer lifecycle parity, and production notifications.
+
+### T-028C: Add the care perspective harness and claim visibility
+
+Status: planned; requires T-028B
+Size: medium
+
+Concrete goal:
+Add a prototype-only fictional-person switcher for reviewing requester, Party,
+claimer, and Tribe Timeline perspectives, and use it to expose and verify the
+per-viewer visibility of open, passed, demoted, and claimed requests.
+
+Likely files or boundaries:
+New focused perspective-switcher component and fixtures, `TimelineView.tsx`,
+`TimelinePanel.tsx`, `DashboardShell.tsx`, lifecycle selectors, component tests,
+and narrowly scoped styles in `apps/web/src/index.css`.
+
+Acceptance criteria:
+
 - a successful claim removes the request from other eligible members while
   retaining it for the requester and claimer
 - a clearly labeled prototype-only person switcher can exercise requester,
   Party-member, claimer, and Tribe-member perspectives without implying a
   production account-switching feature
+- switching perspectives updates request visibility and available actions from
+  the supplied fictional viewer without changing the underlying lifecycle
+  records
+- the representative open, passed, demoted, and claimed perspectives are
+  covered by focused component tests and browser review
 
 Out of scope:
-Real accounts, cross-device synchronization, server-atomic claims, completion,
-gratitude, Give-offer lifecycle parity, and production notifications.
+Real accounts, authentication, cross-device synchronization, server-atomic
+claims, completion, gratitude, Give-offer lifecycle parity, and production
+notifications.
 
 ### T-029: Add care actions and history to person profile destinations
 
-Status: planned; requires T-027 and T-028
+Status: planned; requires T-027 and T-028C
 Size: medium
 
 Concrete goal:
@@ -206,7 +265,7 @@ automated sentiment generation, and non-meal gratitude taxonomies.
 
 ### T-032: Harden and document the accepted Receive-care lifecycle prototype
 
-Status: planned; requires T-027 through T-031
+Status: planned; requires T-027, T-028A through T-028C, and T-029 through T-031
 Size: medium
 
 Concrete goal:

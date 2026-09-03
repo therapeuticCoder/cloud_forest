@@ -3,15 +3,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   curatorPartyPeople,
+  curatorTribeNeighborhoods,
   curatorUser,
   incomingCareRequests,
 } from "@/data/cloudForest";
-import { loadCareClaims, saveCareClaims } from "@/lib/careClaimStorage";
-import type {
-  CareClaim,
-  GiveCareOffer,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import {
+  CURRENT_CARE_VIEWER_ID,
+  selectTimelineCareRequests,
+  transitionCareLifecycle,
+  type CareLifecycleAction,
+} from "@/lib/careLifecycle";
+import {
+  loadCareLifecycleState,
+  saveCareLifecycleState,
+} from "@/lib/careLifecycleStorage";
+import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
@@ -33,9 +39,10 @@ export function DashboardShell() {
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
-  const [careRequests, setCareRequests] = useState<ReceiveCareRequest[]>([]);
   const [careOffers, setCareOffers] = useState<GiveCareOffer[]>([]);
-  const [careClaims, setCareClaims] = useState<CareClaim[]>(loadCareClaims);
+  const [careLifecycle, setCareLifecycle] = useState(() =>
+    loadCareLifecycleState(incomingCareRequests),
+  );
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
@@ -86,8 +93,17 @@ export function DashboardShell() {
     setAddWizardOpen(false);
   };
 
+  const applyCareLifecycleAction = (action: CareLifecycleAction) => {
+    setCareLifecycle((currentState) => {
+      const transition = transitionCareLifecycle(currentState, action);
+      if (!transition.ok) return currentState;
+      saveCareLifecycleState(transition.state);
+      return transition.state;
+    });
+  };
+
   const completeReceive = (request: ReceiveCareRequest) => {
-    setCareRequests((currentRequests) => [request, ...currentRequests]);
+    applyCareLifecycleAction({ type: "publish-request", request });
     setReceiveWizardOpen(false);
     setActiveView("timeline");
   };
@@ -97,9 +113,12 @@ export function DashboardShell() {
     setActiveView("timeline");
   };
   const withdrawCareRequest = (requestId: string) => {
-    setCareRequests((currentRequests) =>
-      currentRequests.filter((request) => request.id !== requestId),
-    );
+    applyCareLifecycleAction({
+      type: "withdraw-request",
+      requestId,
+      actorId: CURRENT_CARE_VIEWER_ID,
+      withdrawnAt: new Date().toISOString(),
+    });
   };
   const openReceiveWizard = () => {
     focusTargetIdRef.current = "receive";
@@ -145,21 +164,16 @@ export function DashboardShell() {
     if (careDestination?.kind !== "claim") return;
 
     const request = careDestination.request;
-    const nextClaims = careClaims.some(
-      (claim) => claim.listingId === request.id,
-    )
-      ? careClaims
-      : [
-          ...careClaims,
-          {
-            listingId: request.id,
-            state: "claimed" as const,
-            claimedAt: new Date().toISOString(),
-          },
-        ];
-
-    setCareClaims(nextClaims);
-    saveCareClaims(nextClaims);
+    const claimedAt = new Date().toISOString();
+    applyCareLifecycleAction({
+      type: "claim-request",
+      claim: {
+        id: `care-claim-${request.id}-${CURRENT_CARE_VIEWER_ID}`,
+        requestId: request.id,
+        claimerId: CURRENT_CARE_VIEWER_ID,
+        claimedAt,
+      },
+    });
     restoreFromCareDestination(`[data-care-claim-status="${request.id}"]`);
     window.history.back();
   };
@@ -218,19 +232,37 @@ export function DashboardShell() {
   }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 
   const claimedRequestIds = useMemo(
-    () => new Set(careClaims.map((claim) => claim.listingId)),
-    [careClaims],
+    () => new Set(careLifecycle.claims.map((claim) => claim.requestId)),
+    [careLifecycle.claims],
   );
   const claimedRequests = useMemo(
     () =>
-      incomingCareRequests.filter((request) =>
-        claimedRequestIds.has(request.id),
+      careLifecycle.requests.filter((request) =>
+        careLifecycle.claims.some(
+          (claim) =>
+            claim.requestId === request.id &&
+            claim.claimerId === CURRENT_CARE_VIEWER_ID,
+        ),
       ),
-    [claimedRequestIds],
+    [careLifecycle.claims, careLifecycle.requests],
   );
   const timelineCareRequests = useMemo(
-    () => [...incomingCareRequests, ...careRequests],
-    [careRequests],
+    () =>
+      selectTimelineCareRequests(
+        careLifecycle,
+        CURRENT_CARE_VIEWER_ID,
+        new Date().toISOString(),
+      ),
+    [careLifecycle],
+  );
+  const careAudienceSnapshot = useMemo(
+    () => ({
+      partyMemberIds: partyPeople.map((person) => person.id),
+      tribeMemberIds: curatorTribeNeighborhoods.flatMap((neighborhood) =>
+        neighborhood.people.map((person) => person.id),
+      ),
+    }),
+    [partyPeople],
   );
 
   return (
@@ -290,6 +322,7 @@ export function DashboardShell() {
       </div>
       {receiveWizardOpen ? (
         <ReceiveCareWizard
+          audienceSnapshot={careAudienceSnapshot}
           onCancel={() => setReceiveWizardOpen(false)}
           onComplete={completeReceive}
         />

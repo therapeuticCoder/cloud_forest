@@ -2,9 +2,13 @@ import { ArrowLeft, Check, HandHeart, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { ReceiveCareRequest } from "@/types/careRequest";
+import type {
+  CareAudienceSnapshot,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
 
 type ReceiveCareWizardProps = {
+  audienceSnapshot: CareAudienceSnapshot;
   onCancel: () => void;
   onComplete: (request: ReceiveCareRequest) => void;
 };
@@ -26,6 +30,7 @@ const handoffOptions = [
 ];
 
 export function ReceiveCareWizard({
+  audienceSnapshot,
   onCancel,
   onComplete,
 }: ReceiveCareWizardProps) {
@@ -59,6 +64,10 @@ export function ReceiveCareWizard({
       return;
     }
 
+    const createdAt = new Date();
+    const expiresAt = new Date(createdAt);
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
     onComplete({
       id: `care-request-${Date.now()}`,
       kind: "meal",
@@ -69,8 +78,10 @@ export function ReceiveCareWizard({
       foodDoesNotWork: foodDoesNotWork.trim(),
       handoffStyle,
       audience: "Party",
+      audienceSnapshot,
       status: "open",
-      createdAt: new Date().toISOString(),
+      createdAt: createdAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
       requester: { kind: "self", id: "you", displayName: "You" },
     });
   };
