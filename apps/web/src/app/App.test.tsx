@@ -340,6 +340,15 @@ describe("App", () => {
     expect(incomingRequest).toHaveTextContent("Anya is asking for a meal");
     expect(incomingRequest).toHaveTextContent("From your Party");
     await user.click(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
+    await user.click(
       within(incomingRequest).getByRole("button", { name: "I can help" }),
     );
 
@@ -357,6 +366,12 @@ describe("App", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "I can help" })).toHaveFocus(),
     );
+    expect(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "I can help" }));
     await user.click(
       within(
@@ -371,6 +386,12 @@ describe("App", () => {
     await waitFor(() =>
       expect(screen.getByText("You’re helping Anya.")).toHaveFocus(),
     );
+    expect(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
     expect(
       within(
         screen.getByRole("article", {

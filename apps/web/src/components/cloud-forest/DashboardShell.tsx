@@ -288,18 +288,7 @@ export function DashboardShell() {
           ) : null}
         </header>
       </div>
-      {careDestination?.kind === "claim" ? (
-        <ClaimCareView
-          onBack={backFromCareDestination}
-          onConfirm={confirmCareClaim}
-          request={careDestination.request}
-        />
-      ) : careDestination?.kind === "my-care" ? (
-        <MyCareView
-          claimedRequests={claimedRequests}
-          onBack={backFromCareDestination}
-        />
-      ) : receiveWizardOpen ? (
+      {receiveWizardOpen ? (
         <ReceiveCareWizard
           onCancel={() => setReceiveWizardOpen(false)}
           onComplete={completeReceive}
@@ -309,39 +298,60 @@ export function DashboardShell() {
           onCancel={() => setGiveWizardOpen(false)}
           onComplete={completeGive}
         />
-      ) : activeView === "timeline" ? (
-        <TimelineView
-          careOffers={careOffers}
-          careRequests={timelineCareRequests}
-          claimedRequestIds={claimedRequestIds}
-          onOfferHelp={(request) =>
-            openCareDestination(
-              { kind: "claim", request },
-              `[data-care-claim-action="${request.id}"]`,
-            )
-          }
-          onWithdraw={withdrawCareRequest}
-          onWithdrawOffer={(offerId) =>
-            setCareOffers((currentOffers) =>
-              currentOffers.filter((offer) => offer.id !== offerId),
-            )
-          }
-        />
       ) : (
-        <CuratorView
-          addWizardOpen={addWizardOpen}
-          onAddPartyMember={openAddWizard}
-          onCancelAdd={() => setAddWizardOpen(false)}
-          onCompleteAdd={completeAdd}
-          onNavigateToTimeline={() => setActiveView("timeline")}
-          onOpenMyCare={() =>
-            openCareDestination(
-              { kind: "my-care" },
-              '[data-my-care-trigger="curator"]',
-            )
-          }
-          partyPeople={partyPeople}
-        />
+        <>
+          <div
+            aria-hidden={careDestination ? true : undefined}
+            inert={careDestination ? true : undefined}
+          >
+            {activeView === "timeline" ? (
+              <TimelineView
+                careOffers={careOffers}
+                careRequests={timelineCareRequests}
+                claimedRequestIds={claimedRequestIds}
+                onOfferHelp={(request) =>
+                  openCareDestination(
+                    { kind: "claim", request },
+                    `[data-care-claim-action="${request.id}"]`,
+                  )
+                }
+                onWithdraw={withdrawCareRequest}
+                onWithdrawOffer={(offerId) =>
+                  setCareOffers((currentOffers) =>
+                    currentOffers.filter((offer) => offer.id !== offerId),
+                  )
+                }
+              />
+            ) : (
+              <CuratorView
+                addWizardOpen={addWizardOpen}
+                onAddPartyMember={openAddWizard}
+                onCancelAdd={() => setAddWizardOpen(false)}
+                onCompleteAdd={completeAdd}
+                onNavigateToTimeline={() => setActiveView("timeline")}
+                onOpenMyCare={() =>
+                  openCareDestination(
+                    { kind: "my-care" },
+                    '[data-my-care-trigger="curator"]',
+                  )
+                }
+                partyPeople={partyPeople}
+              />
+            )}
+          </div>
+          {careDestination?.kind === "claim" ? (
+            <ClaimCareView
+              onBack={backFromCareDestination}
+              onConfirm={confirmCareClaim}
+              request={careDestination.request}
+            />
+          ) : careDestination?.kind === "my-care" ? (
+            <MyCareView
+              claimedRequests={claimedRequests}
+              onBack={backFromCareDestination}
+            />
+          ) : null}
+        </>
       )}
       {!receiveWizardOpen &&
       !giveWizardOpen &&
