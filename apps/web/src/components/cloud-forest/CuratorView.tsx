@@ -30,6 +30,7 @@ type CuratorViewProps = {
   onCancelAdd: () => void;
   onCompleteAdd: (draft: AddPartyMemberDraft) => void;
   onNavigateToTimeline: () => void;
+  onOpenMyCare: () => void;
   partyPeople: CuratorPerson[];
 };
 
@@ -74,6 +75,7 @@ export function CuratorView({
   onCancelAdd,
   onCompleteAdd,
   onNavigateToTimeline,
+  onOpenMyCare,
   partyPeople,
 }: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
@@ -156,6 +158,7 @@ export function CuratorView({
         <PartyLayer
           onAdd={onAddPartyMember}
           onNavigateToTimeline={onNavigateToTimeline}
+          onOpenMyCare={onOpenMyCare}
           onSelect={handleSelect}
           people={partyPeople}
           user={curatorUser}

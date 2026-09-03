@@ -1,8 +1,17 @@
 import { Gift, HandHeart, Sprout } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { curatorPartyPeople, curatorUser } from "@/data/cloudForest";
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+import {
+  curatorPartyPeople,
+  curatorUser,
+  incomingCareRequests,
+} from "@/data/cloudForest";
+import { loadCareClaims, saveCareClaims } from "@/lib/careClaimStorage";
+import type {
+  CareClaim,
+  GiveCareOffer,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
 import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
@@ -12,6 +21,12 @@ import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard } from "./ReceiveCareWizard";
 import { GiveCareWizard } from "./GiveCareWizard";
+import { ClaimCareView } from "./ClaimCareView";
+import { MyCareView } from "./MyCareView";
+
+type CareDestination =
+  | { kind: "claim"; request: ReceiveCareRequest }
+  | { kind: "my-care" };
 
 export function DashboardShell() {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
@@ -20,10 +35,14 @@ export function DashboardShell() {
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
   const [careRequests, setCareRequests] = useState<ReceiveCareRequest[]>([]);
   const [careOffers, setCareOffers] = useState<GiveCareOffer[]>([]);
+  const [careClaims, setCareClaims] = useState<CareClaim[]>(loadCareClaims);
+  const [careDestination, setCareDestination] =
+    useState<CareDestination | null>(null);
   const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
     curatorPartyPeople.slice(0, 4),
   );
   const focusTargetIdRef = useRef<string | null>(null);
+  const careReturnFocusSelectorRef = useRef<string | null>(null);
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -91,6 +110,76 @@ export function DashboardShell() {
     setGiveWizardOpen(true);
   };
 
+  const openCareDestination = (
+    destination: CareDestination,
+    returnFocusSelector: string,
+  ) => {
+    careReturnFocusSelectorRef.current = returnFocusSelector;
+    window.history.pushState(
+      { ...window.history.state, careDestination: destination.kind },
+      "",
+    );
+    setCareDestination(destination);
+  };
+
+  const restoreFromCareDestination = useCallback(
+    (focusSelector = careReturnFocusSelectorRef.current) => {
+      careReturnFocusSelectorRef.current = null;
+      setCareDestination(null);
+
+      if (focusSelector) {
+        requestAnimationFrame(() => {
+          document.querySelector<HTMLElement>(focusSelector)?.focus();
+        });
+      }
+    },
+    [],
+  );
+
+  const backFromCareDestination = useCallback(() => {
+    restoreFromCareDestination();
+    window.history.back();
+  }, [restoreFromCareDestination]);
+
+  const confirmCareClaim = () => {
+    if (careDestination?.kind !== "claim") return;
+
+    const request = careDestination.request;
+    const nextClaims = careClaims.some(
+      (claim) => claim.listingId === request.id,
+    )
+      ? careClaims
+      : [
+          ...careClaims,
+          {
+            listingId: request.id,
+            state: "claimed" as const,
+            claimedAt: new Date().toISOString(),
+          },
+        ];
+
+    setCareClaims(nextClaims);
+    saveCareClaims(nextClaims);
+    restoreFromCareDestination(`[data-care-claim-status="${request.id}"]`);
+    window.history.back();
+  };
+
+  useEffect(() => {
+    if (!careDestination) return;
+
+    const handlePopState = () => restoreFromCareDestination();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") backFromCareDestination();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [backFromCareDestination, careDestination, restoreFromCareDestination]);
+
   useEffect(() => {
     if (
       addWizardOpen ||
@@ -128,12 +217,29 @@ export function DashboardShell() {
     });
   }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 
+  const claimedRequestIds = useMemo(
+    () => new Set(careClaims.map((claim) => claim.listingId)),
+    [careClaims],
+  );
+  const claimedRequests = useMemo(
+    () =>
+      incomingCareRequests.filter((request) =>
+        claimedRequestIds.has(request.id),
+      ),
+    [claimedRequestIds],
+  );
+  const timelineCareRequests = useMemo(
+    () => [...incomingCareRequests, ...careRequests],
+    [careRequests],
+  );
+
   return (
     <main
       className="cloud-forest-app"
       data-active-view={activeView}
       data-receive-open={receiveWizardOpen}
       data-give-open={giveWizardOpen}
+      data-care-destination={careDestination?.kind}
     >
       <div
         className="timeline-chrome timeline-chrome--top global-view-chrome"
@@ -141,9 +247,20 @@ export function DashboardShell() {
         onFocusCapture={revealChrome}
       >
         <header className="party-header timeline-header">
-          <span className="party-self global-view-self">
+          <button
+            aria-label="Open My Care"
+            className="party-self global-view-self"
+            data-my-care-trigger="timeline"
+            onClick={() =>
+              openCareDestination(
+                { kind: "my-care" },
+                '[data-my-care-trigger="timeline"]',
+              )
+            }
+            type="button"
+          >
             <Portrait personId={curatorUser.id} small />
-          </span>
+          </button>
           <h1>Timeline</h1>
           <button
             aria-label="Go to Curator"
@@ -171,7 +288,18 @@ export function DashboardShell() {
           ) : null}
         </header>
       </div>
-      {receiveWizardOpen ? (
+      {careDestination?.kind === "claim" ? (
+        <ClaimCareView
+          onBack={backFromCareDestination}
+          onConfirm={confirmCareClaim}
+          request={careDestination.request}
+        />
+      ) : careDestination?.kind === "my-care" ? (
+        <MyCareView
+          claimedRequests={claimedRequests}
+          onBack={backFromCareDestination}
+        />
+      ) : receiveWizardOpen ? (
         <ReceiveCareWizard
           onCancel={() => setReceiveWizardOpen(false)}
           onComplete={completeReceive}
@@ -184,7 +312,14 @@ export function DashboardShell() {
       ) : activeView === "timeline" ? (
         <TimelineView
           careOffers={careOffers}
-          careRequests={careRequests}
+          careRequests={timelineCareRequests}
+          claimedRequestIds={claimedRequestIds}
+          onOfferHelp={(request) =>
+            openCareDestination(
+              { kind: "claim", request },
+              `[data-care-claim-action="${request.id}"]`,
+            )
+          }
           onWithdraw={withdrawCareRequest}
           onWithdrawOffer={(offerId) =>
             setCareOffers((currentOffers) =>
@@ -199,11 +334,18 @@ export function DashboardShell() {
           onCancelAdd={() => setAddWizardOpen(false)}
           onCompleteAdd={completeAdd}
           onNavigateToTimeline={() => setActiveView("timeline")}
+          onOpenMyCare={() =>
+            openCareDestination(
+              { kind: "my-care" },
+              '[data-my-care-trigger="curator"]',
+            )
+          }
           partyPeople={partyPeople}
         />
       )}
       {!receiveWizardOpen &&
       !giveWizardOpen &&
+      !careDestination &&
       (activeView === "timeline" || !addWizardOpen) ? (
         <div
           className="timeline-chrome timeline-chrome--bottom"

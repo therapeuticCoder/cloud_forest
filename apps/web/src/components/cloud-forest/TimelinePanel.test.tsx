@@ -46,6 +46,7 @@ describe("TimelinePanel live item seam", () => {
       audience: "Party",
       status: "open",
       createdAt: "2026-09-02T19:00:00.000Z",
+      requester: { kind: "self", id: "you", displayName: "You" },
     };
 
     render(

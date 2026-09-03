@@ -1,3 +1,7 @@
+export type CareRequester =
+  | { kind: "self"; id: "you"; displayName: "You" }
+  | { kind: "party"; id: string; displayName: string };
+
 export type ReceiveCareRequest = {
   id: string;
   kind: "meal";
@@ -10,6 +14,13 @@ export type ReceiveCareRequest = {
   audience: "Party";
   status: "open";
   createdAt: string;
+  requester: CareRequester;
+};
+
+export type CareClaim = {
+  listingId: string;
+  state: "claimed";
+  claimedAt: string;
 };
 
 export type GiveCareOffer = {

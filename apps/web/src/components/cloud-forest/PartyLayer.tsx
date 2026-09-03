@@ -15,6 +15,7 @@ import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 type PartyLayerProps = {
   onAdd: () => void;
   onNavigateToTimeline: () => void;
+  onOpenMyCare: () => void;
   onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
   people: CuratorPerson[];
   user: CuratorPerson;
@@ -223,6 +224,7 @@ export function PartyActions({
 export function PartyLayer({
   onNavigateToTimeline,
   onAdd,
+  onOpenMyCare,
   onSelect,
   people,
   user,
@@ -231,12 +233,11 @@ export function PartyLayer({
     <div aria-label="Party people" className="party-layer">
       <header className="party-header">
         <button
-          aria-label={`Open ${user.displayName}`}
+          aria-label="Open My Care"
           className="party-self"
           data-curator-tile={`party-${user.id}`}
-          onClick={(event) =>
-            onSelect({ layer: "party", item: user }, event.currentTarget)
-          }
+          data-my-care-trigger="curator"
+          onClick={onOpenMyCare}
           type="button"
         >
           <Portrait personId={user.id} small />

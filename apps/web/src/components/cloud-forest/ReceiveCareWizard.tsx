@@ -71,6 +71,7 @@ export function ReceiveCareWizard({
       audience: "Party",
       status: "open",
       createdAt: new Date().toISOString(),
+      requester: { kind: "self", id: "you", displayName: "You" },
     });
   };
 
