@@ -115,12 +115,18 @@ type CareListing =
   | { kind: "give"; item: GiveCareOffer }
   | { kind: "receive"; item: ReceiveCareRequest };
 
+const noClaimedRequestIds = new Set<string>();
+
 function CareListings({
+  claimedRequestIds,
   listings,
+  onOfferHelp,
   onWithdraw,
   onWithdrawOffer,
 }: {
+  claimedRequestIds: Set<string>;
   listings: CareListing[];
+  onOfferHelp: (request: ReceiveCareRequest) => void;
   onWithdraw: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
 }) {
@@ -133,7 +139,9 @@ function CareListings({
       />
     ) : (
       <CareRequestCard
+        claimed={claimedRequestIds.has(listing.item.id)}
         key={listing.item.id}
+        onOfferHelp={onOfferHelp}
         onWithdraw={onWithdraw}
         request={listing.item}
       />
@@ -216,12 +224,16 @@ export function TimelinePanel({
   apiClient = timelineApiClient,
   careOffers = [],
   careRequests = [],
+  claimedRequestIds = noClaimedRequestIds,
+  onOfferHelp = () => undefined,
   onWithdraw = () => undefined,
   onWithdrawOffer = () => undefined,
 }: {
   apiClient?: Pick<ApiClient, "getTimelineItem">;
   careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
+  claimedRequestIds?: Set<string>;
+  onOfferHelp?: (request: ReceiveCareRequest) => void;
   onWithdraw?: (requestId: string) => void;
   onWithdrawOffer?: (offerId: string) => void;
 }) {
@@ -294,7 +306,9 @@ export function TimelinePanel({
         {showCareListingsOnly ? (
           visibleCareListings.length > 0 ? (
             <CareListings
+              claimedRequestIds={claimedRequestIds}
               listings={visibleCareListings}
+              onOfferHelp={onOfferHelp}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
             />
@@ -310,7 +324,9 @@ export function TimelinePanel({
         ) : (
           <>
             <CareListings
+              claimedRequestIds={claimedRequestIds}
               listings={careListings}
+              onOfferHelp={onOfferHelp}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
             />

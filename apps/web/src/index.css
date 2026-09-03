@@ -904,11 +904,7 @@ article[aria-label="Party layer"] {
 }
 
 .global-view-self {
-  cursor: default;
-}
-
-.global-view-self:focus-visible {
-  outline: none;
+  cursor: pointer;
 }
 
 .party-wordmark svg {
@@ -1498,6 +1494,10 @@ article[aria-label="Party layer"] {
   display: none;
 }
 
+.cloud-forest-app[data-care-destination] .timeline-chrome--top {
+  display: none;
+}
+
 .party-wizard__field {
   display: grid;
   gap: 0.35rem;
@@ -1662,6 +1662,200 @@ article[aria-label="Party layer"] {
   outline-offset: 3px;
 }
 
+.care-request-card--incoming {
+  border-color: #78983a;
+  background: linear-gradient(145deg, #edf2e4, var(--forest-card));
+}
+
+.care-request-card__claim {
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 0.9rem;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.9rem;
+  color: white;
+  background: var(--forest-pine);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.care-request-card__claim:hover {
+  background: #103426;
+}
+
+.care-request-card__claim:focus-visible,
+.care-request-card__commitment:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 3px;
+}
+
+.care-request-card__commitment {
+  margin: 0.9rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  color: white;
+  background: var(--forest-party);
+  font-weight: 750;
+  text-align: center;
+}
+
+.care-destination__details div {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(228, 236, 217, 0.12);
+}
+
+.care-destination {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  width: 100%;
+  height: 100svh;
+  overflow-y: auto;
+}
+
+.care-destination__details div:last-child {
+  border-bottom: 0;
+}
+
+.care-destination__details dt {
+  color: rgba(231, 232, 216, 0.62);
+  font-weight: 700;
+}
+
+.care-destination__details dd {
+  margin: 0;
+}
+
+.my-care-view {
+  min-height: 100svh;
+  padding: 1rem;
+  color: #f0f1e8;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(96, 125, 39, 0.2),
+      transparent 38%
+    ),
+    var(--forest-bark);
+}
+
+.my-care-view__header {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-items: center;
+  width: min(100%, 48rem);
+  gap: 1rem;
+  margin: 0 auto;
+}
+
+.my-care-view__header .party-wizard__icon-button {
+  border: 1px solid rgba(228, 236, 217, 0.3);
+  color: #f0f1e8;
+  background: var(--forest-pine);
+}
+
+.my-care-view__header .party-wizard__icon-button:hover {
+  background: #103426;
+}
+
+.my-care-view__header span {
+  color: rgba(231, 232, 216, 0.6);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.my-care-view__header h1 {
+  margin: 0.1rem 0 0;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  letter-spacing: -0.05em;
+}
+
+.my-care-view__content {
+  width: min(100%, 48rem);
+  margin: 2rem auto 0;
+}
+
+.my-care-view__section {
+  display: grid;
+  gap: 1rem;
+}
+
+.my-care-view__section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.my-care-view__section-heading svg {
+  width: 1.5rem;
+  color: var(--forest-amber);
+}
+
+.my-care-view__section-heading h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.my-care-card {
+  padding: clamp(1rem, 4vw, 1.5rem);
+  border: 6px solid var(--forest-party);
+  border-radius: 1.25rem;
+  color: var(--forest-ink);
+  background: var(--forest-card);
+}
+
+.my-care-card__eyebrow {
+  color: var(--forest-party);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.my-care-card h3 {
+  margin: 0.2rem 0 1rem;
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+}
+
+.my-care-card dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.my-care-card dl div {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.my-care-card dt {
+  color: rgba(10, 42, 29, 0.64);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.my-care-card dd {
+  margin: 0;
+}
+
+.my-care-view__empty {
+  margin: 0;
+  padding: 1.5rem;
+  border: 1px dashed rgba(228, 236, 217, 0.35);
+  border-radius: 1rem;
+  color: rgba(231, 232, 216, 0.7);
+}
+
 @media (max-width: 700px) {
   .care-request-card {
     grid-template-columns: 2.8rem minmax(0, 1fr);
@@ -1688,6 +1882,12 @@ article[aria-label="Party layer"] {
     align-items: start;
     flex-direction: column;
     gap: 0.3rem;
+  }
+
+  .care-destination__details div,
+  .my-care-card dl div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
   }
 }
 .timeline-key--give {

@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { App } from "./App";
 
@@ -14,6 +14,11 @@ async function openCurator() {
 }
 
 describe("App", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.history.replaceState({}, "", "/");
+  });
+
   it("renders Timeline as a standalone default view", () => {
     render(<App />);
 
@@ -45,7 +50,7 @@ describe("App", () => {
 
     expect(partyLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(6);
     expect(
-      within(partyLayer).getByRole("button", { name: /open you/i }),
+      within(partyLayer).getByRole("button", { name: /open my care/i }),
     ).toBeInTheDocument();
     expect(within(tribeLayer).getAllByRole("button")).toHaveLength(100);
     expect(within(guildLayer).getAllByRole("button")).toHaveLength(5);
@@ -323,6 +328,98 @@ describe("App", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Give" })).toHaveFocus(),
     );
+  });
+
+  it("claims an incoming request, keeps it after reload, and shows it in My Care", async () => {
+    const user = userEvent.setup();
+    const firstRender = render(<App />);
+    const incomingRequest = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+
+    expect(incomingRequest).toHaveTextContent("Anya is asking for a meal");
+    expect(incomingRequest).toHaveTextContent("From your Party");
+    await user.click(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      within(incomingRequest).getByRole("button", { name: "I can help" }),
+    );
+
+    const confirmation = screen.getByRole("region", {
+      name: "Commit to helping Anya Reed",
+    });
+    expect(confirmation).toHaveTextContent(
+      "This makes a commitment to provide this care.",
+    );
+    expect(confirmation).toHaveTextContent("Thursday evening");
+    expect(confirmation).toHaveTextContent("Nothing spicy");
+    await user.click(
+      within(confirmation).getByRole("button", { name: "Not now" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "I can help" })).toHaveFocus(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "I can help" }));
+    await user.click(
+      within(
+        screen.getByRole("region", {
+          name: "Commit to helping Anya Reed",
+        }),
+      ).getByRole("button", {
+        name: "I’ll help with this",
+      }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("You’re helping Anya.")).toHaveFocus(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Filter to Receive requests" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.queryByRole("heading", { name: "Ren" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole("article", {
+          name: "Incoming meal care request from Anya Reed",
+        }),
+      ).queryByRole("button", { name: "I can help" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Open My Care" }));
+    expect(screen.getByRole("region", { name: "My Care" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("article", { name: "Helping Anya Reed" }),
+    ).toHaveTextContent("You’re helping Anya Reed.");
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Open My Care" }),
+      ).toHaveFocus(),
+    );
+
+    firstRender.unmount();
+    render(<App />);
+
+    expect(screen.getByText("You’re helping Anya.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Open My Care" }));
+    expect(
+      screen.getByRole("article", { name: "Helping Anya Reed" }),
+    ).toBeInTheDocument();
   });
 
   it("closes the selected destination with Escape or browser back", async () => {
