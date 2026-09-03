@@ -38,6 +38,244 @@ should be small enough for one focused agent session.
 
 ## Current Milestone
 
+### T-027: Establish the Receive-care lifecycle contract and prototype state engine
+
+Status: planned
+Size: medium
+
+Concrete goal:
+Define the complete Receive-request lifecycle as explicit TypeScript records,
+transitions, and derived per-person visibility before adding more UI. Preserve
+the current fictional meal request and existing claim-on-reload behavior while
+creating a versioned, deterministic multi-person prototype state boundary.
+
+Likely files or boundaries:
+`apps/web/src/types/careRequest.ts`, new lifecycle reducer/selectors and focused
+tests under `apps/web/src/lib`, fictional lifecycle fixtures under
+`apps/web/src/data`, and a versioned prototype-storage adapter with migration
+from the current claim-only record.
+
+Acceptance criteria:
+
+- request, claim, pass, seen, completion, disposition, history, and gratitude
+  records have explicit typed identities and timestamps
+- allowed transitions and invalid-transition behavior are deterministic and
+  tested, including prevention of a second claim
+- Timeline and profile visibility are derived for a supplied viewer rather
+  than implemented by deleting the underlying request
+- Party eligibility is snapshotted when a request is published so later Party
+  changes do not silently change the pass quorum
+- current version-1 claim storage migrates safely; absent, malformed, or newer
+  unknown data has a non-destructive fallback
+- all fixtures remain fictional and contain no sensitive care information
+
+Out of scope:
+New user-facing lifecycle controls, accounts, API/database work, synchronization,
+new dependencies, Give-offer claiming, and production authorization rules.
+
+### T-028: Add Receive-care Timeline lifespan, seen state, passing, and perspectives
+
+Status: planned; requires T-027
+Size: medium
+
+Concrete goal:
+Implement the Timeline portion of the request lifecycle: expiry, first-seen
+presentation, calm minimization, Party passing and Tribe demotion, claiming
+visibility, and a prototype-only fictional-person switcher for reviewing each
+participant's Timeline perspective.
+
+Likely files or boundaries:
+`ReceiveCareWizard.tsx`, `CareRequestCard.tsx`, `TimelinePanel.tsx`,
+`TimelineView.tsx`, `DashboardShell.tsx`, lifecycle selectors/fixtures, focused
+component tests, and narrowly scoped styles in `apps/web/src/index.css`.
+
+Acceptance criteria:
+
+- a request receives an explicit lifespan and disappears from active Timelines
+  when its unclaimed lifespan expires
+- care remains ahead of ordinary Timeline activity and minimizes per viewer
+  after it has been seen, with an accessible way to expand it again
+- one Party member can pass without affecting other Party members' Timelines
+- once every snapshotted Party recipient passes, the open request leaves Party
+  Timelines and appears for the intended Tribe audience
+- a successful claim removes the request from other eligible members while
+  retaining it for the requester and claimer
+- a clearly labeled prototype-only person switcher can exercise requester,
+  Party-member, claimer, and Tribe-member perspectives without implying a
+  production account-switching feature
+
+Out of scope:
+Real accounts, cross-device synchronization, server-atomic claims, completion,
+gratitude, Give-offer lifecycle parity, and production notifications.
+
+### T-029: Add care actions and history to person profile destinations
+
+Status: planned; requires T-027 and T-028
+Size: medium
+
+Concrete goal:
+Turn the existing Curator person-detail placeholder into a narrow profile
+destination that exposes active care and the actions appropriate to the current
+viewer. Give the user's own profile private active-request, commitment, and
+history sections without creating a general profile editor or another primary
+application view.
+
+Likely files or boundaries:
+`CuratorDetailView.tsx`, `CuratorView.tsx`, `PartyLayer.tsx`, `MyCareView.tsx`,
+new focused profile/history components, `DashboardShell.tsx`, lifecycle
+selectors, component tests, and profile styles.
+
+Acceptance criteria:
+
+- active requests appear on the requester's profile and accept the same valid
+  actions as their Timeline representation
+- a claimed request appears on the claimer's profile
+- the self profile separates active requests, care commitments, and private
+  care history
+- another person's private history is never exposed to the current viewer
+- the self portrait and Curator person tiles preserve back behavior, scroll
+  position, and keyboard focus recovery
+
+Out of scope:
+General profile editing, care-preference profiles, public history, accounts,
+and API/database persistence.
+
+### T-030: Add two-party completion and not-completed dispositions
+
+Status: planned; requires T-027 and T-029
+Size: medium
+
+Concrete goal:
+Let the requester and claimer independently mark claimed care Completed or Not
+completed. Keep care active until both confirm completion, and close a request
+for both participants when either records a not-completed disposition.
+
+Likely files or boundaries:
+New focused outcome and not-completed wizard components, care profile and
+Timeline cards, lifecycle transitions/selectors, `DashboardShell.tsx`, storage,
+tests, and styles.
+
+Acceptance criteria:
+
+- only the requester and claimer can record an outcome
+- one Completed response leaves the request active with clear waiting status
+- two Completed responses close the request and add attributed history for
+  both participants
+- Not completed collects a free-text reason before offering Postpone / try
+  again or Close
+- either not-completed disposition closes the original request for both
+  participants and records the disposition in both histories
+- Postpone / try again creates a new linked request rather than rewriting or
+  reopening the closed original
+
+Out of scope:
+Dispute resolution, moderation, reputation, penalties, messaging, scheduling,
+notifications, and authoritative server coordination.
+
+### T-031: Add the receiver gratitude flow and optional Tribe post
+
+Status: planned; requires T-030
+Size: medium
+
+Concrete goal:
+Launch a calm gratitude wizard when the care receiver marks their side
+Completed. Always retain gratitude in private history and optionally create a
+Tribe-level Timeline message, with a public anonymity choice.
+
+Likely files or boundaries:
+New gratitude wizard, history entry, and Timeline-card components; meal-specific
+canned gratitude data; lifecycle transitions/selectors; `TimelinePanel.tsx`;
+profile history; storage; tests; and styles.
+
+Acceptance criteria:
+
+- the receiver can choose an appropriate canned gratitude statement and add an
+  optional free-text message
+- the confirmation step clearly distinguishes Save to history from Post to
+  Tribe and save to history
+- private attributed history is saved in either case
+- an optional Timeline gratitude item uses Tribe visibility
+- anonymizing affects the Tribe-facing rendering without removing private
+  provenance from the participants' histories
+- publication timing relative to the other participant's completion decision
+  is explicitly decided and tested before implementation is accepted
+
+Out of scope:
+Public-web posts, external-platform syndication, reactions, engagement metrics,
+automated sentiment generation, and non-meal gratitude taxonomies.
+
+### T-032: Harden and document the accepted Receive-care lifecycle prototype
+
+Status: planned; requires T-027 through T-031
+Size: medium
+
+Concrete goal:
+Exercise the complete fictional lifecycle across participant perspectives,
+resolve review findings, and record the accepted behavior, privacy rules,
+prototype limitations, and deferred production boundaries in repository docs.
+
+Acceptance criteria:
+
+- focused tests cover expiry boundaries, seen state, pass quorum, claim
+  visibility, both completion paths, linked retry, history privacy, gratitude,
+  storage migration, and reload behavior
+- browser review covers representative desktop and mobile states for every
+  participant perspective, including focus recovery, reduced motion, overflow,
+  scroll preservation, and console health
+- the accepted lifecycle and privacy decisions are recorded in `DECISIONS.md`
+- completed backlog entries and prototype documentation accurately distinguish
+  simulated local behavior from authoritative shared behavior
+- `pnpm check` passes, or every environment failure is reported with its exact
+  boundary and no product failure is silently normalized
+
+Out of scope:
+Production deployment, real care data, authentication, synchronization,
+federation, and broad unrelated cleanup.
+
+### T-033: Plan the prototype-to-durable product conversion program
+
+Status: planned; begin after the care lifecycle prototype is accepted
+Size: medium planning task
+
+Concrete goal:
+Audit all previously prototyped Cloud Forest functionality and produce a
+sequenced, evidence-backed implementation program for turning selected mock,
+React-memory, and device-only behavior into durable product slices. Treat
+"durable" as explicit data ownership, domain types, tested database and API
+interactions, authorization, recovery behavior, and appropriate client caching,
+not as a blanket rewrite.
+
+Likely files or boundaries:
+Repository-wide read-only inspection of `apps/web`, `apps/api`, shared domain and
+API-contract packages, `packages/database`, migrations, tests, existing
+decisions and roadmap documents; backlog and decision updates only after human
+review of the proposed sequence.
+
+Acceptance criteria:
+
+- inventory every user-visible prototype flow and identify its present source
+  of truth: mock fixture, React memory, localStorage, API, or PostgreSQL
+- classify each flow as intentionally local/private, cached server state, or
+  authoritative shared state
+- identify missing domain classes/types, API contracts, authorization rules,
+  database interactions and migrations, concurrency guarantees, recovery
+  behavior, and unit/integration/E2E coverage
+- explicitly include Party membership, person profiles, care requests and
+  offers, care lifecycle records, Timeline activity, and any other previously
+  accepted prototype behavior found during inspection
+- recommend small dependency-ordered implementation tasks with prerequisites,
+  migration boundaries, acceptance criteria, checks, risks, and estimated size
+- distinguish functionality that should remain a prototype or local-first from
+  functionality that should become authoritative; do not equate durable with
+  server-hosted by default
+- present the proposed program for product-owner approval before adding its
+  implementation tasks or changing application code
+
+Out of scope:
+Implementing the conversion, adding dependencies, changing schemas or APIs,
+migrating data, adding authentication, or bundling multiple prototype flows into
+one broad productionization change.
+
 ## Anticipated Future Milestones
 
 ### T-018H: Establish the worker and PostgreSQL-backed durable-job boundary
