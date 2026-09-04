@@ -186,6 +186,15 @@ export function loadCareLifecycleState(
 
 export function saveCareLifecycleState(state: CareLifecycleState) {
   try {
+    const storage = getBrowserStorage();
+    if (!storage) return;
+
+    const existingValue = storage.getItem(CARE_LIFECYCLE_STORAGE_KEY);
+    if (existingValue) {
+      const parsed: unknown = JSON.parse(existingValue);
+      if (!isStoredCareLifecycleV2(parsed)) return;
+    }
+
     const stored: StoredCareLifecycleV2 = {
       version: 2,
       claims: state.claims,
@@ -195,10 +204,7 @@ export function saveCareLifecycleState(state: CareLifecycleState) {
       dispositions: state.dispositions,
       history: state.history,
     };
-    getBrowserStorage()?.setItem(
-      CARE_LIFECYCLE_STORAGE_KEY,
-      JSON.stringify(stored),
-    );
+    storage.setItem(CARE_LIFECYCLE_STORAGE_KEY, JSON.stringify(stored));
   } catch {
     // The in-memory prototype remains usable when browser storage is unavailable.
   }

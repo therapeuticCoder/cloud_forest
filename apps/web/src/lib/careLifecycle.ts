@@ -14,6 +14,7 @@ export const CURRENT_CARE_VIEWER_ID: CarePersonId = "you";
 
 export type CareLifecycleErrorCode =
   | "duplicate-record"
+  | "invalid-action"
   | "invalid-request"
   | "request-not-found"
   | "request-closed"
@@ -77,6 +78,10 @@ function accept(state: CareLifecycleState): CareLifecycleTransition {
 
 function hasValidTimestamp(value: string) {
   return Number.isFinite(Date.parse(value));
+}
+
+function hasValidIdentity(value: string) {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function getRequest(state: CareLifecycleState, requestId: string) {
@@ -189,15 +194,80 @@ function validateRequest(request: ReceiveCareRequest) {
   const partyIds = request.audienceSnapshot.partyMemberIds;
   const tribeIds = request.audienceSnapshot.tribeMemberIds;
   return (
-    request.id.length > 0 &&
+    hasValidIdentity(request.id) &&
+    hasValidIdentity(request.requester.id) &&
     hasValidTimestamp(request.createdAt) &&
     hasValidTimestamp(request.expiresAt) &&
     Date.parse(request.expiresAt) > Date.parse(request.createdAt) &&
     partyIds.length > 0 &&
+    partyIds.every(hasValidIdentity) &&
+    tribeIds.every(hasValidIdentity) &&
     new Set(partyIds).size === partyIds.length &&
     new Set(tribeIds).size === tribeIds.length &&
     !partyIds.includes(request.requester.id)
   );
+}
+
+function validateAction(
+  action: Exclude<CareLifecycleAction, { type: "publish-request" }>,
+) {
+  switch (action.type) {
+    case "withdraw-request":
+      return (
+        hasValidIdentity(action.requestId) &&
+        hasValidIdentity(action.actorId) &&
+        hasValidTimestamp(action.withdrawnAt)
+      );
+    case "expire-request":
+      return (
+        hasValidIdentity(action.requestId) &&
+        hasValidTimestamp(action.expiredAt)
+      );
+    case "mark-seen":
+      return (
+        hasValidIdentity(action.seenState.id) &&
+        hasValidIdentity(action.seenState.requestId) &&
+        hasValidIdentity(action.seenState.viewerId) &&
+        hasValidTimestamp(action.seenState.seenAt) &&
+        typeof action.seenState.minimized === "boolean"
+      );
+    case "pass-request":
+      return (
+        hasValidIdentity(action.pass.id) &&
+        hasValidIdentity(action.pass.requestId) &&
+        hasValidIdentity(action.pass.actorId) &&
+        hasValidTimestamp(action.pass.passedAt)
+      );
+    case "claim-request":
+      return (
+        hasValidIdentity(action.claim.id) &&
+        hasValidIdentity(action.claim.requestId) &&
+        hasValidIdentity(action.claim.claimerId) &&
+        hasValidTimestamp(action.claim.claimedAt)
+      );
+    case "record-completion":
+      return (
+        hasValidIdentity(action.completion.id) &&
+        hasValidIdentity(action.completion.requestId) &&
+        hasValidIdentity(action.completion.participantId) &&
+        (action.completion.decision === "completed" ||
+          action.completion.decision === "not-completed") &&
+        hasValidTimestamp(action.completion.decidedAt)
+      );
+    case "record-disposition":
+      return (
+        hasValidIdentity(action.disposition.id) &&
+        hasValidIdentity(action.disposition.requestId) &&
+        hasValidIdentity(action.disposition.actorId) &&
+        (action.disposition.kind === "close" ||
+          action.disposition.kind === "postpone" ||
+          action.disposition.kind === "retry") &&
+        typeof action.disposition.reason === "string" &&
+        hasValidTimestamp(action.disposition.disposedAt) &&
+        (action.disposition.successorRequestId === undefined ||
+          hasValidIdentity(action.disposition.successorRequestId))
+      );
+  }
 }
 
 function historyEntry(
@@ -256,6 +326,8 @@ export function transitionCareLifecycle(
     }
     return accept({ ...state, requests: [action.request, ...state.requests] });
   }
+
+  if (!validateAction(action)) return reject(state, "invalid-action");
 
   const requestId = getActionRequestId(action);
   const request = getRequest(state, requestId);

@@ -70,14 +70,33 @@ describe("care lifecycle prototype storage", () => {
     ).not.toHaveProperty("gratitudes");
   });
 
-  it("uses an empty state for malformed or unknown future versions", () => {
-    localStorage.setItem(CARE_LIFECYCLE_STORAGE_KEY, "not-json");
-    expect(loadCareLifecycleState(incomingCareRequests).claims).toEqual([]);
+  it.each([
+    ["malformed JSON", "not-json"],
+    ["an incomplete version-2 envelope", JSON.stringify({ version: 2 })],
+    ["an unknown future version", JSON.stringify({ version: 3, claims: [] })],
+  ])(
+    "does not overwrite %s while using an empty fallback",
+    (_, storedValue) => {
+      localStorage.setItem(CARE_LIFECYCLE_STORAGE_KEY, storedValue);
+      const emptyFallback = loadCareLifecycleState(incomingCareRequests);
+      expect(emptyFallback.claims).toEqual([]);
 
-    localStorage.setItem(
-      CARE_LIFECYCLE_STORAGE_KEY,
-      JSON.stringify({ version: 3, claims: [] }),
-    );
-    expect(loadCareLifecycleState(incomingCareRequests).claims).toEqual([]);
-  });
+      const transition = transitionCareLifecycle(emptyFallback, {
+        type: "claim-request",
+        claim: {
+          id: "claim-1",
+          requestId: incomingCareRequests[0].id,
+          claimerId: "you",
+          claimedAt: "2026-09-03T14:00:00.000Z",
+        },
+      });
+      expect(transition.ok).toBe(true);
+      if (!transition.ok) return;
+
+      saveCareLifecycleState(transition.state);
+      expect(localStorage.getItem(CARE_LIFECYCLE_STORAGE_KEY)).toBe(
+        storedValue,
+      );
+    },
+  );
 });

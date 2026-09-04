@@ -12,6 +12,7 @@ import {
   selectProfileCareRequests,
   selectTimelineCareRequests,
   transitionCareLifecycle,
+  type CareLifecycleAction,
 } from "./careLifecycle";
 
 const beforeExpiry = "2026-09-03T12:00:00.000Z";
@@ -85,6 +86,154 @@ describe("Receive-care lifecycle", () => {
         }),
       }),
     ).toMatchObject({ ok: false, error: "invalid-request" });
+    expect(
+      transitionCareLifecycle(empty, {
+        type: "publish-request",
+        request: request({ createdAt: "not-a-timestamp" }),
+      }),
+    ).toMatchObject({ ok: false, error: "invalid-request" });
+  });
+
+  it.each<[string, CareLifecycleAction]>([
+    [
+      "withdrawal timestamp",
+      {
+        type: "withdraw-request",
+        requestId: "request-1",
+        actorId: "anya",
+        withdrawnAt: "not-a-timestamp",
+      },
+    ],
+    [
+      "expiry timestamp",
+      {
+        type: "expire-request",
+        requestId: "request-1",
+        expiredAt: "not-a-timestamp",
+      },
+    ],
+    [
+      "seen record identity",
+      {
+        type: "mark-seen",
+        seenState: {
+          id: " ",
+          requestId: "request-1",
+          viewerId: "you",
+          seenAt: beforeExpiry,
+          minimized: true,
+        },
+      },
+    ],
+    [
+      "seen timestamp",
+      {
+        type: "mark-seen",
+        seenState: {
+          id: "seen-you",
+          requestId: "request-1",
+          viewerId: "you",
+          seenAt: "not-a-timestamp",
+          minimized: true,
+        },
+      },
+    ],
+    [
+      "pass record identity",
+      {
+        type: "pass-request",
+        pass: {
+          id: "",
+          requestId: "request-1",
+          actorId: "you",
+          passedAt: beforeExpiry,
+        },
+      },
+    ],
+    [
+      "pass timestamp",
+      {
+        type: "pass-request",
+        pass: {
+          id: "pass-you",
+          requestId: "request-1",
+          actorId: "you",
+          passedAt: "not-a-timestamp",
+        },
+      },
+    ],
+    [
+      "claim record identity",
+      {
+        type: "claim-request",
+        claim: { ...claim(), id: "" },
+      },
+    ],
+    [
+      "claim timestamp",
+      {
+        type: "claim-request",
+        claim: { ...claim(), claimedAt: "not-a-timestamp" },
+      },
+    ],
+    [
+      "completion record identity",
+      {
+        type: "record-completion",
+        completion: {
+          id: "",
+          requestId: "request-1",
+          participantId: "anya",
+          decision: "completed",
+          decidedAt: beforeExpiry,
+        },
+      },
+    ],
+    [
+      "completion timestamp",
+      {
+        type: "record-completion",
+        completion: {
+          id: "completion-anya",
+          requestId: "request-1",
+          participantId: "anya",
+          decision: "completed",
+          decidedAt: "not-a-timestamp",
+        },
+      },
+    ],
+    [
+      "disposition record identity",
+      {
+        type: "record-disposition",
+        disposition: {
+          id: "",
+          requestId: "request-1",
+          actorId: "anya",
+          kind: "close",
+          reason: "The timing did not work",
+          disposedAt: beforeExpiry,
+        },
+      },
+    ],
+    [
+      "disposition timestamp",
+      {
+        type: "record-disposition",
+        disposition: {
+          id: "disposition-1",
+          requestId: "request-1",
+          actorId: "anya",
+          kind: "close",
+          reason: "The timing did not work",
+          disposedAt: "not-a-timestamp",
+        },
+      },
+    ],
+  ])("rejects an invalid %s before applying the transition", (_, action) => {
+    expect(
+      transitionCareLifecycle(createCareLifecycleState([request()]), action),
+    ).toMatchObject({ ok: false, error: "invalid-action" });
   });
 
   it("derives Party passing and Tribe demotion per viewer", () => {
