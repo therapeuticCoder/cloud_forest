@@ -20,12 +20,14 @@ import {
 } from "@/data/cloudForestMockData";
 import type { CloudForestActivity } from "@/types/cloudForest";
 import type {
+  CareGratitude,
   CarePersonId,
   GiveCareOffer,
   ReceiveCareRequest,
 } from "@/types/careRequest";
 
 import { CareOfferCard } from "./CareOfferCard";
+import { CareGratitudeCard } from "./CareGratitudeCard";
 import { CareRequestCard } from "./CareRequestCard";
 import { TimelineCard, type TimelineCardItem } from "./TimelineCard";
 
@@ -265,8 +267,10 @@ function RemoteTimelineSlot({
 
 export function TimelinePanel({
   apiClient = timelineApiClient,
+  careGratitudes = [],
   careOffers = [],
   careRequests = [],
+  careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
@@ -284,6 +288,8 @@ export function TimelinePanel({
   viewerId = "you",
 }: {
   apiClient?: Pick<ApiClient, "getTimelineItem">;
+  careGratitudes?: CareGratitude[];
+  careGratitudeRequests?: ReceiveCareRequest[];
   careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
   claimedRequestIds?: Set<string>;
@@ -374,6 +380,20 @@ export function TimelinePanel({
         </p>
       ) : null}
       <div className="timeline-list">
+        {!showCareListingsOnly
+          ? careGratitudes.map((gratitude) => {
+              const request = careGratitudeRequests.find(
+                (candidate) => candidate.id === gratitude.requestId,
+              );
+              return request ? (
+                <CareGratitudeCard
+                  gratitude={gratitude}
+                  key={gratitude.id}
+                  request={request}
+                />
+              ) : null;
+            })
+          : null}
         {showCareListingsOnly ? (
           visibleCareListings.length > 0 ? (
             <CareListings

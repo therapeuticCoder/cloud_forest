@@ -16,8 +16,10 @@ import {
   selectCareRequestPresentation,
   selectNextCareRequestExpiration,
   selectPrivateCareHistory,
+  selectPrivateCareGratitudes,
   selectProfileCareRequests,
   selectTimelineCareRequests,
+  selectTribeCareGratitudes,
   transitionCareLifecycle,
   type CareLifecycleAction,
 } from "@/lib/careLifecycle";
@@ -42,6 +44,10 @@ import { GiveCareWizard } from "./GiveCareWizard";
 import { ClaimCareView } from "./ClaimCareView";
 import { MyCareView } from "./MyCareView";
 import { NotCompletedCareView } from "./NotCompletedCareView";
+import {
+  CareGratitudeWizard,
+  type CareGratitudeDraft,
+} from "./CareGratitudeWizard";
 
 type CareDestination =
   | { kind: "claim"; request: ReceiveCareRequest }
@@ -51,6 +57,14 @@ type CareDestination =
       actorId: CarePersonId;
       completionFocusSelector: string;
       parentReturnFocusSelector: string | null;
+      request: ReceiveCareRequest;
+      returnToMyCare: boolean;
+    }
+  | {
+      kind: "gratitude";
+      completionFocusSelector: string;
+      parentReturnFocusSelector: string | null;
+      receiverId: CarePersonId;
       request: ReceiveCareRequest;
       returnToMyCare: boolean;
     };
@@ -199,9 +213,12 @@ export function DashboardShell() {
   const backFromCareDestination = useCallback(() => {
     restoreFromCareDestination(
       careReturnFocusSelectorRef.current,
-      careDestination?.kind === "not-completed" &&
-        careDestination.returnToMyCare,
-      careDestination?.kind === "not-completed"
+      (careDestination?.kind === "not-completed" &&
+        careDestination.returnToMyCare) ||
+        (careDestination?.kind === "gratitude" &&
+          careDestination.returnToMyCare),
+      careDestination?.kind === "not-completed" ||
+        careDestination?.kind === "gratitude"
         ? careDestination.parentReturnFocusSelector
         : null,
     );
@@ -297,6 +314,105 @@ export function DashboardShell() {
     );
   };
 
+  const openGratitude = (
+    request: ReceiveCareRequest,
+    receiverId = careViewerId,
+  ) => {
+    const returnToMyCare = careDestination?.kind === "my-care";
+    const parentReturnFocusSelector = careReturnFocusSelectorRef.current;
+    const profileOpen = Boolean(document.querySelector(".curator-detail-view"));
+    const completionFocusSelector = returnToMyCare
+      ? `.my-care-view [data-care-outcome-status="${request.id}"]`
+      : profileOpen
+        ? `.curator-detail-view [data-care-outcome-status="${request.id}"]`
+        : `[data-care-outcome-status="${request.id}"]`;
+    const returnFocusSelector = returnToMyCare
+      ? `.my-care-view [data-care-completed-action="${request.id}"]`
+      : profileOpen
+        ? `.curator-detail-view [data-care-completed-action="${request.id}"]`
+        : `[data-care-completed-action="${request.id}"]`;
+    openCareDestination(
+      {
+        kind: "gratitude",
+        completionFocusSelector,
+        parentReturnFocusSelector,
+        receiverId,
+        request,
+        returnToMyCare,
+      },
+      returnFocusSelector,
+    );
+  };
+
+  const recordCompletionOrOpenGratitude = (
+    request: ReceiveCareRequest,
+    participantId = careViewerId,
+  ) => {
+    if (participantId === request.requester.id) {
+      openGratitude(request, participantId);
+      return;
+    }
+    recordCareCompleted(request, participantId);
+  };
+
+  const confirmGratitude = (draft: CareGratitudeDraft) => {
+    if (careDestination?.kind !== "gratitude") return;
+    const {
+      completionFocusSelector,
+      parentReturnFocusSelector,
+      receiverId,
+      request,
+      returnToMyCare,
+    } = careDestination;
+    const createdAt = new Date().toISOString();
+
+    setCareLifecycle((currentState) => {
+      const claim = currentState.claims.find(
+        (candidate) => candidate.requestId === request.id,
+      );
+      if (!claim) return currentState;
+
+      const gratitudeTransition = transitionCareLifecycle(currentState, {
+        type: "record-gratitude",
+        gratitude: {
+          id: `care-gratitude-${request.id}-${receiverId}`,
+          requestId: request.id,
+          receiverId,
+          giverId: claim.claimerId,
+          statementId: draft.statementId,
+          message: draft.message,
+          postToTimeline: draft.postToTimeline,
+          anonymized: draft.postToTimeline && draft.anonymized,
+          createdAt,
+        },
+      });
+      if (!gratitudeTransition.ok) return currentState;
+
+      const completionTransition = transitionCareLifecycle(
+        gratitudeTransition.state,
+        {
+          type: "record-completion",
+          completion: {
+            id: `care-completion-${request.id}-${receiverId}`,
+            requestId: request.id,
+            participantId: receiverId,
+            decision: "completed",
+            decidedAt: createdAt,
+          },
+        },
+      );
+      if (!completionTransition.ok) return currentState;
+      saveCareLifecycleState(completionTransition.state);
+      return completionTransition.state;
+    });
+    restoreFromCareDestination(
+      completionFocusSelector,
+      returnToMyCare,
+      parentReturnFocusSelector,
+    );
+    rewindCareHistory();
+  };
+
   const confirmNotCompleted = (reason: string, tryAgain: boolean) => {
     if (careDestination?.kind !== "not-completed") return;
     const {
@@ -372,9 +488,12 @@ export function DashboardShell() {
       }
       restoreFromCareDestination(
         careReturnFocusSelectorRef.current,
-        careDestination.kind === "not-completed" &&
-          careDestination.returnToMyCare,
-        careDestination.kind === "not-completed"
+        (careDestination.kind === "not-completed" &&
+          careDestination.returnToMyCare) ||
+          (careDestination.kind === "gratitude" &&
+            careDestination.returnToMyCare),
+        careDestination.kind === "not-completed" ||
+          careDestination.kind === "gratitude"
           ? careDestination.parentReturnFocusSelector
           : null,
       );
@@ -465,6 +584,19 @@ export function DashboardShell() {
         CURRENT_CARE_VIEWER_ID,
         CURRENT_CARE_VIEWER_ID,
       ),
+    [careLifecycle],
+  );
+  const selfCareGratitudes = useMemo(
+    () =>
+      selectPrivateCareGratitudes(
+        careLifecycle,
+        CURRENT_CARE_VIEWER_ID,
+        CURRENT_CARE_VIEWER_ID,
+      ),
+    [careLifecycle],
+  );
+  const tribeCareGratitudes = useMemo(
+    () => selectTribeCareGratitudes(careLifecycle),
     [careLifecycle],
   );
   const viewerClaimedRequestIds = useMemo(
@@ -710,6 +842,8 @@ export function DashboardShell() {
             {activeView === "timeline" ? (
               <TimelineView
                 careOffers={careOffers}
+                careGratitudes={tribeCareGratitudes}
+                careGratitudeRequests={careLifecycle.requests}
                 careRequests={timelineCareRequests}
                 claimedRequestIds={claimedRequestIds}
                 minimizedRequestIds={minimizedRequestIds}
@@ -720,7 +854,7 @@ export function DashboardShell() {
                   )
                 }
                 onPass={passCareRequest}
-                onRecordCompleted={recordCareCompleted}
+                onRecordCompleted={recordCompletionOrOpenGratitude}
                 onRecordNotCompleted={openNotCompleted}
                 onSetRequestMinimized={setCareRequestMinimized}
                 onWithdraw={withdrawCareRequestAs}
@@ -766,7 +900,7 @@ export function DashboardShell() {
                   )
                 }
                 onPass={passCareRequest}
-                onRecordCompleted={recordCareCompleted}
+                onRecordCompleted={recordCompletionOrOpenGratitude}
                 onRecordNotCompleted={openNotCompleted}
                 onSetRequestMinimized={setCareRequestMinimized}
                 onWithdraw={withdrawCareRequestAs}
@@ -786,6 +920,7 @@ export function DashboardShell() {
               careLifecycle={careLifecycle}
               claimedRequests={claimedRequests}
               history={selfCareHistory}
+              gratitudes={selfCareGratitudes}
               onBack={backFromCareDestination}
               onSetRequestMinimized={(requestId, minimized) => {
                 const changedAt = new Date().toISOString();
@@ -816,7 +951,7 @@ export function DashboardShell() {
                 );
               }}
               onRecordCompleted={(request) =>
-                recordCareCompleted(request, CURRENT_CARE_VIEWER_ID)
+                recordCompletionOrOpenGratitude(request, CURRENT_CARE_VIEWER_ID)
               }
               onRecordNotCompleted={(request) =>
                 openNotCompleted(request, CURRENT_CARE_VIEWER_ID)
@@ -829,6 +964,12 @@ export function DashboardShell() {
             <NotCompletedCareView
               onBack={backFromCareDestination}
               onConfirm={confirmNotCompleted}
+              request={careDestination.request}
+            />
+          ) : careDestination?.kind === "gratitude" ? (
+            <CareGratitudeWizard
+              onBack={backFromCareDestination}
+              onComplete={confirmGratitude}
               request={careDestination.request}
             />
           ) : null}

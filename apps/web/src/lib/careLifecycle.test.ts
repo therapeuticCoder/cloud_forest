@@ -14,8 +14,10 @@ import {
   selectCareRequestPresentation,
   selectNextCareRequestExpiration,
   selectPrivateCareHistory,
+  selectPrivateCareGratitudes,
   selectProfileCareRequests,
   selectTimelineCareRequests,
+  selectTribeCareGratitudes,
   transitionCareLifecycle,
   type CareLifecycleAction,
 } from "./careLifecycle";
@@ -508,6 +510,49 @@ describe("Receive-care lifecycle", () => {
       expect.objectContaining({ ownerId: "you", outcome: "completed" }),
     ]);
     expect(selectTimelineCareRequests(state, "you", afterExpiry)).toEqual([]);
+  });
+
+  it("stores attributed gratitude privately and derives only opted-in Tribe posts", () => {
+    const claimed = apply(createCareLifecycleState([request()]), {
+      type: "claim-request",
+      claim: claim(),
+    });
+    const gratitude = {
+      id: "gratitude-1",
+      requestId: "request-1",
+      receiverId: "anya",
+      giverId: "you",
+      statementId: "meal-fed-when-needed",
+      message: "It helped so much.",
+      postToTimeline: true,
+      anonymized: true,
+      createdAt: beforeExpiry,
+    } as const;
+    const thanked = apply(claimed, {
+      type: "record-gratitude",
+      gratitude,
+    });
+
+    expect(selectPrivateCareGratitudes(thanked, "you", "you")).toEqual([
+      gratitude,
+    ]);
+    expect(selectPrivateCareGratitudes(thanked, "anya", "anya")).toEqual([
+      gratitude,
+    ]);
+    expect(selectPrivateCareGratitudes(thanked, "anya", "mira")).toEqual([]);
+    expect(selectTribeCareGratitudes(thanked)).toEqual([gratitude]);
+    expect(
+      transitionCareLifecycle(thanked, {
+        type: "record-gratitude",
+        gratitude: { ...gratitude, id: "gratitude-2" },
+      }),
+    ).toMatchObject({ ok: false, error: "duplicate-record" });
+    expect(
+      transitionCareLifecycle(claimed, {
+        type: "record-gratitude",
+        gratitude: { ...gratitude, giverId: "mira" },
+      }),
+    ).toMatchObject({ ok: false, error: "not-authorized" });
   });
 
   it("closes not-completed care and links a retry successor", () => {

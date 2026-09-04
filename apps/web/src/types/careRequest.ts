@@ -111,6 +111,7 @@ export type CareLifecycleState = {
   completions: CareCompletion[];
   dispositions: CareDisposition[];
   history: CareHistoryEntry[];
+  gratitudes: CareGratitude[];
 };
 
 export type GiveCareOffer = {

@@ -41,40 +41,9 @@ should be small enough for one focused agent session.
 - T-028C: Add the care perspective harness and claim visibility
 - T-029: Add care actions and history to person profile destinations
 - T-030: Add two-party completion and not-completed dispositions
+- T-031: Add the receiver gratitude flow and optional Tribe post
 
 ## Current Milestone
-
-### T-031: Add the receiver gratitude flow and optional Tribe post
-
-Status: planned; requires T-030
-Size: medium
-
-Concrete goal:
-Launch a calm gratitude wizard when the care receiver marks their side
-Completed. Always retain gratitude in private history and optionally create a
-Tribe-level Timeline message, with a public anonymity choice.
-
-Likely files or boundaries:
-New gratitude wizard, history entry, and Timeline-card components; meal-specific
-canned gratitude data; lifecycle transitions/selectors; `TimelinePanel.tsx`;
-profile history; storage; tests; and styles.
-
-Acceptance criteria:
-
-- the receiver can choose an appropriate canned gratitude statement and add an
-  optional free-text message
-- the confirmation step clearly distinguishes Save to history from Post to
-  Tribe and save to history
-- private attributed history is saved in either case
-- an optional Timeline gratitude item uses Tribe visibility
-- anonymizing affects the Tribe-facing rendering without removing private
-  provenance from the participants' histories
-- publication timing relative to the other participant's completion decision
-  is explicitly decided and tested before implementation is accepted
-
-Out of scope:
-Public-web posts, external-platform syndication, reactions, engagement metrics,
-automated sentiment generation, and non-meal gratitude taxonomies.
 
 ### T-032: Harden and document the accepted Receive-care lifecycle prototype
 
