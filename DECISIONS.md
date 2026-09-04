@@ -97,6 +97,14 @@ their detailed implementation context.
   and giver provenance even when the Tribe-facing post uses “A neighbor.” The
   care request itself remains active until the existing two-party completion
   rule closes it.
+- **D-031 — The accepted care lifecycle remains a device-local simulation.**
+  Receive-care visibility, passing, claims, outcomes, private history, and
+  gratitude define the accepted interaction and privacy model, but their
+  `localStorage` records and fictional perspective switcher are neither shared
+  authority nor security controls. Production identity, authorization,
+  concurrency, persistence, synchronization, and recovery require explicit
+  later slices. Only the existing PostgreSQL-backed Timeline-item read is an
+  authoritative server path today.
 
 ## Fulfilled milestone decisions
 

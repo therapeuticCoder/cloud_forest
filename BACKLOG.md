@@ -42,36 +42,9 @@ should be small enough for one focused agent session.
 - T-029: Add care actions and history to person profile destinations
 - T-030: Add two-party completion and not-completed dispositions
 - T-031: Add the receiver gratitude flow and optional Tribe post
+- T-032: Harden and document the accepted Receive-care lifecycle prototype
 
 ## Current Milestone
-
-### T-032: Harden and document the accepted Receive-care lifecycle prototype
-
-Status: planned; requires T-027, T-028A through T-028C, and T-029 through T-031
-Size: medium
-
-Concrete goal:
-Exercise the complete fictional lifecycle across participant perspectives,
-resolve review findings, and record the accepted behavior, privacy rules,
-prototype limitations, and deferred production boundaries in repository docs.
-
-Acceptance criteria:
-
-- focused tests cover expiry boundaries, seen state, pass quorum, claim
-  visibility, both completion paths, linked retry, history privacy, gratitude,
-  storage migration, and reload behavior
-- browser review covers representative desktop and mobile states for every
-  participant perspective, including focus recovery, reduced motion, overflow,
-  scroll preservation, and console health
-- the accepted lifecycle and privacy decisions are recorded in `DECISIONS.md`
-- completed backlog entries and prototype documentation accurately distinguish
-  simulated local behavior from authoritative shared behavior
-- `pnpm check` passes, or every environment failure is reported with its exact
-  boundary and no product failure is silently normalized
-
-Out of scope:
-Production deployment, real care data, authentication, synchronization,
-federation, and broad unrelated cleanup.
 
 ### T-033: Plan the prototype-to-durable product conversion program
 

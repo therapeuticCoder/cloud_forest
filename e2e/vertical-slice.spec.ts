@@ -112,10 +112,27 @@ async function expectHiddenChromeRecoversFromKeyboard(page: Page) {
   ).toBe("false");
 }
 
+async function expectMyCarePreservesTimelineScroll(page: Page) {
+  await page.evaluate(() => window.scrollTo(0, 500));
+  const scrollY = await page.evaluate(() => window.scrollY);
+  expect(scrollY).toBeGreaterThan(0);
+
+  await page
+    .getByRole("button", { name: "Open My Care" })
+    .evaluate((button: HTMLButtonElement) => button.click());
+  await expect(page.getByRole("region", { name: "My Care" })).toBeVisible();
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(
+    page.getByRole("region", { name: "Timeline view" }),
+  ).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollY);
+}
+
 test("database-backed Timeline and prototype regression path", async ({
   page,
 }, testInfo: TestInfo) => {
   const browserFailures = collectBrowserFailures(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await seedAndExpectDevelopmentPwaCleanup(page);
   await page.waitForLoadState("networkidle");
   const miraResponsePromise = page.waitForResponse(
@@ -126,6 +143,11 @@ test("database-backed Timeline and prototype regression path", async ({
 
   await page.reload();
   await expect(page).toHaveTitle("Cloud Forest");
+  expect(
+    await page.evaluate(
+      () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    ),
+  ).toBe(true);
   await expect(
     page.getByRole("region", { name: "Timeline view" }),
   ).toBeVisible();
@@ -347,6 +369,7 @@ test("database-backed Timeline and prototype regression path", async ({
   await expect(fullCareRequest).toHaveCount(0);
   await expect(tribeGratitude).toBeVisible();
 
+  await expectMyCarePreservesTimelineScroll(page);
   await expectHiddenChromeRecoversFromKeyboard(page);
   await page.evaluate(() => window.scrollTo(0, 0));
 

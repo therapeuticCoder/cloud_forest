@@ -112,11 +112,14 @@ borders, identity, and marks rather than engagement metrics. Its first fictional
 item is read from PostgreSQL through the API and typed client; the other seven
 visible cards remain intentionally mocked for later incremental product slices.
 
-The design gate and monorepo-foundation milestone are complete. A guarded local
-Chromium gate verifies the database-backed path and representative Timeline and
-Curator behavior at desktop and mobile sizes. The next milestone is the durable,
-local-first personal loop; selecting its first product slice remains separate
-backlog planning.
+The design gate and monorepo-foundation milestone are complete. The accepted
+fictional Receive-care lifecycle covers request lifespan, passing, claims,
+participant outcomes, private history, and optional Tribe gratitude. These care
+records remain a device-local simulation; the perspective switcher is not an
+identity boundary. The guarded local Chromium gate verifies the database-backed
+Timeline read and representative Timeline, Curator, and care behavior at desktop
+and mobile sizes. `docs/care-lifecycle-prototype.md` records the exact accepted
+behavior and deferred production boundaries.
 
 ## Out of scope for the current prototype
 
