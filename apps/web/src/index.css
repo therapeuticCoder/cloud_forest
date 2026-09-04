@@ -1732,14 +1732,48 @@ article[aria-label="Party layer"] {
   cursor: pointer;
 }
 
+.care-request-card__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr);
+  gap: 0.65rem;
+}
+
+.care-request-card__pass {
+  min-height: 3rem;
+  margin-top: 0.9rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(10, 42, 29, 0.42);
+  border-radius: 0.9rem;
+  color: var(--forest-ink);
+  background: rgba(255, 255, 255, 0.48);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.care-request-card__pass:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .care-request-card__claim:hover {
   background: #103426;
 }
 
 .care-request-card__claim:focus-visible,
+.care-request-card__pass:focus-visible,
 .care-request-card__commitment:focus-visible {
   outline: 3px solid var(--forest-amber);
   outline-offset: 3px;
+}
+
+.care-pass-announcement {
+  margin: 0 0 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(228, 236, 217, 0.3);
+  border-radius: 0.8rem;
+  color: rgba(241, 245, 232, 0.88);
+  background: rgba(10, 42, 29, 0.72);
+  font-size: 0.88rem;
 }
 
 .care-request-card__commitment {
@@ -1933,6 +1967,11 @@ article[aria-label="Party layer"] {
     align-items: start;
     flex-direction: column;
     gap: 0.3rem;
+  }
+
+  .care-request-card__actions {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 
   .care-request-card--minimized {

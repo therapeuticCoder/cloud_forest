@@ -129,6 +129,24 @@ export function haveAllPartyMembersPassed(
   );
 }
 
+export function canPassCareRequest(
+  state: CareLifecycleState,
+  requestId: string,
+  viewerId: CarePersonId,
+  at: string,
+) {
+  const request = getRequest(state, requestId);
+  return Boolean(
+    hasValidTimestamp(at) &&
+    request &&
+    !isTerminal(state, requestId) &&
+    !getClaim(state, requestId) &&
+    !isCareRequestExpired(request, at) &&
+    request.audienceSnapshot.partyMemberIds.includes(viewerId) &&
+    !hasPassed(state, requestId, viewerId),
+  );
+}
+
 export function isCareRequestVisibleOnTimeline(
   state: CareLifecycleState,
   request: ReceiveCareRequest,

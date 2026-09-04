@@ -196,6 +196,24 @@ test("database-backed Timeline and prototype regression path", async ({
     fullCareRequest.getByRole("button", { name: "I’ve seen this" }),
   ).toBeFocused();
 
+  await fullCareRequest.getByRole("button", { name: "Pass this time" }).click();
+  await expect(fullCareRequest).toHaveCount(0);
+  await expect(
+    page.getByText(
+      "You passed on Anya’s request this time. Other Party members can still respond.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Filter to Receive requests" }),
+  ).toBeFocused();
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
+    "timeline-care-passed.png",
+  );
+
+  await page.reload();
+  await expect(fullCareRequest).toHaveCount(0);
+
   await expectHiddenChromeRecoversFromKeyboard(page);
   await page.evaluate(() => window.scrollTo(0, 0));
 

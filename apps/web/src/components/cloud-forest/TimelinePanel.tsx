@@ -117,23 +117,28 @@ type CareListing =
 
 const noClaimedRequestIds = new Set<string>();
 const noMinimizedRequestIds = new Set<string>();
+const noPassableRequestIds = new Set<string>();
 
 function CareListings({
   claimedRequestIds,
   listings,
   minimizedRequestIds,
   onOfferHelp,
+  onPass,
   onSetRequestMinimized,
   onWithdraw,
   onWithdrawOffer,
+  passableRequestIds,
 }: {
   claimedRequestIds: Set<string>;
   listings: CareListing[];
   minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
+  onPass: (request: ReceiveCareRequest) => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
+  passableRequestIds: Set<string>;
 }) {
   return listings.map((listing) =>
     listing.kind === "give" ? (
@@ -144,10 +149,12 @@ function CareListings({
       />
     ) : (
       <CareRequestCard
+        canPass={passableRequestIds.has(listing.item.id)}
         claimed={claimedRequestIds.has(listing.item.id)}
         key={listing.item.id}
         minimized={minimizedRequestIds.has(listing.item.id)}
         onOfferHelp={onOfferHelp}
+        onPass={onPass}
         onSetMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         request={listing.item}
@@ -234,9 +241,12 @@ export function TimelinePanel({
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
+  onPass = () => undefined,
   onSetRequestMinimized = () => undefined,
   onWithdraw = () => undefined,
   onWithdrawOffer = () => undefined,
+  passableRequestIds = noPassableRequestIds,
+  passAnnouncement,
 }: {
   apiClient?: Pick<ApiClient, "getTimelineItem">;
   careOffers?: GiveCareOffer[];
@@ -244,9 +254,12 @@ export function TimelinePanel({
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
+  onPass?: (request: ReceiveCareRequest) => void;
   onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
   onWithdraw?: (requestId: string) => void;
   onWithdrawOffer?: (offerId: string) => void;
+  passableRequestIds?: Set<string>;
+  passAnnouncement?: string;
 }) {
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
     "all",
@@ -303,6 +316,7 @@ export function TimelinePanel({
           aria-label="Filter to Receive requests"
           aria-pressed={careFilter === "receive"}
           className="timeline-key timeline-key--receive"
+          data-care-receive-filter
           onClick={() =>
             setCareFilter((current) =>
               current === "receive" ? "all" : "receive",
@@ -313,6 +327,11 @@ export function TimelinePanel({
           <HandHeart aria-hidden="true" />
         </button>
       </div>
+      {passAnnouncement ? (
+        <p aria-live="polite" className="care-pass-announcement" role="status">
+          {passAnnouncement}
+        </p>
+      ) : null}
       <div className="timeline-list">
         {showCareListingsOnly ? (
           visibleCareListings.length > 0 ? (
@@ -321,9 +340,11 @@ export function TimelinePanel({
               listings={visibleCareListings}
               minimizedRequestIds={minimizedRequestIds}
               onOfferHelp={onOfferHelp}
+              onPass={onPass}
               onSetRequestMinimized={onSetRequestMinimized}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
+              passableRequestIds={passableRequestIds}
             />
           ) : (
             <div
@@ -341,9 +362,11 @@ export function TimelinePanel({
               listings={careListings}
               minimizedRequestIds={minimizedRequestIds}
               onOfferHelp={onOfferHelp}
+              onPass={onPass}
               onSetRequestMinimized={onSetRequestMinimized}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
+              passableRequestIds={passableRequestIds}
             />
             <RemoteTimelineSlot apiClient={apiClient} />
             <ActivityList activities={todayActivities} />

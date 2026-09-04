@@ -282,6 +282,52 @@ describe("App", () => {
     );
   });
 
+  it("passes an incoming request only for the current viewer and persists it", async () => {
+    const user = userEvent.setup();
+    const firstRender = render(<App />);
+    const incomingRequest = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+
+    await user.click(
+      within(incomingRequest).getByRole("button", { name: "Pass this time" }),
+    );
+
+    expect(
+      screen.queryByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "You passed on Anya’s request this time. Other Party members can still respond.",
+      ),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Filter to Receive requests" }),
+      ).toHaveFocus(),
+    );
+    expect(
+      JSON.parse(
+        window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
+      ).passes,
+    ).toEqual([
+      expect.objectContaining({
+        requestId: "care-request-anya-meal-001",
+        actorId: "you",
+      }),
+    ]);
+
+    firstRender.unmount();
+    render(<App />);
+    expect(
+      screen.queryByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it("omits an unclaimed request after its lifespan expires", () => {
     vi.setSystemTime(new Date("2031-09-04T12:00:00.000Z"));
     vi.spyOn(globalThis, "fetch").mockImplementation(

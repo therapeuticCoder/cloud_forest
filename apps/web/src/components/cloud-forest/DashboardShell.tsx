@@ -8,8 +8,10 @@ import {
   incomingCareRequests,
 } from "@/data/cloudForest";
 import {
+  canPassCareRequest,
   CURRENT_CARE_VIEWER_ID,
   expireDueCareRequests,
+  haveAllPartyMembersPassed,
   selectCareRequestPresentation,
   selectNextCareRequestExpiration,
   selectTimelineCareRequests,
@@ -46,6 +48,9 @@ export function DashboardShell() {
   const [careLifecycle, setCareLifecycle] = useState(() =>
     loadCareLifecycleState(incomingCareRequests),
   );
+  const [carePassAnnouncement, setCarePassAnnouncement] = useState<
+    string | undefined
+  >();
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
@@ -274,6 +279,21 @@ export function DashboardShell() {
       ),
     [careLifecycle, timelineCareRequests],
   );
+  const passableRequestIds = useMemo(() => {
+    const now = new Date().toISOString();
+    return new Set(
+      timelineCareRequests
+        .filter((request) =>
+          canPassCareRequest(
+            careLifecycle,
+            request.id,
+            CURRENT_CARE_VIEWER_ID,
+            now,
+          ),
+        )
+        .map((request) => request.id),
+    );
+  }, [careLifecycle, timelineCareRequests]);
   const careAudienceSnapshot = useMemo(
     () => ({
       partyMemberIds: partyPeople.map((person) => person.id),
@@ -344,6 +364,32 @@ export function DashboardShell() {
             },
           },
     );
+  };
+
+  const passCareRequest = (request: ReceiveCareRequest) => {
+    const transition = transitionCareLifecycle(careLifecycle, {
+      type: "pass-request",
+      pass: {
+        id: `care-pass-${request.id}-${CURRENT_CARE_VIEWER_ID}`,
+        requestId: request.id,
+        actorId: CURRENT_CARE_VIEWER_ID,
+        passedAt: new Date().toISOString(),
+      },
+    });
+    if (!transition.ok) return;
+
+    saveCareLifecycleState(transition.state);
+    setCareLifecycle(transition.state);
+    setCarePassAnnouncement(
+      haveAllPartyMembersPassed(transition.state, request)
+        ? `Your Party passed on ${request.requester.displayName.split(" ")[0]}’s request. It is now shared with the original Tribe audience.`
+        : `You passed on ${request.requester.displayName.split(" ")[0]}’s request this time. Other Party members can still respond.`,
+    );
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLButtonElement>("[data-care-receive-filter]")
+        ?.focus();
+    });
   };
 
   return (
@@ -430,6 +476,7 @@ export function DashboardShell() {
                     `[data-care-claim-action="${request.id}"]`,
                   )
                 }
+                onPass={passCareRequest}
                 onSetRequestMinimized={setCareRequestMinimized}
                 onWithdraw={withdrawCareRequest}
                 onWithdrawOffer={(offerId) =>
@@ -437,6 +484,8 @@ export function DashboardShell() {
                     currentOffers.filter((offer) => offer.id !== offerId),
                   )
                 }
+                passableRequestIds={passableRequestIds}
+                passAnnouncement={carePassAnnouncement}
               />
             ) : (
               <CuratorView

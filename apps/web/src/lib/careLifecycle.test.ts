@@ -7,6 +7,7 @@ import type {
 } from "@/types/careRequest";
 
 import {
+  canPassCareRequest,
   createCareLifecycleState,
   expireDueCareRequests,
   haveAllPartyMembersPassed,
@@ -252,6 +253,9 @@ describe("Receive-care lifecycle", () => {
 
   it("derives Party passing and Tribe demotion per viewer", () => {
     let state = createCareLifecycleState([request()]);
+    expect(canPassCareRequest(state, "request-1", "you", beforeExpiry)).toBe(
+      true,
+    );
     expect(selectTimelineCareRequests(state, "you", beforeExpiry)).toHaveLength(
       1,
     );
@@ -268,6 +272,12 @@ describe("Receive-care lifecycle", () => {
         passedAt: beforeExpiry,
       },
     });
+    expect(canPassCareRequest(state, "request-1", "you", beforeExpiry)).toBe(
+      false,
+    );
+    expect(canPassCareRequest(state, "request-1", "mira", beforeExpiry)).toBe(
+      true,
+    );
     expect(selectTimelineCareRequests(state, "you", beforeExpiry)).toHaveLength(
       0,
     );
@@ -294,6 +304,50 @@ describe("Receive-care lifecycle", () => {
     expect(
       selectTimelineCareRequests(state, "anya", beforeExpiry),
     ).toHaveLength(1);
+    expect(state.requests).toEqual([request()]);
+  });
+
+  it("rejects ineligible, duplicate, expired, and claimed passes", () => {
+    const initial = createCareLifecycleState([request()]);
+    const pass = {
+      id: "pass-you",
+      requestId: "request-1",
+      actorId: "you",
+      passedAt: beforeExpiry,
+    };
+
+    expect(
+      transitionCareLifecycle(initial, {
+        type: "pass-request",
+        pass: { ...pass, id: "pass-ren", actorId: "ren" },
+      }),
+    ).toMatchObject({ ok: false, error: "not-authorized" });
+
+    const passed = apply(initial, { type: "pass-request", pass });
+    expect(
+      transitionCareLifecycle(passed, {
+        type: "pass-request",
+        pass: { ...pass, id: "pass-you-again" },
+      }),
+    ).toMatchObject({ ok: false, error: "duplicate-record" });
+
+    expect(
+      transitionCareLifecycle(initial, {
+        type: "pass-request",
+        pass: { ...pass, passedAt: afterExpiry },
+      }),
+    ).toMatchObject({ ok: false, error: "request-expired" });
+
+    const claimed = apply(initial, { type: "claim-request", claim: claim() });
+    expect(
+      transitionCareLifecycle(claimed, { type: "pass-request", pass }),
+    ).toMatchObject({ ok: false, error: "already-claimed" });
+    expect(canPassCareRequest(claimed, "request-1", "you", beforeExpiry)).toBe(
+      false,
+    );
+    expect(canPassCareRequest(initial, "request-1", "you", "not-a-date")).toBe(
+      false,
+    );
   });
 
   it("keeps a claim visible only to the requester and claimer and rejects a second claim", () => {
