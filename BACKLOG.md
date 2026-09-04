@@ -36,38 +36,9 @@ should be small enough for one focused agent session.
 - T-025: Establish repository line-ending and name hygiene
 - T-026: Remove the dormant Galaxy prototype boundary
 - T-027: Establish the Receive-care lifecycle contract and prototype state engine
+- T-028A: Add Receive-care Timeline lifespan and seen presentation
 
 ## Current Milestone
-
-### T-028A: Add Receive-care Timeline lifespan and seen presentation
-
-Status: planned; requires T-027
-Size: medium
-
-Concrete goal:
-Implement the lifespan and per-viewer presentation portion of the request
-lifecycle: expire unclaimed requests, keep active care ahead of ordinary
-Timeline activity, and calmly minimize a request after that viewer has seen it.
-
-Likely files or boundaries:
-`ReceiveCareWizard.tsx`, `CareRequestCard.tsx`, `TimelinePanel.tsx`,
-`DashboardShell.tsx`, lifespan and seen-state selectors, focused component
-tests, and narrowly scoped styles in `apps/web/src/index.css`.
-
-Acceptance criteria:
-
-- an unclaimed request disappears from active Timelines when its explicit
-  lifespan expires while remaining available to private history selectors
-- care remains ahead of ordinary Timeline activity and minimizes per viewer
-  after it has been seen, with an accessible way to expand it again
-- seen and minimized presentation is derived independently for each supplied
-  viewer
-- expiry and seen behavior are exercised in focused reducer, selector, and
-  component tests
-
-Out of scope:
-Passing and Tribe demotion, the perspective switcher, completion, gratitude,
-Give-offer lifecycle parity, and production scheduling or notifications.
 
 ### T-028B: Add Party passing and Tribe demotion
 

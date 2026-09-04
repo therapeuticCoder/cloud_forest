@@ -116,17 +116,22 @@ type CareListing =
   | { kind: "receive"; item: ReceiveCareRequest };
 
 const noClaimedRequestIds = new Set<string>();
+const noMinimizedRequestIds = new Set<string>();
 
 function CareListings({
   claimedRequestIds,
   listings,
+  minimizedRequestIds,
   onOfferHelp,
+  onSetRequestMinimized,
   onWithdraw,
   onWithdrawOffer,
 }: {
   claimedRequestIds: Set<string>;
   listings: CareListing[];
+  minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
+  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
 }) {
@@ -141,7 +146,9 @@ function CareListings({
       <CareRequestCard
         claimed={claimedRequestIds.has(listing.item.id)}
         key={listing.item.id}
+        minimized={minimizedRequestIds.has(listing.item.id)}
         onOfferHelp={onOfferHelp}
+        onSetMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         request={listing.item}
       />
@@ -225,7 +232,9 @@ export function TimelinePanel({
   careOffers = [],
   careRequests = [],
   claimedRequestIds = noClaimedRequestIds,
+  minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
+  onSetRequestMinimized = () => undefined,
   onWithdraw = () => undefined,
   onWithdrawOffer = () => undefined,
 }: {
@@ -233,7 +242,9 @@ export function TimelinePanel({
   careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
   claimedRequestIds?: Set<string>;
+  minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
+  onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
   onWithdraw?: (requestId: string) => void;
   onWithdrawOffer?: (offerId: string) => void;
 }) {
@@ -308,7 +319,9 @@ export function TimelinePanel({
             <CareListings
               claimedRequestIds={claimedRequestIds}
               listings={visibleCareListings}
+              minimizedRequestIds={minimizedRequestIds}
               onOfferHelp={onOfferHelp}
+              onSetRequestMinimized={onSetRequestMinimized}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
             />
@@ -326,7 +339,9 @@ export function TimelinePanel({
             <CareListings
               claimedRequestIds={claimedRequestIds}
               listings={careListings}
+              minimizedRequestIds={minimizedRequestIds}
               onOfferHelp={onOfferHelp}
+              onSetRequestMinimized={onSetRequestMinimized}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
             />

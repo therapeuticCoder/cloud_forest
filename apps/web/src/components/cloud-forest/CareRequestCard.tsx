@@ -1,4 +1,5 @@
 import { HandHeart, UsersRound } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import type { ReceiveCareRequest } from "@/types/careRequest";
 
@@ -11,25 +12,77 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 
 export function CareRequestCard({
   claimed,
+  minimized,
   onOfferHelp,
+  onSetMinimized,
   onWithdraw,
   request,
 }: {
   claimed: boolean;
+  minimized: boolean;
   onOfferHelp: (request: ReceiveCareRequest) => void;
+  onSetMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   request: ReceiveCareRequest;
 }) {
   const isSelfAuthored = request.requester.kind === "self";
   const requesterFirstName = request.requester.displayName.split(" ")[0];
+  const presentationButtonRef = useRef<HTMLButtonElement>(null);
+  const restorePresentationFocusRef = useRef(false);
+  const articleLabel = isSelfAuthored
+    ? "Open meal care request"
+    : `Incoming meal care request from ${request.requester.displayName}`;
+  const setMinimized = (nextMinimized: boolean) => {
+    restorePresentationFocusRef.current = true;
+    onSetMinimized(request.id, nextMinimized);
+  };
+
+  useEffect(() => {
+    if (!restorePresentationFocusRef.current) return;
+    restorePresentationFocusRef.current = false;
+    requestAnimationFrame(() => presentationButtonRef.current?.focus());
+  }, [minimized]);
+
+  if (minimized) {
+    return (
+      <article
+        aria-label={`${articleLabel}, minimized`}
+        className={`care-request-card care-request-card--minimized${isSelfAuthored ? "" : " care-request-card--incoming"}`}
+      >
+        <div aria-hidden="true" className="care-request-card__mark">
+          <HandHeart />
+        </div>
+        <div className="care-request-card__body care-request-card__body--minimized">
+          <div>
+            <span className="care-request-card__eyebrow">Meal request</span>
+            <h2>
+              {isSelfAuthored
+                ? "Your meal request"
+                : `${requesterFirstName} asked for a meal`}
+            </h2>
+            <time dateTime={request.createdAt}>
+              {formatter.format(new Date(request.createdAt))}
+            </time>
+          </div>
+          <span className="care-request-card__status">
+            {claimed ? "Committed" : isSelfAuthored ? "Open" : "Needs help"}
+          </span>
+          <button
+            className="care-request-card__presentation"
+            onClick={() => setMinimized(false)}
+            ref={presentationButtonRef}
+            type="button"
+          >
+            Show details
+          </button>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article
-      aria-label={
-        isSelfAuthored
-          ? "Open meal care request"
-          : `Incoming meal care request from ${request.requester.displayName}`
-      }
+      aria-label={articleLabel}
       className={`care-request-card${isSelfAuthored ? "" : " care-request-card--incoming"}`}
     >
       <div aria-hidden="true" className="care-request-card__mark">
@@ -80,6 +133,14 @@ export function CareRequestCard({
             {formatter.format(new Date(request.createdAt))}
           </time>
         </div>
+        <button
+          className="care-request-card__presentation"
+          onClick={() => setMinimized(true)}
+          ref={presentationButtonRef}
+          type="button"
+        >
+          I’ve seen this
+        </button>
         {isSelfAuthored ? (
           <button
             className="care-request-card__withdraw"
