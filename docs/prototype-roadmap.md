@@ -85,3 +85,12 @@ grammar to their own tasks rather than copying Timeline-specific anatomy.
 Third-party reference screenshots remain uncommitted unless storage permission
 is clear. The repository stores derived principles and original Cloud Forest
 artifacts.
+
+## Durable conversion proposal
+
+The repository-wide prototype audit and proposed dependency-ordered conversion
+program live in `docs/durable-product-conversion-program.md`. The program is a
+proposal awaiting product-owner approval; its implementation tasks have not
+been added to the backlog. The recommended first tranche establishes canonical
+identity and authorization, then delivers Party membership and person profiles
+as one narrow authoritative vertical slice.
