@@ -1,11 +1,13 @@
+import type { RelationshipLayer } from "./relationships.js";
+
 export const timelineItemLayers = [
   "party",
   "tribe",
   "guild",
   "signal",
-] as const;
+] as const satisfies readonly RelationshipLayer[];
 
-export type TimelineItemLayer = (typeof timelineItemLayers)[number];
+export type TimelineItemLayer = RelationshipLayer;
 
 export type TimelineItemActor = {
   id: string;

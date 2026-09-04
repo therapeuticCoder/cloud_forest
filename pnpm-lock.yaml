@@ -62,6 +62,9 @@ importers:
       "@cloud-forest/api-client":
         specifier: workspace:*
         version: link:../../packages/api-client
+      "@cloud-forest/domain":
+        specifier: workspace:*
+        version: link:../../packages/domain
       "@fontsource-variable/geist":
         specifier: ^5.2.8
         version: 5.2.8
