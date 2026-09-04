@@ -12,15 +12,19 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 
 export function CareRequestCard({
   claimed,
+  canPass,
   minimized,
   onOfferHelp,
+  onPass,
   onSetMinimized,
   onWithdraw,
   request,
 }: {
   claimed: boolean;
+  canPass: boolean;
   minimized: boolean;
   onOfferHelp: (request: ReceiveCareRequest) => void;
+  onPass: (request: ReceiveCareRequest) => void;
   onSetMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   request: ReceiveCareRequest;
@@ -158,14 +162,25 @@ export function CareRequestCard({
             You’re helping {requesterFirstName}.
           </p>
         ) : (
-          <button
-            className="care-request-card__claim"
-            data-care-claim-action={request.id}
-            onClick={() => onOfferHelp(request)}
-            type="button"
-          >
-            I can help
-          </button>
+          <div className="care-request-card__actions">
+            <button
+              className="care-request-card__claim"
+              data-care-claim-action={request.id}
+              onClick={() => onOfferHelp(request)}
+              type="button"
+            >
+              I can help
+            </button>
+            {canPass ? (
+              <button
+                className="care-request-card__pass"
+                onClick={() => onPass(request)}
+                type="button"
+              >
+                Pass this time
+              </button>
+            ) : null}
+          </div>
         )}
       </div>
     </article>

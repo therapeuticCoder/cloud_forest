@@ -37,36 +37,9 @@ should be small enough for one focused agent session.
 - T-026: Remove the dormant Galaxy prototype boundary
 - T-027: Establish the Receive-care lifecycle contract and prototype state engine
 - T-028A: Add Receive-care Timeline lifespan and seen presentation
+- T-028B: Add Party passing and Tribe demotion
 
 ## Current Milestone
-
-### T-028B: Add Party passing and Tribe demotion
-
-Status: planned; requires T-028A
-Size: medium
-
-Concrete goal:
-Let each eligible Party member independently pass an open request and demote
-the still-unclaimed request to its snapshotted Tribe audience only after every
-snapshotted Party recipient has passed.
-
-Likely files or boundaries:
-`CareRequestCard.tsx`, `TimelinePanel.tsx`, `DashboardShell.tsx`, lifecycle
-selectors and fixtures, focused component tests, and narrowly scoped styles in
-`apps/web/src/index.css`.
-
-Acceptance criteria:
-
-- one Party member can pass without affecting other Party members' Timelines
-- once every snapshotted Party recipient passes, the open request leaves Party
-  Timelines and appears for the intended Tribe audience
-- passing and demotion change derived visibility without deleting the request
-- ineligible viewers, duplicate passes, expired requests, and claimed requests
-  cannot create a valid pass
-
-Out of scope:
-The perspective switcher, claim presentation changes, completion, gratitude,
-Give-offer lifecycle parity, and production notifications.
 
 ### T-028C: Add the care perspective harness and claim visibility
 

@@ -32,9 +32,11 @@ describe("CareRequestCard seen presentation", () => {
     const onSetMinimized = vi.fn();
     render(
       <CareRequestCard
+        canPass
         claimed={false}
         minimized={false}
         onOfferHelp={vi.fn()}
+        onPass={vi.fn()}
         onSetMinimized={onSetMinimized}
         onWithdraw={vi.fn()}
         request={request}
@@ -56,9 +58,11 @@ describe("CareRequestCard seen presentation", () => {
     const onSetMinimized = vi.fn();
     render(
       <CareRequestCard
+        canPass
         claimed={false}
         minimized
         onOfferHelp={vi.fn()}
+        onPass={vi.fn()}
         onSetMinimized={onSetMinimized}
         onWithdraw={vi.fn()}
         request={request}
@@ -75,5 +79,25 @@ describe("CareRequestCard seen presentation", () => {
       within(card).getByRole("button", { name: "Show details" }),
     );
     expect(onSetMinimized).toHaveBeenCalledWith("request-1", false);
+  });
+
+  it("offers an eligible incoming viewer a distinct pass action", async () => {
+    const user = userEvent.setup();
+    const onPass = vi.fn();
+    render(
+      <CareRequestCard
+        canPass
+        claimed={false}
+        minimized={false}
+        onOfferHelp={vi.fn()}
+        onPass={onPass}
+        onSetMinimized={vi.fn()}
+        onWithdraw={vi.fn()}
+        request={request}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Pass this time" }));
+    expect(onPass).toHaveBeenCalledWith(request);
   });
 });
