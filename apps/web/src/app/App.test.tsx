@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 
@@ -17,6 +17,11 @@ describe("App", () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.history.replaceState({}, "", "/");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("renders Timeline as a standalone default view", () => {
@@ -234,6 +239,62 @@ describe("App", () => {
     expect(
       screen.getAllByRole("article", { name: "Open meal care request" }),
     ).toHaveLength(1);
+  });
+
+  it("keeps a seen request minimized per viewer across reload", async () => {
+    const user = userEvent.setup();
+    const firstRender = render(<App />);
+    const incomingRequest = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+
+    await user.click(
+      within(incomingRequest).getByRole("button", { name: "I’ve seen this" }),
+    );
+    expect(
+      screen.getByRole("article", {
+        name: "Incoming meal care request from Anya Reed, minimized",
+      }),
+    ).not.toHaveTextContent("Nothing spicy");
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Show details" }),
+      ).toHaveFocus(),
+    );
+
+    firstRender.unmount();
+    render(<App />);
+    const minimizedRequest = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed, minimized",
+    });
+    await user.click(
+      within(minimizedRequest).getByRole("button", { name: "Show details" }),
+    );
+    expect(
+      screen.getByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
+    ).toHaveTextContent("Nothing spicy");
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "I’ve seen this" }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it("omits an unclaimed request after its lifespan expires", () => {
+    vi.setSystemTime(new Date("2031-09-04T12:00:00.000Z"));
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      () => new Promise<Response>(() => undefined),
+    );
+
+    render(<App />);
+
+    expect(
+      screen.queryByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("opens Receive from Curator and returns to Timeline after asking", async () => {

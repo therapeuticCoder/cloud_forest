@@ -33,6 +33,13 @@ export type CareLifecycleAction =
       withdrawnAt: string;
     }
   | { type: "mark-seen"; seenState: CareSeenState }
+  | {
+      type: "set-seen-minimized";
+      requestId: string;
+      viewerId: CarePersonId;
+      minimized: boolean;
+      changedAt: string;
+    }
   | { type: "pass-request"; pass: CarePass }
   | { type: "claim-request"; claim: CareClaim }
   | { type: "record-completion"; completion: CareCompletion }
@@ -159,6 +166,69 @@ export function selectTimelineCareRequests(
   );
 }
 
+export function selectCareRequestPresentation(
+  state: CareLifecycleState,
+  requestId: string,
+  viewerId: CarePersonId,
+) {
+  const seenState = state.seenStates.find(
+    (seen) => seen.requestId === requestId && seen.viewerId === viewerId,
+  );
+  return {
+    seen: Boolean(seenState),
+    minimized: seenState?.minimized ?? false,
+  };
+}
+
+export function selectPrivateCareHistory(
+  state: CareLifecycleState,
+  ownerId: CarePersonId,
+  viewerId: CarePersonId,
+) {
+  if (ownerId !== viewerId) return [];
+  return state.history.filter((entry) => entry.ownerId === ownerId);
+}
+
+export function expireDueCareRequests(state: CareLifecycleState, at: string) {
+  if (!hasValidTimestamp(at)) return state;
+  return state.requests.reduce((currentState, request) => {
+    if (
+      getClaim(currentState, request.id) ||
+      isTerminal(currentState, request.id) ||
+      !isCareRequestExpired(request, at)
+    ) {
+      return currentState;
+    }
+
+    const transition = transitionCareLifecycle(currentState, {
+      type: "expire-request",
+      requestId: request.id,
+      expiredAt: at,
+    });
+    return transition.ok ? transition.state : currentState;
+  }, state);
+}
+
+export function selectNextCareRequestExpiration(
+  state: CareLifecycleState,
+  at: string,
+) {
+  const now = Date.parse(at);
+  if (!Number.isFinite(now)) return undefined;
+  return state.requests.reduce<number | undefined>((nextExpiry, request) => {
+    const expiresAt = Date.parse(request.expiresAt);
+    if (
+      getClaim(state, request.id) ||
+      isTerminal(state, request.id) ||
+      expiresAt <= now ||
+      (nextExpiry !== undefined && nextExpiry <= expiresAt)
+    ) {
+      return nextExpiry;
+    }
+    return expiresAt;
+  }, undefined);
+}
+
 export function selectProfileCareRequests(
   state: CareLifecycleState,
   profileOwnerId: CarePersonId,
@@ -230,6 +300,13 @@ function validateAction(
         hasValidIdentity(action.seenState.viewerId) &&
         hasValidTimestamp(action.seenState.seenAt) &&
         typeof action.seenState.minimized === "boolean"
+      );
+    case "set-seen-minimized":
+      return (
+        hasValidIdentity(action.requestId) &&
+        hasValidIdentity(action.viewerId) &&
+        typeof action.minimized === "boolean" &&
+        hasValidTimestamp(action.changedAt)
       );
     case "pass-request":
       return (
@@ -303,6 +380,8 @@ function getActionRequestId(
       return action.requestId;
     case "mark-seen":
       return action.seenState.requestId;
+    case "set-seen-minimized":
+      return action.requestId;
     case "pass-request":
       return action.pass.requestId;
     case "claim-request":
@@ -396,6 +475,33 @@ export function transitionCareLifecycle(
     return accept({
       ...state,
       seenStates: [...state.seenStates, action.seenState],
+    });
+  }
+
+  if (action.type === "set-seen-minimized") {
+    const seenState = state.seenStates.find(
+      (seen) =>
+        seen.requestId === requestId && seen.viewerId === action.viewerId,
+    );
+    if (!seenState) return reject(state, "request-not-found");
+    if (
+      !isCareRequestVisibleOnTimeline(
+        state,
+        request,
+        action.viewerId,
+        action.changedAt,
+      )
+    ) {
+      return reject(state, "request-not-visible");
+    }
+    if (seenState.minimized === action.minimized) {
+      return accept(state);
+    }
+    return accept({
+      ...state,
+      seenStates: state.seenStates.map((seen) =>
+        seen === seenState ? { ...seen, minimized: action.minimized } : seen,
+      ),
     });
   }
 

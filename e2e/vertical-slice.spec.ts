@@ -129,7 +129,7 @@ test("database-backed Timeline and prototype regression path", async ({
     page.getByRole("region", { name: "Timeline view" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Whole Forest" }),
+    page.getByRole("heading", { name: "Timeline", exact: true }),
   ).toBeVisible();
 
   const miraResponse = await miraResponsePromise;
@@ -157,7 +157,9 @@ test("database-backed Timeline and prototype regression path", async ({
   await expect(page.getByText("Ren", { exact: true })).toBeVisible();
   await expect(page.getByText("Yesterday", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Write", exact: true }),
+    page
+      .getByRole("button", { name: "Receive", exact: true })
+      .filter({ visible: true }),
   ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
@@ -167,11 +169,38 @@ test("database-backed Timeline and prototype regression path", async ({
     "timeline.png",
   );
 
+  const fullCareRequest = page.getByRole("article", {
+    name: "Incoming meal care request from Anya Reed",
+  });
+  await fullCareRequest.getByRole("button", { name: "I’ve seen this" }).click();
+  const minimizedCareRequest = page.getByRole("article", {
+    name: "Incoming meal care request from Anya Reed, minimized",
+  });
+  await expect(minimizedCareRequest).toBeVisible();
+  await expect(minimizedCareRequest).not.toContainText("Nothing spicy");
+  await expect(
+    minimizedCareRequest.getByRole("button", { name: "Show details" }),
+  ).toBeFocused();
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
+    "timeline-care-minimized.png",
+  );
+
+  await page.reload();
+  await expect(minimizedCareRequest).toBeVisible();
+  await minimizedCareRequest
+    .getByRole("button", { name: "Show details" })
+    .click();
+  await expect(fullCareRequest).toContainText("Nothing spicy");
+  await expect(
+    fullCareRequest.getByRole("button", { name: "I’ve seen this" }),
+  ).toBeFocused();
+
   await expectHiddenChromeRecoversFromKeyboard(page);
   await page.evaluate(() => window.scrollTo(0, 0));
 
   await page
-    .getByRole("button", { name: "Curator", exact: true })
+    .getByRole("button", { name: "Go to Curator", exact: true })
     .filter({ visible: true })
     .click();
   await expect(

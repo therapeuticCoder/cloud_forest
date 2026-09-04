@@ -8,7 +8,11 @@ import type {
 
 import {
   createCareLifecycleState,
+  expireDueCareRequests,
   haveAllPartyMembersPassed,
+  selectCareRequestPresentation,
+  selectNextCareRequestExpiration,
+  selectPrivateCareHistory,
   selectProfileCareRequests,
   selectTimelineCareRequests,
   transitionCareLifecycle,
@@ -136,6 +140,16 @@ describe("Receive-care lifecycle", () => {
           seenAt: "not-a-timestamp",
           minimized: true,
         },
+      },
+    ],
+    [
+      "seen presentation timestamp",
+      {
+        type: "set-seen-minimized",
+        requestId: "request-1",
+        viewerId: "you",
+        minimized: false,
+        changedAt: "not-a-timestamp",
       },
     ],
     [
@@ -349,6 +363,65 @@ describe("Receive-care lifecycle", () => {
     ).toMatchObject({ ok: false, error: "request-not-visible" });
   });
 
+  it("derives and changes minimized presentation independently per viewer", () => {
+    let state = createCareLifecycleState([request()]);
+    state = apply(state, {
+      type: "mark-seen",
+      seenState: {
+        id: "seen-you",
+        requestId: "request-1",
+        viewerId: "you",
+        seenAt: beforeExpiry,
+        minimized: true,
+      },
+    });
+    state = apply(state, {
+      type: "mark-seen",
+      seenState: {
+        id: "seen-mira",
+        requestId: "request-1",
+        viewerId: "mira",
+        seenAt: beforeExpiry,
+        minimized: false,
+      },
+    });
+
+    expect(selectCareRequestPresentation(state, "request-1", "you")).toEqual({
+      seen: true,
+      minimized: true,
+    });
+    expect(selectCareRequestPresentation(state, "request-1", "mira")).toEqual({
+      seen: true,
+      minimized: false,
+    });
+
+    state = apply(state, {
+      type: "set-seen-minimized",
+      requestId: "request-1",
+      viewerId: "you",
+      minimized: false,
+      changedAt: beforeExpiry,
+    });
+
+    expect(selectCareRequestPresentation(state, "request-1", "you")).toEqual({
+      seen: true,
+      minimized: false,
+    });
+    expect(selectCareRequestPresentation(state, "request-1", "mira")).toEqual({
+      seen: true,
+      minimized: false,
+    });
+    expect(
+      transitionCareLifecycle(createCareLifecycleState([request()]), {
+        type: "set-seen-minimized",
+        requestId: "request-1",
+        viewerId: "you",
+        minimized: false,
+        changedAt: beforeExpiry,
+      }),
+    ).toMatchObject({ ok: false, error: "request-not-found" });
+  });
+
   it("closes completed care only after both participants decide", () => {
     let state = apply(createCareLifecycleState([request()]), {
       type: "claim-request",
@@ -445,5 +518,32 @@ describe("Receive-care lifecycle", () => {
         expiredAt: afterExpiry,
       }),
     ).toMatchObject({ ok: false, error: "request-expired" });
+  });
+
+  it("expires due requests into private history and selects the next expiry", () => {
+    const laterRequest = request({
+      id: "request-2",
+      createdAt: "2026-09-03T11:00:00.000Z",
+      expiresAt: "2026-09-12T10:00:00.000Z",
+    });
+    const initial = createCareLifecycleState([request(), laterRequest]);
+
+    expect(selectNextCareRequestExpiration(initial, beforeExpiry)).toBe(
+      Date.parse("2026-09-10T10:00:00.000Z"),
+    );
+
+    const expired = expireDueCareRequests(initial, afterExpiry);
+    expect(selectTimelineCareRequests(expired, "you", afterExpiry)).toEqual([
+      laterRequest,
+    ]);
+    expect(selectPrivateCareHistory(expired, "anya", "anya")).toEqual([
+      expect.objectContaining({ requestId: "request-1", outcome: "expired" }),
+    ]);
+    expect(selectPrivateCareHistory(expired, "anya", "you")).toEqual([]);
+    expect(selectNextCareRequestExpiration(expired, afterExpiry)).toBe(
+      Date.parse(laterRequest.expiresAt),
+    );
+    expect(expireDueCareRequests(expired, afterExpiry)).toBe(expired);
+    expect(expireDueCareRequests(initial, "not-a-timestamp")).toBe(initial);
   });
 });

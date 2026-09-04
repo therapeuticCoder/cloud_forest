@@ -9,6 +9,9 @@ import {
 } from "@/data/cloudForest";
 import {
   CURRENT_CARE_VIEWER_ID,
+  expireDueCareRequests,
+  selectCareRequestPresentation,
+  selectNextCareRequestExpiration,
   selectTimelineCareRequests,
   transitionCareLifecycle,
   type CareLifecycleAction,
@@ -255,6 +258,22 @@ export function DashboardShell() {
       ),
     [careLifecycle],
   );
+  const minimizedRequestIds = useMemo(
+    () =>
+      new Set(
+        timelineCareRequests
+          .filter(
+            (request) =>
+              selectCareRequestPresentation(
+                careLifecycle,
+                request.id,
+                CURRENT_CARE_VIEWER_ID,
+              ).minimized,
+          )
+          .map((request) => request.id),
+      ),
+    [careLifecycle, timelineCareRequests],
+  );
   const careAudienceSnapshot = useMemo(
     () => ({
       partyMemberIds: partyPeople.map((person) => person.id),
@@ -264,6 +283,68 @@ export function DashboardShell() {
     }),
     [partyPeople],
   );
+
+  useEffect(() => {
+    let timeout: number | undefined;
+    const synchronizeExpirations = () => {
+      const now = new Date().toISOString();
+      setCareLifecycle((currentState) => {
+        const nextState = expireDueCareRequests(currentState, now);
+        if (nextState === currentState) return currentState;
+        saveCareLifecycleState(nextState);
+        return nextState;
+      });
+    };
+    const scheduleNextExpirationCheck = () => {
+      const now = new Date().toISOString();
+      const nextExpiry = selectNextCareRequestExpiration(careLifecycle, now);
+      if (nextExpiry === undefined) return;
+
+      const maximumTimeout = 2_147_483_647;
+      timeout = window.setTimeout(
+        () => {
+          synchronizeExpirations();
+          scheduleNextExpirationCheck();
+        },
+        Math.min(Math.max(nextExpiry - Date.parse(now), 0), maximumTimeout),
+      );
+    };
+
+    synchronizeExpirations();
+    scheduleNextExpirationCheck();
+    return () => {
+      if (timeout !== undefined) window.clearTimeout(timeout);
+    };
+  }, [careLifecycle]);
+
+  const setCareRequestMinimized = (requestId: string, minimized: boolean) => {
+    const changedAt = new Date().toISOString();
+    const presentation = selectCareRequestPresentation(
+      careLifecycle,
+      requestId,
+      CURRENT_CARE_VIEWER_ID,
+    );
+    applyCareLifecycleAction(
+      presentation.seen
+        ? {
+            type: "set-seen-minimized",
+            requestId,
+            viewerId: CURRENT_CARE_VIEWER_ID,
+            minimized,
+            changedAt,
+          }
+        : {
+            type: "mark-seen",
+            seenState: {
+              id: `care-seen-${requestId}-${CURRENT_CARE_VIEWER_ID}`,
+              requestId,
+              viewerId: CURRENT_CARE_VIEWER_ID,
+              seenAt: changedAt,
+              minimized,
+            },
+          },
+    );
+  };
 
   return (
     <main
@@ -342,12 +423,14 @@ export function DashboardShell() {
                 careOffers={careOffers}
                 careRequests={timelineCareRequests}
                 claimedRequestIds={claimedRequestIds}
+                minimizedRequestIds={minimizedRequestIds}
                 onOfferHelp={(request) =>
                   openCareDestination(
                     { kind: "claim", request },
                     `[data-care-claim-action="${request.id}"]`,
                   )
                 }
+                onSetRequestMinimized={setCareRequestMinimized}
                 onWithdraw={withdrawCareRequest}
                 onWithdrawOffer={(offerId) =>
                   setCareOffers((currentOffers) =>
