@@ -105,6 +105,23 @@ their detailed implementation context.
   concurrency, persistence, synchronization, and recovery require explicit
   later slices. Only the existing PostgreSQL-backed Timeline-item read is an
   authoritative server path today.
+- **D-032 — Durable conversion starts with invited identity, Party, and
+  profiles.** The first approved tranche is DCP-01 through DCP-06, recorded as
+  T-034 through T-041 with two collaborative UX checkpoints. The initial pilot
+  maps one invited account to one person. Portrait upload remains deferred;
+  minimum authoritative Tribe membership precedes durable care without making
+  visual neighborhoods authoritative; fictional browser care records are test
+  data and will not be imported. Better Auth with invite-only magic links
+  remains the preferred authentication direction despite the product owner's
+  dislike of magic links, subject to separate dependency approval. Local and
+  test invitations precede any production email provider.
+- **D-033 — Alternate durable construction with explicit UX review.** Place
+  rapid, annotated desktop and mobile UX checkpoints before implementing major
+  identity, relationship, care-transition, and recovery boundaries. When an
+  approved task naturally touches a growing coordinator, stylesheet, or test
+  suite, extract one cohesive responsibility when it makes that task clearer;
+  do not turn incremental stewardship into unrelated or line-count-driven
+  refactoring.
 
 ## Fulfilled milestone decisions
 

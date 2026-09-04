@@ -1,8 +1,9 @@
 # Proposed durable product conversion program
 
-Status: proposed for product-owner approval. Do not add the implementation
-tasks below to `BACKLOG.md` or change application behavior until the program and
-its first delivery tranche are approved.
+Status: first delivery tranche approved by the product owner on 2026-09-04.
+DCP-01 through DCP-06 are active in `BACKLOG.md` as T-034 through T-041, with
+collaborative UX checkpoints before authentication implementation and Party UI
+conversion. Later tranches remain proposed until explicitly loaded.
 
 ## Purpose and recommendation
 
@@ -19,6 +20,11 @@ Pause for product review after that working slice. The second tranche converts
 care requests and offers; the third converts lifecycle decisions and Timeline
 activity. This ordering gives care a real relationship and authorization model
 instead of preserving the fictional perspective harness as architecture.
+
+The approved cadence alternates durable construction with rapid, annotated UX
+review. Growing files are improved incrementally only when the active task
+naturally exposes a cohesive extraction; this is not a blanket refactor. See
+`BACKLOG.md` for the active task boundaries and later-tranche UX gates.
 
 ## Current user-visible inventory
 
@@ -120,7 +126,9 @@ a durable-job implementation.
 
 ## Proposed dependency-ordered implementation tasks
 
-These identifiers are proposal-local. They are not backlog entries.
+The DCP identifiers remain useful program-level references. The approved first
+tranche maps DCP-01 through DCP-06 to backlog tasks T-034 through T-041 because
+the two collaborative UX checkpoints are tracked as separate tasks.
 
 ### Tranche 1 — identity, Party, and profiles
 
@@ -206,7 +214,7 @@ These identifiers are proposal-local. They are not backlog entries.
 - Checks: focused component tests, authenticated desktop/mobile E2E, offline and
   API-failure states, `pnpm check`.
 - Risks: portrait upload is not part of this task; retain initials or a
-  session-only preview until DCP-07 is separately approved.
+  session-only preview until DCP-M01 is separately approved.
 
 ### Optional branch — portrait media
 
@@ -416,16 +424,25 @@ These identifiers are proposal-local. They are not backlog entries.
 These are not omissions from durability. They are product choices whose missing
 requirements make implementation premature.
 
-## Approval choices
+## Recorded product-owner decisions
 
-Product-owner review should decide:
+On 2026-09-04, the product owner approved:
 
-1. whether DCP-01 through DCP-06 are the first approved tranche;
-2. whether portrait upload remains deferred;
-3. whether authoritative Tribe membership is included before care conversion;
-4. whether browser care records are explicitly non-importable test data; and
-5. whether the existing roadmap's named authentication direction remains the
-   preferred dependency, subject to a separate dependency approval.
+1. DCP-01 through DCP-06 as the first delivery tranche. `BACKLOG.md` maps the
+   work to T-034 through T-041 so the two UX review checkpoints remain separate
+   from their implementation tasks.
+2. Deferring portrait upload. Initials and session-only preview behavior are
+   sufficient until DCP-M01 is separately selected.
+3. Establishing only the minimum authoritative Tribe membership needed for
+   care audiences before converting care. Visual neighborhood editing remains
+   a prototype and is not pulled into the dependency path.
+4. Treating v1/v2 browser care records as non-importable fictional test data.
+   Tranche 1 may introduce deterministic database-backed account, person, and
+   Party fixtures; it must not convert browser lifecycle records into user data.
+5. Retaining Better Auth with invite-only email magic links as the preferred
+   direction for evaluation. The dependency still requires separate approval,
+   and deterministic local and test invitations come before production email
+   delivery.
 
-After approval, add only the selected tranche to `BACKLOG.md`, preserving one
-task, branch, pull request, review, and merge per item.
+Complete one task, branch, pull request, review, and merge at a time. Pause for
+product-owner review after T-041 before loading another implementation tranche.
