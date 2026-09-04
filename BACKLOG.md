@@ -43,52 +43,13 @@ should be small enough for one focused agent session.
 - T-030: Add two-party completion and not-completed dispositions
 - T-031: Add the receiver gratitude flow and optional Tribe post
 - T-032: Harden and document the accepted Receive-care lifecycle prototype
+- T-033: Plan the prototype-to-durable product conversion program
 
 ## Current Milestone
 
-### T-033: Plan the prototype-to-durable product conversion program
-
-Status: planned; begin after the care lifecycle prototype is accepted
-Size: medium planning task
-
-Concrete goal:
-Audit all previously prototyped Cloud Forest functionality and produce a
-sequenced, evidence-backed implementation program for turning selected mock,
-React-memory, and device-only behavior into durable product slices. Treat
-"durable" as explicit data ownership, domain types, tested database and API
-interactions, authorization, recovery behavior, and appropriate client caching,
-not as a blanket rewrite.
-
-Likely files or boundaries:
-Repository-wide read-only inspection of `apps/web`, `apps/api`, shared domain and
-API-contract packages, `packages/database`, migrations, tests, existing
-decisions and roadmap documents; backlog and decision updates only after human
-review of the proposed sequence.
-
-Acceptance criteria:
-
-- inventory every user-visible prototype flow and identify its present source
-  of truth: mock fixture, React memory, localStorage, API, or PostgreSQL
-- classify each flow as intentionally local/private, cached server state, or
-  authoritative shared state
-- identify missing domain classes/types, API contracts, authorization rules,
-  database interactions and migrations, concurrency guarantees, recovery
-  behavior, and unit/integration/E2E coverage
-- explicitly include Party membership, person profiles, care requests and
-  offers, care lifecycle records, Timeline activity, and any other previously
-  accepted prototype behavior found during inspection
-- recommend small dependency-ordered implementation tasks with prerequisites,
-  migration boundaries, acceptance criteria, checks, risks, and estimated size
-- distinguish functionality that should remain a prototype or local-first from
-  functionality that should become authoritative; do not equate durable with
-  server-hosted by default
-- present the proposed program for product-owner approval before adding its
-  implementation tasks or changing application code
-
-Out of scope:
-Implementing the conversion, adding dependencies, changing schemas or APIs,
-migrating data, adding authentication, or bundling multiple prototype flows into
-one broad productionization change.
+No product milestone is currently approved. The proposed durable conversion
+program is recorded in `docs/durable-product-conversion-program.md` for
+product-owner review; none of its implementation tasks are active backlog work.
 
 ## Anticipated Future Milestones
 
