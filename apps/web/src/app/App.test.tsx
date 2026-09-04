@@ -550,4 +550,63 @@ describe("App", () => {
       ).toBeInTheDocument();
     });
   });
+
+  it("reviews open, passed, demoted, and claimed care without changing state on switch", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const perspective = screen.getByLabelText("Reviewing as");
+    const incomingName = "Incoming meal care request from Anya Reed";
+
+    expect(screen.getByText(/not account switching/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Pass this time" }));
+    expect(
+      screen.queryByRole("article", { name: incomingName }),
+    ).not.toBeInTheDocument();
+
+    for (const partyViewer of ["mira", "sol", "dev"]) {
+      await user.selectOptions(perspective, partyViewer);
+      expect(
+        screen.getByRole("article", { name: incomingName }),
+      ).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Pass this time" }));
+    }
+
+    expect(
+      screen.getByText(
+        "Your Party passed on Anya’s request. It is now shared with the original Tribe audience.",
+      ),
+    ).toBeInTheDocument();
+    await user.selectOptions(perspective, "nearby-family-1");
+    expect(
+      screen.getByRole("article", { name: incomingName }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "I can help" }));
+    await user.click(
+      screen.getByRole("button", { name: "I’ll help with this" }),
+    );
+    expect(await screen.findByText("You’re helping Anya.")).toBeInTheDocument();
+
+    await user.selectOptions(perspective, "anya");
+    expect(
+      screen.getByRole("article", { name: "Claimed meal care request" }),
+    ).toHaveTextContent("Someone is helping with this request.");
+
+    await user.selectOptions(perspective, "mira");
+    expect(
+      screen.queryByRole("article", { name: incomingName }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("article", { name: "Claimed meal care request" }),
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(perspective, "nearby-family-1");
+    expect(screen.getByText("You’re helping Anya.")).toBeInTheDocument();
+    const stored = JSON.parse(
+      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
+    );
+    expect(stored.passes).toHaveLength(4);
+    expect(stored.claims).toEqual([
+      expect.objectContaining({ claimerId: "nearby-family-1" }),
+    ]);
+  });
 });

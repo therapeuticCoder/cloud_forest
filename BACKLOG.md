@@ -38,41 +38,9 @@ should be small enough for one focused agent session.
 - T-027: Establish the Receive-care lifecycle contract and prototype state engine
 - T-028A: Add Receive-care Timeline lifespan and seen presentation
 - T-028B: Add Party passing and Tribe demotion
+- T-028C: Add the care perspective harness and claim visibility
 
 ## Current Milestone
-
-### T-028C: Add the care perspective harness and claim visibility
-
-Status: planned; requires T-028B
-Size: medium
-
-Concrete goal:
-Add a prototype-only fictional-person switcher for reviewing requester, Party,
-claimer, and Tribe Timeline perspectives, and use it to expose and verify the
-per-viewer visibility of open, passed, demoted, and claimed requests.
-
-Likely files or boundaries:
-New focused perspective-switcher component and fixtures, `TimelineView.tsx`,
-`TimelinePanel.tsx`, `DashboardShell.tsx`, lifecycle selectors, component tests,
-and narrowly scoped styles in `apps/web/src/index.css`.
-
-Acceptance criteria:
-
-- a successful claim removes the request from other eligible members while
-  retaining it for the requester and claimer
-- a clearly labeled prototype-only person switcher can exercise requester,
-  Party-member, claimer, and Tribe-member perspectives without implying a
-  production account-switching feature
-- switching perspectives updates request visibility and available actions from
-  the supplied fictional viewer without changing the underlying lifecycle
-  records
-- the representative open, passed, demoted, and claimed perspectives are
-  covered by focused component tests and browser review
-
-Out of scope:
-Real accounts, authentication, cross-device synchronization, server-atomic
-claims, completion, gratitude, Give-offer lifecycle parity, and production
-notifications.
 
 ### T-029: Add care actions and history to person profile destinations
 

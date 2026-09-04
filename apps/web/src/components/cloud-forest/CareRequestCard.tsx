@@ -1,7 +1,7 @@
 import { HandHeart, UsersRound } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-import type { ReceiveCareRequest } from "@/types/careRequest";
+import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -19,6 +19,8 @@ export function CareRequestCard({
   onSetMinimized,
   onWithdraw,
   request,
+  viewerId,
+  viewerIsClaimer,
 }: {
   claimed: boolean;
   canPass: boolean;
@@ -28,14 +30,25 @@ export function CareRequestCard({
   onSetMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   request: ReceiveCareRequest;
+  viewerId: CarePersonId;
+  viewerIsClaimer: boolean;
 }) {
-  const isSelfAuthored = request.requester.kind === "self";
+  const isSelfAuthored = request.requester.id === viewerId;
   const requesterFirstName = request.requester.displayName.split(" ")[0];
   const presentationButtonRef = useRef<HTMLButtonElement>(null);
   const restorePresentationFocusRef = useRef(false);
   const articleLabel = isSelfAuthored
-    ? "Open meal care request"
+    ? claimed
+      ? "Claimed meal care request"
+      : "Open meal care request"
     : `Incoming meal care request from ${request.requester.displayName}`;
+  const statusLabel = claimed
+    ? viewerIsClaimer
+      ? "Committed"
+      : "Help coming"
+    : isSelfAuthored
+      ? "Open"
+      : "Needs help";
   const setMinimized = (nextMinimized: boolean) => {
     restorePresentationFocusRef.current = true;
     onSetMinimized(request.id, nextMinimized);
@@ -68,9 +81,7 @@ export function CareRequestCard({
               {formatter.format(new Date(request.createdAt))}
             </time>
           </div>
-          <span className="care-request-card__status">
-            {claimed ? "Committed" : isSelfAuthored ? "Open" : "Needs help"}
-          </span>
+          <span className="care-request-card__status">{statusLabel}</span>
           <button
             className="care-request-card__presentation"
             onClick={() => setMinimized(false)}
@@ -102,9 +113,7 @@ export function CareRequestCard({
                 : `${requesterFirstName} is asking for a meal`}
             </h2>
           </div>
-          <span className="care-request-card__status">
-            {claimed ? "Committed" : isSelfAuthored ? "Open" : "Needs help"}
-          </span>
+          <span className="care-request-card__status">{statusLabel}</span>
         </div>
         <dl>
           <div>
@@ -145,7 +154,7 @@ export function CareRequestCard({
         >
           I’ve seen this
         </button>
-        {isSelfAuthored ? (
+        {isSelfAuthored && !claimed ? (
           <button
             className="care-request-card__withdraw"
             onClick={() => onWithdraw(request.id)}
@@ -159,7 +168,9 @@ export function CareRequestCard({
             data-care-claim-status={request.id}
             tabIndex={-1}
           >
-            You’re helping {requesterFirstName}.
+            {viewerIsClaimer
+              ? `You’re helping ${requesterFirstName}.`
+              : "Someone is helping with this request."}
           </p>
         ) : (
           <div className="care-request-card__actions">

@@ -7,6 +7,7 @@ import {
   curatorUser,
   incomingCareRequests,
 } from "@/data/cloudForest";
+import { carePerspectiveOptions } from "@/data/careLifecycleMockData";
 import {
   canPassCareRequest,
   CURRENT_CARE_VIEWER_ID,
@@ -51,6 +52,7 @@ export function DashboardShell() {
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<
     string | undefined
   >();
+  const [careViewerId, setCareViewerId] = useState(CURRENT_CARE_VIEWER_ID);
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
@@ -124,7 +126,7 @@ export function DashboardShell() {
     applyCareLifecycleAction({
       type: "withdraw-request",
       requestId,
-      actorId: CURRENT_CARE_VIEWER_ID,
+      actorId: careViewerId,
       withdrawnAt: new Date().toISOString(),
     });
   };
@@ -176,9 +178,9 @@ export function DashboardShell() {
     applyCareLifecycleAction({
       type: "claim-request",
       claim: {
-        id: `care-claim-${request.id}-${CURRENT_CARE_VIEWER_ID}`,
+        id: `care-claim-${request.id}-${careViewerId}`,
         requestId: request.id,
-        claimerId: CURRENT_CARE_VIEWER_ID,
+        claimerId: careViewerId,
         claimedAt,
       },
     });
@@ -254,14 +256,23 @@ export function DashboardShell() {
       ),
     [careLifecycle.claims, careLifecycle.requests],
   );
+  const viewerClaimedRequestIds = useMemo(
+    () =>
+      new Set(
+        careLifecycle.claims
+          .filter((claim) => claim.claimerId === careViewerId)
+          .map((claim) => claim.requestId),
+      ),
+    [careLifecycle.claims, careViewerId],
+  );
   const timelineCareRequests = useMemo(
     () =>
       selectTimelineCareRequests(
         careLifecycle,
-        CURRENT_CARE_VIEWER_ID,
+        careViewerId,
         new Date().toISOString(),
       ),
-    [careLifecycle],
+    [careLifecycle, careViewerId],
   );
   const minimizedRequestIds = useMemo(
     () =>
@@ -272,28 +283,23 @@ export function DashboardShell() {
               selectCareRequestPresentation(
                 careLifecycle,
                 request.id,
-                CURRENT_CARE_VIEWER_ID,
+                careViewerId,
               ).minimized,
           )
           .map((request) => request.id),
       ),
-    [careLifecycle, timelineCareRequests],
+    [careLifecycle, careViewerId, timelineCareRequests],
   );
   const passableRequestIds = useMemo(() => {
     const now = new Date().toISOString();
     return new Set(
       timelineCareRequests
         .filter((request) =>
-          canPassCareRequest(
-            careLifecycle,
-            request.id,
-            CURRENT_CARE_VIEWER_ID,
-            now,
-          ),
+          canPassCareRequest(careLifecycle, request.id, careViewerId, now),
         )
         .map((request) => request.id),
     );
-  }, [careLifecycle, timelineCareRequests]);
+  }, [careLifecycle, careViewerId, timelineCareRequests]);
   const careAudienceSnapshot = useMemo(
     () => ({
       partyMemberIds: partyPeople.map((person) => person.id),
@@ -342,23 +348,23 @@ export function DashboardShell() {
     const presentation = selectCareRequestPresentation(
       careLifecycle,
       requestId,
-      CURRENT_CARE_VIEWER_ID,
+      careViewerId,
     );
     applyCareLifecycleAction(
       presentation.seen
         ? {
             type: "set-seen-minimized",
             requestId,
-            viewerId: CURRENT_CARE_VIEWER_ID,
+            viewerId: careViewerId,
             minimized,
             changedAt,
           }
         : {
             type: "mark-seen",
             seenState: {
-              id: `care-seen-${requestId}-${CURRENT_CARE_VIEWER_ID}`,
+              id: `care-seen-${requestId}-${careViewerId}`,
               requestId,
-              viewerId: CURRENT_CARE_VIEWER_ID,
+              viewerId: careViewerId,
               seenAt: changedAt,
               minimized,
             },
@@ -370,9 +376,9 @@ export function DashboardShell() {
     const transition = transitionCareLifecycle(careLifecycle, {
       type: "pass-request",
       pass: {
-        id: `care-pass-${request.id}-${CURRENT_CARE_VIEWER_ID}`,
+        id: `care-pass-${request.id}-${careViewerId}`,
         requestId: request.id,
-        actorId: CURRENT_CARE_VIEWER_ID,
+        actorId: careViewerId,
         passedAt: new Date().toISOString(),
       },
     });
@@ -486,6 +492,13 @@ export function DashboardShell() {
                 }
                 passableRequestIds={passableRequestIds}
                 passAnnouncement={carePassAnnouncement}
+                perspectiveOptions={carePerspectiveOptions}
+                viewerClaimedRequestIds={viewerClaimedRequestIds}
+                viewerId={careViewerId}
+                onViewerChange={(viewerId) => {
+                  setCarePassAnnouncement(undefined);
+                  setCareViewerId(viewerId);
+                }}
               />
             ) : (
               <CuratorView

@@ -1,5 +1,15 @@
 import { TimelinePanel } from "./TimelinePanel";
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+import {
+  carePerspectiveOptions,
+  type CarePerspectiveOption,
+} from "@/data/careLifecycleMockData";
+import type {
+  CarePersonId,
+  GiveCareOffer,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
+
+import { CarePerspectiveSwitcher } from "./CarePerspectiveSwitcher";
 
 const noClaimedRequestIds = new Set<string>();
 const noMinimizedRequestIds = new Set<string>();
@@ -17,6 +27,10 @@ export function TimelineView({
   onWithdrawOffer = () => undefined,
   passableRequestIds = noPassableRequestIds,
   passAnnouncement,
+  perspectiveOptions = carePerspectiveOptions,
+  viewerId = "you",
+  viewerClaimedRequestIds = noClaimedRequestIds,
+  onViewerChange = () => undefined,
 }: {
   careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
@@ -29,9 +43,18 @@ export function TimelineView({
   onWithdrawOffer?: (offerId: string) => void;
   passableRequestIds?: Set<string>;
   passAnnouncement?: string;
+  perspectiveOptions?: CarePerspectiveOption[];
+  viewerId?: CarePersonId;
+  viewerClaimedRequestIds?: Set<string>;
+  onViewerChange?: (viewerId: CarePersonId) => void;
 } = {}) {
   return (
     <section aria-label="Timeline view" className="timeline-view">
+      <CarePerspectiveSwitcher
+        onChange={onViewerChange}
+        options={perspectiveOptions}
+        viewerId={viewerId}
+      />
       <TimelinePanel
         careOffers={careOffers}
         careRequests={careRequests}
@@ -44,6 +67,8 @@ export function TimelineView({
         onWithdrawOffer={onWithdrawOffer}
         passableRequestIds={passableRequestIds}
         passAnnouncement={passAnnouncement}
+        viewerClaimedRequestIds={viewerClaimedRequestIds}
+        viewerId={viewerId}
       />
     </section>
   );

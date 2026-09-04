@@ -183,6 +183,54 @@ button:focus-visible {
   margin-inline: auto;
 }
 
+.care-perspective-switcher {
+  display: flex;
+  width: min(80vw, 980px);
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 auto 0.8rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(228, 236, 217, 0.3);
+  border-radius: 0.9rem;
+  color: rgba(241, 245, 232, 0.9);
+  background: rgba(10, 42, 29, 0.76);
+}
+
+.care-perspective-switcher div,
+.care-perspective-switcher label {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.care-perspective-switcher strong,
+.care-perspective-switcher label {
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.care-perspective-switcher span {
+  color: rgba(241, 245, 232, 0.68);
+  font-size: 0.76rem;
+}
+
+.care-perspective-switcher select {
+  min-width: 13rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 2rem 0.45rem 0.65rem;
+  border: 1px solid rgba(228, 236, 217, 0.45);
+  border-radius: 0.65rem;
+  color: var(--forest-ink);
+  background: var(--forest-card);
+  font: inherit;
+  font-weight: 650;
+}
+
+.care-perspective-switcher select:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 3px;
+}
+
 .timeline-heading h1 {
   width: fit-content;
   margin: 0 0 12px;
@@ -570,6 +618,32 @@ button:focus-visible {
   }
   .timeline-feed {
     width: calc(100% - 32px);
+  }
+  .care-perspective-switcher {
+    width: calc(100% - 32px);
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.55rem 0.7rem;
+  }
+  .care-perspective-switcher div {
+    display: block;
+  }
+  .care-perspective-switcher div strong {
+    font-size: 0.78rem;
+  }
+  .care-perspective-switcher div span {
+    display: none;
+  }
+  .care-perspective-switcher label {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.76rem;
+  }
+  .care-perspective-switcher select {
+    width: 100%;
+    min-width: 0;
   }
   .timeline-heading h1 {
     margin-bottom: 23px;
