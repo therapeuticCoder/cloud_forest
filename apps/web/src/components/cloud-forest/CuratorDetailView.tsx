@@ -1,11 +1,36 @@
-import { ArrowLeft, Layers3, RadioTower, Sprout } from "lucide-react";
+import {
+  ArrowLeft,
+  HandHeart,
+  Layers3,
+  RadioTower,
+  Sprout,
+} from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  canPassCareRequest,
+  selectCareRequestPresentation,
+  selectProfileCareRequests,
+} from "@/lib/careLifecycle";
+import type {
+  CareLifecycleState,
+  CarePersonId,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
 import type { CuratorSelection } from "@/types/curator";
 
+import { CareRequestCard } from "./CareRequestCard";
+
 type CuratorDetailViewProps = {
+  careLifecycle: CareLifecycleState;
   onBack: () => void;
+  onOfferHelp: (request: ReceiveCareRequest) => void;
+  onPass: (request: ReceiveCareRequest) => void;
+  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
+  onWithdraw: (requestId: string) => void;
   selection: CuratorSelection;
+  viewerId: CarePersonId;
 };
 
 const layerLabels = {
@@ -41,15 +66,41 @@ const layerStyles = {
 } as const;
 
 export function CuratorDetailView({
+  careLifecycle,
   onBack,
+  onOfferHelp,
+  onPass,
+  onSetRequestMinimized,
+  onWithdraw,
   selection,
+  viewerId,
 }: CuratorDetailViewProps) {
   const selectionName = getSelectionName(selection);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const isPerson = selection.layer === "party" || selection.layer === "tribe";
+  const profileOwnerId = isPerson ? selection.item.id : undefined;
+  const now = new Date().toISOString();
+  const careRequests = useMemo(
+    () =>
+      profileOwnerId
+        ? selectProfileCareRequests(
+            careLifecycle,
+            profileOwnerId,
+            viewerId,
+            now,
+          )
+        : [],
+    [careLifecycle, now, profileOwnerId, viewerId],
+  );
+
+  useEffect(() => {
+    requestAnimationFrame(() => headingRef.current?.focus());
+  }, []);
 
   return (
     <section
       aria-label={`${selectionName} details`}
-      className="flex h-[100svh] flex-col bg-slate-950 px-5 pb-8 pt-20 text-slate-100 sm:px-8"
+      className="curator-detail-view flex min-h-[100svh] flex-col overflow-y-auto bg-slate-950 px-5 pb-8 pt-20 text-slate-100 sm:px-8"
     >
       <Button
         aria-label="Back to Curator"
@@ -62,7 +113,7 @@ export function CuratorDetailView({
         <ArrowLeft aria-hidden="true" />
       </Button>
 
-      <div className="mx-auto flex h-full w-full max-w-xl flex-col items-center justify-center gap-6">
+      <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-6">
         <div
           className={`grid aspect-square w-[min(48vw,14rem)] place-items-center rounded-2xl border bg-slate-900/35 text-[clamp(3rem,14vw,7rem)] font-medium ${layerStyles[selection.layer]}`}
         >
@@ -70,7 +121,11 @@ export function CuratorDetailView({
         </div>
 
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
+          <h1
+            className="text-3xl font-medium tracking-tight sm:text-4xl"
+            ref={headingRef}
+            tabIndex={-1}
+          >
             {selectionName}
           </h1>
           <p className={layerStyles[selection.layer]}>
@@ -78,10 +133,63 @@ export function CuratorDetailView({
           </p>
         </div>
 
-        <div className="mt-4 flex min-h-40 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-700 text-slate-500">
-          <Sprout aria-hidden="true" />
-          <p>Details coming next</p>
-        </div>
+        {isPerson ? (
+          <section
+            aria-labelledby="profile-care-heading"
+            className="curator-profile-care"
+          >
+            <div className="curator-profile-care__heading">
+              <HandHeart aria-hidden="true" />
+              <div>
+                <span>Active care</span>
+                <h2 id="profile-care-heading">Care with {selectionName}</h2>
+              </div>
+            </div>
+
+            {careRequests.length > 0 ? (
+              careRequests.map((request) => {
+                const claim = careLifecycle.claims.find(
+                  (candidate) => candidate.requestId === request.id,
+                );
+                return (
+                  <CareRequestCard
+                    canPass={canPassCareRequest(
+                      careLifecycle,
+                      request.id,
+                      viewerId,
+                      now,
+                    )}
+                    claimed={Boolean(claim)}
+                    key={request.id}
+                    minimized={
+                      selectCareRequestPresentation(
+                        careLifecycle,
+                        request.id,
+                        viewerId,
+                      ).minimized
+                    }
+                    onOfferHelp={onOfferHelp}
+                    onPass={onPass}
+                    onSetMinimized={onSetRequestMinimized}
+                    onWithdraw={onWithdraw}
+                    request={request}
+                    viewerId={viewerId}
+                    viewerIsClaimer={claim?.claimerId === viewerId}
+                  />
+                );
+              })
+            ) : (
+              <p className="curator-profile-care__empty">
+                There isn’t any active care to respond to here.
+              </p>
+            )}
+          </section>
+        ) : (
+          <div className="mt-4 flex min-h-40 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-700 text-slate-500">
+            <Sprout aria-hidden="true" />
+            <p>Details coming next</p>
+          </div>
+        )}
       </div>
     </section>
   );

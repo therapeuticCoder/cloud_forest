@@ -170,6 +170,36 @@ test("database-backed Timeline and prototype regression path", async ({
     "timeline.png",
   );
 
+  await page
+    .getByRole("button", { name: "Go to Curator", exact: true })
+    .filter({ visible: true })
+    .click();
+  const anyaTile = page.getByRole("button", { name: "Open Anya Reed" });
+  await anyaTile.click();
+  const anyaProfileRequest = page.getByRole("article", {
+    name: "Incoming meal care request from Anya Reed",
+  });
+  await expect(anyaProfileRequest).toBeVisible();
+  await expect(
+    anyaProfileRequest.getByRole("button", { name: "I can help" }),
+  ).toBeVisible();
+  await expect(
+    anyaProfileRequest.getByRole("button", { name: "Pass this time" }),
+  ).toBeVisible();
+  await expect(page.getByText("Private history")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
+    "curator-anya-care-profile.png",
+  );
+  await anyaProfileRequest.getByRole("button", { name: "I can help" }).click();
+  await page.getByRole("button", { name: "Not now" }).click();
+  await expect(
+    anyaProfileRequest.getByRole("button", { name: "I can help" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Back to Curator" }).click();
+  await expect(anyaTile).toBeFocused();
+  await page.getByRole("button", { name: "Go to Timeline" }).click();
+
   const fullCareRequest = page.getByRole("article", {
     name: "Incoming meal care request from Anya Reed",
   });

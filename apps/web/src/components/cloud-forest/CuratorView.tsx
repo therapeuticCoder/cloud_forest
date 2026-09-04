@@ -7,6 +7,11 @@ import {
   curatorUser,
 } from "@/data/cloudForest";
 import { cn } from "@/lib/utils";
+import type {
+  CareLifecycleState,
+  CarePersonId,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 import {
@@ -26,11 +31,18 @@ type CuratorLayerSectionProps = {
 
 type CuratorViewProps = {
   addWizardOpen: boolean;
+  careLifecycle: CareLifecycleState;
+  careViewerId: CarePersonId;
   onAddPartyMember: () => void;
   onCancelAdd: () => void;
   onCompleteAdd: (draft: AddPartyMemberDraft) => void;
+  onDetailOpenChange: (open: boolean) => void;
   onNavigateToTimeline: () => void;
   onOpenMyCare: () => void;
+  onOfferHelp: (request: ReceiveCareRequest) => void;
+  onPass: (request: ReceiveCareRequest) => void;
+  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
+  onWithdraw: (requestId: string) => void;
   partyPeople: CuratorPerson[];
 };
 
@@ -71,17 +83,29 @@ function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
 
 export function CuratorView({
   addWizardOpen,
+  careLifecycle,
+  careViewerId,
   onAddPartyMember,
   onCancelAdd,
   onCompleteAdd,
+  onDetailOpenChange,
   onNavigateToTimeline,
   onOpenMyCare,
+  onOfferHelp,
+  onPass,
+  onSetRequestMinimized,
+  onWithdraw,
   partyPeople,
 }: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
   const triggerIdRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLElement>(null);
   const scrollPositionRef = useRef(0);
+
+  useEffect(() => {
+    onDetailOpenChange(Boolean(selection));
+    return () => onDetailOpenChange(false);
+  }, [onDetailOpenChange, selection]);
 
   const restoreCurator = useCallback(() => {
     setSelection(null);
@@ -122,7 +146,10 @@ export function CuratorView({
       return;
     }
 
-    const handlePopState = () => restoreCurator();
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state?.curatorSelection) return;
+      restoreCurator();
+    };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         handleBack();
@@ -145,7 +172,18 @@ export function CuratorView({
   }
 
   if (selection) {
-    return <CuratorDetailView onBack={handleBack} selection={selection} />;
+    return (
+      <CuratorDetailView
+        careLifecycle={careLifecycle}
+        onBack={handleBack}
+        onOfferHelp={onOfferHelp}
+        onPass={onPass}
+        onSetRequestMinimized={onSetRequestMinimized}
+        onWithdraw={onWithdraw}
+        selection={selection}
+        viewerId={careViewerId}
+      />
+    );
   }
 
   return (

@@ -39,40 +39,9 @@ should be small enough for one focused agent session.
 - T-028A: Add Receive-care Timeline lifespan and seen presentation
 - T-028B: Add Party passing and Tribe demotion
 - T-028C: Add the care perspective harness and claim visibility
+- T-029: Add care actions and history to person profile destinations
 
 ## Current Milestone
-
-### T-029: Add care actions and history to person profile destinations
-
-Status: planned; requires T-027 and T-028C
-Size: medium
-
-Concrete goal:
-Turn the existing Curator person-detail placeholder into a narrow profile
-destination that exposes active care and the actions appropriate to the current
-viewer. Give the user's own profile private active-request, commitment, and
-history sections without creating a general profile editor or another primary
-application view.
-
-Likely files or boundaries:
-`CuratorDetailView.tsx`, `CuratorView.tsx`, `PartyLayer.tsx`, `MyCareView.tsx`,
-new focused profile/history components, `DashboardShell.tsx`, lifecycle
-selectors, component tests, and profile styles.
-
-Acceptance criteria:
-
-- active requests appear on the requester's profile and accept the same valid
-  actions as their Timeline representation
-- a claimed request appears on the claimer's profile
-- the self profile separates active requests, care commitments, and private
-  care history
-- another person's private history is never exposed to the current viewer
-- the self portrait and Curator person tiles preserve back behavior, scroll
-  position, and keyboard focus recovery
-
-Out of scope:
-General profile editing, care-preference profiles, public history, accounts,
-and API/database persistence.
 
 ### T-030: Add two-party completion and not-completed dispositions
 
