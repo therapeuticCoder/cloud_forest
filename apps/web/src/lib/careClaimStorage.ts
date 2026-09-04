@@ -1,10 +1,10 @@
-import type { CareClaim } from "@/types/careRequest";
+import type { LegacyCareClaim } from "@/types/careRequest";
 
 export const CARE_CLAIMS_STORAGE_KEY = "cloud-forest:care-claims:v1";
 
 type StoredCareClaimsV1 = {
   version: 1;
-  claims: CareClaim[];
+  claims: LegacyCareClaim[];
 };
 
 function getBrowserStorage() {
@@ -17,7 +17,7 @@ function getBrowserStorage() {
   }
 }
 
-function isCareClaim(value: unknown): value is CareClaim {
+function isCareClaim(value: unknown): value is LegacyCareClaim {
   if (!value || typeof value !== "object") return false;
 
   const claim = value as Record<string, unknown>;
@@ -41,7 +41,7 @@ function isStoredCareClaimsV1(value: unknown): value is StoredCareClaimsV1 {
   );
 }
 
-export function loadCareClaims(): CareClaim[] {
+export function loadCareClaims(): LegacyCareClaim[] {
   try {
     const storedValue = getBrowserStorage()?.getItem(CARE_CLAIMS_STORAGE_KEY);
     if (!storedValue) return [];
@@ -53,7 +53,7 @@ export function loadCareClaims(): CareClaim[] {
   }
 }
 
-export function saveCareClaims(claims: CareClaim[]) {
+export function saveCareClaims(claims: LegacyCareClaim[]) {
   try {
     getBrowserStorage()?.setItem(
       CARE_CLAIMS_STORAGE_KEY,
