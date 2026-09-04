@@ -2100,6 +2100,15 @@ article[aria-label="Party layer"] {
   white-space: nowrap;
 }
 
+.my-care-history li small,
+.my-care-history li p {
+  color: rgba(231, 232, 216, 0.7);
+}
+
+.my-care-history li p {
+  margin: 0.15rem 0 0;
+}
+
 .curator-profile-care {
   display: grid;
   width: 100%;
@@ -2222,6 +2231,199 @@ article[aria-label="Party layer"] {
   cursor: not-allowed;
 }
 
+.care-gratitude-view {
+  min-height: 100svh;
+  padding: 1rem;
+  color: #f0f1e8;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(96, 125, 39, 0.24),
+      transparent 38%
+    ),
+    var(--forest-bark);
+}
+
+.care-gratitude-view__form,
+.care-gratitude-view__confirm {
+  display: grid;
+  width: min(100%, 44rem);
+  gap: 1.25rem;
+  margin: 2.5rem auto 0;
+  padding: clamp(1rem, 5vw, 2rem);
+  border: 1px solid rgba(228, 236, 217, 0.22);
+  border-radius: 1.25rem;
+  background: rgba(5, 31, 22, 0.66);
+}
+
+.care-gratitude-view fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.care-gratitude-view legend,
+.care-gratitude-view__form > label {
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+.care-gratitude-view__form > label span {
+  color: rgba(231, 232, 216, 0.62);
+  font-weight: 500;
+}
+
+.care-gratitude-view__choices {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.care-gratitude-view__choices label,
+.care-gratitude-view__anonymous {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(228, 236, 217, 0.25);
+  border-radius: 0.9rem;
+  cursor: pointer;
+}
+
+.care-gratitude-view input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--forest-amber);
+}
+
+.care-gratitude-view textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(228, 236, 217, 0.3);
+  border-radius: 0.9rem;
+  color: var(--forest-ink);
+  background: var(--forest-card);
+  font: inherit;
+}
+
+.care-gratitude-view__form > button,
+.care-gratitude-view__confirm-actions button {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(228, 236, 217, 0.34);
+  border-radius: 0.9rem;
+  color: #f0f1e8;
+  background: transparent;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.care-gratitude-view__form > button,
+.care-gratitude-view__confirm-actions button:last-child {
+  border-color: var(--forest-amber);
+  color: var(--forest-pine);
+  background: var(--forest-amber);
+}
+
+.care-gratitude-view__form > button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.care-gratitude-view__privacy-note {
+  display: flex;
+  gap: 0.9rem;
+}
+
+.care-gratitude-view__privacy-note > svg {
+  flex: 0 0 auto;
+  color: var(--forest-amber);
+}
+
+.care-gratitude-view__privacy-note h2,
+.care-gratitude-view__privacy-note p {
+  margin: 0;
+}
+
+.care-gratitude-view__privacy-note p {
+  margin-top: 0.4rem;
+  color: rgba(231, 232, 216, 0.7);
+}
+
+.care-gratitude-view__confirm-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.care-gratitude-card {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  border: 6px solid var(--forest-tribe);
+  border-radius: 1.25rem;
+  color: var(--forest-ink);
+  background: var(--forest-card);
+}
+
+.care-gratitude-card__mark {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  border-radius: 1rem;
+  color: #f5f8ed;
+  background: var(--forest-tribe);
+}
+
+.care-gratitude-card__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.care-gratitude-card__heading span {
+  color: var(--forest-tribe);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.care-gratitude-card__heading strong {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  color: #f5f8ed;
+  background: var(--forest-tribe);
+  font-size: 0.78rem;
+}
+
+.care-gratitude-card h2 {
+  margin: 0.25rem 0;
+  font-size: 1.35rem;
+}
+
+.care-gratitude-card p,
+.care-gratitude-card blockquote {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.care-gratitude-card blockquote {
+  margin-top: 0.55rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--forest-amber);
+  color: rgba(10, 42, 29, 0.76);
+}
+
 @media (max-width: 700px) {
   .care-request-card {
     grid-template-columns: 2.8rem minmax(0, 1fr);
@@ -2285,8 +2487,20 @@ article[aria-label="Party layer"] {
   }
 
   .care-request-card__outcome-actions,
-  .care-outcome-view__actions {
+  .care-outcome-view__actions,
+  .care-gratitude-view__confirm-actions {
     grid-template-columns: 1fr;
+  }
+
+  .care-gratitude-card {
+    grid-template-columns: 2.8rem minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.8rem;
+  }
+
+  .care-gratitude-card__mark {
+    width: 2.8rem;
+    height: 2.8rem;
   }
 }
 .timeline-key--give {

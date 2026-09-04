@@ -209,6 +209,7 @@ export function CareRequestCard({
                 ) : null}
                 <div className="care-request-card__outcome-actions">
                   <button
+                    data-care-completed-action={request.id}
                     onClick={() => onRecordCompleted(request)}
                     type="button"
                   >

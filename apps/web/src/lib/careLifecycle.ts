@@ -3,6 +3,7 @@ import type {
   CareCompletion,
   CareDisposition,
   CareHistoryEntry,
+  CareGratitude,
   CareLifecycleState,
   CarePass,
   CarePersonId,
@@ -43,6 +44,7 @@ export type CareLifecycleAction =
   | { type: "pass-request"; pass: CarePass }
   | { type: "claim-request"; claim: CareClaim }
   | { type: "record-completion"; completion: CareCompletion }
+  | { type: "record-gratitude"; gratitude: CareGratitude }
   | {
       type: "record-disposition";
       disposition: CareDisposition;
@@ -69,6 +71,7 @@ export function createCareLifecycleState(
     completions: [],
     dispositions: [],
     history: [],
+    gratitudes: [],
   };
 }
 
@@ -205,6 +208,22 @@ export function selectPrivateCareHistory(
 ) {
   if (ownerId !== viewerId) return [];
   return state.history.filter((entry) => entry.ownerId === ownerId);
+}
+
+export function selectPrivateCareGratitudes(
+  state: CareLifecycleState,
+  ownerId: CarePersonId,
+  viewerId: CarePersonId,
+) {
+  if (ownerId !== viewerId) return [];
+  return state.gratitudes.filter(
+    (gratitude) =>
+      gratitude.receiverId === ownerId || gratitude.giverId === ownerId,
+  );
+}
+
+export function selectTribeCareGratitudes(state: CareLifecycleState) {
+  return state.gratitudes.filter((gratitude) => gratitude.postToTimeline);
 }
 
 export function expireDueCareRequests(state: CareLifecycleState, at: string) {
@@ -349,6 +368,18 @@ function validateAction(
           action.completion.decision === "not-completed") &&
         hasValidTimestamp(action.completion.decidedAt)
       );
+    case "record-gratitude":
+      return (
+        hasValidIdentity(action.gratitude.id) &&
+        hasValidIdentity(action.gratitude.requestId) &&
+        hasValidIdentity(action.gratitude.receiverId) &&
+        hasValidIdentity(action.gratitude.giverId) &&
+        hasValidIdentity(action.gratitude.statementId) &&
+        typeof action.gratitude.message === "string" &&
+        typeof action.gratitude.postToTimeline === "boolean" &&
+        typeof action.gratitude.anonymized === "boolean" &&
+        hasValidTimestamp(action.gratitude.createdAt)
+      );
     case "record-disposition":
       return (
         hasValidIdentity(action.disposition.id) &&
@@ -406,6 +437,8 @@ function getActionRequestId(
       return action.claim.requestId;
     case "record-completion":
       return action.completion.requestId;
+    case "record-gratitude":
+      return action.gratitude.requestId;
     case "record-disposition":
       return action.disposition.requestId;
   }
@@ -602,6 +635,26 @@ export function transitionCareLifecycle(
             ),
           ]
         : state.history,
+    });
+  }
+
+  if (action.type === "record-gratitude") {
+    const claim = getClaim(state, requestId);
+    if (
+      !claim ||
+      action.gratitude.receiverId !== request.requester.id ||
+      action.gratitude.giverId !== claim.claimerId
+    ) {
+      return reject(state, "not-authorized");
+    }
+    if (
+      state.gratitudes.some((gratitude) => gratitude.requestId === requestId)
+    ) {
+      return reject(state, "duplicate-record");
+    }
+    return accept({
+      ...state,
+      gratitudes: [...state.gratitudes, action.gratitude],
     });
   }
 

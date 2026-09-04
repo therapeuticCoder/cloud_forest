@@ -4,6 +4,7 @@ import {
   type CarePerspectiveOption,
 } from "@/data/careLifecycleMockData";
 import type {
+  CareGratitude,
   CarePersonId,
   GiveCareOffer,
   ReceiveCareRequest,
@@ -17,8 +18,10 @@ const noPassableRequestIds = new Set<string>();
 const noCompletedRequestIds = new Set<string>();
 
 export function TimelineView({
+  careGratitudes = [],
   careOffers = [],
   careRequests = [],
+  careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
@@ -38,6 +41,8 @@ export function TimelineView({
   onViewerChange = () => undefined,
 }: {
   careOffers?: GiveCareOffer[];
+  careGratitudes?: CareGratitude[];
+  careGratitudeRequests?: ReceiveCareRequest[];
   careRequests?: ReceiveCareRequest[];
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
@@ -65,6 +70,8 @@ export function TimelineView({
         viewerId={viewerId}
       />
       <TimelinePanel
+        careGratitudes={careGratitudes}
+        careGratitudeRequests={careGratitudeRequests}
         careOffers={careOffers}
         careRequests={careRequests}
         claimedRequestIds={claimedRequestIds}

@@ -2,7 +2,10 @@ import { ArrowLeft, Clock3, HandHeart, Send } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
+import { carePerspectiveOptions } from "@/data/careLifecycleMockData";
+import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
 import type {
+  CareGratitude,
   CareHistoryEntry,
   CareLifecycleState,
   ReceiveCareRequest,
@@ -15,6 +18,7 @@ type MyCareViewProps = {
   careLifecycle: CareLifecycleState;
   claimedRequests: ReceiveCareRequest[];
   history: CareHistoryEntry[];
+  gratitudes: CareGratitude[];
   onBack: () => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
@@ -38,6 +42,7 @@ export function MyCareView({
   careLifecycle,
   claimedRequests,
   history,
+  gratitudes,
   onBack,
   onSetRequestMinimized,
   onRecordCompleted,
@@ -173,8 +178,42 @@ export function MyCareView({
             <h2 id="history-heading">Private history</h2>
           </div>
 
-          {history.length > 0 ? (
+          {history.length > 0 || gratitudes.length > 0 ? (
             <ol className="my-care-history">
+              {gratitudes.map((gratitude) => {
+                const request = careLifecycle.requests.find(
+                  (candidate) => candidate.id === gratitude.requestId,
+                );
+                const giverName =
+                  carePerspectiveOptions.find(
+                    (person) => person.id === gratitude.giverId,
+                  )?.displayName ?? gratitude.giverId;
+                const statement = getMealGratitudeStatement(
+                  gratitude.statementId,
+                );
+                return (
+                  <li key={gratitude.id}>
+                    <div>
+                      <span>Care gratitude</span>
+                      <strong>
+                        {statement?.text ??
+                          "Thank you for showing up with care."}
+                      </strong>
+                      <small>
+                        From{" "}
+                        {request?.requester.displayName ?? gratitude.receiverId}{" "}
+                        to {gratitude.giverId === "you" ? "you" : giverName}.
+                      </small>
+                      {gratitude.message ? <p>{gratitude.message}</p> : null}
+                    </div>
+                    <time dateTime={gratitude.createdAt}>
+                      {historyDateFormatter.format(
+                        new Date(gratitude.createdAt),
+                      )}
+                    </time>
+                  </li>
+                );
+              })}
               {history.map((entry) => {
                 const request = careLifecycle.requests.find(
                   (candidate) => candidate.id === entry.requestId,

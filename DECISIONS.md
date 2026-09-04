@@ -90,6 +90,13 @@ their detailed implementation context.
   increment `0.MINOR.PATCH`. The trusted-tester alpha remains pre-1.0, and an
   annotated `vX.Y.Z` tag is created only after the release commit reaches
   `main`.
+- **D-030 — Receiver gratitude publishes at the receiver's completion.** When a
+  receiver marks claimed care completed, their gratitude is saved immediately;
+  an optional Tribe post is also published immediately without waiting for the
+  giver's completion decision. Private participant histories retain receiver
+  and giver provenance even when the Tribe-facing post uses “A neighbor.” The
+  care request itself remains active until the existing two-party completion
+  rule closes it.
 
 ## Fulfilled milestone decisions
 

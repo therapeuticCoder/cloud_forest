@@ -3,6 +3,7 @@ import type {
   CareCompletion,
   CareDisposition,
   CareHistoryEntry,
+  CareGratitude,
   CareLifecycleState,
   CarePass,
   CareSeenState,
@@ -17,8 +18,12 @@ import {
 
 export const CARE_LIFECYCLE_STORAGE_KEY = "cloud-forest:care-lifecycle:v2";
 
-type StoredCareLifecycleV2 = Omit<CareLifecycleState, "requests"> & {
+type StoredCareLifecycleV2 = Omit<
+  CareLifecycleState,
+  "requests" | "gratitudes"
+> & {
   version: 2;
+  gratitudes?: CareGratitude[];
 };
 
 function getBrowserStorage() {
@@ -115,6 +120,21 @@ function isHistoryEntry(value: unknown): value is CareHistoryEntry {
   );
 }
 
+function isGratitude(value: unknown): value is CareGratitude {
+  if (!isRecord(value)) return false;
+  return (
+    isString(value.id) &&
+    isString(value.requestId) &&
+    isString(value.receiverId) &&
+    isString(value.giverId) &&
+    isString(value.statementId) &&
+    typeof value.message === "string" &&
+    typeof value.postToTimeline === "boolean" &&
+    typeof value.anonymized === "boolean" &&
+    isTimestamp(value.createdAt)
+  );
+}
+
 function isStoredCareLifecycleV2(
   value: unknown,
 ): value is StoredCareLifecycleV2 {
@@ -131,7 +151,9 @@ function isStoredCareLifecycleV2(
     Array.isArray(value.dispositions) &&
     value.dispositions.every(isDisposition) &&
     Array.isArray(value.history) &&
-    value.history.every(isHistoryEntry)
+    value.history.every(isHistoryEntry) &&
+    (value.gratitudes === undefined ||
+      (Array.isArray(value.gratitudes) && value.gratitudes.every(isGratitude)))
   );
 }
 
@@ -164,6 +186,7 @@ export function loadCareLifecycleState(
         completions: keepKnownRequests(parsed.completions, requestIds),
         dispositions: keepKnownRequests(parsed.dispositions, requestIds),
         history: keepKnownRequests(parsed.history, requestIds),
+        gratitudes: keepKnownRequests(parsed.gratitudes ?? [], requestIds),
       };
     }
 
@@ -203,6 +226,7 @@ export function saveCareLifecycleState(state: CareLifecycleState) {
       completions: state.completions,
       dispositions: state.dispositions,
       history: state.history,
+      gratitudes: state.gratitudes,
     };
     storage.setItem(CARE_LIFECYCLE_STORAGE_KEY, JSON.stringify(stored));
   } catch {

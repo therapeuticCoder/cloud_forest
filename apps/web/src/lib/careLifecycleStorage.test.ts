@@ -57,17 +57,51 @@ describe("care lifecycle prototype storage", () => {
     expect(transition.ok).toBe(true);
     if (!transition.ok) return;
 
-    saveCareLifecycleState(transition.state);
+    const gratitudeTransition = transitionCareLifecycle(transition.state, {
+      type: "record-gratitude",
+      gratitude: {
+        id: "gratitude-1",
+        requestId: incomingCareRequests[0].id,
+        receiverId: "anya",
+        giverId: "you",
+        statementId: "meal-fed-when-needed",
+        message: "Thank you.",
+        postToTimeline: false,
+        anonymized: false,
+        createdAt: "2026-09-03T15:00:00.000Z",
+      },
+    });
+    expect(gratitudeTransition.ok).toBe(true);
+    if (!gratitudeTransition.ok) return;
+
+    saveCareLifecycleState(gratitudeTransition.state);
 
     expect(loadCareLifecycleState(incomingCareRequests)).toEqual(
-      transition.state,
+      gratitudeTransition.state,
     );
     expect(
       JSON.parse(localStorage.getItem(CARE_LIFECYCLE_STORAGE_KEY) ?? ""),
     ).not.toHaveProperty("requests");
     expect(
       JSON.parse(localStorage.getItem(CARE_LIFECYCLE_STORAGE_KEY) ?? ""),
-    ).not.toHaveProperty("gratitudes");
+    ).toHaveProperty("gratitudes", gratitudeTransition.state.gratitudes);
+  });
+
+  it("loads version-2 lifecycle records written before gratitude existed", () => {
+    localStorage.setItem(
+      CARE_LIFECYCLE_STORAGE_KEY,
+      JSON.stringify({
+        version: 2,
+        claims: [],
+        passes: [],
+        seenStates: [],
+        completions: [],
+        dispositions: [],
+        history: [],
+      }),
+    );
+
+    expect(loadCareLifecycleState(incomingCareRequests).gratitudes).toEqual([]);
   });
 
   it.each([

@@ -268,16 +268,6 @@ test("database-backed Timeline and prototype regression path", async ({
   await fullCareRequest.getByRole("button", { name: "I can help" }).click();
   await page.getByRole("button", { name: "I’ll help with this" }).click();
   await expect(page.getByText("You’re helping Anya.")).toBeFocused();
-  await fullCareRequest
-    .getByRole("button", { name: "Completed", exact: true })
-    .click();
-  await expect(
-    page.getByText("You marked this completed. Waiting for the other person."),
-  ).toBeFocused();
-  await expectNoHorizontalOverflow(page);
-  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
-    "timeline-care-awaiting-completion.png",
-  );
   await perspective.selectOption("anya");
   const requesterClaimedRequest = page.getByRole("article", {
     name: "Claimed meal care request",
@@ -285,12 +275,47 @@ test("database-backed Timeline and prototype regression path", async ({
   await expect(requesterClaimedRequest).toContainText(
     "Someone is helping with this request.",
   );
-  await expect(requesterClaimedRequest).toContainText(
+  await requesterClaimedRequest
+    .getByRole("button", { name: "Completed", exact: true })
+    .click();
+  const gratitudeView = page.getByRole("region", {
+    name: "Thank Anya Reed's helper",
+  });
+  await gratitudeView
+    .getByRole("radio", { name: "Thank you for making care feel easy." })
+    .check();
+  await gratitudeView
+    .getByLabel("Add your own words (optional)")
+    .fill("The soup made tonight possible.");
+  await gratitudeView.getByRole("button", { name: "Continue" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Keep it private or share" }),
+  ).toBeFocused();
+  await gratitudeView
+    .getByRole("checkbox", { name: "Post to Tribe as “A neighbor”" })
+    .check();
+  await expectNoHorizontalOverflow(page);
+  await expect(page).toHaveScreenshot("care-gratitude-confirm.png");
+  await gratitudeView
+    .getByRole("button", { name: "Post to Tribe and save to history" })
+    .click();
+  await expect(
+    page.getByText("You marked this completed. Waiting for the other person."),
+  ).toBeFocused();
+  const tribeGratitude = page.getByRole("article", {
+    name: "Tribe gratitude from A neighbor",
+  });
+  await expect(tribeGratitude).toContainText("The soup made tonight possible.");
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
+    "timeline-care-awaiting-completion.png",
+  );
+
+  await perspective.selectOption("nearby-family-1");
+  await expect(fullCareRequest).toContainText(
     "The other person marked this completed.",
   );
-  await requesterClaimedRequest
-    .getByRole("button", { name: "Not completed" })
-    .click();
+  await fullCareRequest.getByRole("button", { name: "Not completed" }).click();
   const notCompletedView = page.getByRole("region", {
     name: "Care was not completed for Anya Reed",
   });
@@ -304,18 +329,23 @@ test("database-backed Timeline and prototype regression path", async ({
   await expect(page).toHaveScreenshot("care-not-completed.png");
   await notCompletedView.getByRole("button", { name: "Back" }).click();
   await expect(
-    requesterClaimedRequest.getByRole("button", { name: "Not completed" }),
+    fullCareRequest.getByRole("button", { name: "Not completed" }),
   ).toBeFocused();
   await expectNoHorizontalOverflow(page);
   await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
     "timeline-care-claimed-requester.png",
   );
 
+  await fullCareRequest
+    .getByRole("button", { name: "Completed", exact: true })
+    .click();
+  await expect(fullCareRequest).toHaveCount(0);
+  await expect(tribeGratitude).toBeVisible();
+
   await perspective.selectOption("mira");
   await expect(requesterClaimedRequest).toHaveCount(0);
   await expect(fullCareRequest).toHaveCount(0);
-  await perspective.selectOption("nearby-family-1");
-  await expect(page.getByText("You’re helping Anya.")).toBeVisible();
+  await expect(tribeGratitude).toBeVisible();
 
   await expectHiddenChromeRecoversFromKeyboard(page);
   await page.evaluate(() => window.scrollTo(0, 0));
