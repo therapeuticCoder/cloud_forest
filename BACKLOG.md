@@ -35,46 +35,9 @@ should be small enough for one focused agent session.
 - T-019: Establish safe environment cleanup and dependency recovery
 - T-025: Establish repository line-ending and name hygiene
 - T-026: Remove the dormant Galaxy prototype boundary
+- T-027: Establish the Receive-care lifecycle contract and prototype state engine
 
 ## Current Milestone
-
-### T-027: Establish the Receive-care lifecycle contract and prototype state engine
-
-Status: planned
-Size: medium
-
-Concrete goal:
-Define the complete Receive-request lifecycle as explicit TypeScript records,
-transitions, and derived per-person visibility before adding more UI. Preserve
-the current fictional meal request and existing claim-on-reload behavior while
-creating a versioned, deterministic multi-person prototype state boundary.
-
-Likely files or boundaries:
-`apps/web/src/types/careRequest.ts`, new lifecycle reducer/selectors and focused
-tests under `apps/web/src/lib`, fictional lifecycle fixtures under
-`apps/web/src/data`, and a versioned prototype-storage adapter with migration
-from the current claim-only record.
-
-Acceptance criteria:
-
-- request, claim, pass, seen, completion, disposition, and history records have
-  explicit typed identities and timestamps
-- the gratitude record shape is typed, but its transitions, persistence, and
-  publication timing are explicitly deferred to T-031
-- allowed transitions and invalid-transition behavior are deterministic and
-  tested, including prevention of a second claim
-- Timeline and profile visibility are derived for a supplied viewer rather
-  than implemented by deleting the underlying request
-- Party eligibility is snapshotted when a request is published so later Party
-  changes do not silently change the pass quorum
-- current version-1 claim storage migrates safely; absent, malformed, or newer
-  unknown data has a non-destructive fallback
-- all fixtures remain fictional and contain no sensitive care information
-
-Out of scope:
-New user-facing lifecycle controls, accounts, API/database work, synchronization,
-new dependencies, Give-offer claiming, gratitude behavior, and production
-authorization rules.
 
 ### T-028A: Add Receive-care Timeline lifespan and seen presentation
 
