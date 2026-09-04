@@ -13,6 +13,17 @@ async function openCurator() {
   return user;
 }
 
+async function claimIncomingRequest(user: ReturnType<typeof userEvent.setup>) {
+  const request = screen.getByRole("article", {
+    name: "Incoming meal care request from Anya Reed",
+  });
+  await user.click(within(request).getByRole("button", { name: "I can help" }));
+  await user.click(screen.getByRole("button", { name: "I’ll help with this" }));
+  await waitFor(() =>
+    expect(screen.getByText("You’re helping Anya.")).toHaveFocus(),
+  );
+}
+
 describe("App", () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -590,8 +601,23 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
     expect(screen.getByRole("region", { name: "My Care" })).toBeInTheDocument();
     expect(
-      screen.getByRole("article", { name: "Helping Anya Reed" }),
-    ).toHaveTextContent("You’re helping Anya Reed.");
+      screen.getByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
+    ).toHaveTextContent("You’re helping Anya.");
+    await user.click(screen.getByRole("button", { name: "Not completed" }));
+    expect(
+      screen.getByRole("region", {
+        name: "Care was not completed for Anya Reed",
+      }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    expect(screen.getByRole("region", { name: "My Care" })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Not completed" }),
+      ).toHaveFocus(),
+    );
     await user.click(screen.getByRole("button", { name: "Back" }));
     await waitFor(() =>
       expect(
@@ -605,8 +631,120 @@ describe("App", () => {
     expect(screen.getByText("You’re helping Anya.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
     expect(
-      screen.getByRole("article", { name: "Helping Anya Reed" }),
+      screen.getByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
     ).toBeInTheDocument();
+  });
+
+  it("keeps care active after one completion and closes it after both participants complete", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await claimIncomingRequest(user);
+
+    await user.click(screen.getByRole("button", { name: "Completed" }));
+    expect(
+      screen.getByText(
+        "You marked this completed. Waiting for the other person.",
+      ),
+    ).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Reviewing as"), "anya");
+    expect(
+      screen.getByText(
+        "The other person marked this completed. What happened for you?",
+      ),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Completed" }));
+    expect(
+      screen.queryByRole("article", { name: "Claimed meal care request" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Open My Care" }));
+    expect(
+      within(screen.getByRole("region", { name: "Private history" })).getByText(
+        "Completed",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("You’re not helping with any care requests right now."),
+    ).toBeInTheDocument();
+
+    const stored = JSON.parse(
+      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
+    );
+    expect(stored.completions).toHaveLength(2);
+    expect(stored.history).toHaveLength(2);
+  });
+
+  it("collects a private reason before closing not-completed care", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await claimIncomingRequest(user);
+
+    await user.click(screen.getByRole("button", { name: "Not completed" }));
+    const outcome = screen.getByRole("region", {
+      name: "Care was not completed for Anya Reed",
+    });
+    expect(outcome).toHaveTextContent("not a rating or a public report");
+    expect(
+      within(outcome).getByRole("button", { name: "Close" }),
+    ).toBeDisabled();
+    await user.type(
+      within(outcome).getByLabelText("Reason"),
+      "The timing did not work",
+    );
+    await user.click(within(outcome).getByRole("button", { name: "Close" }));
+
+    expect(
+      screen.queryByRole("article", { name: "Claimed meal care request" }),
+    ).not.toBeInTheDocument();
+    const stored = JSON.parse(
+      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
+    );
+    expect(stored.dispositions).toEqual([
+      expect.objectContaining({
+        kind: "close",
+        reason: "The timing did not work",
+      }),
+    ]);
+    expect(stored.history).toHaveLength(2);
+  });
+
+  it("closes the original care and creates a linked request when trying again", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await claimIncomingRequest(user);
+
+    await user.click(screen.getByRole("button", { name: "Not completed" }));
+    const outcome = screen.getByRole("region", {
+      name: "Care was not completed for Anya Reed",
+    });
+    await user.type(
+      within(outcome).getByLabelText("Reason"),
+      "We missed each other",
+    );
+    await user.click(
+      within(outcome).getByRole("button", { name: "Postpone / try again" }),
+    );
+
+    const retry = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+    expect(
+      within(retry).getByRole("button", { name: "I can help" }),
+    ).toBeInTheDocument();
+    const stored = JSON.parse(
+      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
+    );
+    expect(stored.dispositions).toEqual([
+      expect.objectContaining({
+        kind: "retry",
+        successorRequestId: expect.stringContaining(
+          "care-request-anya-meal-001-retry-",
+        ),
+      }),
+    ]);
   });
 
   it("closes the selected destination with Escape or browser back", async () => {

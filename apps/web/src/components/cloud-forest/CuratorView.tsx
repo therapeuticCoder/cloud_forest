@@ -41,6 +41,8 @@ type CuratorViewProps = {
   onOpenMyCare: () => void;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onPass: (request: ReceiveCareRequest) => void;
+  onRecordCompleted: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   partyPeople: CuratorPerson[];
@@ -93,6 +95,8 @@ export function CuratorView({
   onOpenMyCare,
   onOfferHelp,
   onPass,
+  onRecordCompleted,
+  onRecordNotCompleted,
   onSetRequestMinimized,
   onWithdraw,
   partyPeople,
@@ -178,6 +182,8 @@ export function CuratorView({
         onBack={handleBack}
         onOfferHelp={onOfferHelp}
         onPass={onPass}
+        onRecordCompleted={onRecordCompleted}
+        onRecordNotCompleted={onRecordNotCompleted}
         onSetRequestMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         selection={selection}

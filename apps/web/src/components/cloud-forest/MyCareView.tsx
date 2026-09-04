@@ -17,6 +17,8 @@ type MyCareViewProps = {
   history: CareHistoryEntry[];
   onBack: () => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
+  onRecordCompleted: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onWithdraw: (requestId: string) => void;
 };
 
@@ -38,6 +40,8 @@ export function MyCareView({
   history,
   onBack,
   onSetRequestMinimized,
+  onRecordCompleted,
+  onRecordNotCompleted,
   onWithdraw,
 }: MyCareViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -111,44 +115,48 @@ export function MyCareView({
         >
           <div className="my-care-view__section-heading">
             <HandHeart aria-hidden="true" />
-            <h2 id="helping-heading">I’m helping</h2>
+            <h2
+              data-my-care-section="commitments"
+              id="helping-heading"
+              tabIndex={-1}
+            >
+              I’m helping
+            </h2>
           </div>
 
           {claimedRequests.length > 0 ? (
-            claimedRequests.map((request) => (
-              <article
-                aria-label={`Helping ${request.requester.displayName}`}
-                className="my-care-card"
-                key={request.id}
-              >
-                <span className="my-care-card__eyebrow">Meal commitment</span>
-                <h3>You’re helping {request.requester.displayName}.</h3>
-                <dl>
-                  <div>
-                    <dt>Need</dt>
-                    <dd>{request.need}</dd>
-                  </div>
-                  <div>
-                    <dt>Timing</dt>
-                    <dd>{request.helpfulWhen}</dd>
-                  </div>
-                  <div>
-                    <dt>Food that works</dt>
-                    <dd>{request.foodWorks}</dd>
-                  </div>
-                  {request.foodDoesNotWork ? (
-                    <div>
-                      <dt>Please avoid</dt>
-                      <dd>{request.foodDoesNotWork}</dd>
-                    </div>
-                  ) : null}
-                  <div>
-                    <dt>Handoff</dt>
-                    <dd>{request.handoffStyle}</dd>
-                  </div>
-                </dl>
-              </article>
-            ))
+            claimedRequests.map((request) => {
+              const viewerCompletion = careLifecycle.completions.find(
+                (completion) =>
+                  completion.requestId === request.id &&
+                  completion.participantId === "you",
+              );
+              const otherParticipantCompleted = careLifecycle.completions.some(
+                (completion) =>
+                  completion.requestId === request.id &&
+                  completion.participantId !== "you" &&
+                  completion.decision === "completed",
+              );
+              return (
+                <CareRequestCard
+                  canPass={false}
+                  claimed
+                  key={request.id}
+                  minimized={false}
+                  onOfferHelp={() => undefined}
+                  onPass={() => undefined}
+                  onRecordCompleted={onRecordCompleted}
+                  onRecordNotCompleted={onRecordNotCompleted}
+                  onSetMinimized={onSetRequestMinimized}
+                  onWithdraw={() => undefined}
+                  otherParticipantCompleted={otherParticipantCompleted}
+                  request={request}
+                  viewerCompletion={viewerCompletion?.decision}
+                  viewerId="you"
+                  viewerIsClaimer
+                />
+              );
+            })
           ) : (
             <p className="my-care-view__empty">
               You’re not helping with any care requests right now.

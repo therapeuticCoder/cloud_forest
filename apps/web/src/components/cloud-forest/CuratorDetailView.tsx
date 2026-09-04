@@ -27,6 +27,8 @@ type CuratorDetailViewProps = {
   onBack: () => void;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onPass: (request: ReceiveCareRequest) => void;
+  onRecordCompleted: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   selection: CuratorSelection;
@@ -70,6 +72,8 @@ export function CuratorDetailView({
   onBack,
   onOfferHelp,
   onPass,
+  onRecordCompleted,
+  onRecordNotCompleted,
   onSetRequestMinimized,
   onWithdraw,
   selection,
@@ -142,7 +146,13 @@ export function CuratorDetailView({
               <HandHeart aria-hidden="true" />
               <div>
                 <span>Active care</span>
-                <h2 id="profile-care-heading">Care with {selectionName}</h2>
+                <h2
+                  data-care-profile-heading
+                  id="profile-care-heading"
+                  tabIndex={-1}
+                >
+                  Care with {selectionName}
+                </h2>
               </div>
             </div>
 
@@ -151,6 +161,18 @@ export function CuratorDetailView({
                 const claim = careLifecycle.claims.find(
                   (candidate) => candidate.requestId === request.id,
                 );
+                const viewerCompletion = careLifecycle.completions.find(
+                  (completion) =>
+                    completion.requestId === request.id &&
+                    completion.participantId === viewerId,
+                );
+                const otherParticipantCompleted =
+                  careLifecycle.completions.some(
+                    (completion) =>
+                      completion.requestId === request.id &&
+                      completion.participantId !== viewerId &&
+                      completion.decision === "completed",
+                  );
                 return (
                   <CareRequestCard
                     canPass={canPassCareRequest(
@@ -170,11 +192,15 @@ export function CuratorDetailView({
                     }
                     onOfferHelp={onOfferHelp}
                     onPass={onPass}
+                    onRecordCompleted={onRecordCompleted}
+                    onRecordNotCompleted={onRecordNotCompleted}
                     onSetMinimized={onSetRequestMinimized}
                     onWithdraw={onWithdraw}
                     request={request}
                     viewerId={viewerId}
+                    viewerCompletion={viewerCompletion?.decision}
                     viewerIsClaimer={claim?.claimerId === viewerId}
+                    otherParticipantCompleted={otherParticipantCompleted}
                   />
                 );
               })
