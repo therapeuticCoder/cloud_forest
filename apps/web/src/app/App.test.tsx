@@ -84,7 +84,13 @@ describe("App", () => {
     expect(
       screen.getByRole("region", { name: /mira vale details/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Details coming next")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Care with Mira Vale" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("There isn’t any active care to respond to here."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Private history")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /back to curator/i }));
 
@@ -96,6 +102,80 @@ describe("App", () => {
         screen.getByRole("region", { name: /curator view/i }).scrollTop,
       ).toBe(320);
     });
+  });
+
+  it("shows viewer-appropriate care actions on a person profile", async () => {
+    const user = await openCurator();
+    const anyaTile = screen.getByRole("button", { name: /open anya reed/i });
+
+    await user.click(anyaTile);
+
+    expect(
+      screen.getByRole("heading", { name: "Care with Anya Reed" }),
+    ).toBeInTheDocument();
+    const request = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+    expect(
+      within(request).getByRole("button", { name: "I can help" }),
+    ).toBeInTheDocument();
+    expect(
+      within(request).getByRole("button", { name: "Pass this time" }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      within(request).getByRole("button", { name: "I can help" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Not now" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "I can help" })).toHaveFocus(),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Back to Curator" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /open anya reed/i }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it("keeps active requests, commitments, and history separate in My Care", async () => {
+    window.localStorage.setItem(
+      "cloud-forest:care-lifecycle:v2",
+      JSON.stringify({
+        version: 2,
+        claims: [],
+        passes: [],
+        seenStates: [],
+        completions: [],
+        dispositions: [],
+        history: [
+          {
+            id: "care-history-you-withdrawn",
+            requestId: "care-request-anya-meal-001",
+            ownerId: "you",
+            outcome: "withdrawn",
+            recordedAt: "2026-09-03T18:00:00.000Z",
+          },
+        ],
+      }),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Open My Care" }));
+
+    expect(
+      screen.getByRole("heading", { name: "My requests" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "I’m helping" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Private history" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Withdrawn")).toBeInTheDocument();
+    expect(screen.getByText("A meal")).toBeInTheDocument();
   });
 
   it("adds a Party member through the mobile wizard", async () => {

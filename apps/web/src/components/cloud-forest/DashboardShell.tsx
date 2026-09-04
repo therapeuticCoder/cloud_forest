@@ -15,6 +15,8 @@ import {
   haveAllPartyMembersPassed,
   selectCareRequestPresentation,
   selectNextCareRequestExpiration,
+  selectPrivateCareHistory,
+  selectProfileCareRequests,
   selectTimelineCareRequests,
   transitionCareLifecycle,
   type CareLifecycleAction,
@@ -55,6 +57,7 @@ export function DashboardShell() {
   const [careViewerId, setCareViewerId] = useState(CURRENT_CARE_VIEWER_ID);
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
+  const [curatorDetailOpen, setCuratorDetailOpen] = useState(false);
   const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
     curatorPartyPeople.slice(0, 4),
   );
@@ -122,11 +125,11 @@ export function DashboardShell() {
     setGiveWizardOpen(false);
     setActiveView("timeline");
   };
-  const withdrawCareRequest = (requestId: string) => {
+  const withdrawCareRequestAs = (requestId: string, actorId = careViewerId) => {
     applyCareLifecycleAction({
       type: "withdraw-request",
       requestId,
-      actorId: careViewerId,
+      actorId,
       withdrawnAt: new Date().toISOString(),
     });
   };
@@ -255,6 +258,25 @@ export function DashboardShell() {
         ),
       ),
     [careLifecycle.claims, careLifecycle.requests],
+  );
+  const selfProfileRequests = useMemo(
+    () =>
+      selectProfileCareRequests(
+        careLifecycle,
+        CURRENT_CARE_VIEWER_ID,
+        CURRENT_CARE_VIEWER_ID,
+        new Date().toISOString(),
+      ).filter((request) => request.requester.id === CURRENT_CARE_VIEWER_ID),
+    [careLifecycle],
+  );
+  const selfCareHistory = useMemo(
+    () =>
+      selectPrivateCareHistory(
+        careLifecycle,
+        CURRENT_CARE_VIEWER_ID,
+        CURRENT_CARE_VIEWER_ID,
+      ),
+    [careLifecycle],
   );
   const viewerClaimedRequestIds = useMemo(
     () =>
@@ -484,7 +506,7 @@ export function DashboardShell() {
                 }
                 onPass={passCareRequest}
                 onSetRequestMinimized={setCareRequestMinimized}
-                onWithdraw={withdrawCareRequest}
+                onWithdraw={withdrawCareRequestAs}
                 onWithdrawOffer={(offerId) =>
                   setCareOffers((currentOffers) =>
                     currentOffers.filter((offer) => offer.id !== offerId),
@@ -503,9 +525,12 @@ export function DashboardShell() {
             ) : (
               <CuratorView
                 addWizardOpen={addWizardOpen}
+                careLifecycle={careLifecycle}
+                careViewerId={careViewerId}
                 onAddPartyMember={openAddWizard}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
+                onDetailOpenChange={setCuratorDetailOpen}
                 onNavigateToTimeline={() => setActiveView("timeline")}
                 onOpenMyCare={() =>
                   openCareDestination(
@@ -513,6 +538,15 @@ export function DashboardShell() {
                     '[data-my-care-trigger="curator"]',
                   )
                 }
+                onOfferHelp={(request) =>
+                  openCareDestination(
+                    { kind: "claim", request },
+                    `[data-care-claim-action="${request.id}"]`,
+                  )
+                }
+                onPass={passCareRequest}
+                onSetRequestMinimized={setCareRequestMinimized}
+                onWithdraw={withdrawCareRequestAs}
                 partyPeople={partyPeople}
               />
             )}
@@ -525,8 +559,42 @@ export function DashboardShell() {
             />
           ) : careDestination?.kind === "my-care" ? (
             <MyCareView
+              activeRequests={selfProfileRequests}
+              careLifecycle={careLifecycle}
               claimedRequests={claimedRequests}
+              history={selfCareHistory}
               onBack={backFromCareDestination}
+              onSetRequestMinimized={(requestId, minimized) => {
+                const changedAt = new Date().toISOString();
+                const presentation = selectCareRequestPresentation(
+                  careLifecycle,
+                  requestId,
+                  CURRENT_CARE_VIEWER_ID,
+                );
+                applyCareLifecycleAction(
+                  presentation.seen
+                    ? {
+                        type: "set-seen-minimized",
+                        requestId,
+                        viewerId: CURRENT_CARE_VIEWER_ID,
+                        minimized,
+                        changedAt,
+                      }
+                    : {
+                        type: "mark-seen",
+                        seenState: {
+                          id: `care-seen-${requestId}-${CURRENT_CARE_VIEWER_ID}`,
+                          requestId,
+                          viewerId: CURRENT_CARE_VIEWER_ID,
+                          seenAt: changedAt,
+                          minimized,
+                        },
+                      },
+                );
+              }}
+              onWithdraw={(requestId) =>
+                withdrawCareRequestAs(requestId, CURRENT_CARE_VIEWER_ID)
+              }
             />
           ) : null}
         </>
@@ -534,7 +602,7 @@ export function DashboardShell() {
       {!receiveWizardOpen &&
       !giveWizardOpen &&
       !careDestination &&
-      (activeView === "timeline" || !addWizardOpen) ? (
+      (activeView === "timeline" || (!addWizardOpen && !curatorDetailOpen)) ? (
         <div
           className="timeline-chrome timeline-chrome--bottom"
           data-hidden={chromeHidden}
