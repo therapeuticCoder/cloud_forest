@@ -1,7 +1,11 @@
 import { HandHeart, UsersRound } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
+import type {
+  CareCompletionDecision,
+  CarePersonId,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -15,23 +19,31 @@ export function CareRequestCard({
   canPass,
   minimized,
   onOfferHelp,
+  onRecordCompleted,
+  onRecordNotCompleted,
   onPass,
   onSetMinimized,
   onWithdraw,
   request,
   viewerId,
+  viewerCompletion,
   viewerIsClaimer,
+  otherParticipantCompleted,
 }: {
   claimed: boolean;
   canPass: boolean;
   minimized: boolean;
   onOfferHelp: (request: ReceiveCareRequest) => void;
+  onRecordCompleted?: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass: (request: ReceiveCareRequest) => void;
   onSetMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   request: ReceiveCareRequest;
   viewerId: CarePersonId;
+  viewerCompletion?: CareCompletionDecision;
   viewerIsClaimer: boolean;
+  otherParticipantCompleted?: boolean;
 }) {
   const isSelfAuthored = request.requester.id === viewerId;
   const requesterFirstName = request.requester.displayName.split(" ")[0];
@@ -163,15 +175,56 @@ export function CareRequestCard({
             Withdraw request
           </button>
         ) : claimed ? (
-          <p
-            className="care-request-card__commitment"
-            data-care-claim-status={request.id}
-            tabIndex={-1}
-          >
-            {viewerIsClaimer
-              ? `You’re helping ${requesterFirstName}.`
-              : "Someone is helping with this request."}
-          </p>
+          <div className="care-request-card__outcome">
+            <p
+              className="care-request-card__commitment"
+              data-care-claim-status={request.id}
+              tabIndex={-1}
+            >
+              {viewerIsClaimer
+                ? `You’re helping ${requesterFirstName}.`
+                : "Someone is helping with this request."}
+            </p>
+            {viewerCompletion === "completed" ? (
+              <p
+                className="care-request-card__waiting"
+                data-care-outcome-status={request.id}
+                role="status"
+                tabIndex={-1}
+              >
+                You marked this completed. Waiting for the other person.
+              </p>
+            ) : onRecordCompleted && onRecordNotCompleted ? (
+              <>
+                {otherParticipantCompleted ? (
+                  <p
+                    className="care-request-card__waiting"
+                    data-care-outcome-status={request.id}
+                    role="status"
+                    tabIndex={-1}
+                  >
+                    The other person marked this completed. What happened for
+                    you?
+                  </p>
+                ) : null}
+                <div className="care-request-card__outcome-actions">
+                  <button
+                    onClick={() => onRecordCompleted(request)}
+                    type="button"
+                  >
+                    Completed
+                  </button>
+                  <button
+                    data-care-outcome-action={request.id}
+                    onClick={() => onRecordNotCompleted(request)}
+                    type="button"
+                  >
+                    Not completed
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
         ) : (
           <div className="care-request-card__actions">
             <button

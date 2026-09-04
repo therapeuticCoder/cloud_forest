@@ -122,30 +122,39 @@ type CareListing =
 const noClaimedRequestIds = new Set<string>();
 const noMinimizedRequestIds = new Set<string>();
 const noPassableRequestIds = new Set<string>();
+const noCompletedRequestIds = new Set<string>();
 
 function CareListings({
   claimedRequestIds,
   listings,
   minimizedRequestIds,
   onOfferHelp,
+  onRecordCompleted,
+  onRecordNotCompleted,
   onPass,
   onSetRequestMinimized,
   onWithdraw,
   onWithdrawOffer,
   passableRequestIds,
   viewerClaimedRequestIds,
+  viewerCompletedRequestIds,
+  otherParticipantCompletedRequestIds,
   viewerId,
 }: {
   claimedRequestIds: Set<string>;
   listings: CareListing[];
   minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
+  onRecordCompleted: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onPass: (request: ReceiveCareRequest) => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
   passableRequestIds: Set<string>;
   viewerClaimedRequestIds: Set<string>;
+  viewerCompletedRequestIds: Set<string>;
+  otherParticipantCompletedRequestIds: Set<string>;
   viewerId: CarePersonId;
 }) {
   return listings.map((listing) =>
@@ -162,12 +171,22 @@ function CareListings({
         key={listing.item.id}
         minimized={minimizedRequestIds.has(listing.item.id)}
         onOfferHelp={onOfferHelp}
+        onRecordCompleted={onRecordCompleted}
+        onRecordNotCompleted={onRecordNotCompleted}
         onPass={onPass}
         onSetMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         request={listing.item}
         viewerId={viewerId}
+        viewerCompletion={
+          viewerCompletedRequestIds.has(listing.item.id)
+            ? "completed"
+            : undefined
+        }
         viewerIsClaimer={viewerClaimedRequestIds.has(listing.item.id)}
+        otherParticipantCompleted={otherParticipantCompletedRequestIds.has(
+          listing.item.id,
+        )}
       />
     ),
   );
@@ -251,6 +270,8 @@ export function TimelinePanel({
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
+  onRecordCompleted = () => undefined,
+  onRecordNotCompleted = () => undefined,
   onPass = () => undefined,
   onSetRequestMinimized = () => undefined,
   onWithdraw = () => undefined,
@@ -258,6 +279,8 @@ export function TimelinePanel({
   passableRequestIds = noPassableRequestIds,
   passAnnouncement,
   viewerClaimedRequestIds = noClaimedRequestIds,
+  viewerCompletedRequestIds = noCompletedRequestIds,
+  otherParticipantCompletedRequestIds = noCompletedRequestIds,
   viewerId = "you",
 }: {
   apiClient?: Pick<ApiClient, "getTimelineItem">;
@@ -266,6 +289,8 @@ export function TimelinePanel({
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
+  onRecordCompleted?: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass?: (request: ReceiveCareRequest) => void;
   onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
   onWithdraw?: (requestId: string) => void;
@@ -273,6 +298,8 @@ export function TimelinePanel({
   passableRequestIds?: Set<string>;
   passAnnouncement?: string;
   viewerClaimedRequestIds?: Set<string>;
+  viewerCompletedRequestIds?: Set<string>;
+  otherParticipantCompletedRequestIds?: Set<string>;
   viewerId?: CarePersonId;
 }) {
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
@@ -354,12 +381,18 @@ export function TimelinePanel({
               listings={visibleCareListings}
               minimizedRequestIds={minimizedRequestIds}
               onOfferHelp={onOfferHelp}
+              onRecordCompleted={onRecordCompleted}
+              onRecordNotCompleted={onRecordNotCompleted}
               onPass={onPass}
               onSetRequestMinimized={onSetRequestMinimized}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
               passableRequestIds={passableRequestIds}
               viewerClaimedRequestIds={viewerClaimedRequestIds}
+              viewerCompletedRequestIds={viewerCompletedRequestIds}
+              otherParticipantCompletedRequestIds={
+                otherParticipantCompletedRequestIds
+              }
               viewerId={viewerId}
             />
           ) : (
@@ -378,12 +411,18 @@ export function TimelinePanel({
               listings={careListings}
               minimizedRequestIds={minimizedRequestIds}
               onOfferHelp={onOfferHelp}
+              onRecordCompleted={onRecordCompleted}
+              onRecordNotCompleted={onRecordNotCompleted}
               onPass={onPass}
               onSetRequestMinimized={onSetRequestMinimized}
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
               passableRequestIds={passableRequestIds}
               viewerClaimedRequestIds={viewerClaimedRequestIds}
+              viewerCompletedRequestIds={viewerCompletedRequestIds}
+              otherParticipantCompletedRequestIds={
+                otherParticipantCompletedRequestIds
+              }
               viewerId={viewerId}
             />
             <RemoteTimelineSlot apiClient={apiClient} />

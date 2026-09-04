@@ -268,6 +268,16 @@ test("database-backed Timeline and prototype regression path", async ({
   await fullCareRequest.getByRole("button", { name: "I can help" }).click();
   await page.getByRole("button", { name: "I’ll help with this" }).click();
   await expect(page.getByText("You’re helping Anya.")).toBeFocused();
+  await fullCareRequest
+    .getByRole("button", { name: "Completed", exact: true })
+    .click();
+  await expect(
+    page.getByText("You marked this completed. Waiting for the other person."),
+  ).toBeFocused();
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
+    "timeline-care-awaiting-completion.png",
+  );
   await perspective.selectOption("anya");
   const requesterClaimedRequest = page.getByRole("article", {
     name: "Claimed meal care request",
@@ -275,6 +285,27 @@ test("database-backed Timeline and prototype regression path", async ({
   await expect(requesterClaimedRequest).toContainText(
     "Someone is helping with this request.",
   );
+  await expect(requesterClaimedRequest).toContainText(
+    "The other person marked this completed.",
+  );
+  await requesterClaimedRequest
+    .getByRole("button", { name: "Not completed" })
+    .click();
+  const notCompletedView = page.getByRole("region", {
+    name: "Care was not completed for Anya Reed",
+  });
+  await expect(
+    notCompletedView.getByRole("button", { name: "Close" }),
+  ).toBeDisabled();
+  await notCompletedView
+    .getByLabel("Reason")
+    .fill("The handoff timing did not work");
+  await expectNoHorizontalOverflow(page);
+  await expect(page).toHaveScreenshot("care-not-completed.png");
+  await notCompletedView.getByRole("button", { name: "Back" }).click();
+  await expect(
+    requesterClaimedRequest.getByRole("button", { name: "Not completed" }),
+  ).toBeFocused();
   await expectNoHorizontalOverflow(page);
   await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
     "timeline-care-claimed-requester.png",

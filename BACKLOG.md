@@ -40,40 +40,9 @@ should be small enough for one focused agent session.
 - T-028B: Add Party passing and Tribe demotion
 - T-028C: Add the care perspective harness and claim visibility
 - T-029: Add care actions and history to person profile destinations
+- T-030: Add two-party completion and not-completed dispositions
 
 ## Current Milestone
-
-### T-030: Add two-party completion and not-completed dispositions
-
-Status: planned; requires T-027 and T-029
-Size: medium
-
-Concrete goal:
-Let the requester and claimer independently mark claimed care Completed or Not
-completed. Keep care active until both confirm completion, and close a request
-for both participants when either records a not-completed disposition.
-
-Likely files or boundaries:
-New focused outcome and not-completed wizard components, care profile and
-Timeline cards, lifecycle transitions/selectors, `DashboardShell.tsx`, storage,
-tests, and styles.
-
-Acceptance criteria:
-
-- only the requester and claimer can record an outcome
-- one Completed response leaves the request active with clear waiting status
-- two Completed responses close the request and add attributed history for
-  both participants
-- Not completed collects a free-text reason before offering Postpone / try
-  again or Close
-- either not-completed disposition closes the original request for both
-  participants and records the disposition in both histories
-- Postpone / try again creates a new linked request rather than rewriting or
-  reopening the closed original
-
-Out of scope:
-Dispute resolution, moderation, reputation, penalties, messaging, scheduling,
-notifications, and authoritative server coordination.
 
 ### T-031: Add the receiver gratitude flow and optional Tribe post
 
