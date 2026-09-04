@@ -619,6 +619,23 @@ describe("Receive-care lifecycle", () => {
     ).toMatchObject({ ok: false, error: "request-expired" });
   });
 
+  it("treats the exact expiration instant as expired", () => {
+    const initial = createCareLifecycleState([request()]);
+    const justBeforeExpiry = "2026-09-10T09:59:59.999Z";
+    const exactExpiry = "2026-09-10T10:00:00.000Z";
+
+    expect(
+      selectTimelineCareRequests(initial, "you", justBeforeExpiry),
+    ).toEqual([request()]);
+    expect(selectTimelineCareRequests(initial, "you", exactExpiry)).toEqual([]);
+    expect(
+      transitionCareLifecycle(initial, {
+        type: "claim-request",
+        claim: { ...claim(), claimedAt: exactExpiry },
+      }),
+    ).toMatchObject({ ok: false, error: "request-expired" });
+  });
+
   it("expires due requests into private history and selects the next expiry", () => {
     const laterRequest = request({
       id: "request-2",

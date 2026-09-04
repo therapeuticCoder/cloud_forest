@@ -15,6 +15,15 @@ Timeline and Curator are switchable in the current app. Current product work
 prioritizes making these functional paths durable while preserving their
 approved responsive and accessible interaction patterns.
 
+The accepted fictional Receive-care prototype now covers request lifespan,
+per-viewer seen and pass state, Party-to-Tribe demotion, claims, person-profile
+and My Care views, two-party outcomes, linked retries, private history, and
+optional Tribe gratitude. Its lifecycle records are a device-local
+`localStorage` simulation and its perspective switcher is not authentication.
+See [`docs/care-lifecycle-prototype.md`](docs/care-lifecycle-prototype.md) for
+the exact behavior, privacy boundary, sources of truth, and deferred production
+work.
+
 ## Tech stack
 
 - TypeScript and pnpm workspaces
@@ -299,6 +308,7 @@ task per agent session and read these files before making changes:
 - `DECISIONS.md`
 - `docs/project-brief.md`
 - `docs/prototype-roadmap.md`
+- `docs/care-lifecycle-prototype.md`
 - `docs/workflow.md`
 
 The human remains the product owner and reviewer. Keep changes small,

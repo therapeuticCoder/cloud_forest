@@ -8,8 +8,10 @@ two or three days and a weekly reforecast based on accepted outcomes and rework.
 Environment and design calibration and the monorepo-foundation milestone are
 complete. The working prototype now has an installable React PWA, versioned API,
 reviewed PostgreSQL migrations, a generated typed client, and a guarded browser
-regression path. The personal loop is the next product milestone; its first
-functional slice will be selected separately in the backlog.
+regression path. The fictional Receive-care lifecycle is also accepted through
+gratitude and private history, while remaining explicitly device-local and
+unauthenticated. Its durable conversion sequence is a separate planning step,
+not an implicit rewrite of the prototype.
 
 ## Eight-week sequence
 

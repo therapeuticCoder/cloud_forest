@@ -198,7 +198,7 @@ pnpm.cmd exec playwright install chromium
 The browser gate verifies the migrated Mira response and rendered card,
 representative Timeline and Curator interactions, keyboard focus recovery,
 page-level horizontal overflow, development cleanup of a deliberately seeded
-stale service worker, console and page errors, and two committed Timeline visual
+stale service worker, console and page errors, and reviewed desktop/mobile visual
 baselines. Browser contexts use `America/Chicago` so fixture timestamps and
 screenshots do not vary with the workstation timezone. Failure traces and
 screenshots are ignored under `test-results/`; API and Vite output remains
