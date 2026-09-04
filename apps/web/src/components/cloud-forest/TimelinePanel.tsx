@@ -19,7 +19,11 @@ import {
   mockNowIso,
 } from "@/data/cloudForestMockData";
 import type { CloudForestActivity } from "@/types/cloudForest";
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+import type {
+  CarePersonId,
+  GiveCareOffer,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
 
 import { CareOfferCard } from "./CareOfferCard";
 import { CareRequestCard } from "./CareRequestCard";
@@ -129,6 +133,8 @@ function CareListings({
   onWithdraw,
   onWithdrawOffer,
   passableRequestIds,
+  viewerClaimedRequestIds,
+  viewerId,
 }: {
   claimedRequestIds: Set<string>;
   listings: CareListing[];
@@ -139,6 +145,8 @@ function CareListings({
   onWithdraw: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
   passableRequestIds: Set<string>;
+  viewerClaimedRequestIds: Set<string>;
+  viewerId: CarePersonId;
 }) {
   return listings.map((listing) =>
     listing.kind === "give" ? (
@@ -158,6 +166,8 @@ function CareListings({
         onSetMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         request={listing.item}
+        viewerId={viewerId}
+        viewerIsClaimer={viewerClaimedRequestIds.has(listing.item.id)}
       />
     ),
   );
@@ -247,6 +257,8 @@ export function TimelinePanel({
   onWithdrawOffer = () => undefined,
   passableRequestIds = noPassableRequestIds,
   passAnnouncement,
+  viewerClaimedRequestIds = noClaimedRequestIds,
+  viewerId = "you",
 }: {
   apiClient?: Pick<ApiClient, "getTimelineItem">;
   careOffers?: GiveCareOffer[];
@@ -260,6 +272,8 @@ export function TimelinePanel({
   onWithdrawOffer?: (offerId: string) => void;
   passableRequestIds?: Set<string>;
   passAnnouncement?: string;
+  viewerClaimedRequestIds?: Set<string>;
+  viewerId?: CarePersonId;
 }) {
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
     "all",
@@ -345,6 +359,8 @@ export function TimelinePanel({
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
               passableRequestIds={passableRequestIds}
+              viewerClaimedRequestIds={viewerClaimedRequestIds}
+              viewerId={viewerId}
             />
           ) : (
             <div
@@ -367,6 +383,8 @@ export function TimelinePanel({
               onWithdraw={onWithdraw}
               onWithdrawOffer={onWithdrawOffer}
               passableRequestIds={passableRequestIds}
+              viewerClaimedRequestIds={viewerClaimedRequestIds}
+              viewerId={viewerId}
             />
             <RemoteTimelineSlot apiClient={apiClient} />
             <ActivityList activities={todayActivities} />

@@ -117,6 +117,7 @@ test("database-backed Timeline and prototype regression path", async ({
 }, testInfo: TestInfo) => {
   const browserFailures = collectBrowserFailures(page);
   await seedAndExpectDevelopmentPwaCleanup(page);
+  await page.waitForLoadState("networkidle");
   const miraResponsePromise = page.waitForResponse(
     (response) =>
       response.url().endsWith(miraEndpoint) &&
@@ -213,6 +214,47 @@ test("database-backed Timeline and prototype regression path", async ({
 
   await page.reload();
   await expect(fullCareRequest).toHaveCount(0);
+
+  const perspective = page.getByLabel("Reviewing as");
+  for (const partyViewer of ["mira", "sol", "dev"]) {
+    await perspective.selectOption(partyViewer);
+    await expect(fullCareRequest).toBeVisible();
+    await fullCareRequest
+      .getByRole("button", { name: "Pass this time" })
+      .click();
+  }
+  await expect(
+    page.getByText(
+      "Your Party passed on Anya’s request. It is now shared with the original Tribe audience.",
+    ),
+  ).toBeVisible();
+  await perspective.selectOption("nearby-family-1");
+  await expect(fullCareRequest).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
+    "timeline-care-demoted.png",
+  );
+
+  await fullCareRequest.getByRole("button", { name: "I can help" }).click();
+  await page.getByRole("button", { name: "I’ll help with this" }).click();
+  await expect(page.getByText("You’re helping Anya.")).toBeFocused();
+  await perspective.selectOption("anya");
+  const requesterClaimedRequest = page.getByRole("article", {
+    name: "Claimed meal care request",
+  });
+  await expect(requesterClaimedRequest).toContainText(
+    "Someone is helping with this request.",
+  );
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
+    "timeline-care-claimed-requester.png",
+  );
+
+  await perspective.selectOption("mira");
+  await expect(requesterClaimedRequest).toHaveCount(0);
+  await expect(fullCareRequest).toHaveCount(0);
+  await perspective.selectOption("nearby-family-1");
+  await expect(page.getByText("You’re helping Anya.")).toBeVisible();
 
   await expectHiddenChromeRecoversFromKeyboard(page);
   await page.evaluate(() => window.scrollTo(0, 0));

@@ -40,6 +40,8 @@ describe("CareRequestCard seen presentation", () => {
         onSetMinimized={onSetMinimized}
         onWithdraw={vi.fn()}
         request={request}
+        viewerId="you"
+        viewerIsClaimer={false}
       />,
     );
 
@@ -66,6 +68,8 @@ describe("CareRequestCard seen presentation", () => {
         onSetMinimized={onSetMinimized}
         onWithdraw={vi.fn()}
         request={request}
+        viewerId="you"
+        viewerIsClaimer={false}
       />,
     );
 
@@ -94,10 +98,61 @@ describe("CareRequestCard seen presentation", () => {
         onSetMinimized={vi.fn()}
         onWithdraw={vi.fn()}
         request={request}
+        viewerId="you"
+        viewerIsClaimer={false}
       />,
     );
 
     await user.click(screen.getByRole("button", { name: "Pass this time" }));
     expect(onPass).toHaveBeenCalledWith(request);
+  });
+
+  it("shows the claimer their commitment without unrelated actions", () => {
+    render(
+      <CareRequestCard
+        canPass={false}
+        claimed
+        minimized={false}
+        onOfferHelp={vi.fn()}
+        onPass={vi.fn()}
+        onSetMinimized={vi.fn()}
+        onWithdraw={vi.fn()}
+        request={request}
+        viewerId="you"
+        viewerIsClaimer
+      />,
+    );
+
+    expect(screen.getByText("You’re helping Anya.")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Pass this time" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a claimed requester that help is coming", () => {
+    render(
+      <CareRequestCard
+        canPass={false}
+        claimed
+        minimized={false}
+        onOfferHelp={vi.fn()}
+        onPass={vi.fn()}
+        onSetMinimized={vi.fn()}
+        onWithdraw={vi.fn()}
+        request={request}
+        viewerId="anya"
+        viewerIsClaimer={false}
+      />,
+    );
+
+    expect(
+      screen.getByRole("article", { name: "Claimed meal care request" }),
+    ).toHaveTextContent("Help coming");
+    expect(
+      screen.getByText("Someone is helping with this request."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Withdraw request" }),
+    ).not.toBeInTheDocument();
   });
 });
