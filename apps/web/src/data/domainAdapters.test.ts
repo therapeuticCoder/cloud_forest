@@ -36,7 +36,7 @@ describe("domain adapters", () => {
     }
   });
 
-  it("adapts only person activity sources to canonical people", () => {
+  it("requires an explicit source mapping for person activity actors", () => {
     const personActor = activityActors.find(
       (actor) => actor.sourceType === "person",
     );
@@ -50,9 +50,41 @@ describe("domain adapters", () => {
       throw new Error("Expected person and institution fixtures");
     }
 
-    expect(activityActorToDomainPerson(personActor)).toMatchObject({
-      id: personActor.id,
+    const canonicalPerson = curatorPersonToDomainPerson(curatorPartyPeople[0]);
+    const mappings = [
+      {
+        sourceActorId: personActor.id,
+        sourcePlatform: personActor.platform,
+        person: canonicalPerson,
+      },
+    ];
+
+    expect(activityActorToDomainPerson(personActor, [])).toBeNull();
+    expect(activityActorToDomainPerson(personActor, mappings)).toEqual({
+      id: "mira",
+      profile: { displayName: "Mira Vale" },
     });
-    expect(activityActorToDomainPerson(signalActor)).toBeNull();
+    expect(activityActorToDomainPerson(signalActor, mappings)).toBeNull();
+  });
+
+  it("does not match a reused source actor ID from another platform", () => {
+    const personActor = activityActors.find(
+      (actor) => actor.sourceType === "person",
+    );
+
+    expect(personActor).toBeDefined();
+    if (!personActor) {
+      throw new Error("Expected a person fixture");
+    }
+
+    expect(
+      activityActorToDomainPerson(personActor, [
+        {
+          sourceActorId: personActor.id,
+          sourcePlatform: "activitypub",
+          person: curatorPersonToDomainPerson(curatorPartyPeople[0]),
+        },
+      ]),
+    ).toBeNull();
   });
 });

@@ -7,8 +7,17 @@ import {
   type Person,
 } from "@cloud-forest/domain";
 
-import type { CloudForestActor } from "@/types/cloudForest";
+import type {
+  CloudForestActor,
+  CloudForestPlatform,
+} from "@/types/cloudForest";
 import type { CuratorPerson } from "@/types/curator";
+
+export type ActivityActorPersonMapping = {
+  readonly sourceActorId: string;
+  readonly sourcePlatform: CloudForestPlatform;
+  readonly person: Person;
+};
 
 export function curatorPersonToDomainPerson(person: CuratorPerson): Person {
   return {
@@ -41,13 +50,17 @@ export function curatorPartyToDomainParty(
 
 export function activityActorToDomainPerson(
   actor: CloudForestActor,
+  mappings: readonly ActivityActorPersonMapping[],
 ): Person | null {
   if (actor.sourceType !== "person") {
     return null;
   }
 
-  return {
-    id: createPersonId(actor.id),
-    profile: { displayName: actor.displayName },
-  };
+  const mapping = mappings.find(
+    (candidate) =>
+      candidate.sourceActorId === actor.id &&
+      candidate.sourcePlatform === actor.platform,
+  );
+
+  return mapping?.person ?? null;
 }
