@@ -103,11 +103,40 @@ removed or blocked relationship without a separately approved restoration
 flow. The service derives the owner from the current person; a caller-supplied
 owner ID cannot redirect a Party operation.
 
+### Owned Tribe membership
+
+The minimum authoritative Tribe membership needed for care is also private,
+directed, and owned curation. It does not make visual neighborhoods
+authoritative or establish a generalized social graph.
+
+| Field or action                                 | Tribe owner                                      | Tribe member            | Other authenticated person | Removed or blocked person | Unauthenticated caller |
+| ----------------------------------------------- | ------------------------------------------------ | ----------------------- | -------------------------- | ------------------------- | ---------------------- |
+| Owner person ID                                 | Allow in the owner's own Tribe response          | Deny                    | Deny                       | Deny                      | Deny                   |
+| Member person ID and minimal profile projection | Allow                                            | Deny as membership data | Deny                       | Deny                      | Deny                   |
+| Full membership list                            | Allow                                            | Deny                    | Deny                       | Deny                      | Deny                   |
+| Add or remove membership                        | Allow for the trusted current person's own Tribe | Deny                    | Deny                       | Deny                      | Deny                   |
+
+Tribe writes must reject self-membership, duplicates, a relationship beyond
+the 100-person limit, an owner mismatch, and adding a removed or blocked
+relationship without a separately approved restoration flow. The service
+derives the owner from the current person and does not expose another owner's
+membership list. Exact storage overlap between Party and Tribe and visual
+neighborhood editing remain outside this authorization policy.
+
 ### Care fields and states
 
 The accepted Receive-care lifecycle supplies product semantics, not an
 authorization implementation. The durable service must construct the audience
 snapshot, actor provenance, timestamps, and lifecycle state from trusted data.
+
+For Party-pass quorum, the service starts with the immutable original Party
+snapshot and intersects it with the requester's current eligible, non-blocked
+Party relationships. A removed or blocked snapshot member is no longer
+authorized to pass and is no longer required for quorum; the service does not
+invent a pass on that person's behalf. When every remaining eligible snapshot
+member has passed, including when none remain, the service performs the single
+Party-to-Tribe demotion and applies the same original-snapshot-plus-current-
+eligibility rule to Tribe visibility.
 
 | Data class                                        | Authorized projection                                                                                                                                                                                                                        | Explicit denials                                                                                                                                                                                                                                                                                           |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -151,6 +180,10 @@ block created during already-claimed care must be approved with the durable
 care lifecycle; until then, ordinary participant operations do not override
 the block.
 
+For an unclaimed request, removal or blocking also removes that person from the
+effective Party-pass quorum. This is a server-owned authorization consequence,
+not a synthetic pass or a client-side selector decision.
+
 ## Proposed operation matrix
 
 These are policy operation names, not committed HTTP routes. Later contracts
@@ -176,25 +209,33 @@ equivalent rule and field projection.
 | Remove Party member   | Owner, for their own membership record                                                | Deny members and other people. Removal revokes relationship-derived access but does not erase participant-owned history. |
 | Reorder Party         | Owner, with a complete valid ordering of their own current memberships                | Deny foreign, missing, duplicate, out-of-range, noncontiguous, and stale membership sets.                                |
 
+### Tribe membership operations
+
+| Operation           | Allow                                                                       | Deny and projection rule                                                                                                                                      |
+| ------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Read owned Tribe    | Current person for their own authoritative Tribe membership                 | Return only that owner's membership list and minimal member profiles. Deny members and all other people from inspecting the list.                             |
+| Add Tribe member    | Owner of the current person's Tribe, within capacity and relationship rules | Deny caller-supplied owner, self, duplicate, over-capacity, removed, blocked, and unauthorized targets. Do not create or expose a visual neighborhood.        |
+| Remove Tribe member | Owner, for a membership in their own Tribe                                  | Deny members and other people. Removal revokes current relationship-derived profile, unclaimed-care, and Tribe-activity access without erasing owned history. |
+
 ### Care and Tribe-activity operations
 
-| Operation                               | Allow                                                                                      | Deny and projection rule                                                                                                                                                                             |
-| --------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Create Receive request                  | Current person as requester                                                                | Service derives requester, current Party/Tribe audience snapshot, timestamps, and initial state. Deny caller-supplied authority or foreign ownership.                                                |
-| Create Give offer                       | Current person as owner                                                                    | Service derives owner, audience, timestamps, and initial state. Deny foreign ownership and client-authoritative snapshots.                                                                           |
-| List visible care                       | Current person as owner/requester, eligible current audience viewer, or active participant | Return role-specific projections only. Deny unrelated, removed, blocked, and unauthenticated callers.                                                                                                |
-| Read one care item                      | Same object-specific rules as list visible care                                            | An opaque ID does not bypass audience, participant, terminal, expiry, removal, or block rules.                                                                                                       |
-| List My Care and private history        | Current person for their own requests, offers, commitments, and history                    | Deny any caller-supplied history owner that differs from the trusted current person.                                                                                                                 |
-| Withdraw request or offer               | Trusted owner/requester in a withdrawable state                                            | Deny audience viewers, participants who do not own it, foreign actor IDs, and terminal or otherwise invalid state.                                                                                   |
-| Read or update seen/minimized state     | Current viewer for their own currently visible item                                        | Deny access to another viewer's state and deny callers who cannot currently view the item.                                                                                                           |
-| Pass Receive request                    | Eligible current Party viewer, once, before claim or expiry                                | Deny requester impersonation, another member's pass, Tribe-only viewers, removed/blocked viewers, and invalid state.                                                                                 |
-| Claim Receive request                   | Eligible current Party or demoted-Tribe viewer before claim or expiry                      | Exactly one claim may succeed. Deny removed/blocked/ineligible callers, actor substitution, and disclosure of the winner to losing or unrelated viewers.                                             |
-| Record completion                       | Requester or giver, for their own decision, in valid claimed state                         | Deny nonparticipants and attempts to decide for the counterpart.                                                                                                                                     |
-| Record Not completed                    | Requester or giver, for their own decision, in valid claimed state                         | Keep the reason participant-private; deny nonparticipants and counterpart impersonation.                                                                                                             |
-| Close, postpone, or create linked retry | Authorized participant following their own Not-completed decision                          | Server performs valid terminal and retry changes atomically. Deny foreign ownership, unrelated callers, and inconsistent predecessor/successor authority.                                            |
-| Record receiver gratitude               | Requester when they record Completed, once per accepted lifecycle rule                     | Save attributed participant-private provenance; publish Tribe activity only on explicit opt-in. Deny giver-authored receiver gratitude, nonparticipants, duplicates, and caller-selected provenance. |
-| Read private attributed gratitude       | Current person for their own participant-private history                                   | Deny access to another person's full gratitude history or provenance.                                                                                                                                |
-| Read Tribe activity                     | Current eligible Tribe viewer for currently authorized activity                            | Return only the shared projection. Deny private source fields and deny unrelated, removed, blocked, and unauthenticated viewers.                                                                     |
+| Operation                               | Allow                                                                                      | Deny and projection rule                                                                                                                                                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create Receive request                  | Current person as requester                                                                | Service derives requester, current Party/Tribe audience snapshot, timestamps, and initial state. Deny caller-supplied authority or foreign ownership.                                                                                     |
+| Create Give offer                       | Current person as owner                                                                    | Service derives owner, audience, timestamps, and initial state. Deny foreign ownership and client-authoritative snapshots.                                                                                                                |
+| List visible care                       | Current person as owner/requester, eligible current audience viewer, or active participant | Return role-specific projections only. Deny unrelated, removed, blocked, and unauthenticated callers.                                                                                                                                     |
+| Read one care item                      | Same object-specific rules as list visible care                                            | An opaque ID does not bypass audience, participant, terminal, expiry, removal, or block rules.                                                                                                                                            |
+| List My Care and private history        | Current person for their own requests, offers, commitments, and history                    | Deny any caller-supplied history owner that differs from the trusted current person.                                                                                                                                                      |
+| Withdraw request or offer               | Trusted owner/requester in a withdrawable state                                            | Deny audience viewers, participants who do not own it, foreign actor IDs, and terminal or otherwise invalid state.                                                                                                                        |
+| Read or update seen/minimized state     | Current viewer for their own currently visible item                                        | Deny access to another viewer's state and deny callers who cannot currently view the item.                                                                                                                                                |
+| Pass Receive request                    | Eligible current Party viewer, once, before claim or expiry                                | Deny requester impersonation, another member's pass, Tribe-only viewers, removed/blocked viewers, and invalid state. Removed and blocked snapshot members are excluded from the server-calculated quorum rather than recorded as passing. |
+| Claim Receive request                   | Eligible current Party or demoted-Tribe viewer before claim or expiry                      | Exactly one claim may succeed. Deny removed/blocked/ineligible callers, actor substitution, and disclosure of the winner to losing or unrelated viewers.                                                                                  |
+| Record completion                       | Requester or giver, for their own decision, in valid claimed state                         | Deny nonparticipants and attempts to decide for the counterpart.                                                                                                                                                                          |
+| Record Not completed                    | Requester or giver, for their own decision, in valid claimed state                         | Keep the reason participant-private; deny nonparticipants and counterpart impersonation.                                                                                                                                                  |
+| Close, postpone, or create linked retry | Authorized participant following their own Not-completed decision                          | Server performs valid terminal and retry changes atomically. Deny foreign ownership, unrelated callers, and inconsistent predecessor/successor authority.                                                                                 |
+| Record receiver gratitude               | Requester when they record Completed, once per accepted lifecycle rule                     | Save attributed participant-private provenance; publish Tribe activity only on explicit opt-in. Deny giver-authored receiver gratitude, nonparticipants, duplicates, and caller-selected provenance.                                      |
+| Read private attributed gratitude       | Current person for their own participant-private history                                   | Deny access to another person's full gratitude history or provenance.                                                                                                                                                                     |
+| Read Tribe activity                     | Current eligible Tribe viewer for currently authorized activity                            | Return only the shared projection. Deny private source fields and deny unrelated, removed, blocked, and unauthenticated viewers.                                                                                                          |
 
 ## Threat cases and required consistency checks
 
@@ -210,9 +251,14 @@ cases:
   person;
 - a Party member cannot enumerate the owner's Party or read membership labels,
   notes, or positions;
+- a Tribe member cannot enumerate the owner's Tribe or use membership to infer
+  other members;
 - a reciprocal-only relationship grants no directed access;
 - removed and blocked people cannot replay operations using old audience
   snapshots, cached responses, guessed IDs, or stale controls;
+- removal or blocking before pass excludes that snapshot member from the
+  server-calculated quorum, and all remaining eligible members passing demotes
+  the request exactly once;
 - unrelated Party and Tribe viewers cannot see an active request or claimant
   after claim;
 - no participant can submit the other participant's completion or disposition;

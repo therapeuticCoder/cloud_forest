@@ -74,7 +74,7 @@ social-graph abstractions, and care conversion.
 
 #### T-035: Approve the authorization and privacy matrix
 
-Status: ready for product-owner review
+Status: approved by the product owner on 2026-09-05
 Size: small planning task
 Prerequisite: T-034
 
