@@ -122,6 +122,16 @@ their detailed implementation context.
   suite, extract one cohesive responsibility when it makes that task clearer;
   do not turn incremental stewardship into unrelated or line-count-driven
   refactoring.
+- **D-034 — Authorization is trusted, object-specific, and field-specific.**
+  The trusted service resolves the current person from the authenticated
+  account instead of accepting a caller-supplied actor identity. Party remains
+  private, directed, and owner-only; current relationship state constrains
+  audience visibility; removed and blocked relationships are explicit denied
+  cases; and private care history and provenance use separate projections from
+  Tribe activity. Client filtering, selectors, hidden controls, browser
+  storage, and the fictional perspective switcher are not authorization. The
+  complete rules and deferred questions are recorded in
+  `docs/authorization-and-privacy-matrix.md`.
 
 ## Fulfilled milestone decisions
 
