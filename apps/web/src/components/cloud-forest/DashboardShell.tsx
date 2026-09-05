@@ -1,5 +1,6 @@
 import { Gift, HandHeart, Sprout } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { RefObject } from "react";
 
 import {
   curatorPartyPeople,
@@ -69,7 +70,19 @@ type CareDestination =
       returnToMyCare: boolean;
     };
 
-export function DashboardShell() {
+type CurrentPersonControl = {
+  ariaLabel: string;
+  initials: string;
+  onOpen: () => void;
+  personId: string;
+  triggerRef?: RefObject<HTMLButtonElement | null>;
+};
+
+export function DashboardShell({
+  currentPersonControl,
+}: {
+  currentPersonControl?: CurrentPersonControl;
+}) {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
@@ -782,18 +795,28 @@ export function DashboardShell() {
       >
         <header className="party-header timeline-header">
           <button
-            aria-label="Open My Care"
+            aria-label={currentPersonControl?.ariaLabel ?? "Open My Care"}
             className="party-self global-view-self"
             data-my-care-trigger="timeline"
-            onClick={() =>
-              openCareDestination(
-                { kind: "my-care" },
-                '[data-my-care-trigger="timeline"]',
-              )
+            data-prototype-current-person={
+              currentPersonControl ? "true" : undefined
             }
+            onClick={
+              currentPersonControl?.onOpen ??
+              (() =>
+                openCareDestination(
+                  { kind: "my-care" },
+                  '[data-my-care-trigger="timeline"]',
+                ))
+            }
+            ref={currentPersonControl?.triggerRef}
             type="button"
           >
-            <Portrait personId={curatorUser.id} small />
+            <Portrait
+              initials={currentPersonControl?.initials}
+              personId={currentPersonControl?.personId ?? curatorUser.id}
+              small
+            />
           </button>
           <h1>Timeline</h1>
           <button
