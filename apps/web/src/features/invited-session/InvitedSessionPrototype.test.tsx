@@ -62,6 +62,44 @@ describe("InvitedSessionPrototype", () => {
     expect(within(dialog).getByRole("button", { name: "Close" })).toHaveFocus();
   });
 
+  it("carries an edited email into the link-sent confirmation", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+    const email = screen.getByRole("textbox", { name: "Email" });
+    await user.clear(email);
+    await user.type(email, "riley.review@example.test");
+    await user.click(
+      screen.getByRole("button", { name: "Email me a sign-in link" }),
+    );
+
+    expect(screen.getByText("riley.review@example.test")).toBeInTheDocument();
+  });
+
+  it("keeps the current-person control available in Curator", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Current person" }));
+    const reviewPanel = screen
+      .getByText("Fictional review states")
+      .closest("details");
+    expect(reviewPanel).not.toHaveAttribute("open");
+
+    await user.click(screen.getByRole("button", { name: "Go to Curator" }));
+    const partyLayer = screen.getByRole("article", { name: "Party layer" });
+    const curatorCurrentPerson = within(partyLayer).getByRole("button", {
+      name: "Open current person",
+    });
+    expect(curatorCurrentPerson).toHaveTextContent("RM");
+
+    await user.click(curatorCurrentPerson);
+    expect(
+      screen.getByRole("dialog", { name: "Riley Morgan" }),
+    ).toBeInTheDocument();
+  });
+
   it("restores focus after closing the current-person sheet and signs out", async () => {
     const user = userEvent.setup();
     render(<App />);

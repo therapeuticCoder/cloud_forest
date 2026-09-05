@@ -442,6 +442,14 @@
     overflow: auto;
   }
 
+  .invited-session-prototype[data-prototype-state="signed-in"]
+    .invited-session-review {
+    right: 12px;
+    bottom: 88px;
+    left: auto;
+    width: min(210px, calc(100vw - 24px));
+  }
+
   .invited-session-review-list {
     grid-template-columns: 1fr 1fr;
   }

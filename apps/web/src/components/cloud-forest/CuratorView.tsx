@@ -20,7 +20,7 @@ import {
 } from "./AddPartyMemberWizard";
 import { CuratorDetailView } from "./CuratorDetailView";
 import { GuildsLayer } from "./GuildsLayer";
-import { PartyLayer } from "./PartyLayer";
+import { PartyLayer, type PartySelfControl } from "./PartyLayer";
 import { SignalsLayer } from "./SignalsLayer";
 import { TribeLayer } from "./TribeLayer";
 
@@ -33,6 +33,7 @@ type CuratorViewProps = {
   addWizardOpen: boolean;
   careLifecycle: CareLifecycleState;
   careViewerId: CarePersonId;
+  currentPersonControl?: PartySelfControl;
   onAddPartyMember: () => void;
   onCancelAdd: () => void;
   onCompleteAdd: (draft: AddPartyMemberDraft) => void;
@@ -87,6 +88,7 @@ export function CuratorView({
   addWizardOpen,
   careLifecycle,
   careViewerId,
+  currentPersonControl,
   onAddPartyMember,
   onCancelAdd,
   onCompleteAdd,
@@ -200,6 +202,7 @@ export function CuratorView({
     >
       <CuratorLayerSection label="Party">
         <PartyLayer
+          currentPersonControl={currentPersonControl}
           onAdd={onAddPartyMember}
           onNavigateToTimeline={onNavigateToTimeline}
           onOpenMyCare={onOpenMyCare}

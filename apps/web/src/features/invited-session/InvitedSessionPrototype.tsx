@@ -59,12 +59,20 @@ function CloudForestMark() {
 function ReviewControls({
   activeState,
   onChange,
+  onOpenChange,
+  open,
 }: {
   activeState: PrototypeState;
   onChange: (state: PrototypeState) => void;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
 }) {
   return (
-    <details className="invited-session-review" open>
+    <details
+      className="invited-session-review"
+      onToggle={(event) => onOpenChange(event.currentTarget.open)}
+      open={open}
+    >
       <summary>Fictional review states</summary>
       <div className="invited-session-review-list">
         {reviewStates.map(({ label, state }) => (
@@ -153,13 +161,16 @@ function SignIn({
   onSubmit,
 }: {
   announcement?: string;
-  onSubmit: () => void;
+  onSubmit: (email: string) => void;
 }) {
   const emailId = useId();
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit();
+    const email = new FormData(event.currentTarget).get("email");
+    if (typeof email === "string") {
+      onSubmit(email);
+    }
   };
 
   return (
@@ -194,9 +205,11 @@ function SignIn({
 }
 
 function LinkSent({
+  email,
   onOpenFictionalLink,
   onUseDifferentEmail,
 }: {
+  email: string;
   onOpenFictionalLink: () => void;
   onUseDifferentEmail: () => void;
 }) {
@@ -204,7 +217,7 @@ function LinkSent({
     <AuthLayout>
       <AuthCard icon={<Mail />} title="Check your email">
         <p>
-          We sent a sign-in link to <strong>{RILEY_EMAIL}</strong>.
+          We sent a sign-in link to <strong>{email}</strong>.
         </p>
         <p>The link is only for you and expires soon.</p>
         <button
@@ -387,11 +400,14 @@ function SessionExpired({ onSignIn }: { onSignIn: () => void }) {
 export function InvitedSessionPrototype() {
   const [activeState, setActiveState] = useState<PrototypeState>("invitation");
   const [accountOpen, setAccountOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(true);
+  const [submittedEmail, setSubmittedEmail] = useState(RILEY_EMAIL);
   const [signInAnnouncement, setSignInAnnouncement] = useState<string>();
   const currentPersonTriggerRef = useRef<HTMLButtonElement>(null);
 
   const changeState = (nextState: PrototypeState) => {
     setAccountOpen(false);
+    setReviewOpen(nextState !== "signed-in");
     setSignInAnnouncement(undefined);
     setActiveState(nextState);
   };
@@ -419,13 +435,17 @@ export function InvitedSessionPrototype() {
       content = (
         <SignIn
           announcement={signInAnnouncement}
-          onSubmit={() => changeState("link-sent")}
+          onSubmit={(email) => {
+            setSubmittedEmail(email);
+            changeState("link-sent");
+          }}
         />
       );
       break;
     case "link-sent":
       content = (
         <LinkSent
+          email={submittedEmail}
           onOpenFictionalLink={() => changeState("signed-in")}
           onUseDifferentEmail={() => changeState("sign-in")}
         />
@@ -479,9 +499,17 @@ export function InvitedSessionPrototype() {
   }
 
   return (
-    <div className="invited-session-prototype">
+    <div
+      className="invited-session-prototype"
+      data-prototype-state={activeState}
+    >
       {content}
-      <ReviewControls activeState={activeState} onChange={changeState} />
+      <ReviewControls
+        activeState={activeState}
+        onChange={changeState}
+        onOpenChange={setReviewOpen}
+        open={reviewOpen}
+      />
     </div>
   );
 }

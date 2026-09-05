@@ -1,6 +1,5 @@
 import { Gift, HandHeart, Sprout } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { RefObject } from "react";
 
 import {
   curatorPartyPeople,
@@ -37,7 +36,12 @@ import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
 import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
-import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
+import {
+  PartyAction,
+  PartyActions,
+  Portrait,
+  type PartySelfControl,
+} from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard } from "./ReceiveCareWizard";
@@ -70,18 +74,10 @@ type CareDestination =
       returnToMyCare: boolean;
     };
 
-type CurrentPersonControl = {
-  ariaLabel: string;
-  initials: string;
-  onOpen: () => void;
-  personId: string;
-  triggerRef?: RefObject<HTMLButtonElement | null>;
-};
-
 export function DashboardShell({
   currentPersonControl,
 }: {
-  currentPersonControl?: CurrentPersonControl;
+  currentPersonControl?: PartySelfControl;
 }) {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [addWizardOpen, setAddWizardOpen] = useState(false);
@@ -905,6 +901,7 @@ export function DashboardShell({
                 addWizardOpen={addWizardOpen}
                 careLifecycle={careLifecycle}
                 careViewerId={careViewerId}
+                currentPersonControl={currentPersonControl}
                 onAddPartyMember={openAddWizard}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
