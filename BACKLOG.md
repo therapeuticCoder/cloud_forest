@@ -58,7 +58,7 @@ device-local prototype until a later tranche. Portrait upload remains deferred.
 
 #### T-034: Canonicalize identity and relationship domain concepts
 
-Status: ready
+Status: completed by PR #51 as `0c93669`
 Size: medium
 
 Add framework-neutral account and person identifiers, profiles, relationship
@@ -74,7 +74,7 @@ social-graph abstractions, and care conversion.
 
 #### T-035: Approve the authorization and privacy matrix
 
-Status: planned
+Status: ready for product-owner review
 Size: small planning task
 Prerequisite: T-034
 

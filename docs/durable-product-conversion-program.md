@@ -158,6 +158,9 @@ the two collaborative UX checkpoints are tracked as separate tasks.
   visibility; UI filtering is explicitly non-authoritative.
 - Checks: documentation review against product principles and threat cases.
 - Risks: implementing auth middleware before object-level rules are settled.
+- Approved policy: `docs/authorization-and-privacy-matrix.md` records the
+  trusted-current-person rule, field projections, explicit denials, operation
+  matrix, and deferred implementation questions.
 
 #### DCP-03: Establish invited account sessions — medium, dependency approval required
 
