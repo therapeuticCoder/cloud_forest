@@ -36,7 +36,12 @@ import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
 import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
-import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
+import {
+  PartyAction,
+  PartyActions,
+  Portrait,
+  type PartySelfControl,
+} from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard } from "./ReceiveCareWizard";
@@ -69,7 +74,11 @@ type CareDestination =
       returnToMyCare: boolean;
     };
 
-export function DashboardShell() {
+export function DashboardShell({
+  currentPersonControl,
+}: {
+  currentPersonControl?: PartySelfControl;
+}) {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
@@ -782,18 +791,28 @@ export function DashboardShell() {
       >
         <header className="party-header timeline-header">
           <button
-            aria-label="Open My Care"
+            aria-label={currentPersonControl?.ariaLabel ?? "Open My Care"}
             className="party-self global-view-self"
             data-my-care-trigger="timeline"
-            onClick={() =>
-              openCareDestination(
-                { kind: "my-care" },
-                '[data-my-care-trigger="timeline"]',
-              )
+            data-prototype-current-person={
+              currentPersonControl ? "true" : undefined
             }
+            onClick={
+              currentPersonControl?.onOpen ??
+              (() =>
+                openCareDestination(
+                  { kind: "my-care" },
+                  '[data-my-care-trigger="timeline"]',
+                ))
+            }
+            ref={currentPersonControl?.triggerRef}
             type="button"
           >
-            <Portrait personId={curatorUser.id} small />
+            <Portrait
+              initials={currentPersonControl?.initials}
+              personId={currentPersonControl?.personId ?? curatorUser.id}
+              small
+            />
           </button>
           <h1>Timeline</h1>
           <button
@@ -882,6 +901,7 @@ export function DashboardShell() {
                 addWizardOpen={addWizardOpen}
                 careLifecycle={careLifecycle}
                 careViewerId={careViewerId}
+                currentPersonControl={currentPersonControl}
                 onAddPartyMember={openAddWizard}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
