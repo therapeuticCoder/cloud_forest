@@ -31,6 +31,7 @@ try {
       logger: true,
       timelineItemResolver: createTimelineItemResolver(timelineItemRepository),
       sessionResolver,
+      authHandler: invitedAuth.handler,
     },
   });
 } catch (error) {

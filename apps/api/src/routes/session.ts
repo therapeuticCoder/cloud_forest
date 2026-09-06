@@ -32,7 +32,7 @@ export const sessionRoutes: FastifyPluginAsyncTypebox<{
       const currentPerson = await options.resolver.resolve(request);
       if (currentPerson === null) return reply.status(401).send(unauthorized);
       return {
-        apiVersion: "v1",
+        apiVersion: "v1" as const,
         data: { currentPersonId: currentPerson.personId },
       };
     },
@@ -48,7 +48,7 @@ export const sessionRoutes: FastifyPluginAsyncTypebox<{
       const currentPerson = await options.resolver.resolve(request);
       if (currentPerson === null) return reply.status(401).send(unauthorized);
       await options.resolver.logout(request);
-      return reply.status(204).send();
+      return reply.status(204).send(null);
     },
   });
 };
