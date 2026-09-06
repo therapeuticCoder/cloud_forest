@@ -29,6 +29,28 @@ export function createIdentityRepository(database: DatabaseClient) {
         .returning({ id: invitations.id });
       return result.length === 1;
     },
+    async consumeInvitationForAccount(
+      accountId: string,
+      now: Date,
+    ): Promise<boolean> {
+      const personId = await this.findPersonIdForAccount(accountId);
+      if (personId === null) return false;
+      const [invitation] = await database
+        .select({ id: invitations.id })
+        .from(invitations)
+        .where(
+          and(
+            eq(invitations.personId, personId),
+            isNull(invitations.consumedAt),
+            isNull(invitations.revokedAt),
+            sql`${invitations.expiresAt} > ${now}`,
+          ),
+        )
+        .limit(1);
+      return invitation === undefined
+        ? false
+        : this.consumeInvitation(invitation.id, now);
+    },
   };
 }
 

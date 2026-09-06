@@ -1,8 +1,12 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
+import { APIError } from "better-auth/api";
 
-import type { DatabaseClient } from "@cloud-forest/database";
+import {
+  createIdentityRepository,
+  type DatabaseClient,
+} from "@cloud-forest/database";
 import * as schema from "@cloud-forest/database/schema";
 
 export interface LocalMagicLinkDelivery {
@@ -23,6 +27,7 @@ export function createInvitedAuth(
   delivery?: LocalMagicLinkDelivery,
   options: InvitedAuthOptions = {},
 ) {
+  const identityRepository = createIdentityRepository(database);
   return betterAuth({
     database: drizzleAdapter(database, {
       provider: "pg",
@@ -44,5 +49,24 @@ export function createInvitedAuth(
       }),
     ],
     session: { expiresIn: options.sessionExpiresIn ?? 60 * 60 * 24 * 7 },
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            if (
+              !(await identityRepository.consumeInvitationForAccount(
+                session.userId,
+                new Date(),
+              ))
+            ) {
+              throw new APIError("UNAUTHORIZED", {
+                message: "A valid invitation is required.",
+              });
+            }
+            return { data: session };
+          },
+        },
+      },
+    },
   });
 }

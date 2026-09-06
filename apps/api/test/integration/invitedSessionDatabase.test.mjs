@@ -71,6 +71,13 @@ test("a Better Auth session resolves only its mapped current person and expires"
     personId: ids.person,
     createdAt: now,
   });
+  await database.insert(invitations).values({
+    id: ids.invitation,
+    email: "river@example.test",
+    personId: ids.person,
+    createdAt: now,
+    expiresAt: new Date("2030-01-01T00:00:00.000Z"),
+  });
   const signIn = await auth.handler(
     new Request("http://127.0.0.1:3001/api/auth/sign-in/magic-link", {
       method: "POST",
@@ -100,6 +107,13 @@ test("a Better Auth session resolves only its mapped current person and expires"
     data: { currentPersonId: ids.person },
   });
 
+  await database.insert(invitations).values({
+    id: "invite-fictional-river-expiry",
+    email: "river@example.test",
+    personId: ids.person,
+    createdAt: now,
+    expiresAt: new Date("2030-01-01T00:00:00.000Z"),
+  });
   let expiredMagicLink;
   const expiredAuth = createInvitedAuth(
     database,
