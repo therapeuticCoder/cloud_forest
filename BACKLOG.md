@@ -49,8 +49,9 @@ should be small enough for one focused agent session.
 
 ### Tranche 1 — Durable identity, Party, and profiles
 
-Status: approved for dependency-ordered delivery. Complete one task, branch,
-pull request, review, and merge before starting the next task.
+Status: approved for dependency-ordered delivery. Use one explicitly selected
+work mode per task; do not begin a dependent task before its prerequisite is
+accepted.
 
 This tranche makes invited identity, Party membership, and person profiles
 authoritative while preserving the accepted interface. Care remains the

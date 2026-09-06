@@ -1,164 +1,47 @@
-# Codex App Workflow
+# Codex Work Modes
 
-This repository uses a supervised workflow centered on the Codex desktop app.
-The human remains the product owner, reviewer, and final authority. Codex helps
-inspect the repository, plan work, implement focused changes, run checks, and
-prepare a clear handoff.
+The product owner explicitly invokes one workflow skill at the start of each
+Cloud Forest work session. `AGENTS.md` holds repository invariants; the selected
+skill owns the session sequence and responsibility split.
 
-`AGENTS.md` contains the concise instructions that apply automatically during
-repository work. This document explains the fuller operating process. When the
-two conflict, stop and ask the human to resolve the conflict.
+| Mode               | Invoke                                     | Use when                                                                                                                |
+| ------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Autonomous backlog | `$autonomous-agent-backlog-work-session`   | Codex is authorized to complete a bounded number or named range of backlog items, including checks and GitHub delivery. |
+| Paired programming | `$paired-programming-backlog-work-session` | The product owner supervises one backlog item, runs checks, publishes the branch, monitors review, and merges.          |
+| Iterative UI/UX    | `$iterative-ui-ux-work-session`            | One user-facing story needs a live annotated design loop before the paired verification and publication handoff.        |
 
-## Standard task loop
+Do not blend modes or infer broader authority from an invoked skill. Each mode
+uses one task per branch and pull request, preserves unrelated work, and stops
+for product, safety, ambiguity, scope, dependency, or destructive-operation
+decisions outside its contract.
 
-1. Choose one task from `BACKLOG.md`, or define one comparably scoped task in the
-   conversation.
-2. Codex reads `AGENTS.md`, `README.md`, `BACKLOG.md`, and `DECISIONS.md`, then
-   inspects the relevant implementation and current Git status.
-3. Codex states the task, likely files, and assumptions before editing.
-4. For work with meaningful product or architectural choices, Codex proposes a
-   short plan and resolves those choices with the human.
-5. Codex implements only the agreed scope and shares concise progress updates in
-   the task.
-6. Codex runs the relevant checks from `README.md` and inspects the final diff.
-7. Codex summarizes what changed, checks run, failures or limitations, and any
-   recommended follow-up.
-8. The human reviews the diff and requests revisions or authorizes the Git
-   actions needed to publish it.
+## Context routing
 
-## Starting a Codex task
+Always inspect live Git and backlog state. Read only the sources that affect the
+selected task:
 
-A useful prompt names the outcome, scope, and important constraints without
-prescribing every implementation detail:
+- `README.md` for project shape and command routing;
+- `BACKLOG.md` for current task requirements and sequencing;
+- `DECISIONS.md` for durable decisions touched by the task;
+- `docs/project-brief.md` for product boundaries;
+- `docs/design-guide.md` for user-facing visual work;
+- `docs/care-lifecycle-prototype.md` for care behavior;
+- `docs/authorization-and-privacy-matrix.md` for identity, relationship, care,
+  or privacy enforcement;
+- `docs/development.md` for the exact environment, verification, preview, or
+  recovery operation being used.
 
-```text
-Complete T-XXX from BACKLOG.md.
+Do not load frontend concept-generation instructions for a narrow repair unless
+the product owner requests visual exploration or the task genuinely requires a
+new visual direction. Batch compatible read-only checks and status queries.
+During waits, report only meaningful state changes, decisions, failures, or
+completion.
 
-Follow AGENTS.md and preserve existing behavior outside the task.
-Inspect the current worktree before editing and do not overwrite unrelated
-changes. Run the relevant checks and summarize the final diff.
-```
+## Maintaining the workflows
 
-For exploratory product work, ask Codex to interview the product owner or
-produce a plan before editing. Once the decisions are clear, keep implementation
-in the same task when the scope remains focused.
-
-## Using plans and progress updates
-
-A written plan is useful when a task spans several files, contains unknowns, or
-requires a product decision. It should describe observable outcomes rather than
-inflate a small task into ceremony.
-
-During implementation, Codex should use commentary updates to surface:
-
-- the active task and assumptions
-- discoveries that materially affect scope
-- checks currently being run
-- blockers or decisions that require human authority
-
-The final response must stand on its own and include the completed result and
-verification status.
-
-## Working safely in an existing worktree
-
-Codex should inspect `git status` and relevant diffs before editing. Existing
-changes belong to the human unless the task clearly establishes otherwise.
-
-- Preserve unrelated changes.
-- Avoid formatting or rewriting files outside the task.
-- Do not discard, reset, stash, or overwrite human work without explicit
-  approval.
-- Call out overlapping changes before proceeding when they cannot be preserved
-  safely.
-
-## Task sizing
-
-Good tasks are small, specific, observable, easy to review, and tied to
-acceptance criteria. Split a task when it mixes distinct product outcomes or
-would produce a diff too broad to understand confidently.
-
-Planning, implementation, and verification may remain in one Codex task when
-they serve one bounded outcome. Use separate Codex tasks or branches for
-independent workstreams, not merely for each procedural step.
-
-## Product and architecture decisions
-
-Codex may make routine implementation choices inside an approved task. It must
-surface choices that change product behavior, add dependencies, establish a
-lasting architecture, introduce an external service, or materially expand
-scope.
-
-Record durable decisions in `DECISIONS.md`. Record unfinished implementation
-work in `BACKLOG.md`. Do not rely on conversation history as the only source of
-project context.
-
-## Checks and visual review
-
-Run focused checks while iterating and `pnpm check` before handoff when
-practical. For UI work, verification should also include the rendered result at
-relevant viewport sizes, keyboard and focus behavior, console errors, and
-obvious interaction or performance regressions.
-
-If a check cannot run, report the exact reason rather than implying success.
-Environment setup, permission, sandbox, dependency-install, and build failures
-must be investigated when they are discovered. Do not treat them as normal
-workstation noise or defer them without recording the reason and the evidence
-that separates a repository defect from an environment boundary.
-
-Start with the failing command and its exact output. If it fails consistently in
-an ordinary terminal or clean worktree, inspect repository configuration and
-tracked files as a likely repository defect. If the same command succeeds
-outside the Codex sandbox, or the error names a denied path outside the writable
-scope, treat it as a sandbox or workstation permission issue. Request approval
-only for the narrow operation needed to verify or complete the in-scope task;
-do not weaken machine policy, broaden filesystem access, or use escalation to
-bypass a repository failure.
-
-For reference-driven UI work:
-
-- inspect every approved reference before implementation
-- treat references as visual specifications rather than page assets
-- verify desktop and mobile browser renders, interaction states, keyboard focus,
-  reduced motion, overflow, and console health
-- capture implementation screenshots and compare them directly with the
-  references before handoff
-- record intentional differences rather than silently inventing product areas
-- keep a selected direction provisional until the human approves the rendered
-  implementation
-
-## Git and review boundaries
-
-Codex may inspect Git history and diffs as part of normal work. Staging,
-committing, pushing, opening a pull request, merging, or otherwise publishing
-changes should happen only when the human requests or authorizes that action.
-
-Each implementation session starts from an up-to-date default branch with a
-clean worktree and uses a new `codex/` feature branch. Do not implement directly
-on the default branch. Publish every completed session through a pull request;
-keep independent outcomes in separate branches and pull requests.
-
-Before committing, review:
-
-- whether the requested outcome and acceptance criteria are met
-- whether unrelated behavior and human changes were preserved
-- whether the code and documentation remain mutually consistent
-- whether the diff is understandable and appropriately scoped
-- which automated and visual checks passed or failed
-- whether new durable decisions or follow-up tasks need to be recorded
-
-Before a pull request is merged, review and update the relevant task status in
-`BACKLOG.md` and any related task documentation so they match the accepted
-implementation and completed checks.
-
-## Pull request review suggestions
-
-Codex may attach inline suggestions or review comments to a pull request when a
-specific line-level change would help the human evaluate the work. These are
-review proposals, not accepted changes or new requirements. The human decides
-whether to apply them, request a revision, defer them to the backlog, or reject
-them.
-
-Codex should keep suggestions scoped, explain the user-visible or maintenance
-impact, and avoid turning optional polish into an implied blocker. Implementing
-a suggestion in a later task still requires the same human authority and scope
-rules as any other change.
+When a session exposes a reusable process problem, resolve or plan it before
+continuing. Once the product owner accepts the correction, update the relevant
+mode skill—or its optional recovery reference—in the same session before the
+workflow is considered closed. Keep project-specific commands in repository
+documentation and avoid copying general policy between `AGENTS.md`, mode skills,
+and backlog items.

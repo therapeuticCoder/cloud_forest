@@ -1,96 +1,68 @@
-# Working Prototype Roadmap
+# Product Roadmap
 
-Cloud Forest is moving from a front-end visual prototype toward a portable,
-production-seed alpha for at most 100 trusted testers. Work remains incremental:
-one reviewable backlog task per Codex session, with a working demonstration every
-two or three days and a weekly reforecast based on accepted outcomes and rework.
+Cloud Forest is moving from a visual prototype toward a production-seed alpha
+for at most 100 trusted testers. Delivery stays incremental and preserves a
+working, reviewable product between slices. `BACKLOG.md` is the source of truth
+for active tasks; `docs/durable-product-conversion-program.md` records the
+dependency order beyond the active tranche.
 
-Environment and design calibration and the monorepo-foundation milestone are
-complete. The working prototype now has an installable React PWA, versioned API,
-reviewed PostgreSQL migrations, a generated typed client, and a guarded browser
-regression path. The fictional Receive-care lifecycle is also accepted through
-gratitude and private history, while remaining explicitly device-local and
-unauthenticated. Its durable conversion sequence is a separate planning step,
-not an implicit rewrite of the prototype.
+## Milestone sequence
 
-## Eight-week sequence
-
-1. **Environment and design:** verify the Windows/Codex workflow, calibrate the
-   visual direction, and establish the monorepo boundaries.
-2. **Personal loop:** make Curator, tending journal, reminders, drafts, export,
-   and deterministic Timeline behavior durable and local-first.
-3. **Network loop:** add invited identities, following, connections, private
-   layers, audience-authorized posts and replies, Guilds, blocking, and essential
-   notifications.
-4. **Trusted testing:** admit testers only after the complete network acceptance
-   gate passes.
-5. **Federation proof:** if the network is stable, ingest read-only ActivityPub
-   Signals behind a feature flag.
-6. **Hardening:** reserve final capacity for tester feedback, accessibility,
-   security, backup restoration, deletion, failed jobs, and operational review.
-
-ActivityPub is contingent on measured progress. Extra capacity improves the
-current milestone before it expands scope.
+1. **Environment and design — complete:** native Windows workflow, approved
+   visual grammar, monorepo, PWA, API/database boundary, and browser gate.
+2. **Durable identity and Party — active:** invited identity, trusted current
+   person, private Party/profile persistence and APIs, with UX checkpoints.
+3. **Durable care:** authoritative Tribe audience, care requests/offers, and
+   reload-safe reads.
+4. **Transactional lifecycle:** atomic claim/pass/outcome/retry/gratitude and an
+   authorized Timeline projection.
+5. **Recovery and trusted testing:** measured caching, offline/reconnect states,
+   backup/restore, deletion, security/accessibility review, and mock retirement.
+6. **Optional expansion:** federation proof, Guilds, Signals, notifications, and
+   other systems only after concrete requirements and stable earlier gates.
 
 ## Architecture direction
 
-- pnpm monorepo with a React PWA, Fastify API, shared API contracts, and domain
-  packages; the background-worker package is reserved until a concrete
-  asynchronous product behavior requires it
-- TypeScript throughout, PostgreSQL with Drizzle and reviewed SQL migrations
-- versioned JSON API with runtime validation, OpenAPI, and a typed client
-- Better Auth with invite-only email magic links
-- Dexie and IndexedDB for account-scoped cache, private offline mutations, and
-  drafts, introduced only with a concrete local-first product behavior
-- PostgreSQL-backed durable jobs without Redis or microservices, introduced only
-  when an approved product flow requires asynchronous work
-- Render and managed PostgreSQL in a US region, Cloudflare R2 through an S3
-  adapter, and Resend through a portable email adapter
-- installable current-evergreen PWA, with local Docker services for development
+Use the existing TypeScript modular monolith: React PWA, Fastify API, shared
+domain/contracts, PostgreSQL/Drizzle, generated OpenAPI, and typed client.
+Better Auth with invite-only magic links remains the preferred authentication
+candidate but requires dependency approval. Begin with deterministic local/test
+invitations; production email is separate.
 
-The server may decrypt authorized posts and journals. End-to-end encryption is
-not an alpha requirement. Authorization is enforced server-side and access to
-relational posts is recalculated from current connection, layer, and block state.
+Introduce IndexedDB/Dexie only for a measured account-scoped cache, draft, or
+offline need. Introduce PostgreSQL-backed jobs only for an approved asynchronous
+behavior. Do not add Redis or microservices by default. Render, managed
+PostgreSQL, R2-compatible storage, and Resend remain proposed production
+directions, not current authorization.
+
+The server is authoritative for shared data and authorization. End-to-end
+encryption is not an alpha requirement. Relationship and block state must be
+rechecked for protected reads and writes. The trusted server may decrypt
+authorized posts and private journals under that model.
 
 ## Product invariants
 
-- Party has 5 exclusive private slots and Tribe has 100.
+- Layer limits are Party 5, Tribe 100, Guilds 5, Signals 10.
 - Following is directed and read-only; a mutual connection request becomes
   available after three days.
-- Personal post audiences are public, Tribe, and Party. Tribe includes connected
-  Party and Tribe members; replies inherit the post audience.
-- There are no likes, reposts, follower counts, public graph lists, direct
-  messages, or behavioral ranking.
-- Timeline uses fixed Party:Tribe:Guilds:Signals ratios: Close `6:3:2:1`, Balanced
-  `4:3:2:1`, and Broad `3:3:2:2`.
-- Tending journal entries are private, manually authored reflections with a date,
-  optional content link and reminder, and a relational-moment category.
-- Guilds contain at most 100 members and five total leaders; members post as
-  themselves and leaders may publish with the Guild voice.
-- Blocking is required for alpha. Reporting and moderation tooling follow later.
-- Deleted user-facing records hide immediately and purge after 30 days.
+- No likes, reposts, follower counts, public graph lists, direct messages, or
+  behavioral ranking.
+- Personal audiences are public, Tribe, and Party. Tribe includes connected
+  Party and Tribe members; replies inherit the parent audience.
+- Timeline ratios remain Close `6:3:2:1`, Balanced `4:3:2:1`, Broad `3:3:2:2`.
+- Tending journals are private, manually authored, dated relational reflections
+  with an optional content link, reminder, and moment category.
+- Guilds allow at most 100 members and five leaders; members post as themselves
+  and leaders may also publish with the Guild voice.
+- Blocking is required before trusted alpha; reporting/moderation follow later.
+- User-facing deletion hides immediately and targets purge after 30 days when
+  durable retention is implemented.
 
-## Design gate
+## UX gates
 
-The product owner approved the implemented representative Timeline direction
-after desktop and mobile browser review. The review covered responsive layout,
-keyboard focus, motion, overflow, console health, and direct screenshot
-comparison.
-
-The design gate is complete. `docs/design-guide.md` records the durable
-principles, semantic tokens, component patterns, responsive behavior, and
-anti-patterns to carry into later stories. Future screens should apply the
-grammar to their own tasks rather than copying Timeline-specific anatomy.
-
-Third-party reference screenshots remain uncommitted unless storage permission
-is clear. The repository stores derived principles and original Cloud Forest
-artifacts.
-
-## Durable conversion proposal
-
-The repository-wide prototype audit and proposed dependency-ordered conversion
-program live in `docs/durable-product-conversion-program.md`. The program is a
-proposal awaiting product-owner approval; its implementation tasks have not
-been added to the backlog. The recommended first tranche establishes canonical
-identity and authorization, then delivers Party membership and person profiles
-as one narrow authoritative vertical slice.
+The approved Timeline direction governs later work through
+`docs/design-guide.md`, but screens keep their own interaction model. Before a
+major durable boundary, review representative desktop/mobile states—including
+failure and recovery—through the iterative UI/UX workflow. References stay
+uncommitted unless their storage rights are clear; preserve derived principles
+and original Cloud Forest artifacts.
