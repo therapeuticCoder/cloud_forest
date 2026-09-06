@@ -12,10 +12,22 @@ import {
   timelineItemRoutes,
   type TimelineItemResolver,
 } from "./routes/timelineItem.ts";
+import { sessionRoutes } from "./routes/session.ts";
+import { authRoutes, type AuthHandler } from "./routes/auth.ts";
+import type { SessionResolver } from "./sessionResolver.ts";
 
 export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   timelineItemResolver?: TimelineItemResolver;
+  sessionResolver?: SessionResolver;
+  authHandler?: AuthHandler;
 }
+
+const missingSessionResolver: SessionResolver = {
+  async resolve() {
+    return null;
+  },
+  async logout() {},
+};
 
 export function buildApi(
   options: BuildApiOptions = { logger: false },
@@ -39,6 +51,12 @@ export function buildApi(
   server.register(timelineItemRoutes, {
     resolver: options.timelineItemResolver ?? defaultTimelineItemResolver,
   });
+  server.register(sessionRoutes, {
+    resolver: options.sessionResolver ?? missingSessionResolver,
+  });
+  if (options.authHandler !== undefined) {
+    server.register(authRoutes, { handler: options.authHandler });
+  }
 
   return server;
 }
