@@ -8,6 +8,7 @@ const preparationCommands = [
   "db:test:prepare",
   "db:migrate:test",
   "db:status:test",
+  "db:fixtures:seed",
   "db:inspect:test",
 ];
 

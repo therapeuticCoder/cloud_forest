@@ -30,3 +30,9 @@ export {
   createPartyRepository,
   type PartyRepository,
 } from "./partyRepository.ts";
+export {
+  fictionalPartyMemberIds,
+  fictionalPartyOwnerId,
+  fictionalPartyPersonIds,
+  seedFictionalPartyFixture,
+} from "./partyFixtures.ts";
