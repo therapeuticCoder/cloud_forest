@@ -44,7 +44,12 @@ export function createInvitedAuth(
         // Production delivery is intentionally absent. Local/test callers use
         // the server API with a deterministic test delivery seam.
         async sendMagicLink(link) {
-          await delivery?.deliver(link);
+          if (delivery === undefined) {
+            throw new Error(
+              "Magic-link delivery is only configured for deterministic local or test invitations.",
+            );
+          }
+          await delivery.deliver(link);
         },
       }),
     ],
