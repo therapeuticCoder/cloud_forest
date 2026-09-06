@@ -1,114 +1,48 @@
 # Agent Instructions
 
-This repository is designed for supervised agentic development.
+Cloud Forest uses supervised agentic development. `docs/workflow.md` routes work
+to the collaboration mode explicitly selected by the product owner.
 
-`AGENTS.md` contains concise repository rules. See `docs/workflow.md` for the
-full Codex app operating workflow.
+## Invariants
 
-## Core rules
+- Work on one bounded task at a time, on a fresh `codex/` branch from current
+  `main`. Preserve unrelated human changes and never rewrite or discard them.
+- Before editing, inspect Git state and the active backlog item; read only the
+  repository documents and code needed for that task. Read
+  `docs/design-guide.md` before user-facing visual work.
+- State the task, likely files, assumptions, exclusions, and verification plan.
+  Wait for approval when the selected workflow or a material product or
+  architecture choice requires it.
+- Keep changes small and legible. Do not add dependencies, external services,
+  production integrations, lasting architecture, or expanded product behavior
+  without explicit approval.
+- Do not add secrets, analytics, tracking, production assets, or real client,
+  patient, or other sensitive data.
+- Investigate environment, permission, dependency, and build failures when they
+  appear. Resolve them narrowly or report the exact command, evidence, and
+  recovery plan; never normalize or silently defer them.
+- Follow the invoked workflow skill for responsibility boundaries around tests,
+  previews, Git publication, review monitoring, merge, and cleanup.
+- After work, report the diff scope, verification evidence, failures or limits,
+  process state, and useful follow-up.
 
-- Work one task at a time.
-- Prefer small, reviewable changes.
-- Read `README.md`, `BACKLOG.md`, and `DECISIONS.md` before making changes.
-- Read `docs/design-guide.md` before changing user-facing UI or visual styles.
-- Do not complete unrelated tasks.
-- Do not add dependencies without asking.
-- Do not delete large sections or restructure the project without asking.
-- Preserve existing behavior unless the task explicitly changes it.
-- Inspect `git status` and relevant diffs before editing. Preserve unrelated
-  human changes already in the worktree.
-- After editing, run the relevant checks listed in `README.md`.
-- Investigate environment setup, permission, sandbox, dependency-install, and
-  build errors when discovered. Do not silently ignore, normalize, or defer an
-  error without recording the explicit reason.
-- For reference-driven UI work, inspect the supplied references before editing,
-  verify the rendered result in the browser at the relevant viewport sizes, and
-  compare final screenshots directly with the references.
-- Summarize what changed and what checks were run.
+## Product and code boundaries
 
-## Safety
+- The human remains product owner and reviewer. Ask before changing product
+  behavior, dependencies, architecture, services, or scope.
+- Cloud Forest facilitates community, not attention or engagement. Relationship
+  quality matters more than quantity.
+- Canonical limits are 5 Party relationships, 100 Tribe people, 5 Guilds, and
+  10 Signals. A separate self tile does not consume a Party slot.
+- Prefer user-controlled, interoperable data flows. Do not invent storage,
+  synchronization, hosting, or federation architecture ahead of a requirement.
+- Preserve existing behavior unless the task changes it. Favor semantic,
+  accessible HTML; typed, purpose-named React components; straightforward
+  control flow; responsive interaction; and existing shadcn/ui components when
+  they reduce complexity.
+- Do not introduce routing, global state, authentication, persistence, backend
+  calls, or unrelated refactors unless the approved task requires them.
+- Treat visual directions as provisional until the product owner approves the
+  rendered desktop and mobile result and durable guidance is recorded.
 
-Do not add secrets, credentials, analytics, tracking, network calls, production integrations, or production assets unless explicitly requested.
-
-Do not use real client data, patient data, or other sensitive information in examples, tests, fixtures, screenshots, or documentation.
-
-## Style
-
-Favor clarity over cleverness.
-
-Prefer:
-
-- boring, legible structures
-- names that explain intent
-- small files with clear responsibilities
-- explicit assumptions
-- simple language in documentation
-
-Avoid:
-
-- broad rewrites
-- unnecessary abstractions
-- hidden behavior
-- speculative features
-- changes outside the requested scope
-
-## Before editing
-
-State:
-
-- the task being completed
-- the files likely to be changed
-- any assumptions being made
-
-## After editing
-
-State:
-
-- what changed
-- what checks were run
-- whether any checks failed
-- any follow-up work you recommend
-
-## Human authority
-
-The human remains the product owner and reviewer.
-
-Work as peers coordinating decisions and authority. When asking to proceed,
-prefer collaborative language such as "shall I," "should I," or "are you ready
-to" instead of hierarchical phrasing such as "may I." Gratitude and respect do
-not require either person to adopt a subordinate role.
-
-If instructions conflict, ask for clarification instead of guessing.
-
-Codex may make routine implementation choices within an approved task. Ask
-before changing product behavior, adding dependencies, establishing a lasting
-architecture, introducing an external service, or materially expanding scope.
-
-## Product principles
-
-- Cloud Forest facilitates real community; it does not optimize for attention,
-  entertainment, or engagement.
-- Relationship quality matters more than quantity, and not everything matters
-  the same.
-- The canonical layer limits are 5 Party relationships, 100 Tribe people, 5
-  Guilds, and 10 Signals. A separate Party-view tile may represent the user
-  without consuming a relationship slot.
-- Prefer user-controlled, interoperable data flows over central ownership of
-  social data. Do not invent a storage or federation architecture before the
-  product requires one.
-
-## React project rules
-
-- Prefer accessible HTML and semantic structure.
-- Keep components small and named by purpose.
-- Use TypeScript types for component props.
-- Keep code human-legible. Prefer descriptive names and straightforward control
-  flow that can be read like a recipe.
-- Use shadcn/ui components where they reduce complexity.
-- Do not add routing, global state libraries, authentication, analytics, backend calls, or persistence unless requested.
-- Do not add dependencies without human approval.
-- Treat responsiveness and smooth interaction as product requirements. Avoid
-  unnecessary rendering, data work, and architectural complexity.
-- Run `pnpm check` after code changes when practical.
-- Treat an implemented visual direction as provisional until the human approves
-  the browser-reviewed result and its reusable design guidance is recorded.
+If instructions conflict, stop and ask the product owner rather than guessing.

@@ -49,8 +49,9 @@ should be small enough for one focused agent session.
 
 ### Tranche 1 — Durable identity, Party, and profiles
 
-Status: approved for dependency-ordered delivery. Complete one task, branch,
-pull request, review, and merge before starting the next task.
+Status: approved for dependency-ordered delivery. Use one explicitly selected
+work mode per task; do not begin a dependent task before its prerequisite is
+accepted.
 
 This tranche makes invited identity, Party membership, and person profiles
 authoritative while preserving the accepted interface. Care remains the
@@ -87,7 +88,7 @@ Checks: product-principle, privacy, and threat-case documentation review.
 
 #### T-036: Prototype invited-session UX for annotated review
 
-Status: ready for product-owner review
+Status: completed by PR #53 as `926fa5e`
 Size: small
 Prerequisite: T-035
 

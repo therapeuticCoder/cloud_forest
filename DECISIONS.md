@@ -39,8 +39,9 @@ their detailed implementation context.
 
 ## Active engineering and workflow decisions
 
-- **D-001 — Work through small agent tasks.** Complete one clear, reviewable
-  backlog task at a time and split larger goals before implementation.
+- **D-001 — Use explicit, incremental work modes.** The product owner invokes
+  one mode from `docs/workflow.md`; each backlog item keeps its own branch and
+  pull request, and larger goals are split before implementation.
 - **D-002 — Repo-local context is authoritative.** Durable context belongs in
   repository documentation rather than only in chats, memories, or external
   task managers.
@@ -48,8 +49,11 @@ their detailed implementation context.
   services, frameworks, or integrations.
 - **D-004 — This repository is Cloud Forest.** Current documentation and naming
   describe Cloud Forest rather than inherited project language.
-- **D-005 — Human review is required.** Agent changes are reviewed before commit,
-  and Git history remains the safety rail.
+- **D-005 — Review follows the selected mode.** Paired modes require product-owner
+  code approval before commit and leave publication and merge to the owner.
+  Explicitly bounded autonomous sessions may publish and merge through their
+  authorized PR/review loop. Git history remains the safety rail, and the human
+  remains final product authority.
 - **D-007 — Use the approved TypeScript web stack.** The web application uses
   React, TypeScript, Vite, Tailwind CSS, and shadcn/ui.
 - **D-008 — Add infrastructure only for a clear need.** Prefer the simplest local
