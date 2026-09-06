@@ -88,7 +88,7 @@ Checks: product-principle, privacy, and threat-case documentation review.
 
 #### T-036: Prototype invited-session UX for annotated review
 
-Status: planned collaborative UX checkpoint
+Status: completed by PR #53 as `926fa5e`
 Size: small
 Prerequisite: T-035
 
