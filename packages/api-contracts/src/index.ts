@@ -26,3 +26,13 @@ export {
   type HealthRequest,
   type HealthResponse,
 } from "./healthContract.ts";
+export {
+  currentSessionResponseSchema,
+  isCurrentSessionResponse,
+  isUnauthorizedResponse,
+  logoutPath,
+  sessionPath,
+  unauthorizedResponseSchema,
+  type CurrentSessionResponse,
+  type UnauthorizedResponse,
+} from "./sessionContract.ts";

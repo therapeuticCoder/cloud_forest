@@ -1,15 +1,27 @@
 import {
   createDatabaseClient,
+  createIdentityRepository,
   createTimelineItemRepository,
   getDatabaseUrl,
 } from "@cloud-forest/database";
 import type { FastifyInstance } from "fastify";
 
 import { startApi, stopApi } from "./lifecycle.ts";
+import { createInvitedAuth } from "./auth.ts";
+import { createSessionResolver } from "./sessionResolver.ts";
 import { createTimelineItemResolver } from "./timelineItemResolver.ts";
 
 const { database, pool } = createDatabaseClient(getDatabaseUrl());
 const timelineItemRepository = createTimelineItemRepository(database);
+const invitedAuth = createInvitedAuth(
+  database,
+  process.env.BETTER_AUTH_SECRET ??
+    "cloud-forest-local-test-secret-must-be-32-chars",
+);
+const sessionResolver = createSessionResolver(
+  invitedAuth.api,
+  createIdentityRepository(database),
+);
 
 let server: FastifyInstance;
 
@@ -18,6 +30,7 @@ try {
     serverOptions: {
       logger: true,
       timelineItemResolver: createTimelineItemResolver(timelineItemRepository),
+      sessionResolver,
     },
   });
 } catch (error) {

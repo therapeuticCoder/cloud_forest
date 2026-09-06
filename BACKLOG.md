@@ -110,7 +110,7 @@ or production behavior.
 
 #### T-037: Establish invited account sessions
 
-Status: planned; dependency approval required before implementation
+Status: completed by PR #pending
 Size: medium
 Prerequisites: T-034 through T-036
 
