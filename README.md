@@ -38,7 +38,15 @@ pnpm.cmd setup
 Copy-Item .env.example .env
 pnpm.cmd services:up
 pnpm.cmd db:migrate
+```
+
+Then run the two foreground development servers in separate terminals:
+
+```powershell
+# Terminal 1
 pnpm.cmd dev:api
+
+# Terminal 2
 pnpm.cmd dev
 ```
 
