@@ -18,6 +18,7 @@ test("E2E preparation calls only the guarded test database commands", () => {
     "db:test:prepare",
     "db:migrate:test",
     "db:status:test",
+    "db:fixtures:seed",
     "db:inspect:test",
   ]);
 });
@@ -67,6 +68,7 @@ test("E2E runs the browser only after every guarded database command", async () 
     "db:test:prepare",
     "db:migrate:test",
     "db:status:test",
+    "db:fixtures:seed",
     "db:inspect:test",
     "browser",
   ]);

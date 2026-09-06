@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -143,6 +144,51 @@ export const people = pgTable("people", {
   id: varchar("id", { length: 128 }).primaryKey(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });
+
+export const personProfiles = pgTable("person_profiles", {
+  personId: varchar("person_id", { length: 128 })
+    .primaryKey()
+    .references(() => people.id, { onDelete: "cascade" }),
+  displayName: varchar("display_name", { length: 200 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const partyMemberships = pgTable(
+  "party_memberships",
+  {
+    ownerPersonId: varchar("owner_person_id", { length: 128 })
+      .notNull()
+      .references(() => people.id, { onDelete: "cascade" }),
+    memberPersonId: varchar("member_person_id", { length: 128 })
+      .notNull()
+      .references(() => people.id, { onDelete: "restrict" }),
+    position: integer("position").notNull(),
+    relationshipLabel: varchar("relationship_label", { length: 200 }).notNull(),
+    privateNote: text("private_note").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("party_memberships_owner_member_unique").on(
+      table.ownerPersonId,
+      table.memberPersonId,
+    ),
+    uniqueIndex("party_memberships_owner_position_unique").on(
+      table.ownerPersonId,
+      table.position,
+    ),
+    index("party_memberships_owner_index").on(table.ownerPersonId),
+    check(
+      "party_memberships_not_self",
+      sql`${table.ownerPersonId} <> ${table.memberPersonId}`,
+    ),
+    check(
+      "party_memberships_position_range",
+      sql`${table.position} between 0 and 4`,
+    ),
+  ],
+);
 
 export const accountPeople = pgTable(
   "account_people",

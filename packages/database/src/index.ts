@@ -11,6 +11,8 @@ export {
   accounts,
   verifications,
   people,
+  personProfiles,
+  partyMemberships,
   accountPeople,
   invitations,
   type NewTimelineItemRow,
@@ -24,3 +26,13 @@ export {
   createIdentityRepository,
   type IdentityRepository,
 } from "./identityRepository.ts";
+export {
+  createPartyRepository,
+  type PartyRepository,
+} from "./partyRepository.ts";
+export {
+  fictionalPartyMemberIds,
+  fictionalPartyOwnerId,
+  fictionalPartyPersonIds,
+  seedFictionalPartyFixture,
+} from "./partyFixtures.ts";

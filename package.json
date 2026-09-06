@@ -39,6 +39,7 @@
     "db:inspect": "pnpm --filter @cloud-forest/database inspect",
     "db:inspect:test": "pnpm --filter @cloud-forest/database inspect -- --test",
     "db:test:prepare": "pnpm --filter @cloud-forest/database test:prepare",
+    "db:fixtures:seed": "pnpm --filter @cloud-forest/database fixtures:seed",
     "test:database": "pnpm db:test:prepare && pnpm db:migrate:test && pnpm --filter @cloud-forest/database test:integration && pnpm --filter @cloud-forest/api test:integration",
     "test:e2e": "node --env-file-if-exists=.env scripts/e2e.mjs"
   },
