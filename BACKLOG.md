@@ -110,7 +110,7 @@ or production behavior.
 
 #### T-037: Establish invited account sessions
 
-Status: completed by PR #pending
+Status: completed by PR #55
 Size: medium
 Prerequisites: T-034 through T-036
 
@@ -126,7 +126,7 @@ Checks: contract, API, database integration, session-expiry, and E2E tests;
 
 #### T-038: Persist people and Party membership
 
-Status: planned
+Status: completed by PR #56
 Size: medium
 Prerequisite: T-037
 
