@@ -198,6 +198,61 @@ introduced by this task from `DashboardShell.tsx`; keep Party/profile styles in
 the T-040-owned boundary; and add durable Party integration scenarios to a
 purpose-specific test file rather than `App.test.tsx`.
 
+#### T-042: Prototype the mutual connection QR handshake
+
+Status: approved for collaborative UX checkpoint
+Size: small
+Prerequisite: T-041 and the post-tranche product-owner review
+
+Prototype the primary pilot ritual for turning an existing private Person into
+an intentional mutual connection. The prototype should make clear that
+curation and connection are separate: the owner's nickname, relationship
+meaning, relationship shape, portrait choice, private presentation, and layer
+remain private and continue to drive their Curator view. A connected User is
+additional system identity and capability; it does not replace the owner's
+private Person.
+
+The first visible slice is the existing-Person path, using fictional data:
+
+- open a private Person detail and choose “Make this a mutual connection”;
+- choose “Show code” or “Scan code”;
+- show explicit consent language for the presenting person;
+- show only a safe counterpart identity before confirmation;
+- require an explicit confirmation after scanning; scanning alone never
+  creates a connection;
+- show successful connection, cancellation or decline, expired-token, and
+  wrong-account recovery states; and
+- preserve the private Person fields and return the user to a calm, legible
+  relational state after success.
+
+The prototype should communicate these durable product boundaries for later
+implementation: no public discovery or account enumeration, no heuristic
+nickname/name/email matching, no automatic account-to-Person matching, no
+private Person-field disclosure through the handshake, and no silent duplicate
+creation. Mutual connection must eventually require explicit participation by
+both already-invited pilot users, while each user independently decides where
+the other belongs in their Forest.
+
+Likely files: a focused feature boundary under
+`apps/web/src/features/mutual-connection-review/`, its stylesheet and test, and
+the smallest app entry hook needed to open the fictional review route. Reuse
+the approved design guide, existing portrait treatment, semantic controls,
+visible focus, touch-sized targets, reduced-motion behavior, and mobile content
+reach at a representative 390px viewport.
+
+Checks and acceptance: direct product-owner review of annotated desktop and
+mobile states; keyboard and focus recovery; reduced motion; no horizontal
+overflow or clipped content; and console health. After visual acceptance, the
+product owner runs the focused checks and proportional full gate before code
+review and publication.
+
+Out of scope for this checkpoint: database tables, pairing tokens, API or
+OpenAPI contracts, QR libraries, production authentication or identity
+behavior, Add-flow integration, holding-area persistence, expiry jobs,
+unpairing, blocking, care behavior, public search, contact imports, and
+account/Person merge or history-merge systems. These require separate
+approved increments after the interaction is accepted.
+
 ### Alternating delivery rhythm after tranche 1
 
 Pause for product-owner review after T-041. Later tranches remain inactive until
