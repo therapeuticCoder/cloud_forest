@@ -1,6 +1,7 @@
 import {
   createDatabaseClient,
   createIdentityRepository,
+  createPartyRepository,
   createTimelineItemRepository,
   getDatabaseUrl,
 } from "@cloud-forest/database";
@@ -31,6 +32,7 @@ try {
       logger: true,
       timelineItemResolver: createTimelineItemResolver(timelineItemRepository),
       sessionResolver,
+      partyRepository: createPartyRepository(database),
       authHandler: invitedAuth.handler,
     },
   });

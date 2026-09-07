@@ -16,6 +16,86 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/party": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getPartyV1"];
+        readonly put?: never;
+        readonly post: operations["addPartyMemberV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/party/{memberPersonId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete: operations["removePartyMemberV1"];
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch: operations["updatePartyMemberV1"];
+        readonly trace?: never;
+    };
+    readonly "/api/v1/party/reorder": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["reorderPartyV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/profiles/{personId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getProfileV1"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/profiles/current": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getCurrentProfileV1"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch: operations["updateCurrentProfileV1"];
+        readonly trace?: never;
+    };
     readonly "/api/v1/session": {
         readonly parameters: {
             readonly query?: never;
@@ -97,6 +177,696 @@ export interface operations {
                         readonly apiVersion: "v1";
                         /** @enum {string} */
                         readonly status: "ok";
+                    };
+                };
+            };
+        };
+    };
+    readonly getPartyV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly members: readonly {
+                                readonly memberPersonId: string;
+                                readonly position: number;
+                                readonly privateNote: string;
+                                readonly relationshipLabel: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly addPartyMemberV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly memberPersonId: string;
+                    readonly privateNote: string;
+                    readonly relationshipLabel: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly members: readonly {
+                                readonly memberPersonId: string;
+                                readonly position: number;
+                                readonly privateNote: string;
+                                readonly relationshipLabel: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly removePartyMemberV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly memberPersonId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly expectedVersion: number;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly members: readonly {
+                                readonly memberPersonId: string;
+                                readonly position: number;
+                                readonly privateNote: string;
+                                readonly relationshipLabel: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly updatePartyMemberV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly memberPersonId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly expectedVersion: number;
+                    readonly privateNote: string;
+                    readonly relationshipLabel: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly members: readonly {
+                                readonly memberPersonId: string;
+                                readonly position: number;
+                                readonly privateNote: string;
+                                readonly relationshipLabel: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly reorderPartyV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly members: readonly {
+                        readonly expectedVersion: number;
+                        readonly memberPersonId: string;
+                    }[];
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly members: readonly {
+                                readonly memberPersonId: string;
+                                readonly position: number;
+                                readonly privateNote: string;
+                                readonly relationshipLabel: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly getProfileV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly personId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly profile: {
+                                readonly displayName: string;
+                                readonly personId: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly getCurrentProfileV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly profile: {
+                                readonly displayName: string;
+                                readonly personId: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly updateCurrentProfileV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly displayName: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly profile: {
+                                readonly displayName: string;
+                                readonly personId: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "DUPLICATE_MEMBER" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
                     };
                 };
             };

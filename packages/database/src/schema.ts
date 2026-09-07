@@ -166,6 +166,7 @@ export const partyMemberships = pgTable(
     position: integer("position").notNull(),
     relationshipLabel: varchar("relationship_label", { length: 200 }).notNull(),
     privateNote: text("private_note").notNull().default(""),
+    version: integer("version").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
   },
