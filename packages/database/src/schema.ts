@@ -166,6 +166,7 @@ export const partyMemberships = pgTable(
     position: integer("position").notNull(),
     relationshipLabel: varchar("relationship_label", { length: 200 }).notNull(),
     privateNote: text("private_note").notNull().default(""),
+    version: integer("version").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
   },
@@ -183,10 +184,7 @@ export const partyMemberships = pgTable(
       "party_memberships_not_self",
       sql`${table.ownerPersonId} <> ${table.memberPersonId}`,
     ),
-    check(
-      "party_memberships_position_range",
-      sql`${table.position} between 0 and 4`,
-    ),
+    check("party_memberships_position_range", sql`${table.position} >= 0`),
   ],
 );
 

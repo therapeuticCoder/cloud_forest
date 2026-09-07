@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { DatabaseClient } from "./client.ts";
 import { partyMemberships, people, personProfiles } from "./schema.ts";
@@ -37,6 +37,36 @@ export function createPartyRepository(database: DatabaseClient) {
         .where(eq(personProfiles.personId, personId))
         .limit(1);
       return profile;
+    },
+
+    async updateProfile(input: {
+      personId: string;
+      displayName: string;
+      now: Date;
+    }) {
+      const updated = await database
+        .update(personProfiles)
+        .set({ displayName: input.displayName, updatedAt: input.now })
+        .where(eq(personProfiles.personId, input.personId))
+        .returning({
+          personId: personProfiles.personId,
+          displayName: personProfiles.displayName,
+        });
+      return updated[0] ?? null;
+    },
+
+    async isOwnedMember(ownerPersonId: string, memberPersonId: string) {
+      const [membership] = await database
+        .select({ memberPersonId: partyMemberships.memberPersonId })
+        .from(partyMemberships)
+        .where(
+          and(
+            eq(partyMemberships.ownerPersonId, ownerPersonId),
+            eq(partyMemberships.memberPersonId, memberPersonId),
+          ),
+        )
+        .limit(1);
+      return membership !== undefined;
     },
 
     async listOwned(ownerPersonId: string) {
@@ -99,6 +129,118 @@ export function createPartyRepository(database: DatabaseClient) {
           updatedAt: input.now,
         });
         return { ok: true, value: { position } };
+      });
+    },
+
+    async updateMember(input: {
+      ownerPersonId: string;
+      memberPersonId: string;
+      relationshipLabel: string;
+      privateNote: string;
+      expectedVersion: number;
+      now: Date;
+    }) {
+      return database.transaction(async (transaction) => {
+        await transaction.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${input.ownerPersonId}))`,
+        );
+        const updated = await transaction
+          .update(partyMemberships)
+          .set({
+            relationshipLabel: input.relationshipLabel,
+            privateNote: input.privateNote,
+            version: sql`${partyMemberships.version} + 1`,
+            updatedAt: input.now,
+          })
+          .where(
+            and(
+              eq(partyMemberships.ownerPersonId, input.ownerPersonId),
+              eq(partyMemberships.memberPersonId, input.memberPersonId),
+              eq(partyMemberships.version, input.expectedVersion),
+            ),
+          )
+          .returning();
+        return updated[0] ?? null;
+      });
+    },
+
+    async removeMember(input: {
+      ownerPersonId: string;
+      memberPersonId: string;
+      expectedVersion: number;
+    }) {
+      return database.transaction(async (transaction) => {
+        await transaction.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${input.ownerPersonId}))`,
+        );
+        const deleted = await transaction
+          .delete(partyMemberships)
+          .where(
+            and(
+              eq(partyMemberships.ownerPersonId, input.ownerPersonId),
+              eq(partyMemberships.memberPersonId, input.memberPersonId),
+              eq(partyMemberships.version, input.expectedVersion),
+            ),
+          )
+          .returning({ position: partyMemberships.position });
+        if (deleted[0] === undefined) return null;
+        await transaction.execute(sql`
+          update ${partyMemberships}
+          set position = position - 1, version = version + 1
+          where ${partyMemberships.ownerPersonId} = ${input.ownerPersonId}
+            and ${partyMemberships.position} > ${deleted[0].position}
+        `);
+        return deleted[0];
+      });
+    },
+
+    async reorderMembers(input: {
+      ownerPersonId: string;
+      members: readonly { memberPersonId: string; expectedVersion: number }[];
+      now: Date;
+    }) {
+      return database.transaction(async (transaction) => {
+        await transaction.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${input.ownerPersonId}))`,
+        );
+        const existing = await transaction
+          .select({
+            memberPersonId: partyMemberships.memberPersonId,
+            version: partyMemberships.version,
+          })
+          .from(partyMemberships)
+          .where(eq(partyMemberships.ownerPersonId, input.ownerPersonId));
+        if (
+          existing.length !== input.members.length ||
+          new Set(input.members.map((member) => member.memberPersonId)).size !==
+            input.members.length ||
+          !input.members.every((member) =>
+            existing.some(
+              (row) =>
+                row.memberPersonId === member.memberPersonId &&
+                row.version === member.expectedVersion,
+            ),
+          )
+        )
+          return null;
+        if (input.members.length === 0) return true;
+        await transaction.execute(sql`
+          update ${partyMemberships}
+          set position = position + 10
+          where ${partyMemberships.ownerPersonId} = ${input.ownerPersonId}
+        `);
+        const cases = input.members.map(
+          (member, position) =>
+            sql`when ${partyMemberships.memberPersonId} = ${member.memberPersonId} then ${position}`,
+        );
+        await transaction.execute(sql`
+          update ${partyMemberships}
+          set position = case ${sql.join(cases, sql.raw(" "))} end,
+              version = version + 1,
+              updated_at = ${input.now}
+          where ${partyMemberships.ownerPersonId} = ${input.ownerPersonId}
+        `);
+        return true;
       });
     },
   };

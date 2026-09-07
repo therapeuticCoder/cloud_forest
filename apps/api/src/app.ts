@@ -15,11 +15,14 @@ import {
 import { sessionRoutes } from "./routes/session.ts";
 import { authRoutes, type AuthHandler } from "./routes/auth.ts";
 import type { SessionResolver } from "./sessionResolver.ts";
+import type { PartyRepository } from "@cloud-forest/database";
+import { partyRoutes } from "./routes/party.ts";
 
 export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   timelineItemResolver?: TimelineItemResolver;
   sessionResolver?: SessionResolver;
   authHandler?: AuthHandler;
+  partyRepository?: PartyRepository;
 }
 
 const missingSessionResolver: SessionResolver = {
@@ -28,6 +31,16 @@ const missingSessionResolver: SessionResolver = {
   },
   async logout() {},
 };
+const missingPartyRepository = new Proxy(
+  {},
+  {
+    get() {
+      return () => {
+        throw new Error("Party repository is not configured.");
+      };
+    },
+  },
+) as PartyRepository;
 
 export function buildApi(
   options: BuildApiOptions = { logger: false },
@@ -57,6 +70,10 @@ export function buildApi(
   if (options.authHandler !== undefined) {
     server.register(authRoutes, { handler: options.authHandler });
   }
+  server.register(partyRoutes, {
+    repository: options.partyRepository ?? missingPartyRepository,
+    sessionResolver: options.sessionResolver ?? missingSessionResolver,
+  });
 
   return server;
 }
