@@ -39,7 +39,10 @@ const visibleActivities = visibleActivityIds
   .filter(
     (activity): activity is CloudForestActivity => activity !== undefined,
   );
-const timelineApiClient = createApiClient({ baseUrl: "" });
+const timelineApiClient = createApiClient({
+  baseUrl: "",
+  fetch: (input, init) => globalThis.fetch(input, init),
+});
 
 type RemoteTimelineItem = GetTimelineItemResponse["data"]["timelineItem"];
 

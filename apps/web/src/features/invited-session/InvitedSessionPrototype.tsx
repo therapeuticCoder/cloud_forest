@@ -45,6 +45,16 @@ const reviewStates: Array<{ label: string; state: PrototypeState }> = [
   { label: "Session expired", state: "session-expired" },
 ];
 
+function requestedPrototypeState(): PrototypeState {
+  const requestedState = new URLSearchParams(window.location.search).get(
+    "state",
+  );
+
+  return reviewStates.some(({ state }) => state === requestedState)
+    ? (requestedState as PrototypeState)
+    : "invitation";
+}
+
 function CloudForestMark() {
   return (
     <div className="invited-session-brand" aria-label="Cloud Forest">
@@ -59,20 +69,14 @@ function CloudForestMark() {
 function ReviewControls({
   activeState,
   onChange,
-  onOpenChange,
   open,
 }: {
   activeState: PrototypeState;
   onChange: (state: PrototypeState) => void;
-  onOpenChange: (open: boolean) => void;
   open: boolean;
 }) {
   return (
-    <details
-      className="invited-session-review"
-      onToggle={(event) => onOpenChange(event.currentTarget.open)}
-      open={open}
-    >
+    <details className="invited-session-review" open={open}>
       <summary>Fictional review states</summary>
       <div className="invited-session-review-list">
         {reviewStates.map(({ label, state }) => (
@@ -398,16 +402,19 @@ function SessionExpired({ onSignIn }: { onSignIn: () => void }) {
 }
 
 export function InvitedSessionPrototype() {
-  const [activeState, setActiveState] = useState<PrototypeState>("invitation");
+  const [activeState, setActiveState] = useState<PrototypeState>(
+    requestedPrototypeState,
+  );
   const [accountOpen, setAccountOpen] = useState(false);
-  const [reviewOpen, setReviewOpen] = useState(true);
   const [submittedEmail, setSubmittedEmail] = useState(RILEY_EMAIL);
   const [signInAnnouncement, setSignInAnnouncement] = useState<string>();
   const currentPersonTriggerRef = useRef<HTMLButtonElement>(null);
+  const showReviewControls =
+    new URLSearchParams(window.location.search).get("review-controls") ===
+    "true";
 
   const changeState = (nextState: PrototypeState) => {
     setAccountOpen(false);
-    setReviewOpen(nextState !== "signed-in");
     setSignInAnnouncement(undefined);
     setActiveState(nextState);
   };
@@ -504,12 +511,14 @@ export function InvitedSessionPrototype() {
       data-prototype-state={activeState}
     >
       {content}
-      <ReviewControls
-        activeState={activeState}
-        onChange={changeState}
-        onOpenChange={setReviewOpen}
-        open={reviewOpen}
-      />
+      {/* Keep internal state-switching tools off the prototype surface unless a reviewer explicitly opts in. */}
+      {showReviewControls ? (
+        <ReviewControls
+          activeState={activeState}
+          onChange={changeState}
+          open={activeState !== "signed-in"}
+        />
+      ) : null}
     </div>
   );
 }

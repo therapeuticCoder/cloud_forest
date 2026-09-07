@@ -17,14 +17,14 @@ type AddPartyMemberWizardProps = {
 
 const steps = ["Name", "Portrait", "Relationship", "Private note", "Preview"];
 
-const relationshipOptions = [
+export const partyRelationshipOptions = [
   "Partner",
   "Friend",
   "Colleague",
   "Relative",
   "Chosen Family",
   "Something else",
-];
+] as const;
 
 function initialsFor(displayName: string) {
   return displayName
@@ -201,7 +201,7 @@ export function AddPartyMemberWizard({
               aria-label="Relationship shapes"
               className="party-wizard__options"
             >
-              {relationshipOptions.map((option) => (
+              {partyRelationshipOptions.map((option) => (
                 <Button
                   aria-pressed={relationshipNote === option}
                   className="party-wizard__option"

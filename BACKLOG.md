@@ -160,10 +160,12 @@ Status: planned collaborative UX checkpoint
 Size: small
 Prerequisite: T-039
 
-Rapidly prototype loading, empty, add, edit, remove, reorder, full-capacity,
-conflict, unavailable, and retry states using the real contract vocabulary.
-Review desktop and mobile states with the product owner before connecting the
-accepted direction to live APIs.
+Rapidly prototype loading, empty, add, Party-membership edit, remove, conflict,
+unavailable, and retry states using the real contract vocabulary. Review
+desktop and mobile states with the product owner before connecting the accepted
+direction to live APIs. Reordering and a separate full-capacity screen were
+removed during review: Party order is fixed, and the add control is absent when
+all five places are occupied.
 
 Checks: keyboard and focus behavior, reduced motion, overflow, console health,
 and direct product-owner review of annotated desktop and mobile states.
