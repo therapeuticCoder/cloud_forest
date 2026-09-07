@@ -122,6 +122,43 @@ process-control permission for reliable teardown. Artifacts are ignored under
 pnpm.cmd test:e2e -- --update-snapshots
 ```
 
+### E2E and verification failure discipline
+
+These rules are mandatory. Do not improvise around them, and do not hide a
+failure by rerunning a larger command until the output looks better.
+
+- Install the pinned browser explicitly with `pnpm.cmd e2e:install`. The
+  `test:e2e` preflight must fail before database or service startup when that
+  browser is missing. Do not add an automatic download to the test command.
+- The E2E migration target and E2E API target must be identical. Migrations use
+  `TEST_DATABASE_URL`; the API process started by the E2E harness must receive
+  that same value as `DATABASE_URL`. If Better Auth reports that `verification`
+  is missing while Timeline requests succeed, stop: this is a database-target
+  mismatch until proven otherwise, not a UI failure.
+- Treat the pipeline as staged evidence: formatting, lint, contracts, types,
+  unit tests, build, and E2E are separate gates. A passing test suite does not
+  mean the build or full check passed, and a passing E2E run does not clear a
+  failed lint or type gate.
+- Never rerun a failing full gate blindly. Read the latest terminal output,
+  name the failing stage and root cause, make one focused repair, and rerun the
+  smallest relevant check only when the owner authorizes verification. Every
+  rerun must have a specific reason; elapsed time is not a reason.
+- Never claim success from a partial, truncated, or stale terminal buffer. The
+  final line and exit code must be visible. If the terminal output is ambiguous,
+  stop and ask for the current output instead of guessing.
+- The Codex executor and the in-app terminal are not guaranteed to share
+  environment variables, browser caches, or process state. Diagnose `PATH`,
+  `LOCALAPPDATA`, `PLAYWRIGHT_BROWSERS_PATH`, and database URLs before treating
+  their results as contradictory.
+- `Not implemented: window.scrollTo()` is jsdom noise caused by browser-only
+  behavior in a test environment. Keep the shared test setup responsible for a
+  harmless no-op mock; do not weaken production scroll behavior and do not
+  mistake the warning for a passing verification signal.
+- For style repairs, format the exact files named by Prettier with the root
+  Windows shim (`.\\node_modules\\.bin\\prettier.cmd <files> --write`). Do not
+  format the whole repository to repair a focused change, and do not introduce
+  unrelated churn.
+
 ## PWA and remote-device review
 
 Development does not register the production worker and removes a stale worker
