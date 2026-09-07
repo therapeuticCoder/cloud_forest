@@ -3,7 +3,10 @@ import type { FastifyRequest } from "fastify";
 
 import type { IdentityRepository } from "@cloud-forest/database";
 
-export type CurrentPerson = { readonly personId: string };
+export type CurrentPerson = {
+  readonly userId: string;
+  readonly personId: string;
+};
 
 export interface SessionApi {
   getSession(input: {
@@ -31,7 +34,7 @@ export function createSessionResolver(
       const personId = await identityRepository.findPersonIdForAccount(
         session.user.id,
       );
-      return personId === null ? null : { personId };
+      return personId === null ? null : { userId: session.user.id, personId };
     },
     async logout(request: FastifyRequest): Promise<void> {
       await authApi.signOut({ headers: fromNodeHeaders(request.headers) });

@@ -21,6 +21,11 @@ to the collaboration mode explicitly selected by the product owner.
 - Investigate environment, permission, dependency, and build failures when they
   appear. Resolve them narrowly or report the exact command, evidence, and
   recovery plan; never normalize or silently defer them.
+- Verification discipline is non-negotiable: never enter a blind test-and-patch
+  loop, never rerun a full gate without a named reason, and never claim success
+  from partial output. Read and classify the latest failure, make one focused
+  repair, and follow the owner’s instruction about whether checks may run. See
+  `docs/development.md` and `docs/workflow.md` for the mandatory recovery rules.
 - Follow the invoked workflow skill for responsibility boundaries around tests,
   previews, Git publication, review monitoring, merge, and cleanup.
 - After work, report the diff scope, verification evidence, failures or limits,

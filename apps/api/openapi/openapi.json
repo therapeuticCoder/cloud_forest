@@ -8,6 +8,1729 @@
   },
   "openapi": "3.0.3",
   "paths": {
+    "/api/v1/curated-persons": {
+      "get": {
+        "operationId": "getCuratedPersonsV1",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "changedPersonId": {
+                          "anyOf": [
+                            {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "people": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "createdAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "linkedUserId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "nickname": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "placement": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "party"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "tribe"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "guild"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "signal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "holding"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "privateDescription": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "relationshipShape": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "version": {
+                                "minimum": 1,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "nickname",
+                              "relationshipShape",
+                              "privateDescription",
+                              "placement",
+                              "linkedUserId",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "people",
+                        "changedPersonId"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Curated Persons"
+        ]
+      },
+      "post": {
+        "operationId": "createCuratedPersonV1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "nickname": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "placement": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "party"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "tribe"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "guild"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "signal"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "holding"
+                        ],
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "privateDescription": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "relationshipShape": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "nickname",
+                  "relationshipShape",
+                  "privateDescription",
+                  "placement"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "changedPersonId": {
+                          "anyOf": [
+                            {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "people": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "createdAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "linkedUserId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "nickname": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "placement": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "party"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "tribe"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "guild"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "signal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "holding"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "privateDescription": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "relationshipShape": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "version": {
+                                "minimum": 1,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "nickname",
+                              "relationshipShape",
+                              "privateDescription",
+                              "placement",
+                              "linkedUserId",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "people",
+                        "changedPersonId"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Curated Persons"
+        ]
+      }
+    },
+    "/api/v1/curated-persons/{curatedPersonId}": {
+      "delete": {
+        "operationId": "deleteCuratedPersonV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "curatedPersonId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "expectedVersion"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "changedPersonId": {
+                          "anyOf": [
+                            {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "people": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "createdAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "linkedUserId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "nickname": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "placement": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "party"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "tribe"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "guild"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "signal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "holding"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "privateDescription": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "relationshipShape": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "version": {
+                                "minimum": 1,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "nickname",
+                              "relationshipShape",
+                              "privateDescription",
+                              "placement",
+                              "linkedUserId",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "people",
+                        "changedPersonId"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Curated Persons"
+        ]
+      },
+      "patch": {
+        "operationId": "updateCuratedPersonV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "curatedPersonId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "nickname": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "placement": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "party"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "tribe"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "guild"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "signal"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "holding"
+                        ],
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "privateDescription": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "relationshipShape": {
+                    "maxLength": 200,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "nickname",
+                  "relationshipShape",
+                  "privateDescription",
+                  "placement",
+                  "expectedVersion"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "changedPersonId": {
+                          "anyOf": [
+                            {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "people": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "createdAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "linkedUserId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "nickname": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "placement": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "party"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "tribe"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "guild"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "signal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "holding"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "privateDescription": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "relationshipShape": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "version": {
+                                "minimum": 1,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "nickname",
+                              "relationshipShape",
+                              "privateDescription",
+                              "placement",
+                              "linkedUserId",
+                              "version",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "people",
+                        "changedPersonId"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "STALE_WRITE_CONFLICT"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Curated Persons"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "getHealthV1",

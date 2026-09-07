@@ -67,6 +67,7 @@ pnpm.cmd build
 pnpm.cmd openapi:check
 pnpm.cmd db:migrations:check
 pnpm.cmd test:database
+pnpm.cmd e2e:install
 pnpm.cmd test:e2e
 ```
 

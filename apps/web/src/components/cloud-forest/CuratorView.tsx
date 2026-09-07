@@ -30,13 +30,19 @@ type CuratorLayerSectionProps = {
 };
 
 type CuratorViewProps = {
+  addSubmission: { pending: boolean; error?: string };
   addWizardOpen: boolean;
   careLifecycle: CareLifecycleState;
   careViewerId: CarePersonId;
+  curatedPeopleStatus: "loading" | "ready" | "error";
+  curatedPeopleError?: string;
   currentPersonControl?: PartySelfControl;
   onAddPartyMember: () => void;
   onCancelAdd: () => void;
-  onCompleteAdd: (draft: AddPartyMemberDraft) => void;
+  onCompleteAdd: (
+    draft: AddPartyMemberDraft,
+  ) => void | boolean | Promise<void | boolean>;
+  onRetryCuratedPeople: () => void;
   onDetailOpenChange: (open: boolean) => void;
   onNavigateToTimeline: () => void;
   onOpenMyCare: () => void;
@@ -85,13 +91,17 @@ function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
 }
 
 export function CuratorView({
+  addSubmission,
   addWizardOpen,
   careLifecycle,
   careViewerId,
+  curatedPeopleError,
+  curatedPeopleStatus,
   currentPersonControl,
   onAddPartyMember,
   onCancelAdd,
   onCompleteAdd,
+  onRetryCuratedPeople,
   onDetailOpenChange,
   onNavigateToTimeline,
   onOpenMyCare,
@@ -173,7 +183,12 @@ export function CuratorView({
 
   if (addWizardOpen) {
     return (
-      <AddPartyMemberWizard onCancel={onCancelAdd} onComplete={onCompleteAdd} />
+      <AddPartyMemberWizard
+        errorMessage={addSubmission.error}
+        isSubmitting={addSubmission.pending}
+        onCancel={onCancelAdd}
+        onComplete={onCompleteAdd}
+      />
     );
   }
 
@@ -207,6 +222,9 @@ export function CuratorView({
           onNavigateToTimeline={onNavigateToTimeline}
           onOpenMyCare={onOpenMyCare}
           onSelect={handleSelect}
+          onRetry={onRetryCuratedPeople}
+          peopleState={curatedPeopleStatus}
+          peopleStateMessage={curatedPeopleError}
           people={partyPeople}
           user={curatorUser}
         />

@@ -1,4 +1,36 @@
 export interface paths {
+    readonly "/api/v1/curated-persons": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getCuratedPersonsV1"];
+        readonly put?: never;
+        readonly post: operations["createCuratedPersonV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/curated-persons/{curatedPersonId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete: operations["deleteCuratedPersonV1"];
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch: operations["updateCuratedPersonV1"];
+        readonly trace?: never;
+    };
     readonly "/api/v1/health": {
         readonly parameters: {
             readonly query?: never;
@@ -157,6 +189,399 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    readonly getCuratedPersonsV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly changedPersonId: string | null;
+                            readonly people: readonly {
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                readonly id: string;
+                                readonly linkedUserId: string | null;
+                                readonly nickname: string;
+                                readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly privateDescription: string;
+                                readonly relationshipShape: string;
+                                /** Format: date-time */
+                                readonly updatedAt: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly createCuratedPersonV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly nickname: string;
+                    readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                    readonly privateDescription: string;
+                    readonly relationshipShape: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly changedPersonId: string | null;
+                            readonly people: readonly {
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                readonly id: string;
+                                readonly linkedUserId: string | null;
+                                readonly nickname: string;
+                                readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly privateDescription: string;
+                                readonly relationshipShape: string;
+                                /** Format: date-time */
+                                readonly updatedAt: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly deleteCuratedPersonV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly curatedPersonId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly expectedVersion: number;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly changedPersonId: string | null;
+                            readonly people: readonly {
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                readonly id: string;
+                                readonly linkedUserId: string | null;
+                                readonly nickname: string;
+                                readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly privateDescription: string;
+                                readonly relationshipShape: string;
+                                /** Format: date-time */
+                                readonly updatedAt: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly updateCuratedPersonV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly curatedPersonId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly expectedVersion: number;
+                    readonly nickname: string;
+                    readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                    readonly privateDescription: string;
+                    readonly relationshipShape: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly changedPersonId: string | null;
+                            readonly people: readonly {
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                readonly id: string;
+                                readonly linkedUserId: string | null;
+                                readonly nickname: string;
+                                readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly privateDescription: string;
+                                readonly relationshipShape: string;
+                                /** Format: date-time */
+                                readonly updatedAt: string;
+                                readonly version: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     readonly getHealthV1: {
         readonly parameters: {
             readonly query?: never;

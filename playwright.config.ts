@@ -1,6 +1,9 @@
 import { defineConfig } from "@playwright/test";
+import path from "node:path";
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
+const e2eMagicLinkFile = path.resolve("test-results/e2e-magic-link.json");
+const externallyManagedServices = process.env.E2E_EXTERNAL_SERVICES === "1";
 
 if (!testDatabaseUrl) {
   throw new Error(
@@ -23,7 +26,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 30_000,
-  globalTimeout: 120_000,
+  globalTimeout: 300_000,
   reporter: "line",
   expect: {
     timeout: 5_000,
@@ -47,7 +50,7 @@ export default defineConfig({
       command: `${nodeCommand} --env-file-if-exists=.env --experimental-strip-types apps/api/src/main.ts`,
       url: "http://127.0.0.1:3001/api/v1/health",
       timeout: 20_000,
-      reuseExistingServer: false,
+      reuseExistingServer: externallyManagedServices,
       stdout: "pipe",
       stderr: "pipe",
       env: {
@@ -55,6 +58,7 @@ export default defineConfig({
         API_HOST: "127.0.0.1",
         API_PORT: "3001",
         DATABASE_URL: testDatabaseUrl,
+        E2E_MAGIC_LINK_FILE: e2eMagicLinkFile,
       },
       gracefulShutdown:
         process.platform === "win32"
@@ -66,7 +70,7 @@ export default defineConfig({
       command: `${nodeCommand} apps/web/node_modules/vite/bin/vite.js apps/web --mode e2e --host 127.0.0.1 --port 5173 --strictPort`,
       url: "http://127.0.0.1:5173",
       timeout: 20_000,
-      reuseExistingServer: false,
+      reuseExistingServer: externallyManagedServices,
       stdout: "pipe",
       stderr: "pipe",
       env: serviceEnvironment,

@@ -100,6 +100,74 @@ test("getTimelineItem returns the validated typed success result", async () => {
   );
 });
 
+test("curated Person methods use the durable private API and preserve server IDs", async () => {
+  const requests = [];
+  const body = {
+    apiVersion: "v1",
+    data: {
+      people: [
+        {
+          id: "curated-person-123",
+          nickname: "Mira at home",
+          relationshipShape: "Friend",
+          privateDescription: "A steady place.",
+          placement: "party",
+          linkedUserId: null,
+          version: 2,
+          createdAt: "2026-09-07T12:00:00.000Z",
+          updatedAt: "2026-09-07T12:01:00.000Z",
+        },
+      ],
+      changedPersonId: "curated-person-123",
+    },
+  };
+  const client = createApiClient({
+    baseUrl: "https://api.example.test/",
+    fetch: async (url, options) => {
+      requests.push({ url, options });
+      return jsonResponse(body);
+    },
+  });
+
+  assert.deepEqual(await client.getCuratedPersons(), {
+    ok: true,
+    status: 200,
+    value: body,
+  });
+  assert.deepEqual(
+    await client.createCuratedPerson({
+      nickname: "Mira at home",
+      relationshipShape: "Friend",
+      privateDescription: "A steady place.",
+      placement: "party",
+    }),
+    { ok: true, status: 200, value: body },
+  );
+  await client.updateCuratedPerson("person/with spaces", {
+    nickname: "Mira",
+    relationshipShape: "Friend",
+    privateDescription: "",
+    placement: "holding",
+    expectedVersion: 2,
+  });
+  await client.deleteCuratedPerson("person/with spaces", {
+    expectedVersion: 2,
+  });
+
+  assert.equal(
+    requests[0].url,
+    "https://api.example.test/api/v1/curated-persons",
+  );
+  assert.equal(requests[0].options.credentials, "include");
+  assert.equal(requests[1].options.method, "POST");
+  assert.equal(
+    requests[2].url,
+    "https://api.example.test/api/v1/curated-persons/person%2Fwith%20spaces",
+  );
+  assert.equal(requests[2].options.method, "PATCH");
+  assert.equal(requests[3].options.method, "DELETE");
+});
+
 test("transport failures are distinct from HTTP errors", async () => {
   const cause = new Error("fictional network failure");
   const client = createApiClient({

@@ -10,10 +10,8 @@ import {
 import { useRef, useState } from "react";
 
 import { Portrait } from "@/components/cloud-forest/PartyLayer";
-import {
-  AddPartyMemberWizard,
-  partyRelationshipOptions,
-} from "@/components/cloud-forest/AddPartyMemberWizard";
+import { AddPartyMemberWizard } from "@/components/cloud-forest/AddPartyMemberWizard";
+import { partyRelationshipOptions } from "@/components/cloud-forest/partyRelationshipOptions";
 import { curatorPartyPeople, curatorUser } from "@/data/cloudForest";
 import type { CuratorPerson } from "@/types/curator";
 

@@ -26,8 +26,11 @@ type PartyLayerProps = {
   onAdd: () => void;
   onNavigateToTimeline: () => void;
   onOpenMyCare: () => void;
+  onRetry: () => void;
   onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
   people: CuratorPerson[];
+  peopleState: "loading" | "ready" | "error";
+  peopleStateMessage?: string;
   user: CuratorPerson;
 };
 
@@ -236,8 +239,11 @@ export function PartyLayer({
   onNavigateToTimeline,
   onAdd,
   onOpenMyCare,
+  onRetry,
   onSelect,
   people,
+  peopleState,
+  peopleStateMessage,
   user,
 }: PartyLayerProps) {
   return (
@@ -273,6 +279,22 @@ export function PartyLayer({
       </header>
 
       <div className="party-grid">
+        {peopleState === "loading" ? (
+          <div className="party-state-message" role="status">
+            Loading your private Party…
+          </div>
+        ) : null}
+        {peopleState === "error" ? (
+          <div className="party-state-message" role="alert">
+            <span>
+              {peopleStateMessage ??
+                "Your private Party is temporarily unavailable."}
+            </span>
+            <button onClick={onRetry} type="button">
+              Try again
+            </button>
+          </div>
+        ) : null}
         {people.map((person) => (
           <PartyCard
             key={person.id}
@@ -282,7 +304,7 @@ export function PartyLayer({
             person={person}
           />
         ))}
-        {people.length < 5 ? (
+        {peopleState === "ready" && people.length < 5 ? (
           <button
             aria-label="Add a Party member"
             className="party-card party-card--empty"

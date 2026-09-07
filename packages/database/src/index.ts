@@ -13,6 +13,7 @@ export {
   people,
   personProfiles,
   partyMemberships,
+  curatedPersons,
   accountPeople,
   invitations,
   type NewTimelineItemRow,
@@ -31,8 +32,15 @@ export {
   type PartyRepository,
 } from "./partyRepository.ts";
 export {
+  createCuratedPersonRepository,
+  type CuratedPersonRepository,
+} from "./curatedPersonRepository.ts";
+export {
   fictionalPartyMemberIds,
+  fictionalPartyInvitationId,
+  fictionalPartyMobileInvitationId,
   fictionalPartyOwnerId,
+  fictionalPartyOwnerUserId,
   fictionalPartyPersonIds,
   seedFictionalPartyFixture,
 } from "./partyFixtures.ts";

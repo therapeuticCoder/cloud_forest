@@ -1,8 +1,39 @@
+import { readFile, rm } from "node:fs/promises";
+import path from "node:path";
+
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 const miraContent =
   "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?";
 const miraEndpoint = "/api/v1/timeline-items/timeline-item-mira-soup-001";
+const e2eMagicLinkFile = path.resolve("test-results/e2e-magic-link.json");
+
+async function signInAsFictionalPartyOwner(page: Page) {
+  await rm(e2eMagicLinkFile, { force: true });
+  const signIn = await page.request.post("/api/auth/sign-in/magic-link", {
+    data: { email: "river@example.test" },
+  });
+  expect(signIn.ok()).toBe(true);
+
+  await expect
+    .poll(async () => {
+      try {
+        return await readFile(e2eMagicLinkFile, "utf8");
+      } catch {
+        return "";
+      }
+    })
+    .not.toBe("");
+  const magicLinkJson = await readFile(e2eMagicLinkFile, "utf8");
+  const magicLink = JSON.parse(magicLinkJson as string) as { url: string };
+  const verificationUrl = new URL(magicLink.url);
+  verificationUrl.port = "5173";
+  const verification = await page.request.get(verificationUrl.toString(), {
+    maxRedirects: 0,
+  });
+  expect(verification.status()).toBe(302);
+  await page.goto("/");
+}
 
 function collectBrowserFailures(page: Page) {
   const failures: string[] = [];
@@ -135,6 +166,33 @@ test("database-backed Timeline and prototype regression path", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedAndExpectDevelopmentPwaCleanup(page);
   await page.waitForLoadState("networkidle");
+  await signInAsFictionalPartyOwner(page);
+  const curatedPeopleResponse = await page.request.get(
+    "/api/v1/curated-persons",
+  );
+  expect(curatedPeopleResponse.ok()).toBe(true);
+  const curatedPeoplePayload = (await curatedPeopleResponse.json()) as {
+    data: { people: Array<{ id: string; placement: string; version: number }> };
+  };
+  const ren = curatedPeoplePayload.data.people.find(
+    (person) => person.id === "ren",
+  );
+  expect(ren).toBeDefined();
+  if (ren?.placement !== "holding") {
+    const movedToHolding = await page.request.patch(
+      "/api/v1/curated-persons/ren",
+      {
+        data: {
+          nickname: "Ren Ellis",
+          relationshipShape: "Oldest friend",
+          privateDescription: "always makes me laugh",
+          placement: "holding",
+          expectedVersion: ren?.version,
+        },
+      },
+    );
+    expect(movedToHolding.ok()).toBe(true);
+  }
   const miraResponsePromise = page.waitForResponse(
     (response) =>
       response.url().endsWith(miraEndpoint) &&
@@ -391,6 +449,24 @@ test("database-backed Timeline and prototype regression path", async ({
     page.getByRole("region", { name: "Curator view" }),
   ).toBeVisible();
   await expect(miraTile).toBeFocused();
+  const niaTile = page.getByRole("button", { name: "Open Nia" });
+  if ((await niaTile.count()) === 0) {
+    await page.getByRole("button", { name: "Add a Party member" }).click();
+    await page.getByPlaceholder("Their name").fill("Nia");
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Skip for now" }).click();
+    await page.getByRole("button", { name: "Relative" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByPlaceholder("They are...").fill("my bright spot");
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Add to Party" }).click();
+  }
+  await expect(niaTile).toBeVisible();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Go to Curator", exact: true })
+    .click();
+  await expect(page.getByRole("button", { name: "Open Nia" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
   expect(
