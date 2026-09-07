@@ -95,7 +95,7 @@ describe("PartyStatePrototype", () => {
       "aria-pressed",
       "true",
     );
-    expect(screen.getByRole("textbox", { name: "Private note" })).toHaveValue(
+    expect(screen.getByRole("textbox", { name: /Private note/ })).toHaveValue(
       "my calm in the storm",
     );
   });
