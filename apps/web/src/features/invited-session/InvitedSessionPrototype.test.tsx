@@ -6,7 +6,11 @@ import { App } from "@/app/App";
 
 describe("InvitedSessionPrototype", () => {
   beforeEach(() => {
-    window.history.replaceState({}, "", "/?prototype=invited-session");
+    window.history.replaceState(
+      {},
+      "",
+      "/?prototype=invited-session&review-controls=true",
+    );
     vi.spyOn(globalThis, "fetch").mockImplementation(
       () => new Promise<Response>(() => undefined),
     );
@@ -25,6 +29,23 @@ describe("InvitedSessionPrototype", () => {
     expect(
       screen.queryByRole("region", { name: /timeline view/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("hides review controls by default while keeping URL-selected states", () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/?prototype=invited-session&state=invitation-expired",
+    );
+
+    render(<App />);
+
+    expect(
+      screen.queryByText("Fictional review states"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "This invitation has expired" }),
+    ).toBeInTheDocument();
   });
 
   it("moves through invitation, sign-in, link sent, and current person", async () => {

@@ -57,11 +57,9 @@ describe("TimelinePanel live item seam", () => {
     render(
       <TimelinePanel
         apiClient={{
-          getTimelineItem: vi.fn().mockResolvedValue({
-            ok: false,
-            kind: "network",
-            cause: new Error("offline"),
-          }),
+          getTimelineItem: vi.fn(
+            () => new Promise<GetTimelineItemResult>(() => undefined),
+          ),
         }}
         careOffers={[offer]}
         careRequests={[request]}

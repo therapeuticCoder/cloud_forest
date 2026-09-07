@@ -28,6 +28,9 @@ describe("App", () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.history.replaceState({}, "", "/");
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      () => new Promise<Response>(() => undefined),
+    );
   });
 
   afterEach(() => {
@@ -421,9 +424,6 @@ describe("App", () => {
 
   it("omits an unclaimed request after its lifespan expires", () => {
     vi.setSystemTime(new Date("2031-09-04T12:00:00.000Z"));
-    vi.spyOn(globalThis, "fetch").mockImplementation(
-      () => new Promise<Response>(() => undefined),
-    );
 
     render(<App />);
 
