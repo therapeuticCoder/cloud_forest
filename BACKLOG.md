@@ -142,7 +142,7 @@ Out of scope: importing browser care records or real user data.
 
 #### T-039: Add versioned Party and profile APIs
 
-Status: planned
+Status: completed by PR #57
 Size: medium
 Prerequisite: T-038
 
