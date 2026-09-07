@@ -11,7 +11,10 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import type { TimelineItemLayer } from "@cloud-forest/domain";
+import type {
+  CuratedPersonPlacement,
+  TimelineItemLayer,
+} from "@cloud-forest/domain";
 
 export const timelineItems = pgTable(
   "timeline_items",
@@ -200,6 +203,52 @@ export const accountPeople = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [uniqueIndex("account_people_person_unique").on(table.personId)],
+);
+
+export const curatedPersons = pgTable(
+  "curated_persons",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    ownerUserId: varchar("owner_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    nickname: varchar("nickname", { length: 200 }).notNull(),
+    relationshipShape: varchar("relationship_shape", {
+      length: 200,
+    }).notNull(),
+    privateDescription: text("private_description").notNull().default(""),
+    placement: varchar("placement", { length: 16 })
+      .$type<CuratedPersonPlacement>()
+      .notNull(),
+    linkedUserId: varchar("linked_user_id", { length: 128 }).references(
+      () => users.id,
+      { onDelete: "set null" },
+    ),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index("curated_persons_owner_index").on(table.ownerUserId),
+    check("curated_persons_id_length", sql`char_length(${table.id}) >= 1`),
+    check(
+      "curated_persons_nickname_length",
+      sql`char_length(${table.nickname}) between 1 and 200`,
+    ),
+    check(
+      "curated_persons_relationship_shape_length",
+      sql`char_length(${table.relationshipShape}) between 1 and 200`,
+    ),
+    check(
+      "curated_persons_private_description_length",
+      sql`char_length(${table.privateDescription}) <= 10000`,
+    ),
+    check(
+      "curated_persons_placement_allowed",
+      sql`${table.placement} in ('party', 'tribe', 'guild', 'signal', 'holding')`,
+    ),
+    check("curated_persons_version_positive", sql`${table.version} >= 1`),
+  ],
 );
 
 export const invitations = pgTable(

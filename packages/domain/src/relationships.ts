@@ -9,6 +9,13 @@ export const relationshipLayers = [
 
 export type RelationshipLayer = (typeof relationshipLayers)[number];
 
+export const curatedPersonPlacements = [
+  ...relationshipLayers,
+  "holding",
+] as const;
+
+export type CuratedPersonPlacement = (typeof curatedPersonPlacements)[number];
+
 export const PARTY_CAPACITY = 5;
 
 declare const partyPositionBrand: unique symbol;

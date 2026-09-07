@@ -1,13 +1,10 @@
 import { Gift, HandHeart, Sprout } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
+import { curatorUser, incomingCareRequests } from "@/data/cloudForest";
 import {
-  curatorPartyPeople,
-  curatorTribeNeighborhoods,
-  curatorUser,
-  incomingCareRequests,
-} from "@/data/cloudForest";
-import { carePerspectiveOptions } from "@/data/careLifecycleMockData";
+  carePerspectiveOptions,
+  incomingCareAudienceSnapshot,
+} from "@/data/careLifecycleMockData";
 import {
   canPassCareRequest,
   CURRENT_CARE_VIEWER_ID,
@@ -32,10 +29,14 @@ import type {
   GiveCareOffer,
   ReceiveCareRequest,
 } from "@/types/careRequest";
-import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
 import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
+import {
+  curationErrorMessage,
+  useCuratedPeople,
+  type CuratedPersonApiClient,
+} from "./useCuratedPeople";
 import {
   PartyAction,
   PartyActions,
@@ -74,10 +75,14 @@ type CareDestination =
       returnToMyCare: boolean;
     };
 
+export type { CuratedPersonApiClient } from "./useCuratedPeople";
+
 export function DashboardShell({
   currentPersonControl,
+  apiClient,
 }: {
   currentPersonControl?: PartySelfControl;
+  apiClient?: CuratedPersonApiClient;
 }) {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [addWizardOpen, setAddWizardOpen] = useState(false);
@@ -94,14 +99,30 @@ export function DashboardShell({
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [curatorDetailOpen, setCuratorDetailOpen] = useState(false);
-  const [partyPeople, setPartyPeople] = useState<CuratorPerson[]>(() =>
-    curatorPartyPeople.slice(0, 4),
-  );
+  const {
+    add: addCuratedPerson,
+    load: loadCuratedPeople,
+    partyPeople,
+    people: curatedPeople,
+  } = useCuratedPeople(apiClient, activeView === "curator");
+  const [addSubmission, setAddSubmission] = useState<{
+    pending: boolean;
+    error?: string;
+  }>({ pending: false });
   const focusTargetIdRef = useRef<string | null>(null);
   const careReturnFocusSelectorRef = useRef<string | null>(null);
+  const careReturnScrollYRef = useRef(0);
   const ignoreNextCarePopStateRef = useRef(false);
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = previousScrollRestoration;
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,31 +137,28 @@ export function DashboardShell({
 
   const revealChrome = () => setChromeHidden(false);
   const openAddWizard = () => {
-    if (partyPeople.length < 5) {
+    if (curatedPeople.status === "ready" && partyPeople.length < 5) {
       focusTargetIdRef.current = "party-add";
+      setAddSubmission({ pending: false });
       setAddWizardOpen(true);
     }
   };
-  const completeAdd = (draft: AddPartyMemberDraft) => {
-    const newMemberId = `party-member-${Date.now()}`;
-    const initials = draft.displayName
-      .split(/\s+/)
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 3)
-      .toUpperCase();
-
-    setPartyPeople((currentPeople) => [
-      ...currentPeople,
-      {
-        ...draft,
-        id: newMemberId,
-        initials,
-        recentStatus: "Newly added",
-      },
-    ]);
-    focusTargetIdRef.current = `party-${newMemberId}`;
+  const completeAdd = async (draft: AddPartyMemberDraft) => {
+    setAddSubmission({ pending: true });
+    const result = await addCuratedPerson({
+      nickname: draft.displayName,
+      relationshipShape: draft.relationshipNote,
+      privateDescription: draft.relationshipTitle,
+      placement: "party",
+    });
+    if (!result.ok) {
+      setAddSubmission({ pending: false, error: curationErrorMessage(result) });
+      return false;
+    }
+    focusTargetIdRef.current = `party-${result.value.data.changedPersonId}`;
+    setAddSubmission({ pending: false });
     setAddWizardOpen(false);
+    return true;
   };
 
   const applyCareLifecycleAction = (action: CareLifecycleAction) => {
@@ -184,6 +202,7 @@ export function DashboardShell({
     returnFocusSelector: string,
   ) => {
     careReturnFocusSelectorRef.current = returnFocusSelector;
+    careReturnScrollYRef.current = window.scrollY;
     window.history.pushState(
       { ...window.history.state, careDestination: destination.kind },
       "",
@@ -198,15 +217,17 @@ export function DashboardShell({
       parentReturnFocusSelector: string | null = null,
     ) => {
       careReturnFocusSelectorRef.current = parentReturnFocusSelector;
+      setChromeHidden(false);
       setCareDestination(returnToMyCare ? { kind: "my-care" } : null);
 
-      if (focusSelector) {
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
+          window.scrollTo(0, careReturnScrollYRef.current);
+          if (focusSelector) {
             document.querySelector<HTMLElement>(focusSelector)?.focus();
-          });
+          }
         });
-      }
+      });
     },
     [],
   );
@@ -215,6 +236,7 @@ export function DashboardShell({
     ignoreNextCarePopStateRef.current = true;
     window.history.back();
     window.setTimeout(() => {
+      window.scrollTo(0, careReturnScrollYRef.current);
       ignoreNextCarePopStateRef.current = false;
     }, 100);
   }, []);
@@ -680,12 +702,12 @@ export function DashboardShell({
   }, [careLifecycle, careViewerId, timelineCareRequests]);
   const careAudienceSnapshot = useMemo(
     () => ({
-      partyMemberIds: partyPeople.map((person) => person.id),
-      tribeMemberIds: curatorTribeNeighborhoods.flatMap((neighborhood) =>
-        neighborhood.people.map((person) => person.id),
+      partyMemberIds: incomingCareAudienceSnapshot.partyMemberIds.filter(
+        (personId) => personId !== CURRENT_CARE_VIEWER_ID,
       ),
+      tribeMemberIds: incomingCareAudienceSnapshot.tribeMemberIds,
     }),
-    [partyPeople],
+    [],
   );
 
   useEffect(() => {
@@ -898,13 +920,21 @@ export function DashboardShell({
               />
             ) : (
               <CuratorView
+                addSubmission={addSubmission}
                 addWizardOpen={addWizardOpen}
                 careLifecycle={careLifecycle}
                 careViewerId={careViewerId}
+                curatedPeopleStatus={curatedPeople.status}
+                curatedPeopleError={
+                  curatedPeople.status === "error"
+                    ? curatedPeople.message
+                    : undefined
+                }
                 currentPersonControl={currentPersonControl}
                 onAddPartyMember={openAddWizard}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
+                onRetryCuratedPeople={() => void loadCuratedPeople()}
                 onDetailOpenChange={setCuratorDetailOpen}
                 onNavigateToTimeline={() => setActiveView("timeline")}
                 onOpenMyCare={() =>
@@ -1009,7 +1039,10 @@ export function DashboardShell({
             onAdd={openAddWizard}
             onGive={openGiveWizard}
             onReceive={openReceiveWizard}
-            partyIsFull={activeView === "curator" && partyPeople.length >= 5}
+            partyIsFull={
+              activeView === "curator" &&
+              (curatedPeople.status !== "ready" || partyPeople.length >= 5)
+            }
           />
         </div>
       ) : null}

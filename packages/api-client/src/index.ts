@@ -1,4 +1,6 @@
 import {
+  isCuratedPersonErrorResponse,
+  isCuratedPersonsSuccessResponse,
   isGetTimelineItemErrorResponse,
   isGetTimelineItemSuccessResponse,
   isHealthResponse,
@@ -19,6 +21,10 @@ type OperationResponseBody<
 
 type HealthOperation = operations["getHealthV1"];
 type TimelineItemOperation = operations["getTimelineItemV1"];
+type CuratedPersonsOperation = operations["getCuratedPersonsV1"];
+type CreateCuratedPersonOperation = operations["createCuratedPersonV1"];
+type UpdateCuratedPersonOperation = operations["updateCuratedPersonV1"];
+type DeleteCuratedPersonOperation = operations["deleteCuratedPersonV1"];
 
 export type HealthResponse = OperationResponseBody<HealthOperation, 200>;
 export type GetTimelineItemParameters =
@@ -30,6 +36,20 @@ export type GetTimelineItemResponse = OperationResponseBody<
 export type GetTimelineItemErrorResponse = OperationResponseBody<
   TimelineItemOperation,
   400 | 404
+>;
+export type GetCuratedPersonsResponse = OperationResponseBody<
+  CuratedPersonsOperation,
+  200
+>;
+export type CuratedPersonInput =
+  CreateCuratedPersonOperation["requestBody"]["content"]["application/json"];
+export type UpdateCuratedPersonInput =
+  UpdateCuratedPersonOperation["requestBody"]["content"]["application/json"];
+export type DeleteCuratedPersonInput =
+  DeleteCuratedPersonOperation["requestBody"]["content"]["application/json"];
+export type GetCuratedPersonsErrorResponse = OperationResponseBody<
+  CuratedPersonsOperation,
+  401
 >;
 
 export interface ApiSuccess<Status extends number, Value> {
@@ -78,12 +98,30 @@ export type GetTimelineItemResult = ApiResult<
   400 | 404,
   GetTimelineItemErrorResponse
 >;
+export type GetCuratedPersonsResult = ApiResult<
+  200,
+  GetCuratedPersonsResponse,
+  400 | 401 | 404 | 409,
+  GetCuratedPersonsErrorResponse
+>;
 
 export interface ApiClient {
   getHealth(): Promise<HealthResult>;
   getTimelineItem(
     parameters: GetTimelineItemParameters,
   ): Promise<GetTimelineItemResult>;
+  getCuratedPersons(): Promise<GetCuratedPersonsResult>;
+  createCuratedPerson(
+    input: CuratedPersonInput,
+  ): Promise<GetCuratedPersonsResult>;
+  updateCuratedPerson(
+    curatedPersonId: string,
+    input: UpdateCuratedPersonInput,
+  ): Promise<GetCuratedPersonsResult>;
+  deleteCuratedPerson(
+    curatedPersonId: string,
+    input: DeleteCuratedPersonInput,
+  ): Promise<GetCuratedPersonsResult>;
 }
 
 export interface CreateApiClientOptions {
@@ -110,11 +148,20 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   const fetchImplementation = options.fetch ?? globalThis.fetch;
 
-  async function get(path: string): Promise<RawRequestResult> {
+  async function request(
+    method: string,
+    path: string,
+    body?: unknown,
+  ): Promise<RawRequestResult> {
     try {
       const response = await fetchImplementation(`${baseUrl}${path}`, {
-        method: "GET",
-        headers: { accept: "application/json" },
+        method,
+        headers: {
+          accept: "application/json",
+          ...(body === undefined ? {} : { "content-type": "application/json" }),
+        },
+        credentials: "include",
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
 
       return {
@@ -129,7 +176,7 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
 
   return {
     async getHealth() {
-      const result = await get("/api/v1/health");
+      const result = await request("GET", "/api/v1/health");
       if (result.kind === "network") return result;
 
       if (result.status === 200 && isHealthResponse(result.body)) {
@@ -150,7 +197,10 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
 
     async getTimelineItem(parameters) {
       const timelineItemId = encodeURIComponent(parameters.timelineItemId);
-      const result = await get(`/api/v1/timeline-items/${timelineItemId}`);
+      const result = await request(
+        "GET",
+        `/api/v1/timeline-items/${timelineItemId}`,
+      );
       if (result.kind === "network") return result;
 
       if (
@@ -183,5 +233,66 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         body: result.body,
       };
     },
+
+    async getCuratedPersons() {
+      return parseCuratedPersonsResponse(
+        await request("GET", "/api/v1/curated-persons"),
+      );
+    },
+
+    async createCuratedPerson(input) {
+      return parseCuratedPersonsResponse(
+        await request("POST", "/api/v1/curated-persons", input),
+      );
+    },
+
+    async updateCuratedPerson(curatedPersonId, input) {
+      return parseCuratedPersonsResponse(
+        await request(
+          "PATCH",
+          `/api/v1/curated-persons/${encodeURIComponent(curatedPersonId)}`,
+          input,
+        ),
+      );
+    },
+
+    async deleteCuratedPerson(curatedPersonId, input) {
+      return parseCuratedPersonsResponse(
+        await request(
+          "DELETE",
+          `/api/v1/curated-persons/${encodeURIComponent(curatedPersonId)}`,
+          input,
+        ),
+      );
+    },
+  };
+}
+
+function parseCuratedPersonsResponse(
+  result: RawRequestResult,
+): GetCuratedPersonsResult {
+  if (result.kind === "network") return result;
+  if (result.status === 200 && isCuratedPersonsSuccessResponse(result.body)) {
+    return { ok: true, status: 200, value: result.body };
+  }
+  if (
+    (result.status === 400 ||
+      result.status === 401 ||
+      result.status === 404 ||
+      result.status === 409) &&
+    isCuratedPersonErrorResponse(result.body)
+  ) {
+    return {
+      ok: false,
+      kind: "http",
+      status: result.status,
+      error: result.body,
+    };
+  }
+  return {
+    ok: false,
+    kind: "unexpected-response",
+    status: result.status,
+    body: result.body,
   };
 }

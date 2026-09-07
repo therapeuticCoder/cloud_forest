@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
+import { partyRelationshipOptions } from "./partyRelationshipOptions";
+
 export type AddPartyMemberDraft = {
   displayName: string;
   portraitUrl?: string;
@@ -12,19 +14,14 @@ export type AddPartyMemberDraft = {
 
 type AddPartyMemberWizardProps = {
   onCancel: () => void;
-  onComplete: (draft: AddPartyMemberDraft) => void;
+  onComplete: (
+    draft: AddPartyMemberDraft,
+  ) => void | boolean | Promise<void | boolean>;
+  errorMessage?: string;
+  isSubmitting?: boolean;
 };
 
 const steps = ["Name", "Portrait", "Relationship", "Private note", "Preview"];
-
-export const partyRelationshipOptions = [
-  "Partner",
-  "Friend",
-  "Colleague",
-  "Relative",
-  "Chosen Family",
-  "Something else",
-] as const;
 
 function initialsFor(displayName: string) {
   return displayName
@@ -37,6 +34,8 @@ function initialsFor(displayName: string) {
 }
 
 export function AddPartyMemberWizard({
+  errorMessage,
+  isSubmitting = false,
   onCancel,
   onComplete,
 }: AddPartyMemberWizardProps) {
@@ -83,7 +82,7 @@ export function AddPartyMemberWizard({
     onCancel();
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!canContinue) {
       return;
     }
@@ -93,12 +92,17 @@ export function AddPartyMemberWizard({
       return;
     }
 
-    onComplete({
+    const completed = await onComplete({
       displayName: displayName.trim(),
       portraitUrl,
       relationshipNote: relationshipNote.trim(),
       relationshipTitle: relationshipTitle.trim(),
     });
+    if (completed === false) return;
+    if (portraitUrlRef.current) {
+      URL.revokeObjectURL(portraitUrlRef.current);
+      portraitUrlRef.current = undefined;
+    }
   };
 
   return (
@@ -255,9 +259,14 @@ export function AddPartyMemberWizard({
       </div>
 
       <footer className="party-wizard__footer">
+        {errorMessage ? (
+          <p aria-live="polite" className="party-wizard__error" role="status">
+            {errorMessage}
+          </p>
+        ) : null}
         <Button
           className="party-wizard__continue"
-          disabled={!canContinue}
+          disabled={!canContinue || isSubmitting}
           onClick={handleNext}
           size="lg"
           type="button"

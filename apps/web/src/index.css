@@ -1002,6 +1002,25 @@ article[aria-label="Party layer"] {
   gap: 0.65rem;
 }
 
+.party-state-message {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+  margin: 0 auto;
+  max-width: 28rem;
+  padding: 1rem;
+  color: color-mix(in srgb, var(--forest-card) 72%, transparent);
+  text-align: center;
+}
+
+.party-state-message button {
+  border: 1px solid color-mix(in srgb, var(--forest-card) 42%, transparent);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  color: var(--forest-card);
+}
+
 .party-card {
   display: flex;
   min-width: 0;
@@ -1310,6 +1329,13 @@ article[aria-label="Party layer"] {
 .party-wizard__footer {
   width: min(100%, 32rem);
   margin: 0 auto;
+}
+
+.party-wizard__error {
+  max-width: 28rem;
+  color: #ffd9c9;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .party-wizard__continue {

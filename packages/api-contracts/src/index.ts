@@ -37,3 +37,4 @@ export {
   type UnauthorizedResponse,
 } from "./sessionContract.ts";
 export * from "./partyContract.ts";
+export * from "./curatedPersonContract.ts";

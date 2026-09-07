@@ -43,6 +43,13 @@
       "when": 1788739961431,
       "tag": "0005_cold_sandman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788806133087,
+      "tag": "0006_remarkable_doctor_faustus",
+      "breakpoints": true
     }
   ]
 }

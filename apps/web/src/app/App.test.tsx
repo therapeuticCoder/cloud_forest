@@ -3,12 +3,87 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
+import { curatorPartyPeople } from "@/data/curatorMockData";
+
+function curatedPeopleResponse(
+  people: Array<{
+    id: string;
+    nickname: string;
+    relationshipShape: string;
+    privateDescription: string;
+    placement: "party";
+    linkedUserId: null;
+    version: number;
+    createdAt: string;
+    updatedAt: string;
+  }>,
+  changedPersonId: string | null = null,
+) {
+  return {
+    apiVersion: "v1",
+    data: { people, changedPersonId },
+  };
+}
+
+function createCuratedPeopleFixture() {
+  let people = curatorPartyPeople.slice(0, 4).map((person, index) => ({
+    id: person.id,
+    nickname: person.displayName,
+    relationshipShape: person.relationshipNote,
+    privateDescription: person.relationshipTitle,
+    placement: "party" as const,
+    linkedUserId: null,
+    version: 1,
+    createdAt: `2026-09-07T12:0${index}:00.000Z`,
+    updatedAt: `2026-09-07T12:0${index}:00.000Z`,
+  }));
+
+  return async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (!String(input).includes("/api/v1/curated-persons")) {
+      return new Promise<Response>(() => undefined);
+    }
+
+    if ((init?.method ?? "GET") === "POST") {
+      const draft = JSON.parse(String(init?.body));
+      const created = {
+        id: `curated-person-test-${people.length + 1}`,
+        nickname: draft.nickname,
+        relationshipShape: draft.relationshipShape,
+        privateDescription: draft.privateDescription,
+        placement: draft.placement,
+        linkedUserId: null,
+        version: 1,
+        createdAt: "2026-09-07T13:00:00.000Z",
+        updatedAt: "2026-09-07T13:00:00.000Z",
+      };
+      people = [...people, created];
+      return {
+        status: 200,
+        async text() {
+          return JSON.stringify(curatedPeopleResponse(people, created.id));
+        },
+      } as Response;
+    }
+
+    return {
+      status: 200,
+      async text() {
+        return JSON.stringify(curatedPeopleResponse(people));
+      },
+    } as Response;
+  };
+}
 
 async function openCurator() {
   const user = userEvent.setup();
 
   render(<App />);
   await user.click(screen.getAllByRole("button", { name: /curator/i })[0]);
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Open Mira Vale" }),
+    ).toBeVisible(),
+  );
 
   return user;
 }
@@ -29,7 +104,7 @@ describe("App", () => {
     window.localStorage.clear();
     window.history.replaceState({}, "", "/");
     vi.spyOn(globalThis, "fetch").mockImplementation(
-      () => new Promise<Response>(() => undefined),
+      createCuratedPeopleFixture(),
     );
   });
 

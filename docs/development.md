@@ -106,7 +106,7 @@ The proportional full gate is `pnpm.cmd check`. Focused commands are listed in
 pinned Chromium runtime:
 
 ```powershell
-pnpm.cmd exec playwright install chromium
+pnpm.cmd e2e:install
 pnpm.cmd test:e2e
 ```
 

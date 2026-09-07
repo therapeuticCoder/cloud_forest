@@ -1,9 +1,16 @@
-import { DashboardShell } from "@/components/cloud-forest/DashboardShell";
+import {
+  DashboardShell,
+  type CuratedPersonApiClient,
+} from "@/components/cloud-forest/DashboardShell";
 import { InvitedSessionPrototype } from "@/features/invited-session/InvitedSessionPrototype";
 import { PartyStatePrototype } from "@/features/party-state-review/PartyStatePrototype";
 import { PwaNotice } from "@/components/pwa/PwaNotice";
 
-export function App() {
+export function App({
+  apiClient,
+}: {
+  apiClient?: CuratedPersonApiClient;
+} = {}) {
   const prototype = new URLSearchParams(window.location.search).get(
     "prototype",
   );
@@ -18,7 +25,7 @@ export function App() {
 
   return (
     <>
-      <DashboardShell />
+      <DashboardShell apiClient={apiClient} />
       <PwaNotice />
     </>
   );
