@@ -184,10 +184,7 @@ export const partyMemberships = pgTable(
       "party_memberships_not_self",
       sql`${table.ownerPersonId} <> ${table.memberPersonId}`,
     ),
-    check(
-      "party_memberships_position_range",
-      sql`${table.position} between 0 and 4`,
-    ),
+    check("party_memberships_position_range", sql`${table.position} >= 0`),
   ],
 );
 

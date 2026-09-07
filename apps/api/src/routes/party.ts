@@ -92,13 +92,19 @@ export const partyRoutes: FastifyPluginAsyncTypebox<Options> = async (
   ) => {
     const current = await auth(request);
     if (!current) return { current: null, response: error("UNAUTHORIZED") };
-    const found = await options.repository.findProfile(personId);
-    if (!found) return { current, response: error("NOT_FOUND") };
     if (
       current.personId !== personId &&
       !(await options.repository.isOwnedMember(current.personId, personId))
     )
       return { current, response: error("FORBIDDEN") };
+    const found = await options.repository.findProfile(personId);
+    if (!found)
+      return {
+        current,
+        response: error(
+          current.personId === personId ? "NOT_FOUND" : "FORBIDDEN",
+        ),
+      };
     return { current, found };
   };
   const schemas = {

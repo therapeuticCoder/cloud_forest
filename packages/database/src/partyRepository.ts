@@ -140,23 +140,28 @@ export function createPartyRepository(database: DatabaseClient) {
       expectedVersion: number;
       now: Date;
     }) {
-      const updated = await database
-        .update(partyMemberships)
-        .set({
-          relationshipLabel: input.relationshipLabel,
-          privateNote: input.privateNote,
-          version: sql`${partyMemberships.version} + 1`,
-          updatedAt: input.now,
-        })
-        .where(
-          and(
-            eq(partyMemberships.ownerPersonId, input.ownerPersonId),
-            eq(partyMemberships.memberPersonId, input.memberPersonId),
-            eq(partyMemberships.version, input.expectedVersion),
-          ),
-        )
-        .returning();
-      return updated[0] ?? null;
+      return database.transaction(async (transaction) => {
+        await transaction.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${input.ownerPersonId}))`,
+        );
+        const updated = await transaction
+          .update(partyMemberships)
+          .set({
+            relationshipLabel: input.relationshipLabel,
+            privateNote: input.privateNote,
+            version: sql`${partyMemberships.version} + 1`,
+            updatedAt: input.now,
+          })
+          .where(
+            and(
+              eq(partyMemberships.ownerPersonId, input.ownerPersonId),
+              eq(partyMemberships.memberPersonId, input.memberPersonId),
+              eq(partyMemberships.version, input.expectedVersion),
+            ),
+          )
+          .returning();
+        return updated[0] ?? null;
+      });
     },
 
     async removeMember(input: {
@@ -218,6 +223,12 @@ export function createPartyRepository(database: DatabaseClient) {
           )
         )
           return null;
+        if (input.members.length === 0) return true;
+        await transaction.execute(sql`
+          update ${partyMemberships}
+          set position = position + 10
+          where ${partyMemberships.ownerPersonId} = ${input.ownerPersonId}
+        `);
         const cases = input.members.map(
           (member, position) =>
             sql`when ${partyMemberships.memberPersonId} = ${member.memberPersonId} then ${position}`,

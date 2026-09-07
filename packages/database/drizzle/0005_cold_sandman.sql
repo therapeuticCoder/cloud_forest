@@ -1,0 +1,2 @@
+ALTER TABLE "party_memberships" DROP CONSTRAINT "party_memberships_position_range";--> statement-breakpoint
+ALTER TABLE "party_memberships" ADD CONSTRAINT "party_memberships_position_range" CHECK ("party_memberships"."position" >= 0);

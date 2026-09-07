@@ -36,6 +36,13 @@
       "when": 1788737786704,
       "tag": "0004_far_maggott",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788739961431,
+      "tag": "0005_cold_sandman",
+      "breakpoints": true
     }
   ]
 }
