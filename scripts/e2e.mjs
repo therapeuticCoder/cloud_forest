@@ -102,16 +102,54 @@ function e2eServiceDefinitions(environment) {
   ];
 }
 
-async function waitForService(url, timeoutMilliseconds = 20_000) {
+function serviceStartupError(name, code, signal) {
+  const outcome = signal ? `signal ${signal}` : `code ${code ?? "unknown"}`;
+  return new Error(
+    `E2E ${name} service exited during startup with ${outcome}.`,
+  );
+}
+
+async function waitForService(
+  service,
+  name,
+  url,
+  timeoutMilliseconds = 20_000,
+) {
   const deadline = Date.now() + timeoutMilliseconds;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(url);
-      if (response.ok || response.status === 404) return;
-    } catch {
-      // The service is still starting.
+  let startupFailure;
+  const handleError = (error) => {
+    startupFailure = new Error(
+      `E2E ${name} service could not start: ${error.message}`,
+    );
+  };
+  const handleExit = (code, signal) => {
+    startupFailure = serviceStartupError(name, code, signal);
+  };
+
+  service.once("error", handleError);
+  service.once("exit", handleExit);
+
+  try {
+    while (Date.now() < deadline) {
+      if (startupFailure) throw startupFailure;
+
+      try {
+        const response = await fetch(url);
+        if (startupFailure) throw startupFailure;
+        if (response.ok || response.status === 404) return;
+      } catch (error) {
+        if (startupFailure) throw startupFailure;
+        if (error instanceof TypeError) {
+          // The service is still starting or the port is not ready yet.
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          continue;
+        }
+        throw error;
+      }
     }
-    await new Promise((resolve) => setTimeout(resolve, 250));
+  } finally {
+    service.off("error", handleError);
+    service.off("exit", handleExit);
   }
   throw new Error(`Timed out waiting for E2E service at ${url}.`);
 }
@@ -123,13 +161,14 @@ async function startE2eServices(environment = process.env) {
       console.log(`Starting E2E ${definition.name} service.`);
       const service = spawn(definition.command, {
         cwd: repositoryRoot,
+        detached: process.platform !== "win32",
         env: definition.environment,
         shell: true,
         stdio: "inherit",
         windowsHide: true,
       });
       services.push(service);
-      await waitForService(definition.url);
+      await waitForService(service, definition.name, definition.url);
     }
     return services;
   } catch (error) {
@@ -142,6 +181,7 @@ async function stopE2eServices(services) {
   await Promise.all(
     services.map(async (service) => {
       if (!service.pid) return;
+      if (service.exitCode !== null || service.signalCode !== null) return;
       terminateProcessTree(service, "SIGTERM");
       await new Promise((resolve) => {
         const timeout = setTimeout(resolve, 10_000);
