@@ -57,7 +57,7 @@ const reviewStates: Array<{
     state: "edit",
     label: "Edit",
     annotation:
-      "Profile name and private relationship fields remain visibly distinct.",
+      "Party member identity stays read-only while private relationship fields remain editable.",
   },
   {
     state: "remove",
@@ -226,17 +226,14 @@ function FormState({
           </div>
         ) : null}
         {mode === "edit" ? (
-          <>
-            <div className="party-state-person-row">
-              <span className="party-state-person-portrait">
-                <Portrait initials={person.initials} personId={person.id} />
-              </span>
-              <span>
-                <strong>{person.displayName}</strong>
-              </span>
-            </div>
-            <Field defaultValue={person.displayName} label="Profile name" />
-          </>
+          <div className="party-state-person-row">
+            <span className="party-state-person-portrait">
+              <Portrait initials={person.initials} personId={person.id} />
+            </span>
+            <span>
+              <strong>{person.displayName}</strong>
+            </span>
+          </div>
         ) : (
           <Field defaultValue="Anya Reed" label="Name" />
         )}

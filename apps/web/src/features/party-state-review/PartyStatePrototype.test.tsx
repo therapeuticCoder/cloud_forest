@@ -81,6 +81,25 @@ describe("PartyStatePrototype", () => {
     expect(screen.getByText("What do you call them?")).toBeInTheDocument();
   });
 
+  it("keeps Party member identity read-only while editing the membership", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+
+    expect(screen.getByText("Mira Vale")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Profile name" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Friend" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("textbox", { name: "Private note" })).toHaveValue(
+      "my calm in the storm",
+    );
+  });
+
   it("keeps unavailable and retrying states distinct", async () => {
     const user = userEvent.setup();
     render(<App />);
