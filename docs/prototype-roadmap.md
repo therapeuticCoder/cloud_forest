@@ -10,10 +10,12 @@ dependency order beyond the active tranche.
 
 1. **Environment and design — complete:** native Windows workflow, approved
    visual grammar, monorepo, PWA, API/database boundary, and browser gate.
-2. **Durable identity and Party — active:** invited identity, trusted current
-   person, private Party/profile persistence and APIs, with UX checkpoints.
-3. **Durable care:** authoritative Tribe audience, care requests/offers, and
-   reload-safe reads.
+2. **Durable identity and Party — tranche 1 complete:** invited identity,
+   trusted current user, private curated-Person/Party persistence and APIs, and
+   the accepted mutual-connection handshake prototype. Durable identity linking
+   remains an explicit prerequisite rather than an implicit Party edit.
+3. **Durable care — proposed next:** durable identity linking, authoritative
+   Tribe eligibility, care requests/offers, and reload-safe reads.
 4. **Transactional lifecycle:** atomic claim/pass/outcome/retry/gratitude and an
    authorized Timeline projection.
 5. **Recovery and trusted testing:** measured caching, offline/reconnect states,
