@@ -324,34 +324,6 @@ Checks: focused component test, representative desktop/mobile
 browser review, overflow and console checks, then the proportional repository
 gate chosen by the product owner.
 
-#### T-045: Establish minimum durable block authority
-
-Status: proposed
-Size: medium
-Prerequisites: accepted T-043 policy and T-044 direction
-
-Add the smallest trusted block representation and service enforcement required
-by the approved authorization matrix and T-043 decisions. Derive the blocker
-from the current session, prevent caller-selected authority, and make an active
-block override Party/Tribe profile access and later care eligibility. Define
-the exact permitted self-read and unblock behavior without exposing whether a
-private relationship or care object exists.
-
-Luna guidance: keep this a safety/authorization boundary, not a moderation
-platform. Ask before adding reporting, muting, reasons, audit dashboards,
-notifications, broad history deletion, or claimed-care terminal presentation.
-Implement the approved rule that blocking breaks the Connection and that a
-break during claimed Care closes it as orphaned.
-
-Acceptance: current profile and relationship reads consistently deny blocked
-pairs; later audience calculation has one trusted eligibility check to reuse;
-block and unblock operations are idempotent and do not disclose private graph
-state.
-
-Checks: domain and contract checks, reviewed migration and database
-integration, bidirectional authorization denials, idempotency cases,
-generated-artifact check, and `pnpm check`.
-
 #### T-046: Decide the durable mutual-connection protocol
 
 Status: proposed ChatGPT product and security interview
@@ -381,6 +353,37 @@ account-enumeration constraints, and the accepted mutual-connection states.
 
 Out of scope: schemas, pairing APIs, QR dependencies, or production behavior.
 
+#### T-045: Establish minimum durable block authority
+
+Status: proposed
+Size: medium
+Prerequisites: accepted T-043 policy, T-044 direction, and T-046 protocol
+
+Add the smallest trusted block representation and service enforcement required
+by the approved authorization matrix and T-043 decisions. Derive the blocker
+from the current session, prevent caller-selected authority, and make an active
+block immediately revoke Party/Tribe profile access, relationship-derived
+access, and later Care eligibility. Define the exact permitted self-read and
+unblock behavior without exposing whether a private relationship or Care object
+exists.
+
+Luna guidance: keep this a safety/authorization boundary, not a moderation
+platform. Ask before adding reporting, muting, reasons, audit dashboards,
+notifications, broad history deletion, Connection persistence, or claimed-Care
+terminal behavior. T-047 implements the approved Connection-breaking side
+effect when durable Connections exist; the later claimed-Care lifecycle task
+implements atomic orphaned closure.
+
+Acceptance: current profile and relationship reads consistently deny blocked
+pairs; later audience calculation has one trusted eligibility check to reuse;
+block and unblock operations are idempotent and do not disclose private graph
+state. This task does not claim to mutate a not-yet-durable Connection or Care
+lifecycle.
+
+Checks: domain and contract checks, reviewed migration and database
+integration, bidirectional authorization denials, idempotency cases,
+generated-artifact check, and `pnpm check`.
+
 #### T-047: Implement durable mutual-connection identity linking
 
 Status: proposed
@@ -394,6 +397,8 @@ issue and consume single-purpose pairing tokens, require the approved consent
 and confirmation sequence, and set the owner's private curated Person
 `linkedUserId` to the authenticated counterpart. Use the T-042 interaction and
 recovery states without exposing private curated fields or account existence.
+Integrate T-045 block authority so blocking breaks an existing Connection and
+unblocking alone cannot reconnect it.
 
 Luna guidance: treat `linkedUserId` as an authorization-sensitive server write,
 not a normal curated-Person edit field. Reuse established session, contract,

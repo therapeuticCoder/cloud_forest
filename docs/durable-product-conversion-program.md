@@ -64,8 +64,8 @@ Active task acceptance criteria and checks belong only in `BACKLOG.md`.
 | DCP-M01 | DCP-03, separate approval          | Owned portrait upload/deletion with validation and metadata stripping                               |
 | PD-01   | DCP-06, UX-03                      | Care audience and relationship-change policy approved through T-043                                 |
 | UX-04   | PD-01                              | Audience, demotion, removal, blocking, and stale-authorization states reviewed; proposed T-044      |
-| DCP-B01 | PD-01, UX-04                       | Minimum durable block authority for relationship and care eligibility; proposed T-045               |
 | PD-02   | UX-03, PD-01                       | Durable mutual-connection protocol approved through a ChatGPT interview; proposed T-046             |
+| DCP-B01 | PD-01, UX-04, PD-02                | Minimum durable block authority for relationship and care eligibility; proposed T-045               |
 | DCP-I01 | DCP-B01, PD-02                     | Private curated Person linked to an invited user through the approved handshake; proposed T-047     |
 | DCP-07  | DCP-I01                            | Minimum authoritative Tribe eligibility for care; no neighborhood semantics; proposed T-048         |
 | DCP-08  | DCP-07                             | Accepted meal-care rules moved from web code into shared domain; proposed T-049                     |
