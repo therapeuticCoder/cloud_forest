@@ -49,9 +49,8 @@ should be small enough for one focused agent session.
 
 ### Tranche 1 — Durable identity, Party, and profiles
 
-Status: approved for dependency-ordered delivery. Use one explicitly selected
-work mode per task; do not begin a dependent task before its prerequisite is
-accepted.
+Status: completed through T-042 on 2026-09-07. T-034 through T-042 were
+delivered as separate reviewed increments.
 
 This tranche makes invited identity, Party membership, and person profiles
 authoritative while preserving the accepted interface. Care remains the
@@ -156,7 +155,7 @@ integration tests, authorization denials, `pnpm check`.
 
 #### T-040: Prototype durable Party and profile states for annotated review
 
-Status: planned collaborative UX checkpoint
+Status: completed by PR #58 as `b89707b`
 Size: small
 Prerequisite: T-039
 
@@ -176,7 +175,7 @@ conversion can reuse those boundaries.
 
 #### T-041: Convert the Party gallery and profiles
 
-Status: planned
+Status: completed by PR #59 as `b0ff360`
 Size: medium
 Prerequisites: T-039 and accepted T-040 direction
 
@@ -200,7 +199,7 @@ purpose-specific test file rather than `App.test.tsx`.
 
 #### T-042: Prototype the mutual connection QR handshake
 
-Status: completed after annotated review and PO-reported verification; PR opened
+Status: completed by PR #60 as `136b38c`
 Size: small
 Prerequisite: T-041 and the post-tranche product-owner review
 
@@ -253,13 +252,312 @@ unpairing, blocking, care behavior, public search, contact imports, and
 account/Person merge or history-merge systems. These require separate
 approved increments after the interaction is accepted.
 
-### Alternating delivery rhythm after tranche 1
+### Tranche 2 — Durable care records and basic operations
 
-Pause for product-owner review after T-041. Later tranches remain inactive until
-they are explicitly loaded, but their delivery should preserve these UX gates:
+Status: proposed for product-owner review. Do not begin implementation until
+the product owner approves this tranche and the T-043 interview conclusions.
 
-- before durable care records, review how Party and Tribe audiences, passing,
-  demotion, removal, and blocking are communicated;
+This tranche gives accepted mutual connections durable identity links, then
+gives the accepted meal request and offer flows authoritative relationship
+eligibility, shared domain rules, durable records, authorized API operations,
+and reload-safe reads. It deliberately stops before durable claim, pass,
+completion, retry, gratitude, or private-history mutations; those transactional
+lifecycle operations belong to a later tranche.
+
+#### T-043: Decide durable care audiences and relationship-change behavior
+
+Status: proposed ChatGPT product interview
+Size: small planning task
+Prerequisite: completed tranche 1
+
+Conduct the product conversation on the ChatGPT side in an interview format,
+one question at a time, before Luna plans or edits implementation. Decide the
+minimum authoritative meaning of Tribe membership for care; Party and Tribe
+audience overlap and deduplication; when a request reaches Tribe; and how
+removal, blocking, mutual-connection state, invitation state, and relationship
+changes affect unclaimed, claimed, expired, and historical care. Resolve which
+decisions are required for tranche 2 and explicitly defer lifecycle-only
+questions to tranche 3.
+
+Bring the approved interview outcome back to the repository as a concise
+decision record and any necessary correction to the authorization/privacy
+matrix or care-lifecycle specification. Do not let the implementation agent
+infer policy from current fixtures, selectors, or browser storage.
+
+Acceptance: the product owner has approved an explicit allow/deny and audience
+snapshot policy sufficient to plan T-044 through T-052; unresolved questions
+are named with the task that owns them.
+
+Checks: documentation review for product principles, privacy,
+internal consistency, and agreement with the accepted meal-care behavior.
+
+Out of scope: schema, API, UI, dependency, or production behavior changes.
+
+#### T-044: Prototype durable care audience and boundary states
+
+Status: proposed collaborative UX checkpoint
+Size: small
+Prerequisite: accepted T-043 decisions
+
+Using only fictional review data, prototype how Party and Tribe audiences,
+Party-pass demotion, removal, blocking, and no-longer-eligible states are
+communicated at representative desktop and mobile sizes. Include the calm
+recovery language needed when the server's current authorization differs from
+stale UI state. The prototype must implement the accepted T-043 vocabulary,
+not reopen those decisions inside code.
+
+Luna guidance: first name the smallest review-route feature boundary and the
+single app entry hook it needs. Reuse existing components and styles where
+they fit; ask before introducing a new interaction, route, dependency, or
+cross-feature abstraction. Do not connect live APIs or edit care persistence.
+
+Acceptance: the product owner directly accepts the annotated desktop and
+mobile direction, including keyboard focus recovery, reduced motion, content
+reach, and no misleading promise that client presentation controls access.
+
+Checks: focused component test, representative desktop/mobile
+browser review, overflow and console checks, then the proportional repository
+gate chosen by the product owner.
+
+#### T-045: Establish minimum durable block authority
+
+Status: proposed
+Size: medium
+Prerequisites: accepted T-043 policy and T-044 direction
+
+Add the smallest trusted block representation and service enforcement required
+by the approved authorization matrix and T-043 decisions. Derive the blocker
+from the current session, prevent caller-selected authority, and make an active
+block override Party/Tribe profile access and later care eligibility. Define
+the exact permitted self-read and unblock behavior without exposing whether a
+private relationship or care object exists.
+
+Luna guidance: keep this a safety/authorization boundary, not a moderation
+platform. Ask before adding reporting, muting, reasons, audit dashboards,
+notifications, automatic unpairing, history deletion, or claimed-care terminal
+behavior. If T-043 leaves blocking during active claimed care unresolved,
+defer that transition to tranche 3 and state the temporary denial behavior.
+
+Acceptance: current profile and relationship reads consistently deny blocked
+pairs; later audience calculation has one trusted eligibility check to reuse;
+block and unblock operations are idempotent and do not disclose private graph
+state.
+
+Checks: domain and contract checks, reviewed migration and database
+integration, bidirectional authorization denials, idempotency cases,
+generated-artifact check, and `pnpm check`.
+
+#### T-046: Decide the durable mutual-connection protocol
+
+Status: proposed ChatGPT product and security interview
+Size: small planning task
+Prerequisites: completed T-042 and accepted T-043 relationship policy
+
+Conduct a ChatGPT-side interview, one question at a time, before Luna plans
+identity-link implementation. Decide the pairing-token lifetime and transport,
+which participant presents and confirms, how both already-invited users express
+consent, when `linkedUserId` becomes authoritative, and how duplicate scans,
+wrong-account use, cancellation, expiry, blocking, concurrent attempts, and
+safe retry behave. Decide whether unlinking belongs in this tranche or must be
+deferred with an explicit safety rule.
+
+Bring the approved outcome back as a concise durable protocol and threat-case
+decision record. Preserve the accepted distinction between an owner's private
+curated Person fields and the linked user's account identity; neither side may
+receive the other's private curation through the handshake.
+
+Acceptance: T-047 can be implemented without inventing consent, token,
+identity-disclosure, conflict, or unlinking behavior, and every deferred choice
+has an owning later task.
+
+Checks: documentation review against T-042, the authorization/privacy matrix,
+account-enumeration constraints, and the accepted mutual-connection states.
+
+Out of scope: schemas, pairing APIs, QR dependencies, or production behavior.
+
+#### T-047: Implement durable mutual-connection identity linking
+
+Status: proposed
+Size: medium
+Prerequisites: accepted T-045 block authority and T-046 protocol
+
+Implement the approved existing-Person mutual-connection handshake for two
+already-invited users. Add the minimum reviewed persistence, repository rules,
+versioned contracts, generated client, and authorized API operations needed to
+issue and consume single-purpose pairing tokens, require the approved consent
+and confirmation sequence, and set the owner's private curated Person
+`linkedUserId` to the authenticated counterpart. Use the T-042 interaction and
+recovery states without exposing private curated fields or account existence.
+
+Luna guidance: treat `linkedUserId` as an authorization-sensitive server write,
+not a normal curated-Person edit field. Reuse established session, contract,
+repository, and error patterns. Ask before adding QR libraries, production
+camera behavior, notifications, public discovery, heuristic matching, account
+merge, history merge, or generalized connection graphs.
+
+Acceptance: a private curated Person can become linked only through the
+approved two-user protocol; expired, reused, blocked, wrong-account,
+duplicate-link, concurrent, and replay attempts have explicit non-disclosing
+results; retries cannot create multiple links; private nicknames, relationship
+meaning, notes, placement, and portraits remain owner-only.
+
+Checks: protocol/domain tests, reviewed migration and database integration,
+contract and generated-artifact checks, authorization and concurrency denials,
+authenticated desktop/mobile handshake E2E, and `pnpm check`.
+
+#### T-048: Establish minimum authoritative Tribe eligibility
+
+Status: proposed
+Size: medium
+Prerequisite: T-047
+
+Add only the domain, reviewed forward storage, repository, Party-adjacent
+authorization, versioned contracts, generated client, and API behavior needed
+for a person to curate and read their own directed Tribe membership and for the
+service to calculate care eligibility. Enforce the 100-person capacity,
+ownership, self/duplicate rejection, current removal and block exclusions, and
+minimal authorized profile projection transactionally. Keep visual
+neighborhood groupings as presentation-only fixtures.
+
+Luna guidance: reuse the T-045 block eligibility boundary, T-047 durable
+identity links, and existing Party/session patterns. Stop and ask before
+introducing a generalized social graph, converting the Tribe gallery, making
+neighborhoods authoritative, or adding suggestions, discovery, or imports.
+
+Acceptance: the trusted service can calculate current eligible Party and Tribe
+people without caller-supplied authority; members cannot enumerate another
+person's Tribe; capacity, duplicate, removal, and block cases have explicit
+results.
+
+Checks: domain and contract checks, reviewed migration and database
+integration, authorization denials, generated-artifact check, and `pnpm check`.
+
+#### T-049: Move the accepted meal-care rules into the shared domain
+
+Status: proposed
+Size: medium
+Prerequisite: T-048
+
+Move the accepted meal request, offer, immutable audience snapshot, expiry,
+and lifecycle vocabulary from web-only code into framework-neutral domain
+types and rules. Preserve the accepted expiration, Party-pass quorum, Tribe
+demotion, claim visibility, two-party completion, retry, private-history, and
+gratitude semantics without importing browser storage or UI assumptions.
+
+Luna guidance: port one proven rule boundary rather than redesigning a generic
+care platform. Identify exact source tests and adapters before editing, retain
+the meal-only vocabulary, and ask before changing accepted behavior or
+refactoring neighboring frontend flows.
+
+Acceptance: web code can adapt to the shared model without making the shared
+domain depend on React, `localStorage`, fixtures, API contracts, or database
+types. Existing browser records remain fictional and non-importable.
+
+Checks: focused domain tests, affected typecheck, and `pnpm check`.
+
+#### T-050: Persist care requests, offers, and immutable audience snapshots
+
+Status: proposed
+Size: medium
+Prerequisite: T-049
+
+Add reviewed forward migrations and repositories for owned meal requests,
+owned meal offers, and service-created immutable Party/Tribe audience
+snapshots. Persist request content, lifecycle starting state, expiry,
+timestamps, and version data. Use trusted current relationships when creating
+the snapshot and apply the accepted current removal/block rules when reading.
+
+Luna guidance: keep request/offer storage separate from lifecycle-event,
+private-history, gratitude, notification, and Timeline-activity storage. Ask
+before adding a table or column not required by the accepted T-043 and T-049
+contracts; do not add jobs, caching, or cleanup architecture.
+
+Acceptance: records and snapshots survive restart; owners and audience
+references are valid; service time owns expiry; later relationship changes do
+not rewrite snapshots; lifecycle event persistence is absent.
+
+Checks: migration review and drift check, repository integration,
+time-boundary, rollback, restart, and guarded database tests; `pnpm check`.
+
+#### T-051: Add authorized care record APIs
+
+Status: proposed
+Size: medium
+Prerequisite: T-050
+
+Add versioned TypeBox contracts, generated client types, and authorized
+create, list, read, and withdraw operations for meal requests and offers. The
+service derives owner, audience, timestamps, and starting state. Return
+role-specific projections and explicit validation, expiry, withdrawal,
+forbidden/not-found, conflict, and idempotency results without leaking private
+object existence or fields.
+
+Luna guidance: keep transport types purpose-specific and browser-safe. Reuse
+the established session, error, OpenAPI, and client patterns; ask before
+introducing generic care endpoints, caller-selected audiences, lifecycle
+mutations, or new dependencies.
+
+Acceptance: list and object reads apply the same authorization; request/offer
+creation and safe retry cannot duplicate records; stale or unauthorized
+withdrawal fails without changing state.
+
+Checks: contract examples, OpenAPI generation check, API/database
+integration, authorization denials, idempotency cases, and `pnpm check`.
+
+#### T-052: Connect durable Give, Receive, Timeline care cards, and My Care reads
+
+Status: proposed
+Size: medium
+Prerequisites: T-051 and accepted T-044 direction
+
+Replace session-created meal request/offer arrays and fixture-dependent care
+reads with the typed API projections. Preserve the accepted responsive flows,
+focus behavior, and privacy distinctions while adding calm loading, empty,
+unavailable, stale-authorization, retry, and withdrawal-conflict states.
+Durable lifecycle mutations remain unavailable or clearly identified as the
+still-fictional prototype boundary until tranche 3.
+
+Luna guidance: isolate remote care orchestration from `DashboardShell.tsx` and
+`TimelinePanel.tsx` through the smallest purpose-named adapter or hook that the
+story actually needs. Add a purpose-specific integration test rather than
+expanding `App.test.tsx`; ask before broader feed composition, state-management,
+routing, cache, or style refactors.
+
+Acceptance: request and offer creation, reads, and withdrawal survive reload;
+private lists remain account-bound; durable records are not written to the
+browser lifecycle envelope; the UI does not imply that prototype lifecycle
+actions are server-authoritative.
+
+Checks: focused component and integration tests, authenticated
+desktop/mobile E2E, API/offline/revoked-access states, and `pnpm check`.
+
+### Tranche 2 delivery discipline
+
+- Use one task, fresh `codex/` branch, pull request, review, and merge at a
+  time. Do not begin a dependent task until its prerequisite is accepted.
+- T-043 is intentionally a ChatGPT-side interview. If a later story exposes a
+  significant unresolved product or architecture decision, stop coding and
+  return that question to ChatGPT for the same one-question-at-a-time interview
+  process before revising the plan.
+- Luna is the implementation agent. Each handoff prompt should state the exact
+  task, likely files, assumptions, exclusions, invariants, verification plan,
+  and the first decision that requires a stop. Give extra repository context
+  where the task crosses domain, database, API, and web boundaries.
+- Optimize for token efficiency: inspect only task-relevant sources, batch
+  compatible reads, follow the selected workflow's responsibility split for
+  checks, and ask before pursuing cleanup, speculative hardening, or another
+  side quest. Never rerun a broad gate without a named reason.
+- Do not use retries or workaround sequences for known permission boundaries.
+  Request the necessary narrow escalation directly, then report the result.
+
+Pause for product-owner review after T-052. Tranche 3 remains inactive until
+that review is complete and the product owner explicitly loads it.
+
+### Alternating delivery rhythm after tranche 2
+
+Later tranches remain inactive until they are explicitly loaded, but their
+delivery should preserve these UX gates:
+
 - before transactional care lifecycle work, prototype claim races, stale data,
   revoked access, network failure, and safe retry behavior;
 - before cache and mock retirement, review completed care, private history,

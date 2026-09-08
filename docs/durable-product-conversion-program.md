@@ -1,7 +1,9 @@
 # Durable Product Conversion Program
 
-Status: tranche 1 approved on 2026-09-04 and active as T-034 through T-041 in
-`BACKLOG.md`; later tranches remain proposals until explicitly loaded.
+Status: tranche 1 completed through T-042 on 2026-09-07. Tranche 2 is proposed
+as T-043 through T-052 in `BACKLOG.md` for product-owner review; it remains
+inactive until the product owner approves the T-043 interview conclusions and
+loads the implementation tranche.
 
 ## Strategy
 
@@ -21,7 +23,7 @@ extractions directly serving the active task.
 | Area                             | Current authority                                          | Durable target                                                                 |
 | -------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | View/chrome/filter state         | React session state                                        | Remain local unless a requirement changes it                                   |
-| Curator people and layers        | Fixtures plus one session-added Party member               | Authorized profiles and owned relationship records                             |
+| Curator people and layers        | Party/profile APIs; other layers remain fixtures            | Authorized profiles and owned relationship records                             |
 | Ordinary Timeline                | Seven fixtures plus one PostgreSQL/API item                | Authorized, ordered activity projections                                       |
 | Give/Receive composition         | React state                                                | Owned care records with immutable audience snapshots                           |
 | Care lifecycle/history/gratitude | Versioned browser `localStorage` and fictional perspective | Atomic service transitions and separate participant/private/shared projections |
@@ -34,9 +36,9 @@ There is no active worker or user-data cache.
 
 ## Required gaps
 
-- **Identity:** canonical account/person/source identities; trusted current
-  person; directed relationship ownership, ordering, capacity, and profile
-  projections.
+- **Identity and relationships:** Party/profile authority is complete for the
+  current pilot; minimum authoritative Tribe eligibility and durable mutual
+  connection behavior remain separate work.
 - **Care:** shared domain rules; owned requests/offers; authoritative audiences;
   versioned contracts; atomic claims, quorum, outcomes, retry, and gratitude;
   retention and recovery.
@@ -58,13 +60,19 @@ Active task acceptance criteria and checks belong only in `BACKLOG.md`.
 | DCP-04  | DCP-03                             | Reviewed profile and ordered owned-Party persistence; T-038                                         |
 | DCP-05  | DCP-04                             | Authorized versioned Party/profile APIs and generated client; T-039                                 |
 | UX-02   | DCP-05                             | Durable Party/profile states reviewed; T-040                                                        |
-| DCP-06  | UX-02                              | Party gallery and profiles converted to APIs; T-041                                                 |
+| DCP-06  | UX-02                              | Party gallery and profiles converted to APIs; implemented as T-041                                  |
+| UX-03   | DCP-06, product-owner review       | Mutual-connection QR handshake reviewed before durable identity-linking work; T-042                 |
 | DCP-M01 | DCP-03, separate approval          | Owned portrait upload/deletion with validation and metadata stripping                               |
-| DCP-07  | DCP-06                             | Minimum authoritative Tribe membership for care audiences; no neighborhood semantics                |
-| DCP-08  | DCP-07                             | Accepted care rules moved from web code into shared domain                                          |
-| DCP-09  | DCP-08                             | Owned request/offer records and immutable audience snapshots                                        |
-| DCP-10  | DCP-09                             | Authorized create/list/read/withdraw APIs with idempotency and explicit errors                      |
-| DCP-11  | DCP-10                             | Receive/Give/Timeline/My Care reads converted with loading and recovery states                      |
+| PD-01   | DCP-06, UX-03                      | Care audience and relationship-change policy approved through a ChatGPT interview; proposed T-043   |
+| UX-04   | PD-01                              | Audience, demotion, removal, blocking, and stale-authorization states reviewed; proposed T-044       |
+| DCP-B01 | PD-01, UX-04                       | Minimum durable block authority for relationship and care eligibility; proposed T-045               |
+| PD-02   | UX-03, PD-01                       | Durable mutual-connection protocol approved through a ChatGPT interview; proposed T-046             |
+| DCP-I01 | DCP-B01, PD-02                     | Private curated Person linked to an invited user through the approved handshake; proposed T-047     |
+| DCP-07  | DCP-I01                            | Minimum authoritative Tribe eligibility for care; no neighborhood semantics; proposed T-048         |
+| DCP-08  | DCP-07                             | Accepted meal-care rules moved from web code into shared domain; proposed T-049                     |
+| DCP-09  | DCP-08                             | Owned request/offer records and immutable audience snapshots; proposed T-050                        |
+| DCP-10  | DCP-09                             | Authorized create/list/read/withdraw APIs with idempotency and explicit errors; proposed T-051      |
+| DCP-11  | DCP-10, UX-04                      | Receive/Give/Timeline/My Care reads converted with loading and recovery states; proposed T-052       |
 | DCP-12  | DCP-09                             | Lifecycle events and separate private/shared projections persisted                                  |
 | DCP-13  | DCP-12                             | Atomic, authorized claim/pass/seen transitions and contention guarantees                            |
 | DCP-14  | DCP-13                             | Atomic outcomes, linked retry, history, and gratitude following D-030                               |
@@ -98,9 +106,15 @@ Cross-tranche constraints:
   drafts/offline mutations, clears only the current account, and never becomes
   authoritative.
 
-## UX checkpoints after tranche 1
+## Product-decision and UX checkpoints
 
-- Before care persistence: audience, passing, demotion, removal, and blocking.
+- Before care persistence, use a ChatGPT-side, one-question-at-a-time interview
+  to settle audience, passing, demotion, removal, blocking, relationship-change,
+  and mutual-connection implications; then review those states in an annotated
+  desktop/mobile prototype before Luna implements durable behavior.
+- Before durable identity linking, use a separate ChatGPT-side interview to
+  settle the mutual-connection consent, token, disclosure, conflict, replay,
+  blocking, and unlinking protocol accepted by T-042's visual prototype.
 - Before lifecycle transactions: claim races, stale data, revoked access,
   network failure, and safe retry.
 - Before mock retirement: completed care, private history, gratitude, Timeline
@@ -115,12 +129,33 @@ ingestion/federation, Write/posts/replies, notifications/jobs, offline mutation
 replay, cross-device conflicts, production hosting/mail/storage, analytics, and
 external federation remain out of scope until separately selected.
 
+## Delivery guidance
+
+Implementation work is expected to use Luna, one backlog item per fresh
+`codex/` branch and pull request. Because later slices cross multiple package
+boundaries, each Luna handoff should name likely files, invariants, exclusions,
+the verification plan, and explicit stop conditions rather than relying on a
+short task title alone. Luna should inspect only sources relevant to the active
+item, batch compatible reads, and ask before pursuing cleanup, speculative
+hardening, or adjacent product work.
+
+Significant unresolved product or architecture choices are not implementation
+questions. Move them to the ChatGPT side for an interview-format conversation,
+record the approved outcome, and only then revise or hand off the dependent
+Luna task. The explicitly selected workflow assigns responsibility for tests,
+proportional gates, GitHub delivery, review, and merge.
+
+Known permission boundaries should receive a direct narrow escalation request;
+do not spend tokens repeating an unprivileged operation or inventing workaround
+sequences.
+
 ## Approved product-owner decisions
 
 On 2026-09-04 the product owner approved:
 
-1. DCP-01 through DCP-06 as tranche 1, split into T-034 through T-041 so UX
-   checkpoints remain explicit.
+1. DCP-01 through DCP-06 as tranche 1, split into T-034 through T-041 with two
+   UX checkpoints; the accepted mutual-connection UX checkpoint was added as
+   T-042 before the completed tranche closed.
 2. Portrait upload deferred; initials and session preview suffice.
 3. Only minimum authoritative Tribe membership enters the care dependency path;
    visual neighborhoods remain prototype presentation.
@@ -129,4 +164,6 @@ On 2026-09-04 the product owner approved:
 5. Better Auth invite-only magic links remain the preferred candidate, subject
    to dependency approval; local/test invitations precede production email.
 
-Pause after T-041 for product-owner review before activating another tranche.
+Tranche 1 is complete. The proposed tranche 2 mapping is T-043 through T-052;
+it is not approved for implementation until the product owner accepts the
+T-043 interview outcome and explicitly loads the tranche.
