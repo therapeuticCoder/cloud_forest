@@ -1,9 +1,8 @@
 # Durable Product Conversion Program
 
-Status: tranche 1 completed through T-042 on 2026-09-07. Tranche 2 is proposed
-as T-043 through T-052 in `BACKLOG.md` for product-owner review; it remains
-inactive until the product owner approves the T-043 interview conclusions and
-loads the implementation tranche.
+Status: tranche 1 completed through T-042 on 2026-09-07. T-043's product policy
+was approved on 2026-09-08. Tranche 2 implementation remains inactive until
+the product owner explicitly loads T-044 through T-052.
 
 ## Strategy
 
@@ -23,9 +22,9 @@ extractions directly serving the active task.
 | Area                             | Current authority                                          | Durable target                                                                 |
 | -------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | View/chrome/filter state         | React session state                                        | Remain local unless a requirement changes it                                   |
-| Curator people and layers        | Party/profile APIs; other layers remain fixtures            | Authorized profiles and owned relationship records                             |
+| Curator people and layers        | Party/profile APIs; other layers remain fixtures           | Authorized profiles and owned relationship records                             |
 | Ordinary Timeline                | Seven fixtures plus one PostgreSQL/API item                | Authorized, ordered activity projections                                       |
-| Give/Receive composition         | React state                                                | Owned care records with immutable audience snapshots                           |
+| Give/Receive composition         | React state                                                | Owned care records with a current layer and dynamic Connection eligibility     |
 | Care lifecycle/history/gratitude | Versioned browser `localStorage` and fictional perspective | Atomic service transitions and separate participant/private/shared projections |
 | PWA shell                        | Browser Cache Storage                                      | Remain static-shell-only unless measured needs justify account-scoped cache    |
 | Portraits                        | Fixture assets and object-URL previews                     | Separately selected owned media boundary                                       |
@@ -63,16 +62,16 @@ Active task acceptance criteria and checks belong only in `BACKLOG.md`.
 | DCP-06  | UX-02                              | Party gallery and profiles converted to APIs; implemented as T-041                                  |
 | UX-03   | DCP-06, product-owner review       | Mutual-connection QR handshake reviewed before durable identity-linking work; T-042                 |
 | DCP-M01 | DCP-03, separate approval          | Owned portrait upload/deletion with validation and metadata stripping                               |
-| PD-01   | DCP-06, UX-03                      | Care audience and relationship-change policy approved through a ChatGPT interview; proposed T-043   |
-| UX-04   | PD-01                              | Audience, demotion, removal, blocking, and stale-authorization states reviewed; proposed T-044       |
+| PD-01   | DCP-06, UX-03                      | Care audience and relationship-change policy approved through T-043                                 |
+| UX-04   | PD-01                              | Audience, demotion, removal, blocking, and stale-authorization states reviewed; proposed T-044      |
 | DCP-B01 | PD-01, UX-04                       | Minimum durable block authority for relationship and care eligibility; proposed T-045               |
 | PD-02   | UX-03, PD-01                       | Durable mutual-connection protocol approved through a ChatGPT interview; proposed T-046             |
 | DCP-I01 | DCP-B01, PD-02                     | Private curated Person linked to an invited user through the approved handshake; proposed T-047     |
 | DCP-07  | DCP-I01                            | Minimum authoritative Tribe eligibility for care; no neighborhood semantics; proposed T-048         |
 | DCP-08  | DCP-07                             | Accepted meal-care rules moved from web code into shared domain; proposed T-049                     |
-| DCP-09  | DCP-08                             | Owned request/offer records and immutable audience snapshots; proposed T-050                        |
+| DCP-09  | DCP-08                             | Owned request/offer records with current-layer state and dynamic eligibility; proposed T-050        |
 | DCP-10  | DCP-09                             | Authorized create/list/read/withdraw APIs with idempotency and explicit errors; proposed T-051      |
-| DCP-11  | DCP-10, UX-04                      | Receive/Give/Timeline/My Care reads converted with loading and recovery states; proposed T-052       |
+| DCP-11  | DCP-10, UX-04                      | Receive/Give/Timeline/My Care reads converted with loading and recovery states; proposed T-052      |
 | DCP-12  | DCP-09                             | Lifecycle events and separate private/shared projections persisted                                  |
 | DCP-13  | DCP-12                             | Atomic, authorized claim/pass/seen transitions and contention guarantees                            |
 | DCP-14  | DCP-13                             | Atomic outcomes, linked retry, history, and gratitude following D-030                               |
@@ -95,9 +94,10 @@ Cross-tranche constraints:
   process-local locks are not concurrency controls.
 - Use the accepted meal flow as the first durable care type; do not invent a
   universal care taxonomy.
-- The service owns clocks and immutable audience snapshots. Later membership
-  changes do not rewrite snapshots, but current removal/block rules still
-  govern access.
+- The service owns clocks and Care's current Party-or-Tribe layer. It computes
+  eligibility from current Connection, relationship, pass, block, revocation,
+  and lifecycle state for every operation; publication-time membership is not
+  an authorization snapshot.
 - Keep request/offer storage separate from lifecycle-event migrations; keep
   private participant history separate from shared activity projections.
 - Use explicit Timeline activity kinds and source adapters, not a generic event
@@ -164,6 +164,21 @@ On 2026-09-04 the product owner approved:
 5. Better Auth invite-only magic links remain the preferred candidate, subject
    to dependency approval; local/test invitations precede production email.
 
-Tranche 1 is complete. The proposed tranche 2 mapping is T-043 through T-052;
-it is not approved for implementation until the product owner accepts the
-T-043 interview outcome and explicitly loads the tranche.
+On 2026-09-08 the product owner approved T-043's durable Care policy:
+
+1. Only mutual Connections may participate in Care; Holding, Party, and Tribe
+   are exclusive home layers, while Guild Care remains deferred.
+2. Party and Tribe Care use current dynamic eligibility, not immutable
+   publication-time membership snapshots.
+3. Party quorum and demotion respond to current relationships and passes;
+   automatic demotion never automatically reverses.
+4. Moving, removing, breaking, and blocking Connections revoke access as
+   specified in `docs/durable-care-audience-policy.md`; current mutual consent
+   outranks claimed-Care participation.
+5. Give and Receive share these rules. Claimed-Care UX, terminal-history
+   presentation, notifications, generalized taxonomy, and production identity
+   linking remain in their named later tasks.
+
+Tranche 1 and T-043 are complete. T-044 through T-052 remain proposed and are
+not approved for implementation until the product owner explicitly loads the
+tranche.

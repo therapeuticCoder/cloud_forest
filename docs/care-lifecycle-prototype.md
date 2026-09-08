@@ -5,6 +5,12 @@ prototype. It demonstrates the complete interaction and privacy model across a
 requester, Party members, an eligible Tribe member, and the eventual giver. It
 does not authenticate those people or coordinate their devices.
 
+The prototype's frozen Party and Tribe fixtures remain useful for reviewing
+the accepted interaction, but they are not the durable audience policy. T-043
+replaces publication-time membership snapshots with current,
+Connection-based eligibility for future durable Care. See
+`docs/durable-care-audience-policy.md`.
+
 ## Accepted behavior
 
 1. A receiver publishes a meal request to a snapshot of their current Party and
@@ -91,3 +97,6 @@ The accepted prototype does not choose or implement:
 
 Those boundaries require small, dependency-ordered product slices. They must
 not be inferred from the prototype's React or `localStorage` implementation.
+Where the prototype's fixed audience differs from the approved durable policy,
+the durable policy governs future implementation and the prototype remains a
+fictional behavior reference only.

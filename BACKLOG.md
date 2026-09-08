@@ -254,8 +254,8 @@ approved increments after the interaction is accepted.
 
 ### Tranche 2 — Durable care records and basic operations
 
-Status: proposed for product-owner review. Do not begin implementation until
-the product owner approves this tranche and the T-043 interview conclusions.
+Status: T-043 policy approved; T-044 through T-052 remain proposed. Do not
+begin implementation until the product owner explicitly loads the tranche.
 
 This tranche gives accepted mutual connections durable identity links, then
 gives the accepted meal request and offer flows authoritative relationship
@@ -266,7 +266,7 @@ lifecycle operations belong to a later tranche.
 
 #### T-043: Decide durable care audiences and relationship-change behavior
 
-Status: proposed ChatGPT product interview
+Status: product-approved on 2026-09-08
 Size: small planning task
 Prerequisite: completed tranche 1
 
@@ -284,9 +284,9 @@ decision record and any necessary correction to the authorization/privacy
 matrix or care-lifecycle specification. Do not let the implementation agent
 infer policy from current fixtures, selectors, or browser storage.
 
-Acceptance: the product owner has approved an explicit allow/deny and audience
-snapshot policy sufficient to plan T-044 through T-052; unresolved questions
-are named with the task that owns them.
+Acceptance: met. The approved current-eligibility, allow/deny, demotion, pass,
+relationship-change, claimed-Care, and blocking rules are recorded in
+`docs/durable-care-audience-policy.md`; deferred questions have named owners.
 
 Checks: documentation review for product principles, privacy,
 internal consistency, and agreement with the accepted meal-care behavior.
@@ -305,6 +305,11 @@ communicated at representative desktop and mobile sizes. Include the calm
 recovery language needed when the server's current authorization differs from
 stale UI state. The prototype must implement the accepted T-043 vocabulary,
 not reopen those decisions inside code.
+
+Cover direct Party and Tribe publication, zero-eligible-Party fallback,
+one-way automatic demotion, manual return to a fresh Party round, newly eligible
+Connections, no eligible Tribe Connections, and claimed Care becoming orphaned
+after a break or block.
 
 Luna guidance: first name the smallest review-route feature boundary and the
 single app entry hook it needs. Reuse existing components and styles where
@@ -334,9 +339,9 @@ private relationship or care object exists.
 
 Luna guidance: keep this a safety/authorization boundary, not a moderation
 platform. Ask before adding reporting, muting, reasons, audit dashboards,
-notifications, automatic unpairing, history deletion, or claimed-care terminal
-behavior. If T-043 leaves blocking during active claimed care unresolved,
-defer that transition to tranche 3 and state the temporary denial behavior.
+notifications, broad history deletion, or claimed-care terminal presentation.
+Implement the approved rule that blocking breaks the Connection and that a
+break during claimed Care closes it as orphaned.
 
 Acceptance: current profile and relationship reads consistently deny blocked
 pairs; later audience calculation has one trusted eligibility check to reuse;
@@ -358,8 +363,9 @@ identity-link implementation. Decide the pairing-token lifetime and transport,
 which participant presents and confirms, how both already-invited users express
 consent, when `linkedUserId` becomes authoritative, and how duplicate scans,
 wrong-account use, cancellation, expiry, blocking, concurrent attempts, and
-safe retry behave. Decide whether unlinking belongs in this tranche or must be
-deferred with an explicit safety rule.
+safe retry behave. Define the protocol mechanics and implementation owner for
+breaking, reconnecting, preserving or destroying a Character, and rebinding a
+preserved Character without transferring prior shared Care history.
 
 Bring the approved outcome back as a concise durable protocol and threat-case
 decision record. Preserve the accepted distinction between an owner's private
@@ -413,11 +419,12 @@ Prerequisite: T-047
 
 Add only the domain, reviewed forward storage, repository, Party-adjacent
 authorization, versioned contracts, generated client, and API behavior needed
-for a person to curate and read their own directed Tribe membership and for the
-service to calculate care eligibility. Enforce the 100-person capacity,
-ownership, self/duplicate rejection, current removal and block exclusions, and
-minimal authorized profile projection transactionally. Keep visual
-neighborhood groupings as presentation-only fixtures.
+for a person to curate and read their own directed Tribe Connections and for
+the service to calculate Care eligibility. Enforce mutually exclusive Holding,
+Party, and Tribe home layers, the 100-person capacity, ownership,
+self/duplicate rejection, current removal and block exclusions, and minimal
+authorized profile projection transactionally. Keep visual neighborhood
+groupings as presentation-only fixtures.
 
 Luna guidance: reuse the T-045 block eligibility boundary, T-047 durable
 identity links, and existing Party/session patterns. Stop and ask before
@@ -425,9 +432,9 @@ introducing a generalized social graph, converting the Tribe gallery, making
 neighborhoods authoritative, or adding suggestions, discovery, or imports.
 
 Acceptance: the trusted service can calculate current eligible Party and Tribe
-people without caller-supplied authority; members cannot enumerate another
-person's Tribe; capacity, duplicate, removal, and block cases have explicit
-results.
+Connections without caller-supplied authority; members cannot enumerate
+another person's Tribe; home-layer movement, capacity, duplicate, removal, and
+block cases have explicit results.
 
 Checks: domain and contract checks, reviewed migration and database
 integration, authorization denials, generated-artifact check, and `pnpm check`.
@@ -438,11 +445,14 @@ Status: proposed
 Size: medium
 Prerequisite: T-048
 
-Move the accepted meal request, offer, immutable audience snapshot, expiry,
-and lifecycle vocabulary from web-only code into framework-neutral domain
-types and rules. Preserve the accepted expiration, Party-pass quorum, Tribe
-demotion, claim visibility, two-party completion, retry, private-history, and
-gratitude semantics without importing browser storage or UI assumptions.
+Move the accepted meal request, offer, current audience layer, dynamic
+Connection eligibility, expiry, and lifecycle vocabulary from web-only code
+into framework-neutral domain types and rules. Preserve the accepted
+expiration, Party-pass quorum, Tribe demotion, claim visibility, two-party
+completion, claim release, cancellation, orphaned and expired-after-claim
+closure, retry, private-history, and gratitude semantics without importing
+browser storage or UI assumptions. Apply T-043 where its durable policy
+intentionally differs from the fixed-audience prototype.
 
 Luna guidance: port one proven rule boundary rather than redesigning a generic
 care platform. Identify exact source tests and adapters before editing, retain
@@ -455,26 +465,28 @@ types. Existing browser records remain fictional and non-importable.
 
 Checks: focused domain tests, affected typecheck, and `pnpm check`.
 
-#### T-050: Persist care requests, offers, and immutable audience snapshots
+#### T-050: Persist care requests, offers, and current audience layer
 
 Status: proposed
 Size: medium
 Prerequisite: T-049
 
-Add reviewed forward migrations and repositories for owned meal requests,
-owned meal offers, and service-created immutable Party/Tribe audience
-snapshots. Persist request content, lifecycle starting state, expiry,
-timestamps, and version data. Use trusted current relationships when creating
-the snapshot and apply the accepted current removal/block rules when reading.
+Add reviewed forward migrations and repositories for owned meal requests and
+offers with their current Party-or-Tribe layer. Persist request content,
+lifecycle starting state, expiry, timestamps, and version data. Do not persist
+a publication-time membership audience as authorization. Use trusted current
+Connection, layer, pass, block, revocation, and lifecycle state when evaluating
+each read or mutation.
 
 Luna guidance: keep request/offer storage separate from lifecycle-event,
 private-history, gratitude, notification, and Timeline-activity storage. Ask
 before adding a table or column not required by the accepted T-043 and T-049
 contracts; do not add jobs, caching, or cleanup architecture.
 
-Acceptance: records and snapshots survive restart; owners and audience
-references are valid; service time owns expiry; later relationship changes do
-not rewrite snapshots; lifecycle event persistence is absent.
+Acceptance: records and current-layer state survive restart; owners and layer
+values are valid; service time owns expiry; current eligibility
+responds to relationship changes without a membership snapshot; lifecycle
+event persistence is absent.
 
 Checks: migration review and drift check, repository integration,
 time-boundary, rollback, restart, and guarded database tests; `pnpm check`.

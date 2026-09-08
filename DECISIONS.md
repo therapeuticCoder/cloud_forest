@@ -139,6 +139,15 @@ their detailed implementation context.
   storage, and the fictional perspective switcher are not authorization. The
   complete rules and deferred questions are recorded in
   `docs/authorization-and-privacy-matrix.md`.
+- **D-035 — Durable Care uses current Connections and a dynamic layer.** Only a
+  mutually connected User in the Care's current Party or Tribe layer may
+  participate. Durable Care does not freeze a publication-time membership
+  audience: current layer, passes, blocks, revocations, and lifecycle state are
+  re-evaluated for each operation. Party and Tribe are exclusive rather than
+  cumulative; exhausted Party Care demotes once unless the originator starts a
+  fresh Party round. Breaking or blocking a Connection outranks claimed-Care
+  participation and closes claimed Care as orphaned. The complete T-043 policy
+  is recorded in `docs/durable-care-audience-policy.md`.
 
 ## Fulfilled milestone decisions
 
