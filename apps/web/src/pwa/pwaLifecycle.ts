@@ -1,9 +1,29 @@
-type PwaNotice = "offline-ready" | "update-ready" | null;
+type PwaNotice =
+  | "offline-ready"
+  | "install-help"
+  | "install-ready"
+  | "update-ready"
+  | null;
+
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
 const listeners = new Set<() => void>();
 let currentNotice: PwaNotice = null;
 let initialization: Promise<void> | undefined;
 let workerRegistration: ServiceWorkerRegistration | undefined;
 let reloadForUpdate = false;
+let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+
+function isAndroidBrowser() {
+  return /Android/i.test(navigator.userAgent);
+}
+
+function isStandaloneDisplayMode() {
+  return window.matchMedia("(display-mode: standalone)").matches;
+}
 
 export function getPwaNotice() {
   return currentNotice;
@@ -37,6 +57,23 @@ export function activatePwaUpdate() {
   workerRegistration?.waiting?.postMessage({ type: "SKIP_WAITING" });
 }
 
+export async function installPwa() {
+  if (!deferredInstallPrompt) {
+    setPwaNotice("install-help");
+    return;
+  }
+
+  const prompt = deferredInstallPrompt;
+  deferredInstallPrompt = null;
+  dismissPwaNotice();
+  try {
+    await prompt.prompt();
+    await prompt.userChoice;
+  } catch {
+    setPwaNotice("install-help");
+  }
+}
+
 async function unregisterDevelopmentWorkers() {
   if (!("serviceWorker" in navigator)) {
     return;
@@ -52,6 +89,18 @@ async function registerProductionWorker() {
   if (!("serviceWorker" in navigator)) {
     return;
   }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event as BeforeInstallPromptEvent;
+    if (currentNotice !== "update-ready") {
+      setPwaNotice("install-ready");
+    }
+  });
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    dismissPwaNotice();
+  });
 
   const hadController = Boolean(navigator.serviceWorker.controller);
   const registration = await navigator.serviceWorker.register(
@@ -84,8 +133,16 @@ async function registerProductionWorker() {
   });
 
   await navigator.serviceWorker.ready;
-  if (!hadController) {
+  if (!hadController && currentNotice === null) {
     setPwaNotice("offline-ready");
+  }
+  if (
+    isAndroidBrowser() &&
+    !isStandaloneDisplayMode() &&
+    !deferredInstallPrompt &&
+    (currentNotice === null || currentNotice === "offline-ready")
+  ) {
+    setPwaNotice("install-help");
   }
 
   const checkForUpdate = () => {

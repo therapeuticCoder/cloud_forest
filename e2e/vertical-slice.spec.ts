@@ -159,7 +159,7 @@ async function expectMyCarePreservesTimelineScroll(page: Page) {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollY);
 }
 
-test("database-backed Timeline and prototype regression path", async ({
+test("database-backed Timeline and normal app path", async ({
   page,
 }, testInfo: TestInfo) => {
   const browserFailures = collectBrowserFailures(page);
@@ -174,20 +174,20 @@ test("database-backed Timeline and prototype regression path", async ({
   const curatedPeoplePayload = (await curatedPeopleResponse.json()) as {
     data: { people: Array<{ id: string; placement: string; version: number }> };
   };
-  const ren = curatedPeoplePayload.data.people.find(
-    (person) => person.id === "ren",
+  const sol = curatedPeoplePayload.data.people.find(
+    (person) => person.id === "sol",
   );
-  expect(ren).toBeDefined();
-  if (ren?.placement !== "holding") {
+  expect(sol).toBeDefined();
+  if (sol?.placement !== "holding") {
     const movedToHolding = await page.request.patch(
-      "/api/v1/curated-persons/ren",
+      "/api/v1/curated-persons/sol",
       {
         data: {
-          nickname: "Ren Ellis",
-          relationshipShape: "Oldest friend",
-          privateDescription: "always makes me laugh",
+          nickname: "Sol Arden",
+          relationshipShape: "Closest friend",
+          privateDescription: "always in my corner",
           placement: "holding",
-          expectedVersion: ren?.version,
+          expectedVersion: sol?.version,
         },
       },
     );
@@ -235,7 +235,6 @@ test("database-backed Timeline and prototype regression path", async ({
   const miraCard = page.locator("article").filter({ hasText: miraContent });
   await expect(miraCard).toContainText("Mira");
   await expect(miraCard).toContainText(miraContent);
-  await expect(page.getByText("Ren", { exact: true })).toBeVisible();
   await expect(page.getByText("Yesterday", { exact: true })).toBeVisible();
   await expect(
     page
@@ -325,108 +324,6 @@ test("database-backed Timeline and prototype regression path", async ({
   await page.reload();
   await expect(fullCareRequest).toHaveCount(0);
 
-  const perspective = page.getByLabel("Reviewing as");
-  for (const partyViewer of ["mira", "sol", "dev"]) {
-    await perspective.selectOption(partyViewer);
-    await expect(fullCareRequest).toBeVisible();
-    await fullCareRequest
-      .getByRole("button", { name: "Pass this time" })
-      .click();
-  }
-  await expect(
-    page.getByText(
-      "Your Party passed on Anya’s request. It is now shared with the original Tribe audience.",
-    ),
-  ).toBeVisible();
-  await perspective.selectOption("nearby-family-1");
-  await expect(fullCareRequest).toBeVisible();
-  await expectNoHorizontalOverflow(page);
-  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
-    "timeline-care-demoted.png",
-  );
-
-  await fullCareRequest.getByRole("button", { name: "I can help" }).click();
-  await page.getByRole("button", { name: "I’ll help with this" }).click();
-  await expect(page.getByText("You’re helping Anya.")).toBeFocused();
-  await perspective.selectOption("anya");
-  const requesterClaimedRequest = page.getByRole("article", {
-    name: "Claimed meal care request",
-  });
-  await expect(requesterClaimedRequest).toContainText(
-    "Someone is helping with this request.",
-  );
-  await requesterClaimedRequest
-    .getByRole("button", { name: "Completed", exact: true })
-    .click();
-  const gratitudeView = page.getByRole("region", {
-    name: "Thank Anya Reed's helper",
-  });
-  await gratitudeView
-    .getByRole("radio", { name: "Thank you for making care feel easy." })
-    .check();
-  await gratitudeView
-    .getByLabel("Add your own words (optional)")
-    .fill("The soup made tonight possible.");
-  await gratitudeView.getByRole("button", { name: "Continue" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Keep it private or share" }),
-  ).toBeFocused();
-  await gratitudeView
-    .getByRole("checkbox", { name: "Post to Tribe as “A neighbor”" })
-    .check();
-  await expectNoHorizontalOverflow(page);
-  await expect(page).toHaveScreenshot("care-gratitude-confirm.png");
-  await gratitudeView
-    .getByRole("button", { name: "Post to Tribe and save to history" })
-    .click();
-  await expect(
-    page.getByText("You marked this completed. Waiting for the other person."),
-  ).toBeFocused();
-  const tribeGratitude = page.getByRole("article", {
-    name: "Tribe gratitude from A neighbor",
-  });
-  await expect(tribeGratitude).toContainText("The soup made tonight possible.");
-  await expectNoHorizontalOverflow(page);
-  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
-    "timeline-care-awaiting-completion.png",
-  );
-
-  await perspective.selectOption("nearby-family-1");
-  await expect(fullCareRequest).toContainText(
-    "The other person marked this completed.",
-  );
-  await fullCareRequest.getByRole("button", { name: "Not completed" }).click();
-  const notCompletedView = page.getByRole("region", {
-    name: "Care was not completed for Anya Reed",
-  });
-  await expect(
-    notCompletedView.getByRole("button", { name: "Close" }),
-  ).toBeDisabled();
-  await notCompletedView
-    .getByLabel("Reason")
-    .fill("The handoff timing did not work");
-  await expectNoHorizontalOverflow(page);
-  await expect(page).toHaveScreenshot("care-not-completed.png");
-  await notCompletedView.getByRole("button", { name: "Back" }).click();
-  await expect(
-    fullCareRequest.getByRole("button", { name: "Not completed" }),
-  ).toBeFocused();
-  await expectNoHorizontalOverflow(page);
-  await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
-    "timeline-care-claimed-requester.png",
-  );
-
-  await fullCareRequest
-    .getByRole("button", { name: "Completed", exact: true })
-    .click();
-  await expect(fullCareRequest).toHaveCount(0);
-  await expect(tribeGratitude).toBeVisible();
-
-  await perspective.selectOption("mira");
-  await expect(requesterClaimedRequest).toHaveCount(0);
-  await expect(fullCareRequest).toHaveCount(0);
-  await expect(tribeGratitude).toBeVisible();
-
   await expectMyCarePreservesTimelineScroll(page);
   await expectHiddenChromeRecoversFromKeyboard(page);
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -451,7 +348,10 @@ test("database-backed Timeline and prototype regression path", async ({
   await expect(miraTile).toBeFocused();
   const niaTile = page.getByRole("button", { name: "Open Nia" });
   if ((await niaTile.count()) === 0) {
-    await page.getByRole("button", { name: "Add a Party member" }).click();
+    await page
+      .getByRole("button", { name: /Add a Party member in slot \d+/ })
+      .first()
+      .click();
     await page.getByPlaceholder("Their name").fill("Nia");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "Skip for now" }).click();
@@ -463,9 +363,9 @@ test("database-backed Timeline and prototype regression path", async ({
   }
   await expect(niaTile).toBeVisible();
   await page.reload();
-  await page
-    .getByRole("button", { name: "Go to Curator", exact: true })
-    .click();
+  await expect(
+    page.getByRole("region", { name: "Curator view" }),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Open Nia" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 

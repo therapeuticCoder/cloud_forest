@@ -9,8 +9,13 @@ Guild, and Signal layers. See `docs/project-brief.md` for product scope and
 The current prototype includes responsive Curator and Timeline views, an
 installable React PWA, a fictional device-local Receive-care lifecycle, and one
 PostgreSQL-backed Timeline item crossing the versioned API and typed client.
-Care browser storage and the perspective switcher demonstrate behavior; they
+Care browser storage and historical review fixtures demonstrate behavior; they
 are not authentication, shared authority, or production data.
+
+Task-scoped review components are kept separately in
+`apps/web/src/components/review-prototypes/`. They are disconnected historical
+artifacts, not production routes or contracts; see that directory's README and
+`docs/workflow.md` for cleanup rules.
 
 ## Stack and boundaries
 

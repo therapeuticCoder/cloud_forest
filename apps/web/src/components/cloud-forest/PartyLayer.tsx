@@ -23,7 +23,7 @@ export type PartySelfControl = {
 
 type PartyLayerProps = {
   currentPersonControl?: PartySelfControl;
-  onAdd: () => void;
+  onAdd: (slotIndex?: number) => void;
   onNavigateToTimeline: () => void;
   onOpenMyCare: () => void;
   onRetry: () => void;
@@ -53,6 +53,8 @@ const portraitPositionStyles: Record<PortraitPosition, string> = {
   "bottom-left": "0% 100%",
   "bottom-right": "100% 100%",
 };
+
+const partySlotCount = 5;
 
 export function Portrait({
   initials,
@@ -143,15 +145,18 @@ export function Portrait({
 function PartyCard({
   onSelect,
   person,
+  slotIndex,
 }: {
   onSelect: (trigger: HTMLButtonElement) => void;
   person: CuratorPerson;
+  slotIndex: number;
 }) {
   return (
     <button
       aria-label={`Open ${person.displayName}`}
-      className={`party-card party-card--${person.id}`}
+      className="party-card"
       data-curator-tile={`party-${person.id}`}
+      data-party-slot={slotIndex}
       onClick={(event) => onSelect(event.currentTarget)}
       type="button"
     >
@@ -246,6 +251,11 @@ export function PartyLayer({
   peopleStateMessage,
   user,
 }: PartyLayerProps) {
+  const partySlots = Array.from(
+    { length: partySlotCount },
+    (_, index) => people[index] ?? null,
+  );
+
   return (
     <div aria-label="Party people" className="party-layer">
       <header className="party-header">
@@ -295,28 +305,34 @@ export function PartyLayer({
             </button>
           </div>
         ) : null}
-        {people.map((person) => (
-          <PartyCard
-            key={person.id}
-            onSelect={(trigger) =>
-              onSelect({ layer: "party", item: person }, trigger)
-            }
-            person={person}
-          />
-        ))}
-        {peopleState === "ready" && people.length < 5 ? (
-          <button
-            aria-label="Add a Party member"
-            className="party-card party-card--empty"
-            data-curator-tile="party-add"
-            onClick={onAdd}
-            type="button"
-          >
-            <span className="party-card__portrait party-card__portrait--empty">
-              <UserRoundPlus aria-hidden="true" strokeWidth={1.4} />
-            </span>
-          </button>
-        ) : null}
+        {peopleState === "ready"
+          ? partySlots.map((person, index) =>
+              person ? (
+                <PartyCard
+                  key={person.id}
+                  onSelect={(trigger) =>
+                    onSelect({ layer: "party", item: person }, trigger)
+                  }
+                  person={person}
+                  slotIndex={index}
+                />
+              ) : (
+                <button
+                  aria-label={`Add a Party member in slot ${index + 1}`}
+                  className="party-card party-card--empty"
+                  data-curator-tile={`party-add-${index + 1}`}
+                  data-party-slot={index}
+                  key={`party-slot-${index}`}
+                  onClick={() => onAdd(index)}
+                  type="button"
+                >
+                  <span className="party-card__portrait party-card__portrait--empty">
+                    <UserRoundPlus aria-hidden="true" strokeWidth={1.4} />
+                  </span>
+                </button>
+              ),
+            )
+          : null}
       </div>
 
       <div aria-hidden="true" className="party-ornament party-ornament--left">

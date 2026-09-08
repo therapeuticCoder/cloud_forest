@@ -39,6 +39,23 @@ new visual direction. Batch compatible read-only checks and status queries.
 During waits, report only meaningful state changes, decisions, failures, or
 completion.
 
+## Review prototype stewardship
+
+UX review prototypes are task-scoped instruments, not alternate application
+surfaces. They may use fictional data and temporary state controls to make a
+specific product question reviewable, but they must remain disconnected from
+normal routes, production API behavior, persistence, and authorization.
+
+Keep each prototype and its local styles in the task-named directory
+`apps/web/src/components/review-prototypes/`. The review entry point should be
+the smallest explicit hook needed for the active task and must not be part of
+the default app experience. Once the product owner accepts a direction, carry
+the accepted decisions into the working components, remove the temporary entry
+point and fixture wiring before PR, and leave the prototype disconnected only
+when it is valuable historical context for a future story. Otherwise remove it
+through a deliberate cleanup task. A prototype's presence in the repository is
+not evidence that its behavior is supported or production-ready.
+
 ## Failure handling is a stop-and-diagnose process
 
 This is a hard boundary for every future work session. Do not put the product

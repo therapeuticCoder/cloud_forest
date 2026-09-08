@@ -1,10 +1,7 @@
 import { Gift, HandHeart, Sprout } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { curatorUser, incomingCareRequests } from "@/data/cloudForest";
-import {
-  carePerspectiveOptions,
-  incomingCareAudienceSnapshot,
-} from "@/data/careLifecycleMockData";
+import { incomingCareAudienceSnapshot } from "@/data/careLifecycleMockData";
 import {
   canPassCareRequest,
   CURRENT_CARE_VIEWER_ID,
@@ -75,6 +72,13 @@ type CareDestination =
       returnToMyCare: boolean;
     };
 
+function viewFromLocation(): CloudForestView {
+  if (typeof window === "undefined") return "timeline";
+  return new URLSearchParams(window.location.search).get("view") === "curator"
+    ? "curator"
+    : "timeline";
+}
+
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
 
 export function DashboardShell({
@@ -84,7 +88,8 @@ export function DashboardShell({
   currentPersonControl?: PartySelfControl;
   apiClient?: CuratedPersonApiClient;
 }) {
-  const [activeView, setActiveView] = useState<CloudForestView>("timeline");
+  const [activeView, setActiveView] =
+    useState<CloudForestView>(viewFromLocation);
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
@@ -95,7 +100,7 @@ export function DashboardShell({
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<
     string | undefined
   >();
-  const [careViewerId, setCareViewerId] = useState(CURRENT_CARE_VIEWER_ID);
+  const careViewerId = CURRENT_CARE_VIEWER_ID;
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [curatorDetailOpen, setCuratorDetailOpen] = useState(false);
@@ -115,6 +120,30 @@ export function DashboardShell({
   const ignoreNextCarePopStateRef = useRef(false);
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
+
+  const navigateToView = useCallback((view: CloudForestView) => {
+    if (viewFromLocation() === view) {
+      setActiveView(view);
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    if (view === "curator") url.searchParams.set("view", "curator");
+    else url.searchParams.delete("view");
+
+    window.history.pushState(
+      { ...window.history.state, cloudForestView: view },
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+    setActiveView(view);
+  }, []);
+
+  useEffect(() => {
+    const handleViewPopState = () => setActiveView(viewFromLocation());
+    window.addEventListener("popstate", handleViewPopState);
+    return () => window.removeEventListener("popstate", handleViewPopState);
+  }, []);
 
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -136,9 +165,12 @@ export function DashboardShell({
   }, []);
 
   const revealChrome = () => setChromeHidden(false);
-  const openAddWizard = () => {
+  const openAddWizard = (slotIndex?: number) => {
     if (curatedPeople.status === "ready" && partyPeople.length < 5) {
-      focusTargetIdRef.current = "party-add";
+      const firstEmptySlot = Math.min(partyPeople.length, 4);
+      focusTargetIdRef.current = `party-add-${
+        (slotIndex ?? firstEmptySlot) + 1
+      }`;
       setAddSubmission({ pending: false });
       setAddWizardOpen(true);
     }
@@ -173,12 +205,12 @@ export function DashboardShell({
   const completeReceive = (request: ReceiveCareRequest) => {
     applyCareLifecycleAction({ type: "publish-request", request });
     setReceiveWizardOpen(false);
-    setActiveView("timeline");
+    navigateToView("timeline");
   };
   const completeGive = (offer: GiveCareOffer) => {
     setCareOffers((currentOffers) => [offer, ...currentOffers]);
     setGiveWizardOpen(false);
-    setActiveView("timeline");
+    navigateToView("timeline");
   };
   const withdrawCareRequestAs = (requestId: string, actorId = careViewerId) => {
     applyCareLifecycleAction({
@@ -840,7 +872,7 @@ export function DashboardShell({
           <button
             aria-label="Go to Curator"
             className="party-wordmark"
-            onClick={() => setActiveView("curator")}
+            onClick={() => navigateToView("curator")}
             type="button"
           >
             Curator <Sprout aria-hidden="true" strokeWidth={1.5} />
@@ -906,17 +938,12 @@ export function DashboardShell({
                 }
                 passableRequestIds={passableRequestIds}
                 passAnnouncement={carePassAnnouncement}
-                perspectiveOptions={carePerspectiveOptions}
                 viewerClaimedRequestIds={viewerClaimedRequestIds}
                 viewerCompletedRequestIds={viewerCompletedRequestIds}
                 otherParticipantCompletedRequestIds={
                   otherParticipantCompletedRequestIds
                 }
                 viewerId={careViewerId}
-                onViewerChange={(viewerId) => {
-                  setCarePassAnnouncement(undefined);
-                  setCareViewerId(viewerId);
-                }}
               />
             ) : (
               <CuratorView
@@ -936,7 +963,7 @@ export function DashboardShell({
                 onCompleteAdd={completeAdd}
                 onRetryCuratedPeople={() => void loadCuratedPeople()}
                 onDetailOpenChange={setCuratorDetailOpen}
-                onNavigateToTimeline={() => setActiveView("timeline")}
+                onNavigateToTimeline={() => navigateToView("timeline")}
                 onOpenMyCare={() =>
                   openCareDestination(
                     { kind: "my-care" },

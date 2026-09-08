@@ -56,206 +56,26 @@ This tranche makes invited identity, Party membership, and person profiles
 authoritative while preserving the accepted interface. Care remains the
 device-local prototype until a later tranche. Portrait upload remains deferred.
 
-#### T-034: Canonicalize identity and relationship domain concepts
+#### Completed through T-039
 
-Status: completed by PR #51 as `0c93669`
-Size: medium
+- T-034: Canonicalize identity and relationship domain concepts — completed by PR #51 as `0c93669`; shared account/person/layer/Party domain rules established.
+- T-035: Approve the authorization and privacy matrix — product-approved 2026-09-05; field-level access and denial rules recorded.
+- T-036: Prototype invited-session UX for annotated review — completed by PR #53 as `926fa5e`; fictional review artifact retained as disconnected history.
+- T-037: Establish invited account sessions — completed by PR #55; trusted local/test sessions, current-person resolution, expiry, revocation, and unauthorized responses established.
+- T-038: Persist people and Party membership — completed by PR #56; owned profiles, ordered Party membership, capacity, and guarded persistence established.
+- T-039: Add versioned Party and profile APIs — completed by PR #57; authorized contracts, generated client, CRUD, reorder, and stale-write responses established.
 
-Add framework-neutral account and person identifiers, profiles, relationship
-layers, ordered Party membership, ownership, and capacity rules to
-`packages/domain`. For the initial pilot, one invited account maps to one
-person. Adapt existing web-only shapes at boundaries rather than rewriting the
-interface. Unit-test the five-member Party invariant and ownership rules.
+#### Completed through T-042
 
-Checks: focused domain tests, typecheck, `pnpm check`.
-
-Out of scope: authentication, persistence, API changes, UI changes, generalized
-social-graph abstractions, and care conversion.
-
-#### T-035: Approve the authorization and privacy matrix
-
-Status: approved by the product owner on 2026-09-05
-Size: small planning task
-Prerequisite: T-034
-
-Record field-level allow and deny rules for self profiles, Party membership,
-other profiles, care states, private history, and Tribe activity. Include
-removed and blocked relationships. Map every proposed API operation to a rule
-and state explicitly that client-side filtering is not authorization.
-
-Checks: product-principle, privacy, and threat-case documentation review.
-
-#### T-036: Prototype invited-session UX for annotated review
-
-Status: completed by PR #53 as `926fa5e`
-Size: small
-Prerequisite: T-035
-
-Rapidly prototype the invitation, sign-in, expired or reused invitation,
-session-expiry, current-person, and logout experience at desktop and mobile
-sizes. Present screenshots or a live prototype for product-owner annotation
-before the authentication implementation is selected. Keep the work fictional
-and reversible.
-
-Checks: keyboard and focus behavior, reduced motion, overflow, console health,
-and direct product-owner review of annotated desktop and mobile states.
-
-Expected stewardship: if the prototype is committed as code, give its styles
-and interaction tests a session-specific owner instead of extending
-`index.css` and `App.test.tsx` with another full workflow.
-
-Out of scope: authentication dependencies, email delivery, accounts, sessions,
-or production behavior.
-
-#### T-037: Establish invited account sessions
-
-Status: completed by PR #55
-Size: medium
-Prerequisites: T-034 through T-036
-
-Evaluate and, after separate approval, use the roadmap's Better Auth direction
-for invite-only sessions. Begin with deterministic local and test invitations;
-do not introduce production email delivery. Add trusted current-person
-resolution, logout, invitation reuse protection, expiry and revocation, and
-typed unauthorized responses. Seed only fictional database-backed account and
-person test data.
-
-Checks: contract, API, database integration, session-expiry, and E2E tests;
-`pnpm check`.
-
-#### T-038: Persist people and Party membership
-
-Status: completed by PR #56
-Size: medium
-Prerequisite: T-037
-
-Add reviewed forward migrations and repositories for profiles and ordered,
-owned Party membership. Enforce duplicate, self-membership, ownership, and
-sixth-slot failures atomically. Establish deterministic fictional
-database-backed person and Party fixtures for integration and browser tests.
-
-Checks: migration drift, repository integration, concurrent-add, rollback, and
-database-backed fixture tests against guarded `TEST_DATABASE_URL`; `pnpm check`.
-
-Out of scope: importing browser care records or real user data.
-
-#### T-039: Add versioned Party and profile APIs
-
-Status: completed by PR #57
-Size: medium
-Prerequisite: T-038
-
-Add Party-specific TypeBox contracts, generated OpenAPI and client types, and
-authorized profile and Party reads, adds, edits, removals, and reordering.
-Return explicit duplicate, full, forbidden, not-found, validation, and
-stale-write conflict results.
-
-Checks: contract examples, generated-artifact check, API and repository
-integration tests, authorization denials, `pnpm check`.
-
-#### T-040: Prototype durable Party and profile states for annotated review
-
-Status: completed by PR #58 as `b89707b`
-Size: small
-Prerequisite: T-039
-
-Rapidly prototype loading, empty, add, Party-membership edit, remove, conflict,
-unavailable, and retry states using the real contract vocabulary. Review
-desktop and mobile states with the product owner before connecting the accepted
-direction to live APIs. Reordering and a separate full-capacity screen were
-removed during review: Party order is fixed, and the add control is absent when
-all five places are occupied.
-
-Checks: keyboard and focus behavior, reduced motion, overflow, console health,
-and direct product-owner review of annotated desktop and mobile states.
-
-Expected stewardship: keep the Party-state prototype's cohesive styles and
-workflow tests outside `index.css` and `App.test.tsx` so the later API
-conversion can reuse those boundaries.
-
-#### T-041: Convert the Party gallery and profiles
-
-Status: completed by PR #59 as `b0ff360`
-Size: medium
-Prerequisites: T-039 and accepted T-040 direction
-
-Replace Party and profile fixtures and session-only add-member state with typed
-API reads and writes. Preserve the approved responsive layout, focus recovery,
-five-slot presentation, and object-URL cleanup. Keep Tribe neighborhoods,
-Guilds, Signals, and care behavior at their explicitly documented prototype
-boundaries.
-
-Acceptance: additions and ordering survive reload; conflicts and unavailable
-states are calm and recoverable; the interface never optimistically exceeds
-five Party members; current browser visuals remain accepted.
-
-Checks: focused component tests, authenticated desktop and mobile E2E, offline
-and API-failure states, `pnpm check`.
-
-Expected stewardship: extract the Party/profile data orchestration naturally
-introduced by this task from `DashboardShell.tsx`; keep Party/profile styles in
-the T-040-owned boundary; and add durable Party integration scenarios to a
-purpose-specific test file rather than `App.test.tsx`.
-
-#### T-042: Prototype the mutual connection QR handshake
-
-Status: completed by PR #60 as `136b38c`
-Size: small
-Prerequisite: T-041 and the post-tranche product-owner review
-
-Prototype the primary pilot ritual for turning an existing private Person into
-an intentional mutual connection. The prototype should make clear that
-curation and connection are separate: the owner's nickname, relationship
-meaning, relationship shape, portrait choice, private presentation, and layer
-remain private and continue to drive their Curator view. A connected User is
-additional system identity and capability; it does not replace the owner's
-private Person.
-
-The first visible slice is the existing-Person path, using fictional data:
-
-- open a private Person detail and choose “Make this a mutual connection”;
-- choose “Show code” or “Scan code”;
-- show explicit consent language for the presenting person;
-- show only a safe counterpart identity before confirmation;
-- require an explicit confirmation after scanning; scanning alone never
-  creates a connection;
-- show successful connection, cancellation or decline, expired-token, and
-  wrong-account recovery states; and
-- preserve the private Person fields and return the user to a calm, legible
-  relational state after success.
-
-The prototype should communicate these durable product boundaries for later
-implementation: no public discovery or account enumeration, no heuristic
-nickname/name/email matching, no automatic account-to-Person matching, no
-private Person-field disclosure through the handshake, and no silent duplicate
-creation. Mutual connection must eventually require explicit participation by
-both already-invited pilot users, while each user independently decides where
-the other belongs in their Forest.
-
-Likely files: a focused feature boundary under
-`apps/web/src/features/mutual-connection-review/`, its stylesheet and test, and
-the smallest app entry hook needed to open the fictional review route. Reuse
-the approved design guide, existing portrait treatment, semantic controls,
-visible focus, touch-sized targets, reduced-motion behavior, and mobile content
-reach at a representative 390px viewport.
-
-Checks and acceptance: direct product-owner review of annotated desktop and
-mobile states; keyboard and focus recovery; reduced motion; no horizontal
-overflow or clipped content; and console health. After visual acceptance, the
-product owner runs the focused checks and proportional full gate before code
-review and publication.
-
-Out of scope for this checkpoint: database tables, pairing tokens, API or
-OpenAPI contracts, QR libraries, production authentication or identity
-behavior, Add-flow integration, holding-area persistence, expiry jobs,
-unpairing, blocking, care behavior, public search, contact imports, and
-account/Person merge or history-merge systems. These require separate
-approved increments after the interaction is accepted.
+- T-040: Prototype durable Party and profile states for annotated review — completed by PR #58 as `b89707b`; accepted loading, empty, add, conflict, unavailable, retry, and five-slot direction retained as disconnected history.
+- T-041: Convert the Party gallery and profiles — completed by PR #59 as `b0ff360`; normal app uses typed backend reads/writes with accepted Party/profile behavior.
+- T-041A: Connect the authenticated local app shell and retire review wiring — in progress; local session shim, trusted current-person resolution, refresh-safe view state, and disconnected historical review artifacts.
+- T-042: Prototype the mutual connection QR handshake — completed by PR #60 as `136b38c`; fictional two-party consent and recovery direction retained as disconnected history.
 
 ### Tranche 2 — Durable care records and basic operations
 
-Status: T-043 policy approved; T-044 through T-052 remain proposed. Do not
-begin implementation until the product owner explicitly loads the tranche.
+Status: T-043 and T-044 completed; T-045 through T-052 remain proposed. Do not
+begin implementation until the product owner explicitly loads the next task.
 
 This tranche gives accepted mutual connections durable identity links, then
 gives the accepted meal request and offer flows authoritative relationship
@@ -264,65 +84,10 @@ and reload-safe reads. It deliberately stops before durable claim, pass,
 completion, retry, gratitude, or private-history mutations; those transactional
 lifecycle operations belong to a later tranche.
 
-#### T-043: Decide durable care audiences and relationship-change behavior
+#### Completed through T-044
 
-Status: product-approved on 2026-09-08
-Size: small planning task
-Prerequisite: completed tranche 1
-
-Conduct the product conversation on the ChatGPT side in an interview format,
-one question at a time, before Luna plans or edits implementation. Decide the
-minimum authoritative meaning of Tribe membership for care; Party and Tribe
-audience overlap and deduplication; when a request reaches Tribe; and how
-removal, blocking, mutual-connection state, invitation state, and relationship
-changes affect unclaimed, claimed, expired, and historical care. Resolve which
-decisions are required for tranche 2 and explicitly defer lifecycle-only
-questions to tranche 3.
-
-Bring the approved interview outcome back to the repository as a concise
-decision record and any necessary correction to the authorization/privacy
-matrix or care-lifecycle specification. Do not let the implementation agent
-infer policy from current fixtures, selectors, or browser storage.
-
-Acceptance: met. The approved current-eligibility, allow/deny, demotion, pass,
-relationship-change, claimed-Care, and blocking rules are recorded in
-`docs/durable-care-audience-policy.md`; deferred questions have named owners.
-
-Checks: documentation review for product principles, privacy,
-internal consistency, and agreement with the accepted meal-care behavior.
-
-Out of scope: schema, API, UI, dependency, or production behavior changes.
-
-#### T-044: Prototype durable care audience and boundary states
-
-Status: proposed collaborative UX checkpoint
-Size: small
-Prerequisite: accepted T-043 decisions
-
-Using only fictional review data, prototype how Party and Tribe audiences,
-Party-pass demotion, removal, blocking, and no-longer-eligible states are
-communicated at representative desktop and mobile sizes. Include the calm
-recovery language needed when the server's current authorization differs from
-stale UI state. The prototype must implement the accepted T-043 vocabulary,
-not reopen those decisions inside code.
-
-Cover direct Party and Tribe publication, zero-eligible-Party fallback,
-one-way automatic demotion, manual return to a fresh Party round, newly eligible
-Connections, no eligible Tribe Connections, and claimed Care becoming orphaned
-after a break or block.
-
-Luna guidance: first name the smallest review-route feature boundary and the
-single app entry hook it needs. Reuse existing components and styles where
-they fit; ask before introducing a new interaction, route, dependency, or
-cross-feature abstraction. Do not connect live APIs or edit care persistence.
-
-Acceptance: the product owner directly accepts the annotated desktop and
-mobile direction, including keyboard focus recovery, reduced motion, content
-reach, and no misleading promise that client presentation controls access.
-
-Checks: focused component test, representative desktop/mobile
-browser review, overflow and console checks, then the proportional repository
-gate chosen by the product owner.
+- T-043: Decide durable care audiences and relationship-change behavior — product-approved 2026-09-08; authoritative eligibility and relationship-change policy recorded in `docs/durable-care-audience-policy.md`.
+- T-044: Prototype durable care audience and boundary states — completed by product-owner review 2026-09-08; accepted silent/background behavior, wizard fallback, layer/count-only active Care, Timeline suppression, and neutral private-history reasons recorded in `docs/durable-care-audience-policy.md`; temporary fixture removed before publication.
 
 #### T-046: Decide the durable mutual-connection protocol
 
