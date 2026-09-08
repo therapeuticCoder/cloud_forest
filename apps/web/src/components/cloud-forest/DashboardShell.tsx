@@ -1,10 +1,7 @@
 import { Gift, HandHeart, Sprout } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { curatorUser, incomingCareRequests } from "@/data/cloudForest";
-import {
-  carePerspectiveOptions,
-  incomingCareAudienceSnapshot,
-} from "@/data/careLifecycleMockData";
+import { incomingCareAudienceSnapshot } from "@/data/careLifecycleMockData";
 import {
   canPassCareRequest,
   CURRENT_CARE_VIEWER_ID,
@@ -95,7 +92,7 @@ export function DashboardShell({
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<
     string | undefined
   >();
-  const [careViewerId, setCareViewerId] = useState(CURRENT_CARE_VIEWER_ID);
+  const careViewerId = CURRENT_CARE_VIEWER_ID;
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [curatorDetailOpen, setCuratorDetailOpen] = useState(false);
@@ -906,17 +903,12 @@ export function DashboardShell({
                 }
                 passableRequestIds={passableRequestIds}
                 passAnnouncement={carePassAnnouncement}
-                perspectiveOptions={carePerspectiveOptions}
                 viewerClaimedRequestIds={viewerClaimedRequestIds}
                 viewerCompletedRequestIds={viewerCompletedRequestIds}
                 otherParticipantCompletedRequestIds={
                   otherParticipantCompletedRequestIds
                 }
                 viewerId={careViewerId}
-                onViewerChange={(viewerId) => {
-                  setCarePassAnnouncement(undefined);
-                  setCareViewerId(viewerId);
-                }}
               />
             ) : (
               <CuratorView

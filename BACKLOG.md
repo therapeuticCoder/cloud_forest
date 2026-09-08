@@ -197,6 +197,40 @@ introduced by this task from `DashboardShell.tsx`; keep Party/profile styles in
 the T-040-owned boundary; and add durable Party integration scenarios to a
 purpose-specific test file rather than `App.test.tsx`.
 
+#### T-041A: Connect the authenticated local app shell and retire review wiring
+
+Status: in progress
+Size: small
+Prerequisites: T-037 through T-041
+
+Connect the completed invited-session, identity, Party, profile, and API
+plumbing to the normal app before adding more features that assume an
+authenticated user. The immediate local-development bridge is a deterministic,
+server-controlled session shim backed by the existing fictional Party fixture;
+it must never accept an identity from the browser and must fail closed outside
+explicit local development. This is a temporary integration aid, not the
+production authentication shell.
+
+Make the normal app's authenticated assumptions explicit, keep protected API
+requests on trusted current-person resolution, and retire disconnected review
+wiring from the running experience while preserving prototype files as product
+history for future stories. Normal view state should remain addressable and
+survive refresh as part of this integration pass.
+
+Acceptance: the normal Tailscale app reaches backend-backed Party/profile
+behavior with the local shim enabled; `/api/v1/session` and protected Party or
+curated-Person requests resolve the seeded fictional current Person; no
+`?prototype=` route or client-selected identity is required; the shim is
+disabled in production; and Timeline/Curator view state survives refresh.
+
+Checks: focused session-resolver and route tests, authenticated browser checks
+against the local fixture, refresh/view-state coverage, and proportional
+`pnpm check`.
+
+Out of scope: production email delivery, a new authentication provider, care
+durability, mutual-connection protocol work, or deleting historical prototype
+files.
+
 #### T-042: Prototype the mutual connection QR handshake
 
 Status: completed by PR #60 as `136b38c`

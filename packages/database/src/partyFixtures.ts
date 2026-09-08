@@ -17,20 +17,25 @@ export const fictionalPartyOwnerUserId = "account-fictional-owner";
 export const fictionalPartyInvitationId = "invite-fictional-party";
 export const fictionalPartyMobileInvitationId = "invite-fictional-party-mobile";
 export const fictionalPartyMemberIds = Array.from(
-  { length: 5 },
+  { length: 3 },
   (_, index) => `person-fictional-member-${index + 1}`,
 );
 export const fictionalPartyPersonIds = [
   fictionalPartyOwnerId,
   ...fictionalPartyMemberIds,
 ];
+const fictionalPartyCleanupPersonIds = [
+  fictionalPartyOwnerId,
+  ...Array.from(
+    { length: 5 },
+    (_, index) => `person-fictional-member-${index + 1}`,
+  ),
+];
 
 const fictionalCuratedPeople = [
   ["mira", "Mira Vale", "Friend", "my calm in the storm"],
   ["sol", "Sol Arden", "Closest friend", "always in my corner"],
   ["anya", "Anya Reed", "Sibling", "keeps me grounded"],
-  ["dev", "Dev Rowan", "Partner", "my steady place"],
-  ["ren", "Ren Ellis", "Oldest friend", "always makes me laugh"],
 ] as const;
 
 export async function seedFictionalPartyFixture(
@@ -57,10 +62,10 @@ export async function seedFictionalPartyFixture(
     .where(inArray(partyMemberships.ownerPersonId, [fictionalPartyOwnerId]));
   await database
     .delete(personProfiles)
-    .where(inArray(personProfiles.personId, fictionalPartyPersonIds));
+    .where(inArray(personProfiles.personId, fictionalPartyCleanupPersonIds));
   await database
     .delete(people)
-    .where(inArray(people.id, fictionalPartyPersonIds));
+    .where(inArray(people.id, fictionalPartyCleanupPersonIds));
   await database
     .insert(people)
     .values(fictionalPartyPersonIds.map((id) => ({ id, createdAt: now })));

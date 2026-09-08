@@ -1049,7 +1049,7 @@ article[aria-label="Party layer"] {
   transform: translateY(0);
 }
 
-.party-card--anya {
+.party-card[data-party-slot="2"] {
   grid-column: 1 / -1;
   width: calc(50% - 0.325rem);
   justify-self: center;

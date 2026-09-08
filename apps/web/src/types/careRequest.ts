@@ -18,7 +18,7 @@ export type ReceiveCareRequest = {
   foodWorks: string;
   foodDoesNotWork: string;
   handoffStyle: string;
-  audience: "Party";
+  audience: "Party" | "Tribe";
   audienceSnapshot: CareAudienceSnapshot;
   status: "open";
   createdAt: string;

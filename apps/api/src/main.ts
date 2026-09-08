@@ -7,6 +7,8 @@ import {
   createIdentityRepository,
   createPartyRepository,
   createTimelineItemRepository,
+  fictionalPartyOwnerId,
+  fictionalPartyOwnerUserId,
   getDatabaseUrl,
 } from "@cloud-forest/database";
 import type { FastifyInstance } from "fastify";
@@ -32,9 +34,18 @@ const invitedAuth = createInvitedAuth(
       }
     : undefined,
 );
+const developmentSession =
+  process.env.NODE_ENV !== "production" &&
+  process.env.CLOUD_FOREST_DEV_SESSION === "true"
+    ? {
+        userId: fictionalPartyOwnerUserId,
+        personId: fictionalPartyOwnerId,
+      }
+    : undefined;
 const sessionResolver = createSessionResolver(
   invitedAuth.api,
   createIdentityRepository(database),
+  { developmentSession },
 );
 
 let server: FastifyInstance;
