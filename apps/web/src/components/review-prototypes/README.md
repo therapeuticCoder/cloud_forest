@@ -18,6 +18,6 @@ When the product owner accepts a direction:
    future story; otherwise remove it in a deliberate cleanup task.
 
 Do not make a disconnected prototype executable by default, add production
-behavior to it, or treat its fictional data as a contract. `?review=t-044` is
-the temporary entry point for the current T-044 review and is expected to be
-removed before publication.
+behavior to it, or treat its fictional data as a contract. The T-044 review
+entry point and fixture were removed after product review; future tasks should
+follow the same temporary-entry-point pattern and remove it before publication.

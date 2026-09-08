@@ -117,6 +117,25 @@ The blocker may retain or erase their own private historical record. They may
 not inspect or erase the other User's private record. A block during claimed
 Care therefore also applies the orphaned closure rule above.
 
+## Accepted presentation boundary
+
+The service enforces current eligibility and authorization silently. The UI
+does not notify the user for every pass, demotion, newly eligible Connection,
+empty audience, removal, or block.
+
+When a Party publication has no eligible Party Connections, the publication
+wizard explains that the Care will begin with Tribe instead. Active Care shows
+only its current layer and eligible count, such as `Tribe · 1/5`, together with
+the actions available to the current viewer; it does not show audience names or
+faces. Care that is no longer accessible is absent from Timeline. Meaningful
+closures remain in private Care History as a neutral reason line without
+exposing relationship or authorization mechanics. A user can discover the
+result of an explicit action without a confirmation notification.
+
+This is a presentation boundary, not an authorization rule. The trusted
+service remains responsible for every protected read and mutation, and detailed
+notification behavior remains deferred to a later task.
+
 ## Scope and deferrals
 
 Give offers and Receive requests use the same audience and relationship-change

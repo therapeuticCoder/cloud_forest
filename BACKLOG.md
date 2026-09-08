@@ -330,7 +330,7 @@ Out of scope: schema, API, UI, dependency, or production behavior changes.
 
 #### T-044: Prototype durable care audience and boundary states
 
-Status: proposed collaborative UX checkpoint
+Status: completed by product-owner review on 2026-09-08
 Size: small
 Prerequisite: accepted T-043 decisions
 
@@ -346,14 +346,33 @@ one-way automatic demotion, manual return to a fresh Party round, newly eligible
 Connections, no eligible Tribe Connections, and claimed Care becoming orphaned
 after a break or block.
 
+Accepted presentation direction:
+
+- Most relationship and eligibility changes happen silently in the service;
+  they do not create a notification or a separate UI state for every
+  permutation.
+- The publication wizard explains when a Party request has no eligible Party
+  Connections and will begin with Tribe instead. The initial publication does
+  not show an audience count.
+- Active Care shows only its current layer and eligible count, such as
+  `Tribe · 1/5`, plus the actions available to the current viewer. It does not
+  show audience names or faces.
+- Care that is no longer accessible is absent from Timeline. Meaningful
+  closures remain in private Care History as a neutral reason line, without
+  exposing relationship or authorization mechanics.
+- Manual rediscovery is sufficient after an explicit action; no confirmation
+  notice is required. Notification behavior remains deferred to a later task.
+
 Luna guidance: first name the smallest review-route feature boundary and the
 single app entry hook it needs. Reuse existing components and styles where
 they fit; ask before introducing a new interaction, route, dependency, or
 cross-feature abstraction. Do not connect live APIs or edit care persistence.
 
-Acceptance: the product owner directly accepts the annotated desktop and
-mobile direction, including keyboard focus recovery, reduced motion, content
-reach, and no misleading promise that client presentation controls access.
+Acceptance: met through direct desktop/mobile review. The accepted direction
+preserves keyboard focus recovery, reduced motion, content reach, and no
+misleading promise that client presentation controls access. The temporary
+review entry point and fixture were removed before publication; the remaining
+review artifacts stay disconnected as historical context.
 
 Checks: focused component test, representative desktop/mobile
 browser review, overflow and console checks, then the proportional repository

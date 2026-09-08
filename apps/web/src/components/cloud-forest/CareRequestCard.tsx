@@ -17,7 +17,6 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 export function CareRequestCard({
   claimed,
   canPass,
-  audienceSummary,
   minimized,
   onOfferHelp,
   onRecordCompleted,
@@ -33,7 +32,6 @@ export function CareRequestCard({
 }: {
   claimed: boolean;
   canPass: boolean;
-  audienceSummary?: string;
   minimized: boolean;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
@@ -152,11 +150,9 @@ export function CareRequestCard({
         <div className="care-request-card__footer">
           <span>
             <UsersRound aria-hidden="true" />
-            {audienceSummary
-              ? `Audience: ${audienceSummary}`
-              : isSelfAuthored
-                ? `Shared with: ${request.audience}`
-                : `From your ${request.audience}`}
+            {isSelfAuthored
+              ? `Shared with: ${request.audience}`
+              : `From your ${request.audience}`}
           </span>
           <time dateTime={request.createdAt}>
             {formatter.format(new Date(request.createdAt))}
