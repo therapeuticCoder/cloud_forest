@@ -267,7 +267,8 @@ both already-invited pilot users, while each user independently decides where
 the other belongs in their Forest.
 
 Likely files: a focused feature boundary under
-`apps/web/src/features/mutual-connection-review/`, its stylesheet and test, and
+`apps/web/src/components/review-prototypes/mutual-connection-review/`, its
+stylesheet and test, and
 the smallest app entry hook needed to open the fictional review route. Reuse
 the approved design guide, existing portrait treatment, semantic controls,
 visible focus, touch-sized targets, reduced-motion behavior, and mobile content
