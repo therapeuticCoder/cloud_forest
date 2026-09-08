@@ -26,6 +26,8 @@ selected task:
 - `docs/project-brief.md` for product boundaries;
 - `docs/design-guide.md` for user-facing visual work;
 - `docs/care-lifecycle-prototype.md` for care behavior;
+- `docs/durable-care-audience-policy.md` for future durable Care audiences,
+  passes, relationship changes, and blocking;
 - `docs/authorization-and-privacy-matrix.md` for identity, relationship, care,
   or privacy enforcement;
 - `docs/development.md` for the exact environment, verification, preview, or

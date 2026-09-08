@@ -94,6 +94,8 @@ change and inspect the PNG diff directly.
   Tailscale review, recovery, and troubleshooting
 - `docs/design-guide.md`: approved visual and accessibility grammar
 - `docs/care-lifecycle-prototype.md`: accepted care behavior and authority limits
+- `docs/durable-care-audience-policy.md`: approved durable Care audience and
+  relationship-change rules
 - `docs/authorization-and-privacy-matrix.md`: field- and operation-level policy
 - `docs/workflow.md`: collaboration-mode router
 
