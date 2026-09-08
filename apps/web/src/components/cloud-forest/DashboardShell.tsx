@@ -88,7 +88,8 @@ export function DashboardShell({
   currentPersonControl?: PartySelfControl;
   apiClient?: CuratedPersonApiClient;
 }) {
-  const [activeView, setActiveView] = useState<CloudForestView>(viewFromLocation);
+  const [activeView, setActiveView] =
+    useState<CloudForestView>(viewFromLocation);
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);

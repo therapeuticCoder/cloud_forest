@@ -1,0 +1,329 @@
+.care-audience-review {
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+.care-audience-review__topbar,
+.care-audience-review__surface,
+.care-audience-review__controls {
+  width: min(100% - 2rem, 72rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.care-audience-review__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 0;
+}
+
+.care-audience-review__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #f0f2e7;
+  font-weight: 700;
+}
+
+.care-audience-review__brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.6rem;
+  color: var(--forest-pine);
+  background: var(--forest-amber);
+}
+
+.care-audience-review__topbar-label {
+  color: rgba(240, 242, 231, 0.65);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.care-audience-review__controls {
+  margin-bottom: 1rem;
+  color: rgba(240, 242, 231, 0.78);
+  font-size: 0.85rem;
+}
+
+.care-audience-review__controls summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.care-audience-review__state-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.care-audience-review__state-list button {
+  min-height: 2.4rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(228, 236, 217, 0.25);
+  border-radius: 999px;
+  color: rgba(240, 242, 231, 0.84);
+  background: rgba(8, 36, 25, 0.72);
+  cursor: pointer;
+}
+
+.care-audience-review__state-list button[aria-pressed="true"] {
+  border-color: var(--forest-amber);
+  color: var(--forest-pine);
+  background: var(--forest-amber);
+}
+
+.care-audience-review__surface {
+  padding: clamp(1rem, 3vw, 2.4rem);
+  border: 1px solid rgba(228, 236, 217, 0.2);
+  border-radius: 1.4rem;
+  background: rgba(8, 36, 25, 0.42);
+}
+
+.care-audience-review__heading {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 48rem;
+  margin-bottom: 1.6rem;
+}
+
+.care-audience-review__eyebrow {
+  color: var(--forest-amber);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.care-audience-review__heading h1 {
+  max-width: 18ch;
+  margin: 0;
+  color: #f4f5ec;
+  font-size: clamp(2.15rem, 5vw, 4rem);
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.care-audience-review__heading h1:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 0.35rem;
+}
+
+.care-audience-review__heading p {
+  max-width: 42rem;
+  margin: 0;
+  color: rgba(240, 242, 231, 0.75);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.care-audience-review__surfaces {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.care-audience-review__surface-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid rgba(228, 236, 217, 0.16);
+  border-radius: 1rem;
+  background: rgba(5, 31, 22, 0.46);
+}
+
+.care-audience-review__section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.care-audience-review__section-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 2.5rem;
+  place-items: center;
+  border-radius: 0.8rem;
+  color: var(--forest-pine);
+  background: var(--forest-amber);
+}
+
+.care-audience-review__section-heading h2 {
+  margin: 0;
+  color: #f4f5ec;
+  font-size: 1.35rem;
+}
+
+.care-audience-review__section-heading p {
+  margin: 0.2rem 0 0;
+  color: rgba(240, 242, 231, 0.64);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.care-audience-review__timeline-note,
+.care-audience-review__empty-state,
+.care-audience-review__boundary-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px dashed rgba(228, 236, 217, 0.3);
+  border-radius: 0.8rem;
+  color: rgba(240, 242, 231, 0.8);
+  background: rgba(5, 31, 22, 0.42);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.care-audience-review__timeline-note svg,
+.care-audience-review__empty-state > svg,
+.care-audience-review__boundary-note > svg {
+  width: 1.15rem;
+  flex: 0 0 auto;
+  color: var(--forest-amber);
+}
+
+.care-audience-review__empty-state strong {
+  display: block;
+  color: #f4f5ec;
+}
+
+.care-audience-review__empty-state p {
+  margin: 0.25rem 0 0;
+}
+
+.care-audience-review__empty-state--recovery {
+  border-color: rgba(167, 68, 24, 0.65);
+}
+
+.care-audience-review__profile-preview {
+  display: grid;
+  gap: 1rem;
+  color: var(--forest-ink);
+  padding: 1rem;
+  border: 5px solid var(--forest-party);
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #edf2e5, var(--forest-card));
+}
+
+.care-audience-review__profile-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.care-audience-review__profile-row strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.15rem;
+}
+
+.care-audience-review__profile-status {
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  color: var(--forest-pine);
+  background: #cbd9b3;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.care-audience-review__profile-preview > p {
+  margin: 0;
+  color: rgba(10, 42, 29, 0.72);
+  line-height: 1.45;
+}
+
+.care-audience-review__history-entry,
+.care-audience-review__history-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(10, 42, 29, 0.16);
+}
+
+.care-audience-review__history-entry svg {
+  width: 1.1rem;
+  flex: 0 0 auto;
+  color: var(--forest-tribe);
+}
+
+.care-audience-review__history-entry strong,
+.care-audience-review__history-entry span,
+.care-audience-review__history-empty span,
+.care-audience-review__history-empty strong {
+  display: block;
+}
+
+.care-audience-review__history-entry span,
+.care-audience-review__history-empty span {
+  color: rgba(10, 42, 29, 0.58);
+  font-size: 0.82rem;
+}
+
+.care-audience-review__history-empty {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.care-audience-review__history-empty strong {
+  font-size: 0.9rem;
+}
+
+.care-audience-review__boundary-note {
+  margin-top: 1rem;
+  color: rgba(240, 242, 231, 0.7);
+  font-size: 0.84rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .care-audience-review *,
+  .care-audience-review *::before,
+  .care-audience-review *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .care-audience-review__topbar,
+  .care-audience-review__surface,
+  .care-audience-review__controls {
+    width: min(100% - 1.5rem, 42rem);
+  }
+
+  .care-audience-review__topbar {
+    padding: 0.85rem 0;
+  }
+
+  .care-audience-review__topbar-label {
+    max-width: 8rem;
+    font-size: 0.68rem;
+    text-align: right;
+  }
+
+  .care-audience-review__surface {
+    padding: 1rem 0.75rem 1.25rem;
+    border-radius: 1rem;
+  }
+
+  .care-audience-review__surfaces {
+    grid-template-columns: 1fr;
+  }
+
+  .care-audience-review__heading h1 {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+}
