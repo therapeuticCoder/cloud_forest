@@ -37,7 +37,7 @@ type CuratorViewProps = {
   curatedPeopleStatus: "loading" | "ready" | "error";
   curatedPeopleError?: string;
   currentPersonControl?: PartySelfControl;
-  onAddPartyMember: () => void;
+  onAddPartyMember: (slotIndex?: number) => void;
   onCancelAdd: () => void;
   onCompleteAdd: (
     draft: AddPartyMemberDraft,

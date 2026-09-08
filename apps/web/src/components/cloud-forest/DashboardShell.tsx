@@ -165,9 +165,12 @@ export function DashboardShell({
   }, []);
 
   const revealChrome = () => setChromeHidden(false);
-  const openAddWizard = () => {
+  const openAddWizard = (slotIndex?: number) => {
     if (curatedPeople.status === "ready" && partyPeople.length < 5) {
-      focusTargetIdRef.current = "party-add";
+      const firstEmptySlot = Math.min(partyPeople.length, 4);
+      focusTargetIdRef.current = `party-add-${
+        (slotIndex ?? firstEmptySlot) + 1
+      }`;
       setAddSubmission({ pending: false });
       setAddWizardOpen(true);
     }

@@ -23,7 +23,7 @@ export type PartySelfControl = {
 
 type PartyLayerProps = {
   currentPersonControl?: PartySelfControl;
-  onAdd: () => void;
+  onAdd: (slotIndex?: number) => void;
   onNavigateToTimeline: () => void;
   onOpenMyCare: () => void;
   onRetry: () => void;
@@ -318,12 +318,12 @@ export function PartyLayer({
                 />
               ) : (
                 <button
-                  aria-label="Add a Party member"
+                  aria-label={`Add a Party member in slot ${index + 1}`}
                   className="party-card party-card--empty"
-                  data-curator-tile="party-add"
+                  data-curator-tile={`party-add-${index + 1}`}
                   data-party-slot={index}
                   key={`party-slot-${index}`}
-                  onClick={onAdd}
+                  onClick={() => onAdd(index)}
                   type="button"
                 >
                   <span className="party-card__portrait party-card__portrait--empty">
