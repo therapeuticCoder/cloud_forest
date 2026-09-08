@@ -3,6 +3,7 @@ import {
   type CuratedPersonApiClient,
 } from "@/components/cloud-forest/DashboardShell";
 import { InvitedSessionPrototype } from "@/features/invited-session/InvitedSessionPrototype";
+import { MutualConnectionReview } from "@/features/mutual-connection-review/MutualConnectionReview";
 import { PartyStatePrototype } from "@/features/party-state-review/PartyStatePrototype";
 import { PwaNotice } from "@/components/pwa/PwaNotice";
 
@@ -21,6 +22,10 @@ export function App({
 
   if (prototype === "party-states") {
     return <PartyStatePrototype />;
+  }
+
+  if (prototype === "mutual-connection") {
+    return <MutualConnectionReview />;
   }
 
   return (

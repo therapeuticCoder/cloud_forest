@@ -1,0 +1,578 @@
+.mutual-review {
+  --mutual-card: #e4ecd9;
+  --mutual-ink: #0a2a1d;
+  --mutual-pine: #082419;
+  --mutual-amber: #f1a411;
+  --mutual-party: #607d27;
+  min-height: 100svh;
+  color: #f0f2e7;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(96, 125, 39, 0.22), transparent 30%),
+    radial-gradient(
+      circle at 88% 70%,
+      rgba(167, 68, 24, 0.16),
+      transparent 32%
+    ),
+    #29180f;
+}
+
+.mutual-review button {
+  font: inherit;
+}
+
+.mutual-review__topbar {
+  display: flex;
+  width: min(100% - 2rem, 72rem);
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 auto;
+  padding: 1.2rem 0;
+}
+
+.mutual-review__brand,
+.mutual-review__topbar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 700;
+}
+
+.mutual-review__brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.6rem;
+  color: var(--mutual-pine);
+  background: var(--mutual-amber);
+}
+
+.mutual-review__topbar-label {
+  color: rgba(240, 242, 231, 0.62);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mutual-review__controls {
+  width: min(100% - 2rem, 72rem);
+  margin: 0 auto 1rem;
+  color: rgba(240, 242, 231, 0.76);
+  font-size: 0.85rem;
+}
+
+.mutual-review__controls summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.mutual-review__state-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.mutual-review__state-list button {
+  min-height: 2.4rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(228, 236, 217, 0.25);
+  border-radius: 999px;
+  color: rgba(240, 242, 231, 0.82);
+  background: rgba(8, 36, 25, 0.72);
+  cursor: pointer;
+}
+
+.mutual-review__state-list button[aria-pressed="true"] {
+  border-color: var(--mutual-amber);
+  color: var(--mutual-pine);
+  background: var(--mutual-amber);
+}
+
+.mutual-review__surface {
+  width: min(100% - 2rem, 72rem);
+  min-height: calc(100svh - 7rem);
+  margin: 0 auto 2rem;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  border: 1px solid rgba(228, 236, 217, 0.22);
+  border-radius: 1.5rem;
+  background: rgba(8, 36, 25, 0.58);
+  box-shadow: 0 1rem 3rem rgba(8, 12, 8, 0.18);
+}
+
+.mutual-review__content {
+  display: grid;
+  width: min(100%, 42rem);
+  gap: 1.25rem;
+  margin: 0 auto;
+}
+
+.mutual-review__heading {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 0.5rem;
+}
+
+.mutual-review__eyebrow {
+  color: var(--mutual-amber);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mutual-review__heading h1 {
+  max-width: 12ch;
+  margin: 0;
+  color: #f4f5ec;
+  font-size: clamp(2.35rem, 6vw, 4.8rem);
+  font-weight: 650;
+  letter-spacing: -0.06em;
+  line-height: 0.98;
+}
+
+.mutual-review__heading p {
+  max-width: 38rem;
+  margin: 0.3rem 0 0;
+  color: rgba(240, 242, 231, 0.72);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.mutual-review__heading h1:focus-visible {
+  outline: 3px solid var(--mutual-amber);
+  outline-offset: 0.35rem;
+}
+
+.mutual-review__private-card,
+.mutual-review__identity-card,
+.mutual-review__boundary-card,
+.mutual-review__consent-card,
+.mutual-review__scan-card {
+  color: var(--mutual-ink);
+  background: linear-gradient(145deg, #edf2e5, var(--mutual-card));
+  box-shadow: 0 0.7rem 1.5rem rgba(5, 17, 11, 0.14);
+}
+
+.mutual-review__private-card {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1rem, 4vw, 1.5rem);
+  border: 6px solid var(--mutual-party);
+  border-radius: 1.25rem;
+}
+
+.mutual-review__person-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.mutual-review__person-row > .party-self-portrait,
+.mutual-review__identity-card > .party-self-portrait {
+  width: 4.25rem;
+  height: 4.25rem;
+  flex: 0 0 4.25rem;
+  border-radius: 1rem;
+}
+
+.mutual-review__person-row h2,
+.mutual-review__identity-card h2 {
+  margin: 0.2rem 0 0;
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+}
+
+.mutual-review__private-card dl {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.mutual-review__private-card dl div {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(10, 42, 29, 0.18);
+}
+
+.mutual-review__private-card dt {
+  color: rgba(10, 42, 29, 0.6);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.mutual-review__private-card dd {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.mutual-review__note,
+.mutual-review__privacy-line {
+  color: rgba(240, 242, 231, 0.72);
+}
+
+.mutual-review__note {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.mutual-review__note p,
+.mutual-review__privacy-line {
+  margin: 0;
+}
+
+.mutual-review__note svg {
+  flex: 0 0 auto;
+  color: var(--mutual-amber);
+}
+
+.mutual-review__choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.mutual-review__choice {
+  display: grid;
+  min-height: 12rem;
+  align-content: start;
+  gap: 0.65rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(228, 236, 217, 0.3);
+  border-radius: 1.1rem;
+  color: #f0f2e7;
+  background: rgba(5, 31, 22, 0.7);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mutual-review__choice svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--mutual-amber);
+}
+
+.mutual-review__choice strong {
+  font-size: 1.2rem;
+}
+
+.mutual-review__choice span {
+  color: rgba(240, 242, 231, 0.68);
+  line-height: 1.4;
+}
+
+.mutual-review__choice:hover,
+.mutual-review__choice:focus-visible {
+  border-color: var(--mutual-amber);
+  background: rgba(15, 55, 38, 0.78);
+}
+
+.mutual-review__choice:focus-visible,
+.mutual-review__primary:focus-visible,
+.mutual-review__secondary:focus-visible,
+.mutual-review__text-button:focus-visible,
+.mutual-review__back:focus-visible,
+.mutual-review__controls summary:focus-visible,
+.mutual-review__state-list button:focus-visible {
+  outline: 3px solid var(--mutual-amber);
+  outline-offset: 3px;
+}
+
+.mutual-review__back {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0;
+  border: 0;
+  color: rgba(240, 242, 231, 0.78);
+  background: transparent;
+  cursor: pointer;
+}
+
+.mutual-review__back svg {
+  width: 1.15rem;
+}
+
+.mutual-review__consent-card,
+.mutual-review__scan-card {
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  padding: clamp(1rem, 5vw, 2rem);
+  border-radius: 1.25rem;
+  text-align: center;
+}
+
+.mutual-review__consent-card > svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--mutual-party);
+}
+
+.mutual-review__consent-card p,
+.mutual-review__consent-card span,
+.mutual-review__scan-card p {
+  margin: 0;
+}
+
+.mutual-review__consent-card p {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.mutual-review__consent-card span,
+.mutual-review__scan-card p {
+  color: rgba(10, 42, 29, 0.68);
+  line-height: 1.4;
+}
+
+.mutual-review__qr {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: min(58vw, 15rem);
+  aspect-ratio: 1;
+  gap: 0.2rem;
+  padding: 0.65rem;
+  border: 0.7rem solid white;
+  border-radius: 0.7rem;
+  background: white;
+  box-shadow: 0 0.35rem 0.8rem rgba(10, 42, 29, 0.18);
+}
+
+.mutual-review__qr span {
+  border-radius: 0.08rem;
+  background: transparent;
+}
+
+.mutual-review__qr span.is-filled {
+  background: var(--mutual-ink);
+}
+
+.mutual-review__scan-frame {
+  display: grid;
+  min-height: 16rem;
+  width: min(100%, 20rem);
+  place-content: center;
+  gap: 0.55rem;
+  border: 2px solid var(--mutual-party);
+  border-radius: 1rem;
+  color: var(--mutual-party);
+  background:
+    linear-gradient(rgba(96, 125, 39, 0.08), rgba(96, 125, 39, 0.08)),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 2rem,
+      rgba(96, 125, 39, 0.11) 2rem 2.05rem
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 2rem,
+      rgba(96, 125, 39, 0.11) 2rem 2.05rem
+    );
+  text-align: center;
+}
+
+.mutual-review__scan-frame svg {
+  width: 3rem;
+  height: 3rem;
+  justify-self: center;
+}
+
+.mutual-review__scan-frame span {
+  color: var(--mutual-ink);
+  font-weight: 750;
+}
+
+.mutual-review__scan-frame small {
+  color: rgba(10, 42, 29, 0.62);
+}
+
+.mutual-review__identity-card,
+.mutual-review__boundary-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 1.1rem;
+}
+
+.mutual-review__identity-card p {
+  margin: 0.25rem 0 0;
+  color: rgba(10, 42, 29, 0.66);
+  font-size: 0.9rem;
+}
+
+.mutual-review__identity-card > svg {
+  width: 1.45rem;
+  margin-left: auto;
+  color: var(--mutual-party);
+}
+
+.mutual-review__boundary-card {
+  align-items: start;
+  border: 1px dashed rgba(228, 236, 217, 0.35);
+  color: rgba(240, 242, 231, 0.8);
+  background: rgba(5, 31, 22, 0.48);
+}
+
+.mutual-review__boundary-card svg {
+  flex: 0 0 auto;
+  color: var(--mutual-amber);
+}
+
+.mutual-review__boundary-card p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.mutual-review__actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.mutual-review__primary,
+.mutual-review__secondary,
+.mutual-review__text-button {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1rem;
+  border-radius: 0.9rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.mutual-review__primary {
+  border: 1px solid var(--mutual-amber);
+  color: var(--mutual-pine);
+  background: var(--mutual-amber);
+}
+
+.mutual-review__primary:hover {
+  filter: brightness(1.06);
+}
+
+.mutual-review__secondary {
+  border: 1px solid rgba(228, 236, 217, 0.34);
+  color: #f0f2e7;
+  background: transparent;
+}
+
+.mutual-review__secondary:hover {
+  background: rgba(228, 236, 217, 0.08);
+}
+
+.mutual-review__text-button {
+  min-height: 2.5rem;
+  border: 0;
+  color: rgba(240, 242, 231, 0.7);
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.mutual-review__outcome {
+  display: grid;
+  gap: 1rem;
+}
+
+.mutual-review__outcome-icon {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  border-radius: 1.1rem;
+  color: var(--mutual-pine);
+  background: var(--mutual-amber);
+}
+
+.mutual-review__outcome-icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.mutual-review__outcome--success .mutual-review__outcome-icon {
+  background: #9ab867;
+}
+
+.mutual-review__outcome--wrong-account .mutual-review__outcome-icon,
+.mutual-review__outcome--expired .mutual-review__outcome-icon {
+  color: #fff2e7;
+  background: #a74418;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mutual-review *,
+  .mutual-review *::before,
+  .mutual-review *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .mutual-review__topbar {
+    width: min(100% - 1.5rem, 42rem);
+    padding: 0.85rem 0;
+  }
+
+  .mutual-review__topbar-label {
+    max-width: 8rem;
+    font-size: 0.68rem;
+    text-align: right;
+  }
+
+  .mutual-review__controls {
+    width: min(100% - 1.5rem, 42rem);
+  }
+
+  .mutual-review__surface {
+    width: min(100% - 1.5rem, 42rem);
+    min-height: calc(100svh - 6rem);
+    margin-bottom: 0.75rem;
+    padding: 1.1rem 0.9rem 1.4rem;
+    border-radius: 1.1rem;
+  }
+
+  .mutual-review__content {
+    gap: 1rem;
+  }
+
+  .mutual-review__heading h1 {
+    max-width: 14ch;
+    font-size: clamp(2.2rem, 12vw, 3.2rem);
+  }
+
+  .mutual-review__heading p {
+    font-size: 0.98rem;
+  }
+
+  .mutual-review__private-card dl div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+
+  .mutual-review__choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mutual-review__choice {
+    min-height: 0;
+  }
+
+  .mutual-review__identity-card {
+    align-items: start;
+  }
+
+  .mutual-review__identity-card > svg {
+    width: 1.25rem;
+  }
+}
