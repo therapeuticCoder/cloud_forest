@@ -200,7 +200,7 @@ purpose-specific test file rather than `App.test.tsx`.
 
 #### T-042: Prototype the mutual connection QR handshake
 
-Status: approved for collaborative UX checkpoint
+Status: completed after annotated review and PO-reported verification; PR opened
 Size: small
 Prerequisite: T-041 and the post-tranche product-owner review
 

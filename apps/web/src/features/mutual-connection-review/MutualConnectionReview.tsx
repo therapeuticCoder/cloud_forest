@@ -18,6 +18,7 @@ type ReviewState =
   | "entry"
   | "choice"
   | "show"
+  | "waiting"
   | "scan"
   | "confirm"
   | "success"
@@ -42,6 +43,7 @@ const stateLabels: Record<ReviewState, string> = {
   entry: "Cloud Forest character",
   choice: "Choose a way",
   show: "Show code",
+  waiting: "Waiting for confirmation",
   scan: "Scan code",
   confirm: "Confirm identity",
   success: "Connected",
@@ -274,7 +276,7 @@ function ShowState({
           onClick={onContinue}
           type="button"
         >
-          Continue to confirmation
+          Send request and wait
         </button>
         <button
           className="mutual-review__secondary"
@@ -282,6 +284,48 @@ function ShowState({
           type="button"
         >
           Cancel this offer
+        </button>
+      </div>
+    </>
+  );
+}
+
+function WaitingState({
+  onBack,
+  onContinue,
+}: {
+  onBack: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <>
+      <BackButton onClick={onBack} />
+      <StateHeading
+        description="Keep this screen open while the other person reviews the request on their device. This connection cannot be approved from your screen alone."
+        eyebrow="Request sent"
+        heading="Waiting for their confirmation"
+      />
+      <div className="mutual-review__boundary-card">
+        <ShieldCheck aria-hidden="true" />
+        <p>
+          Rowan Lee needs to confirm this request on their device before you can
+          review the connection here.
+        </p>
+      </div>
+      <div className="mutual-review__actions">
+        <button
+          className="mutual-review__primary"
+          onClick={onContinue}
+          type="button"
+        >
+          Simulate Rowan Lee’s confirmation
+        </button>
+        <button
+          className="mutual-review__secondary"
+          onClick={onBack}
+          type="button"
+        >
+          Cancel this request
         </button>
       </div>
     </>
@@ -492,6 +536,12 @@ export function MutualConnectionReview() {
           {state === "show" ? (
             <ShowState
               onBack={() => setState("choice")}
+              onContinue={() => setState("waiting")}
+            />
+          ) : null}
+          {state === "waiting" ? (
+            <WaitingState
+              onBack={() => setState("show")}
               onContinue={() => setState("confirm")}
             />
           ) : null}

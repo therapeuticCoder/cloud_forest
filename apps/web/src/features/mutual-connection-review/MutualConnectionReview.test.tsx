@@ -20,7 +20,17 @@ describe("MutualConnectionReview", () => {
     ).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole("button", { name: "Continue to confirmation" }),
+      screen.getByRole("button", { name: "Send request and wait" }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "Waiting for their confirmation" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Confirm connection" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Simulate Rowan Lee’s confirmation" }),
     );
     expect(
       screen.getByRole("heading", { name: "Is this the person you mean?" }),
