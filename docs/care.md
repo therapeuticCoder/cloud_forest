@@ -35,6 +35,10 @@ The user experience should show only useful information, such as the current lay
 
 Passing is private to the viewer. A pass suppresses that Connection for the Care under its current relational standing.
 
+Moving a Connection between Party and Tribe clears that Connection's existing passes for the Care so an old pass does not suppress them under a new relational standing.
+
+If the originator explicitly returns Tribe Care to Party, that begins a fresh Party round and clears Party passes for that round. Existing Tribe passes remain unless that Connection itself moves between Party and Tribe.
+
 The first eligible claim wins. After a claim, the active Care is shared only by the requester and giver while their Connection remains valid.
 
 A claimant may release a claim. The Care returns to the same layer with prior passes intact.
