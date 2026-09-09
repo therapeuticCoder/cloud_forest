@@ -4,6 +4,8 @@ import {
   isGetTimelineItemErrorResponse,
   isGetTimelineItemSuccessResponse,
   isHealthResponse,
+  isCurrentSessionResponse,
+  isUnauthorizedResponse,
 } from "@cloud-forest/api-contracts";
 
 import type { operations } from "./generated/openapi.ts";
@@ -25,6 +27,8 @@ type CuratedPersonsOperation = operations["getCuratedPersonsV1"];
 type CreateCuratedPersonOperation = operations["createCuratedPersonV1"];
 type UpdateCuratedPersonOperation = operations["updateCuratedPersonV1"];
 type DeleteCuratedPersonOperation = operations["deleteCuratedPersonV1"];
+type CurrentSessionOperation = operations["getCurrentSessionV1"];
+type LogoutOperation = operations["logoutV1"];
 
 export type HealthResponse = OperationResponseBody<HealthOperation, 200>;
 export type GetTimelineItemParameters =
@@ -51,6 +55,22 @@ export type GetCuratedPersonsErrorResponse = OperationResponseBody<
   CuratedPersonsOperation,
   401
 >;
+export type CurrentSessionResponse = OperationResponseBody<
+  CurrentSessionOperation,
+  200
+>;
+export type CurrentSessionErrorResponse = OperationResponseBody<
+  CurrentSessionOperation,
+  401
+>;
+export type CurrentSessionResult = ApiResult<
+  200,
+  CurrentSessionResponse,
+  401,
+  CurrentSessionErrorResponse
+>;
+export type LogoutErrorResponse = OperationResponseBody<LogoutOperation, 401>;
+export type LogoutResult = ApiResult<204, null, 401, LogoutErrorResponse>;
 
 export interface ApiSuccess<Status extends number, Value> {
   ok: true;
@@ -107,6 +127,8 @@ export type GetCuratedPersonsResult = ApiResult<
 
 export interface ApiClient {
   getHealth(): Promise<HealthResult>;
+  getCurrentSession(): Promise<CurrentSessionResult>;
+  logout(): Promise<LogoutResult>;
   getTimelineItem(
     parameters: GetTimelineItemParameters,
   ): Promise<GetTimelineItemResult>;
@@ -195,6 +217,37 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
       };
     },
 
+    async getCurrentSession() {
+      return parseCurrentSessionResponse(
+        await request("GET", "/api/v1/session"),
+      );
+    },
+
+    async logout() {
+      const result = await request("POST", "/api/v1/session/logout");
+      if (result.kind === "network") return result;
+
+      if (result.status === 204) {
+        return { ok: true, status: 204, value: null };
+      }
+
+      if (result.status === 401 && isUnauthorizedResponse(result.body)) {
+        return {
+          ok: false,
+          kind: "http",
+          status: 401,
+          error: result.body,
+        };
+      }
+
+      return {
+        ok: false,
+        kind: "unexpected-response",
+        status: result.status,
+        body: result.body,
+      };
+    },
+
     async getTimelineItem(parameters) {
       const timelineItemId = encodeURIComponent(parameters.timelineItemId);
       const result = await request(
@@ -265,6 +318,29 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         ),
       );
     },
+  };
+}
+
+function parseCurrentSessionResponse(
+  result: RawRequestResult,
+): CurrentSessionResult {
+  if (result.kind === "network") return result;
+  if (result.status === 200 && isCurrentSessionResponse(result.body)) {
+    return { ok: true, status: 200, value: result.body };
+  }
+  if (result.status === 401 && isUnauthorizedResponse(result.body)) {
+    return {
+      ok: false,
+      kind: "http",
+      status: 401,
+      error: result.body,
+    };
+  }
+  return {
+    ok: false,
+    kind: "unexpected-response",
+    status: result.status,
+    body: result.body,
   };
 }
 

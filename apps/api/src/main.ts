@@ -1,14 +1,9 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
-
 import {
   createDatabaseClient,
   createCuratedPersonRepository,
   createIdentityRepository,
   createPartyRepository,
   createTimelineItemRepository,
-  fictionalPartyOwnerId,
-  fictionalPartyOwnerUserId,
   getDatabaseUrl,
 } from "@cloud-forest/database";
 import type { FastifyInstance } from "fastify";
@@ -20,32 +15,15 @@ import { createTimelineItemResolver } from "./timelineItemResolver.ts";
 
 const { database, pool } = createDatabaseClient(getDatabaseUrl());
 const timelineItemRepository = createTimelineItemRepository(database);
-const e2eMagicLinkFile = process.env.E2E_MAGIC_LINK_FILE;
+
 const invitedAuth = createInvitedAuth(
   database,
   process.env.BETTER_AUTH_SECRET ??
     "cloud-forest-local-test-secret-must-be-32-chars",
-  e2eMagicLinkFile
-    ? {
-        async deliver(link) {
-          await mkdir(dirname(e2eMagicLinkFile), { recursive: true });
-          await writeFile(e2eMagicLinkFile, JSON.stringify(link), "utf8");
-        },
-      }
-    : undefined,
 );
-const developmentSession =
-  process.env.NODE_ENV !== "production" &&
-  process.env.CLOUD_FOREST_DEV_SESSION === "true"
-    ? {
-        userId: fictionalPartyOwnerUserId,
-        personId: fictionalPartyOwnerId,
-      }
-    : undefined;
 const sessionResolver = createSessionResolver(
   invitedAuth.api,
   createIdentityRepository(database),
-  { developmentSession },
 );
 
 let server: FastifyInstance;

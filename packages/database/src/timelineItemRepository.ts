@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import type { TimelineItem } from "@cloud-forest/domain";
 
@@ -22,11 +22,19 @@ function mapTimelineItemRow(row: TimelineItemRow): TimelineItem {
 
 export function createTimelineItemRepository(database: DatabaseClient) {
   return {
-    async findById(timelineItemId: string): Promise<TimelineItem | null> {
+    async findByIdForOwner(
+      timelineItemId: string,
+      ownerUserId: string,
+    ): Promise<TimelineItem | null> {
       const [row] = await database
         .select()
         .from(timelineItems)
-        .where(eq(timelineItems.id, timelineItemId))
+        .where(
+          and(
+            eq(timelineItems.id, timelineItemId),
+            eq(timelineItems.ownerUserId, ownerUserId),
+          ),
+        )
         .limit(1);
 
       return row === undefined ? null : mapTimelineItemRow(row);

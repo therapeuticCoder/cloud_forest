@@ -78,6 +78,7 @@ export function buildApi(
   server.register(healthRoutes);
   server.register(timelineItemRoutes, {
     resolver: options.timelineItemResolver ?? defaultTimelineItemResolver,
+    sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
   server.register(sessionRoutes, {
     resolver: options.sessionResolver ?? missingSessionResolver,
@@ -94,6 +95,5 @@ export function buildApi(
       options.curatedPersonRepository ?? missingCuratedPersonRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
-
   return server;
 }

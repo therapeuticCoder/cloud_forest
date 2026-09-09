@@ -37,6 +37,12 @@ test("an injected resolver can return the typed success response", async (t) => 
       statusCode: 200,
       body: getTimelineItemSuccessResponseExample,
     }),
+    sessionResolver: {
+      async resolve() {
+        return { userId: "user-owner", personId: "person-owner" };
+      },
+      async logout() {},
+    },
   });
   t.after(() => server.close());
 

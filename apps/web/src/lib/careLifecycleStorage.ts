@@ -18,6 +18,12 @@ import {
 
 export const CARE_LIFECYCLE_STORAGE_KEY = "cloud-forest:care-lifecycle:v2";
 
+function storageKey(viewerId: string) {
+  return viewerId === CURRENT_CARE_VIEWER_ID
+    ? CARE_LIFECYCLE_STORAGE_KEY
+    : `${CARE_LIFECYCLE_STORAGE_KEY}:${viewerId}`;
+}
+
 type StoredCareLifecycleV2 = Omit<
   CareLifecycleState,
   "requests" | "gratitudes"
@@ -166,13 +172,14 @@ function keepKnownRequests<T extends { requestId: string }>(
 
 export function loadCareLifecycleState(
   requests: ReceiveCareRequest[],
+  viewerId = CURRENT_CARE_VIEWER_ID,
 ): CareLifecycleState {
   const emptyState = createCareLifecycleState(requests);
   const storage = getBrowserStorage();
   if (!storage) return emptyState;
 
   try {
-    const storedValue = storage.getItem(CARE_LIFECYCLE_STORAGE_KEY);
+    const storedValue = storage.getItem(storageKey(viewerId));
     if (storedValue) {
       const parsed: unknown = JSON.parse(storedValue);
       if (!isStoredCareLifecycleV2(parsed)) return emptyState;
@@ -189,6 +196,8 @@ export function loadCareLifecycleState(
         gratitudes: keepKnownRequests(parsed.gratitudes ?? [], requestIds),
       };
     }
+
+    if (viewerId !== CURRENT_CARE_VIEWER_ID) return emptyState;
 
     const requestIds = new Set(requests.map((request) => request.id));
     const migratedClaims = loadCareClaims()
@@ -207,12 +216,16 @@ export function loadCareLifecycleState(
   }
 }
 
-export function saveCareLifecycleState(state: CareLifecycleState) {
+export function saveCareLifecycleState(
+  state: CareLifecycleState,
+  viewerId = CURRENT_CARE_VIEWER_ID,
+) {
   try {
     const storage = getBrowserStorage();
     if (!storage) return;
 
-    const existingValue = storage.getItem(CARE_LIFECYCLE_STORAGE_KEY);
+    const key = storageKey(viewerId);
+    const existingValue = storage.getItem(key);
     if (existingValue) {
       const parsed: unknown = JSON.parse(existingValue);
       if (!isStoredCareLifecycleV2(parsed)) return;
@@ -228,7 +241,7 @@ export function saveCareLifecycleState(state: CareLifecycleState) {
       history: state.history,
       gratitudes: state.gratitudes,
     };
-    storage.setItem(CARE_LIFECYCLE_STORAGE_KEY, JSON.stringify(stored));
+    storage.setItem(key, JSON.stringify(stored));
   } catch {
     // The in-memory prototype remains usable when browser storage is unavailable.
   }

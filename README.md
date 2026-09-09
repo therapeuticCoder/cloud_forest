@@ -22,6 +22,7 @@ pnpm.cmd setup
 Copy-Item .env.example .env
 pnpm.cmd services:up
 pnpm.cmd db:migrate
+pnpm.cmd db:fixtures:seed:local
 ```
 
 Then run API and web app in separate terminals:

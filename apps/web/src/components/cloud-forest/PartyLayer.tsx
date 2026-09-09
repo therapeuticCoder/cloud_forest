@@ -7,22 +7,12 @@ import {
   UserRoundPlus,
   UsersRound,
 } from "lucide-react";
-import type { RefObject } from "react";
 
 import communityPortraits from "@/assets/timeline/community-portraits.png";
 import solArdenPortrait from "@/assets/curator/sol-arden.png";
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
-export type PartySelfControl = {
-  ariaLabel: string;
-  initials: string;
-  onOpen: () => void;
-  personId: string;
-  triggerRef?: RefObject<HTMLButtonElement | null>;
-};
-
 type PartyLayerProps = {
-  currentPersonControl?: PartySelfControl;
   onAdd: (slotIndex?: number) => void;
   onNavigateToTimeline: () => void;
   onOpenMyCare: () => void;
@@ -240,7 +230,6 @@ export function PartyActions({
 }
 
 export function PartyLayer({
-  currentPersonControl,
   onNavigateToTimeline,
   onAdd,
   onOpenMyCare,
@@ -260,22 +249,14 @@ export function PartyLayer({
     <div aria-label="Party people" className="party-layer">
       <header className="party-header">
         <button
-          aria-label={currentPersonControl?.ariaLabel ?? "Open My Care"}
+          aria-label="Open My Care"
           className="party-self"
           data-curator-tile={`party-${user.id}`}
           data-my-care-trigger="curator"
-          data-prototype-current-person={
-            currentPersonControl ? "true" : undefined
-          }
-          onClick={currentPersonControl?.onOpen ?? onOpenMyCare}
-          ref={currentPersonControl?.triggerRef}
+          onClick={onOpenMyCare}
           type="button"
         >
-          <Portrait
-            initials={currentPersonControl?.initials}
-            personId={currentPersonControl?.personId ?? user.id}
-            small
-          />
+          <Portrait personId={user.id} small />
         </button>
         <h1>Party</h1>
         <button

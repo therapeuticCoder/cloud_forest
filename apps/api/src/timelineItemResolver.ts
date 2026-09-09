@@ -6,8 +6,11 @@ import type { TimelineItemResolver } from "./routes/timelineItem.ts";
 export function createTimelineItemResolver(
   repository: TimelineItemRepository,
 ): TimelineItemResolver {
-  return async ({ timelineItemId }) => {
-    const timelineItem = await repository.findById(timelineItemId);
+  return async ({ timelineItemId }, ownerUserId) => {
+    const timelineItem = await repository.findByIdForOwner(
+      timelineItemId,
+      ownerUserId,
+    );
 
     if (timelineItem === null) {
       return {

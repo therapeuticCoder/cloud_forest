@@ -20,6 +20,10 @@ export const timelineItems = pgTable(
   "timeline_items",
   {
     id: varchar("id", { length: 128 }).primaryKey(),
+    ownerUserId: varchar("owner_user_id", { length: 128 }).references(
+      () => users.id,
+      { onDelete: "cascade" },
+    ),
     actorId: varchar("actor_id", { length: 128 }).notNull(),
     actorDisplayName: varchar("actor_display_name", { length: 200 }).notNull(),
     actorLayer: varchar("actor_layer", { length: 16 })
@@ -34,6 +38,7 @@ export const timelineItems = pgTable(
     }).notNull(),
   },
   (table) => [
+    index("timeline_items_owner_index").on(table.ownerUserId),
     check("timeline_items_id_length", sql`char_length(${table.id}) >= 1`),
     check(
       "timeline_items_actor_id_length",

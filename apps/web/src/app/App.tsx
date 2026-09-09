@@ -1,18 +1,13 @@
-import {
-  DashboardShell,
-  type CuratedPersonApiClient,
-} from "@/components/cloud-forest/DashboardShell";
-import { PwaNotice } from "@/components/pwa/PwaNotice";
+import { AuthBoundary } from "@/components/auth/AuthBoundary";
+import type { CuratedPersonApiClient } from "@/components/cloud-forest/DashboardShell";
+import type { SessionClient } from "./sessionClient";
 
 export function App({
   apiClient,
+  sessionClient,
 }: {
   apiClient?: CuratedPersonApiClient;
+  sessionClient?: SessionClient;
 } = {}) {
-  return (
-    <>
-      <DashboardShell apiClient={apiClient} />
-      <PwaNotice />
-    </>
-  );
+  return <AuthBoundary apiClient={apiClient} sessionClient={sessionClient} />;
 }

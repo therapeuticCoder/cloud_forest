@@ -11,6 +11,7 @@ type ReceiveCareWizardProps = {
   audienceSnapshot: CareAudienceSnapshot;
   onCancel: () => void;
   onComplete: (request: ReceiveCareRequest) => void;
+  viewerId: string;
 };
 
 const steps = ["Care", "Timing", "Food", "Handoff", "Review"];
@@ -33,6 +34,7 @@ export function ReceiveCareWizard({
   audienceSnapshot,
   onCancel,
   onComplete,
+  viewerId,
 }: ReceiveCareWizardProps) {
   const wizardRef = useRef<HTMLElement>(null);
   const [step, setStep] = useState(0);
@@ -82,7 +84,7 @@ export function ReceiveCareWizard({
       status: "open",
       createdAt: createdAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
-      requester: { kind: "self", id: "you", displayName: "You" },
+      requester: { kind: "self", id: viewerId, displayName: "You" },
     });
   };
 

@@ -1,37 +1,17 @@
-import { readFile, rm } from "node:fs/promises";
-import path from "node:path";
-
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 const miraContent =
   "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?";
 const miraEndpoint = "/api/v1/timeline-items/timeline-item-mira-soup-001";
-const e2eMagicLinkFile = path.resolve("test-results/e2e-magic-link.json");
 
 async function signInAsFictionalPartyOwner(page: Page) {
-  await rm(e2eMagicLinkFile, { force: true });
-  const signIn = await page.request.post("/api/auth/sign-in/magic-link", {
-    data: { email: "river@example.test" },
+  const signIn = await page.request.post("/api/auth/sign-in/email", {
+    data: {
+      email: "river@example.test",
+      password: "cloud-forest-local-password",
+    },
   });
   expect(signIn.ok()).toBe(true);
-
-  await expect
-    .poll(async () => {
-      try {
-        return await readFile(e2eMagicLinkFile, "utf8");
-      } catch {
-        return "";
-      }
-    })
-    .not.toBe("");
-  const magicLinkJson = await readFile(e2eMagicLinkFile, "utf8");
-  const magicLink = JSON.parse(magicLinkJson as string) as { url: string };
-  const verificationUrl = new URL(magicLink.url);
-  verificationUrl.port = "5173";
-  const verification = await page.request.get(verificationUrl.toString(), {
-    maxRedirects: 0,
-  });
-  expect(verification.status()).toBe(302);
   await page.goto("/");
 }
 

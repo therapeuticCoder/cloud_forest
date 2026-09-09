@@ -15,6 +15,7 @@
     "inspect": "node --env-file-if-exists=../../.env --experimental-strip-types src/inspect.ts",
     "test:prepare": "node --env-file-if-exists=../../.env --experimental-strip-types src/prepareTestDatabase.ts",
     "fixtures:seed": "node --env-file-if-exists=../../.env --experimental-strip-types src/seedTestFixtures.ts",
+    "fixtures:seed:local": "node --env-file-if-exists=../../.env --experimental-strip-types src/seedLocalFixtures.ts",
     "typecheck": "pnpm --dir ../../apps/web exec tsc --project ../../packages/database/tsconfig.json",
     "test": "node --experimental-strip-types --test test/config.test.mjs",
     "test:integration": "node --env-file-if-exists=../../.env --experimental-strip-types --test test/*.test.mjs",

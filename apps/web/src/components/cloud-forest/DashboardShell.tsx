@@ -34,12 +34,7 @@ import {
   useCuratedPeople,
   type CuratedPersonApiClient,
 } from "./useCuratedPeople";
-import {
-  PartyAction,
-  PartyActions,
-  Portrait,
-  type PartySelfControl,
-} from "./PartyLayer";
+import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard } from "./ReceiveCareWizard";
@@ -82,25 +77,38 @@ function viewFromLocation(): CloudForestView {
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
 
 export function DashboardShell({
-  currentPersonControl,
   apiClient,
+  currentPersonId,
+  onSignOut,
+  signOutError,
+  signingOut,
 }: {
-  currentPersonControl?: PartySelfControl;
   apiClient?: CuratedPersonApiClient;
+  currentPersonId: string;
+  onSignOut: () => void;
+  signOutError?: string;
+  signingOut: boolean;
 }) {
   const [activeView, setActiveView] =
     useState<CloudForestView>(viewFromLocation);
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
+  const careViewerId =
+    currentPersonId === "person-fictional-owner"
+      ? CURRENT_CARE_VIEWER_ID
+      : currentPersonId;
+  const currentUser = useMemo(
+    () => ({ ...curatorUser, id: currentPersonId }),
+    [currentPersonId],
+  );
   const [careOffers, setCareOffers] = useState<GiveCareOffer[]>([]);
   const [careLifecycle, setCareLifecycle] = useState(() =>
-    loadCareLifecycleState(incomingCareRequests),
+    loadCareLifecycleState(incomingCareRequests, careViewerId),
   );
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<
     string | undefined
   >();
-  const careViewerId = CURRENT_CARE_VIEWER_ID;
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [curatorDetailOpen, setCuratorDetailOpen] = useState(false);
@@ -197,7 +205,7 @@ export function DashboardShell({
     setCareLifecycle((currentState) => {
       const transition = transitionCareLifecycle(currentState, action);
       if (!transition.ok) return currentState;
-      saveCareLifecycleState(transition.state);
+      saveCareLifecycleState(transition.state, careViewerId);
       return transition.state;
     });
   };
@@ -334,7 +342,7 @@ export function DashboardShell({
         (entry) =>
           entry.requestId === request.id && entry.outcome === "completed",
       );
-      saveCareLifecycleState(transition.state);
+      saveCareLifecycleState(transition.state, careViewerId);
       return transition.state;
     });
     requestAnimationFrame(() => {
@@ -465,7 +473,7 @@ export function DashboardShell({
         },
       );
       if (!completionTransition.ok) return currentState;
-      saveCareLifecycleState(completionTransition.state);
+      saveCareLifecycleState(completionTransition.state, careViewerId);
       return completionTransition.state;
     });
     restoreFromCareDestination(
@@ -530,7 +538,7 @@ export function DashboardShell({
         },
       );
       if (!dispositionTransition.ok) return currentState;
-      saveCareLifecycleState(dispositionTransition.state);
+      saveCareLifecycleState(dispositionTransition.state, careViewerId);
       return dispositionTransition.state;
     });
     restoreFromCareDestination(
@@ -618,45 +626,35 @@ export function DashboardShell({
     () =>
       selectProfileCareRequests(
         careLifecycle,
-        CURRENT_CARE_VIEWER_ID,
-        CURRENT_CARE_VIEWER_ID,
+        careViewerId,
+        careViewerId,
         new Date().toISOString(),
       ).filter((request) =>
         careLifecycle.claims.some(
           (claim) =>
-            claim.requestId === request.id &&
-            claim.claimerId === CURRENT_CARE_VIEWER_ID,
+            claim.requestId === request.id && claim.claimerId === careViewerId,
         ),
       ),
-    [careLifecycle],
+    [careLifecycle, careViewerId],
   );
   const selfProfileRequests = useMemo(
     () =>
       selectProfileCareRequests(
         careLifecycle,
-        CURRENT_CARE_VIEWER_ID,
-        CURRENT_CARE_VIEWER_ID,
+        careViewerId,
+        careViewerId,
         new Date().toISOString(),
-      ).filter((request) => request.requester.id === CURRENT_CARE_VIEWER_ID),
-    [careLifecycle],
+      ).filter((request) => request.requester.id === careViewerId),
+    [careLifecycle, careViewerId],
   );
   const selfCareHistory = useMemo(
-    () =>
-      selectPrivateCareHistory(
-        careLifecycle,
-        CURRENT_CARE_VIEWER_ID,
-        CURRENT_CARE_VIEWER_ID,
-      ),
-    [careLifecycle],
+    () => selectPrivateCareHistory(careLifecycle, careViewerId, careViewerId),
+    [careLifecycle, careViewerId],
   );
   const selfCareGratitudes = useMemo(
     () =>
-      selectPrivateCareGratitudes(
-        careLifecycle,
-        CURRENT_CARE_VIEWER_ID,
-        CURRENT_CARE_VIEWER_ID,
-      ),
-    [careLifecycle],
+      selectPrivateCareGratitudes(careLifecycle, careViewerId, careViewerId),
+    [careLifecycle, careViewerId],
   );
   const tribeCareGratitudes = useMemo(
     () => selectTribeCareGratitudes(careLifecycle),
@@ -735,11 +733,11 @@ export function DashboardShell({
   const careAudienceSnapshot = useMemo(
     () => ({
       partyMemberIds: incomingCareAudienceSnapshot.partyMemberIds.filter(
-        (personId) => personId !== CURRENT_CARE_VIEWER_ID,
+        (personId) => personId !== careViewerId,
       ),
       tribeMemberIds: incomingCareAudienceSnapshot.tribeMemberIds,
     }),
-    [],
+    [careViewerId],
   );
 
   useEffect(() => {
@@ -749,7 +747,7 @@ export function DashboardShell({
       setCareLifecycle((currentState) => {
         const nextState = expireDueCareRequests(currentState, now);
         if (nextState === currentState) return currentState;
-        saveCareLifecycleState(nextState);
+        saveCareLifecycleState(nextState, careViewerId);
         return nextState;
       });
     };
@@ -773,7 +771,7 @@ export function DashboardShell({
     return () => {
       if (timeout !== undefined) window.clearTimeout(timeout);
     };
-  }, [careLifecycle]);
+  }, [careLifecycle, careViewerId]);
 
   const setCareRequestMinimized = (requestId: string, minimized: boolean) => {
     const changedAt = new Date().toISOString();
@@ -816,7 +814,7 @@ export function DashboardShell({
     });
     if (!transition.ok) return;
 
-    saveCareLifecycleState(transition.state);
+    saveCareLifecycleState(transition.state, careViewerId);
     setCareLifecycle(transition.state);
     setCarePassAnnouncement(
       haveAllPartyMembersPassed(transition.state, request)
@@ -845,26 +843,20 @@ export function DashboardShell({
       >
         <header className="party-header timeline-header">
           <button
-            aria-label={currentPersonControl?.ariaLabel ?? "Open My Care"}
+            aria-label="Open My Care"
             className="party-self global-view-self"
             data-my-care-trigger="timeline"
-            data-prototype-current-person={
-              currentPersonControl ? "true" : undefined
+            onClick={() =>
+              openCareDestination(
+                { kind: "my-care" },
+                '[data-my-care-trigger="timeline"]',
+              )
             }
-            onClick={
-              currentPersonControl?.onOpen ??
-              (() =>
-                openCareDestination(
-                  { kind: "my-care" },
-                  '[data-my-care-trigger="timeline"]',
-                ))
-            }
-            ref={currentPersonControl?.triggerRef}
             type="button"
           >
             <Portrait
-              initials={currentPersonControl?.initials}
-              personId={currentPersonControl?.personId ?? curatorUser.id}
+              initials={currentUser.initials}
+              personId={currentUser.id}
               small
             />
           </button>
@@ -900,6 +892,7 @@ export function DashboardShell({
           audienceSnapshot={careAudienceSnapshot}
           onCancel={() => setReceiveWizardOpen(false)}
           onComplete={completeReceive}
+          viewerId={careViewerId}
         />
       ) : giveWizardOpen ? (
         <GiveCareWizard
@@ -957,7 +950,6 @@ export function DashboardShell({
                     ? curatedPeople.message
                     : undefined
                 }
-                currentPersonControl={currentPersonControl}
                 onAddPartyMember={openAddWizard}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
@@ -982,6 +974,7 @@ export function DashboardShell({
                 onSetRequestMinimized={setCareRequestMinimized}
                 onWithdraw={withdrawCareRequestAs}
                 partyPeople={partyPeople}
+                user={currentUser}
               />
             )}
           </div>
@@ -999,28 +992,29 @@ export function DashboardShell({
               history={selfCareHistory}
               gratitudes={selfCareGratitudes}
               onBack={backFromCareDestination}
+              onSignOut={onSignOut}
               onSetRequestMinimized={(requestId, minimized) => {
                 const changedAt = new Date().toISOString();
                 const presentation = selectCareRequestPresentation(
                   careLifecycle,
                   requestId,
-                  CURRENT_CARE_VIEWER_ID,
+                  careViewerId,
                 );
                 applyCareLifecycleAction(
                   presentation.seen
                     ? {
                         type: "set-seen-minimized",
                         requestId,
-                        viewerId: CURRENT_CARE_VIEWER_ID,
+                        viewerId: careViewerId,
                         minimized,
                         changedAt,
                       }
                     : {
                         type: "mark-seen",
                         seenState: {
-                          id: `care-seen-${requestId}-${CURRENT_CARE_VIEWER_ID}`,
+                          id: `care-seen-${requestId}-${careViewerId}`,
                           requestId,
-                          viewerId: CURRENT_CARE_VIEWER_ID,
+                          viewerId: careViewerId,
                           seenAt: changedAt,
                           minimized,
                         },
@@ -1028,14 +1022,17 @@ export function DashboardShell({
                 );
               }}
               onRecordCompleted={(request) =>
-                recordCompletionOrOpenGratitude(request, CURRENT_CARE_VIEWER_ID)
+                recordCompletionOrOpenGratitude(request, careViewerId)
               }
               onRecordNotCompleted={(request) =>
-                openNotCompleted(request, CURRENT_CARE_VIEWER_ID)
+                openNotCompleted(request, careViewerId)
               }
               onWithdraw={(requestId) =>
-                withdrawCareRequestAs(requestId, CURRENT_CARE_VIEWER_ID)
+                withdrawCareRequestAs(requestId, careViewerId)
               }
+              viewerId={careViewerId}
+              signOutError={signOutError}
+              signingOut={signingOut}
             />
           ) : careDestination?.kind === "not-completed" ? (
             <NotCompletedCareView

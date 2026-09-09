@@ -1,16 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  activityActors,
-  curatorPartyPeople,
-  curatorUser,
-} from "@/data/cloudForest";
+import { curatorPartyPeople, curatorUser } from "@/data/cloudForest";
+import type { CloudForestActor } from "@/types/cloudForest";
 
 import {
   activityActorToDomainPerson,
   curatorPartyToDomainParty,
   curatorPersonToDomainPerson,
 } from "./domainAdapters";
+
+const personActor: CloudForestActor = {
+  id: "mira",
+  displayName: "Mira",
+  handle: "@mira@fixture.test",
+  sourceType: "person",
+  platform: "mock",
+  layer: "party",
+};
+const signalActor: CloudForestActor = {
+  id: "city-signal",
+  displayName: "City Signal",
+  handle: "@city-signal@fixture.test",
+  sourceType: "institution",
+  platform: "mock",
+  layer: "signal",
+};
 
 describe("domain adapters", () => {
   it("projects a Curator person without moving presentation fields into the domain", () => {
@@ -37,19 +51,6 @@ describe("domain adapters", () => {
   });
 
   it("requires an explicit source mapping for person activity actors", () => {
-    const personActor = activityActors.find(
-      (actor) => actor.sourceType === "person",
-    );
-    const signalActor = activityActors.find(
-      (actor) => actor.sourceType === "institution",
-    );
-
-    expect(personActor).toBeDefined();
-    expect(signalActor).toBeDefined();
-    if (!personActor || !signalActor) {
-      throw new Error("Expected person and institution fixtures");
-    }
-
     const canonicalPerson = curatorPersonToDomainPerson(curatorPartyPeople[0]);
     const mappings = [
       {
@@ -68,15 +69,6 @@ describe("domain adapters", () => {
   });
 
   it("does not match a reused source actor ID from another platform", () => {
-    const personActor = activityActors.find(
-      (actor) => actor.sourceType === "person",
-    );
-
-    expect(personActor).toBeDefined();
-    if (!personActor) {
-      throw new Error("Expected a person fixture");
-    }
-
     expect(
       activityActorToDomainPerson(personActor, [
         {

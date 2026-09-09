@@ -58,12 +58,6 @@ const playwrightCli = path.join(
   "test",
   "cli.js",
 );
-const e2eMagicLinkFile = path.resolve(
-  repositoryRoot,
-  "test-results",
-  "e2e-magic-link.json",
-);
-
 export function ensurePlaywrightChromiumInstalled() {
   const executablePath = chromium.executablePath();
   if (existsSync(executablePath)) return executablePath;
@@ -89,7 +83,6 @@ function e2eServiceDefinitions(environment) {
         DATABASE_URL: environment.TEST_DATABASE_URL,
         API_HOST: "127.0.0.1",
         API_PORT: "3001",
-        E2E_MAGIC_LINK_FILE: e2eMagicLinkFile,
       },
       url: "http://127.0.0.1:3001/api/v1/health",
     },

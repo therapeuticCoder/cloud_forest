@@ -74,10 +74,27 @@ function createCuratedPeopleFixture() {
   };
 }
 
+const authenticatedSessionClient = {
+  getCurrentSession: async () => ({
+    ok: true as const,
+    status: 200 as const,
+    value: {
+      apiVersion: "v1" as const,
+      data: { currentPersonId: "you" },
+    },
+  }),
+  signIn: async () => ({ ok: true as const }),
+  logout: async () => ({
+    ok: true as const,
+    status: 204 as const,
+    value: null,
+  }),
+};
+
 async function openCurator() {
   const user = userEvent.setup();
 
-  render(<App />);
+  await renderAuthenticatedApp();
   await user.click(screen.getAllByRole("button", { name: /curator/i })[0]);
   await waitFor(() =>
     expect(
@@ -86,6 +103,12 @@ async function openCurator() {
   );
 
   return user;
+}
+
+async function renderAuthenticatedApp() {
+  const result = render(<App sessionClient={authenticatedSessionClient} />);
+  await screen.findByRole("region", { name: /timeline view/i });
+  return result;
 }
 
 async function claimIncomingRequest(user: ReturnType<typeof userEvent.setup>) {
@@ -113,8 +136,8 @@ describe("App", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders Timeline as a standalone default view", () => {
-    render(<App />);
+  it("renders Timeline as a standalone default view", async () => {
+    await renderAuthenticatedApp();
 
     expect(screen.queryAllByRole("button", { name: /timeline/i })).toHaveLength(
       0,
@@ -131,7 +154,6 @@ describe("App", () => {
       screen.queryByRole("heading", { name: /whole forest/i }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /write/i })).toBeInTheDocument();
-    expect(screen.getByText(/yesterday/i)).toBeInTheDocument();
   });
 
   it("renders the four gallery layers at their canonical sizes", async () => {
@@ -250,7 +272,7 @@ describe("App", () => {
       }),
     );
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
 
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
 
@@ -321,7 +343,7 @@ describe("App", () => {
 
   it("asks the Party for a meal from Timeline and prepends an open request", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
 
     await user.click(screen.getAllByRole("button", { name: "Receive" })[1]);
     await waitFor(() =>
@@ -364,21 +386,16 @@ describe("App", () => {
     expect(request).toHaveTextContent("Meal request");
     expect(request).toHaveTextContent("Open");
     expect(request).toHaveTextContent("Shared with: Party");
-    expect(screen.getByRole("heading", { name: "Ren" })).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", { name: "Filter to Receive requests" }),
     );
-    expect(
-      screen.queryByRole("heading", { name: "Ren" }),
-    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("article", { name: "Open meal care request" }),
     ).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Filter to Receive requests" }),
     );
-    expect(screen.getByRole("heading", { name: "Ren" })).toBeInTheDocument();
 
     await user.click(screen.getAllByRole("button", { name: "Receive" })[1]);
     await user.click(screen.getByRole("button", { name: "Meal" }));
@@ -412,7 +429,7 @@ describe("App", () => {
 
   it("keeps a seen request minimized per viewer across reload", async () => {
     const user = userEvent.setup();
-    const firstRender = render(<App />);
+    const firstRender = await renderAuthenticatedApp();
     const incomingRequest = screen.getByRole("article", {
       name: "Incoming meal care request from Anya Reed",
     });
@@ -432,7 +449,7 @@ describe("App", () => {
     );
 
     firstRender.unmount();
-    render(<App />);
+    await renderAuthenticatedApp();
     const minimizedRequest = screen.getByRole("article", {
       name: "Incoming meal care request from Anya Reed, minimized",
     });
@@ -453,7 +470,7 @@ describe("App", () => {
 
   it("passes an incoming request only for the current viewer and persists it", async () => {
     const user = userEvent.setup();
-    const firstRender = render(<App />);
+    const firstRender = await renderAuthenticatedApp();
     const incomingRequest = screen.getByRole("article", {
       name: "Incoming meal care request from Anya Reed",
     });
@@ -489,7 +506,7 @@ describe("App", () => {
     ]);
 
     firstRender.unmount();
-    render(<App />);
+    await renderAuthenticatedApp();
     expect(
       screen.queryByRole("article", {
         name: "Incoming meal care request from Anya Reed",
@@ -497,10 +514,10 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("omits an unclaimed request after its lifespan expires", () => {
+  it("omits an unclaimed request after its lifespan expires", async () => {
     vi.setSystemTime(new Date("2031-09-04T12:00:00.000Z"));
 
-    render(<App />);
+    await renderAuthenticatedApp();
 
     expect(
       screen.queryByRole("article", {
@@ -525,7 +542,7 @@ describe("App", () => {
 
   it("offers a meal from Timeline and withdraws the available offer", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
 
     await user.click(screen.getAllByRole("button", { name: "Give" })[1]);
     await waitFor(() =>
@@ -608,7 +625,7 @@ describe("App", () => {
 
   it("claims an incoming request, keeps it after reload, and shows it in My Care", async () => {
     const user = userEvent.setup();
-    const firstRender = render(<App />);
+    const firstRender = await renderAuthenticatedApp();
     const incomingRequest = screen.getByRole("article", {
       name: "Incoming meal care request from Anya Reed",
     });
@@ -709,7 +726,7 @@ describe("App", () => {
     );
 
     firstRender.unmount();
-    render(<App />);
+    await renderAuthenticatedApp();
 
     expect(screen.getByText("You’re helping Anya.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
@@ -723,7 +740,7 @@ describe("App", () => {
   // Retired until multi-account session tests replace the fictional perspective switcher.
   it.skip("keeps care active after one completion and closes it after both participants complete", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
     await claimIncomingRequest(user);
 
     await user.click(screen.getByRole("button", { name: "Completed" }));
@@ -771,7 +788,7 @@ describe("App", () => {
 
   it.skip("publishes receiver gratitude immediately while care awaits the giver", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
     await claimIncomingRequest(user);
     await user.selectOptions(screen.getByLabelText("Reviewing as"), "anya");
 
@@ -856,7 +873,7 @@ describe("App", () => {
 
   it("collects a private reason before closing not-completed care", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
     await claimIncomingRequest(user);
 
     await user.click(screen.getByRole("button", { name: "Not completed" }));
@@ -890,7 +907,7 @@ describe("App", () => {
 
   it("closes the original care and creates a linked request when trying again", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
     await claimIncomingRequest(user);
 
     await user.click(screen.getByRole("button", { name: "Not completed" }));
@@ -948,7 +965,7 @@ describe("App", () => {
 
   it.skip("reviews open, passed, demoted, and claimed care without changing state on switch", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderAuthenticatedApp();
     const perspective = screen.getByLabelText("Reviewing as");
     const incomingName = "Incoming meal care request from Anya Reed";
 

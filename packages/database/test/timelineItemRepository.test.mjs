@@ -10,7 +10,7 @@ import {
 
 const fixtureId = "timeline-item-mira-soup-001";
 
-test("the repository reads the migrated fictional Timeline item", async (t) => {
+test("the repository reads the migrated fictional Timeline item for its owner", async (t) => {
   const { database, pool } = createDatabaseClient(
     getTestDatabaseUrl(process.env),
   );
@@ -18,21 +18,24 @@ test("the repository reads the migrated fictional Timeline item", async (t) => {
 
   const repository = createTimelineItemRepository(database);
 
-  assert.deepEqual(await repository.findById(fixtureId), {
-    id: fixtureId,
-    actor: {
-      id: "mira",
-      displayName: "Mira",
-      layer: "party",
-      initials: "M",
+  assert.deepEqual(
+    await repository.findByIdForOwner(fixtureId, "account-fictional-owner"),
+    {
+      id: fixtureId,
+      actor: {
+        id: "mira",
+        displayName: "Mira",
+        layer: "party",
+        initials: "M",
+      },
+      content:
+        "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?",
+      publishedAt: "2026-05-30T17:00:00.000Z",
     },
-    content:
-      "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?",
-    publishedAt: "2026-05-30T17:00:00.000Z",
-  });
+  );
 });
 
-test("the repository returns null for an unknown Timeline item", async (t) => {
+test("the repository hides a Timeline item from another owner", async (t) => {
   const { database, pool } = createDatabaseClient(
     getTestDatabaseUrl(process.env),
   );
@@ -40,5 +43,8 @@ test("the repository returns null for an unknown Timeline item", async (t) => {
 
   const repository = createTimelineItemRepository(database);
 
-  assert.equal(await repository.findById("timeline-item-missing"), null);
+  assert.equal(
+    await repository.findByIdForOwner(fixtureId, "another-user"),
+    null,
+  );
 });

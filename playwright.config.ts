@@ -1,8 +1,6 @@
 import { defineConfig } from "@playwright/test";
-import path from "node:path";
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
-const e2eMagicLinkFile = path.resolve("test-results/e2e-magic-link.json");
 const externallyManagedServices = process.env.E2E_EXTERNAL_SERVICES === "1";
 
 if (!testDatabaseUrl) {
@@ -58,7 +56,6 @@ export default defineConfig({
         API_HOST: "127.0.0.1",
         API_PORT: "3001",
         DATABASE_URL: testDatabaseUrl,
-        E2E_MAGIC_LINK_FILE: e2eMagicLinkFile,
       },
       gracefulShutdown:
         process.platform === "win32"

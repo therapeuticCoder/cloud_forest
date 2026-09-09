@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock3, HandHeart, Send } from "lucide-react";
+import { ArrowLeft, Clock3, HandHeart, LogOut, Send } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,14 @@ type MyCareViewProps = {
   history: CareHistoryEntry[];
   gratitudes: CareGratitude[];
   onBack: () => void;
+  onSignOut: () => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onWithdraw: (requestId: string) => void;
+  signOutError?: string;
+  signingOut: boolean;
+  viewerId: string;
 };
 
 const historyLabels = {
@@ -44,10 +48,14 @@ export function MyCareView({
   history,
   gratitudes,
   onBack,
+  onSignOut,
   onSetRequestMinimized,
   onRecordCompleted,
   onRecordNotCompleted,
   onWithdraw,
+  signOutError,
+  signingOut,
+  viewerId,
 }: MyCareViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -69,7 +77,6 @@ export function MyCareView({
           <ArrowLeft aria-hidden="true" />
         </Button>
         <div>
-          <span>Personal care commitments</span>
           <h1 ref={headingRef} tabIndex={-1}>
             My Care
           </h1>
@@ -102,8 +109,8 @@ export function MyCareView({
                   onSetMinimized={onSetRequestMinimized}
                   onWithdraw={onWithdraw}
                   request={request}
-                  viewerId="you"
-                  viewerIsClaimer={claim?.claimerId === "you"}
+                  viewerId={viewerId}
+                  viewerIsClaimer={claim?.claimerId === viewerId}
                 />
               );
             })
@@ -134,12 +141,12 @@ export function MyCareView({
               const viewerCompletion = careLifecycle.completions.find(
                 (completion) =>
                   completion.requestId === request.id &&
-                  completion.participantId === "you",
+                  completion.participantId === viewerId,
               );
               const otherParticipantCompleted = careLifecycle.completions.some(
                 (completion) =>
                   completion.requestId === request.id &&
-                  completion.participantId !== "you" &&
+                  completion.participantId !== viewerId &&
                   completion.decision === "completed",
               );
               return (
@@ -157,7 +164,7 @@ export function MyCareView({
                   otherParticipantCompleted={otherParticipantCompleted}
                   request={request}
                   viewerCompletion={viewerCompletion?.decision}
-                  viewerId="you"
+                  viewerId={viewerId}
                   viewerIsClaimer
                 />
               );
@@ -202,7 +209,7 @@ export function MyCareView({
                       <small>
                         From{" "}
                         {request?.requester.displayName ?? gratitude.receiverId}{" "}
-                        to {gratitude.giverId === "you" ? "you" : giverName}.
+                        to {gratitude.giverId === viewerId ? "you" : giverName}.
                       </small>
                       {gratitude.message ? <p>{gratitude.message}</p> : null}
                     </div>
@@ -236,6 +243,26 @@ export function MyCareView({
               Completed and closed care will appear here for you only.
             </p>
           )}
+        </section>
+
+        <section
+          aria-label="Session management"
+          className="my-care-view__section my-care-view__session"
+        >
+          {signOutError ? (
+            <p className="my-care-view__session-error" role="alert">
+              {signOutError}
+            </p>
+          ) : null}
+          <button
+            className="my-care-view__signout"
+            disabled={signingOut}
+            onClick={onSignOut}
+            type="button"
+          >
+            <LogOut aria-hidden="true" />
+            {signingOut ? "Signing out…" : "Sign out of Cloud Forest"}
+          </button>
         </section>
       </div>
     </section>
