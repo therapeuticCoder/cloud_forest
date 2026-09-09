@@ -1,8 +1,10 @@
 # Durable Product Conversion Program
 
 Status: tranche 1 completed through T-042 on 2026-09-07. T-043's product policy
-was approved on 2026-09-08. Tranche 2 implementation remains inactive until
-the product owner explicitly loads T-044 through T-052.
+was approved on 2026-09-08, T-044's review was completed on 2026-09-08, and
+T-046's protocol was approved on 2026-09-09. Tranche 2 implementation remains
+inactive until the product owner explicitly loads an implementation task; T-045
+and T-047 through T-052 remain proposed.
 
 ## Strategy
 
@@ -64,7 +66,7 @@ Active task acceptance criteria and checks belong only in `BACKLOG.md`.
 | DCP-M01 | DCP-03, separate approval          | Owned portrait upload/deletion with validation and metadata stripping                               |
 | PD-01   | DCP-06, UX-03                      | Care audience and relationship-change policy approved through T-043                                 |
 | UX-04   | PD-01                              | Audience, demotion, removal, blocking, and stale-authorization states reviewed; proposed T-044      |
-| PD-02   | UX-03, PD-01                       | Durable mutual-connection protocol approved through a ChatGPT interview; proposed T-046             |
+| PD-02   | UX-03, PD-01                       | Durable mutual-connection protocol approved through a ChatGPT interview; completed T-046            |
 | DCP-B01 | PD-01, UX-04, PD-02                | Minimum durable block authority for relationship and care eligibility; proposed T-045               |
 | DCP-I01 | DCP-B01, PD-02                     | Private curated Person linked to an invited user through the approved handshake; proposed T-047     |
 | DCP-07  | DCP-I01                            | Minimum authoritative Tribe eligibility for care; no neighborhood semantics; proposed T-048         |
@@ -179,6 +181,6 @@ On 2026-09-08 the product owner approved T-043's durable Care policy:
    presentation, notifications, generalized taxonomy, and production identity
    linking remain in their named later tasks.
 
-Tranche 1 and T-043 are complete. T-044 through T-052 remain proposed and are
-not approved for implementation until the product owner explicitly loads the
-tranche.
+Tranche 1, T-043, T-044, and T-046 are complete. T-045 and T-047 through
+T-052 remain proposed and are not approved for implementation until the product
+owner explicitly loads the tranche.

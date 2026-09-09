@@ -74,7 +74,7 @@ device-local prototype until a later tranche. Portrait upload remains deferred.
 
 ### Tranche 2 — Durable care records and basic operations
 
-Status: T-043 and T-044 completed; T-045 through T-052 remain proposed. Do not
+Status: T-043, T-044, and T-046 completed; T-045 and T-047 through T-052 remain proposed. Do not
 begin implementation until the product owner explicitly loads the next task.
 
 This tranche gives accepted mutual connections durable identity links, then
@@ -88,10 +88,11 @@ lifecycle operations belong to a later tranche.
 
 - T-043: Decide durable care audiences and relationship-change behavior — product-approved 2026-09-08; authoritative eligibility and relationship-change policy recorded in `docs/durable-care-audience-policy.md`.
 - T-044: Prototype durable care audience and boundary states — completed by product-owner review 2026-09-08; accepted silent/background behavior, wizard fallback, layer/count-only active Care, Timeline suppression, and neutral private-history reasons recorded in `docs/durable-care-audience-policy.md`; temporary fixture removed before publication.
+- T-046: Decide the durable mutual-connection protocol — product-approved 2026-09-09; consent, pairing-token, identity-disclosure, linking-authority, cancellation, blocking, duplicate, reconnection, and non-disclosing threat-case behavior recorded in `docs/durable-mutual-connection-protocol.md`.
 
 #### T-046: Decide the durable mutual-connection protocol
 
-Status: proposed ChatGPT product and security interview
+Status: completed product-approved decision 2026-09-09
 Size: small planning task
 Prerequisites: completed T-042 and accepted T-043 relationship policy
 
@@ -104,10 +105,10 @@ safe retry behave. Define the protocol mechanics and implementation owner for
 breaking, reconnecting, preserving or destroying a Character, and rebinding a
 preserved Character without transferring prior shared Care history.
 
-Bring the approved outcome back as a concise durable protocol and threat-case
-decision record. Preserve the accepted distinction between an owner's private
-curated Person fields and the linked user's account identity; neither side may
-receive the other's private curation through the handshake.
+The approved outcome is recorded in `docs/durable-mutual-connection-protocol.md`.
+It preserves the accepted distinction between an owner's private curated
+Person fields and the linked user's account identity; neither side may receive
+the other's private curation through the handshake.
 
 Acceptance: T-047 can be implemented without inventing consent, token,
 identity-disclosure, conflict, or unlinking behavior, and every deferred choice

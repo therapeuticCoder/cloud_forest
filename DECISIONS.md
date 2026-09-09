@@ -148,6 +148,18 @@ their detailed implementation context.
   fresh Party round. Breaking or blocking a Connection outranks claimed-Care
   participation and closes claimed Care as orphaned. The complete T-043 policy
   is recorded in `docs/durable-care-audience-policy.md`.
+- **D-036 — Durable mutual Connections require symmetric consent and private
+  Character resolution.** A single-purpose pairing token expires after 15
+  minutes and carries no private Character data. The authenticated receiver
+  explicitly chooses or creates their own Character, either participant may
+  confirm first, and only the second valid confirmation atomically makes the
+  Connection and both server-owned `linkedUserId` results authoritative. The
+  protocol has neutral outcomes for replay, expiry, cancellation, blocking,
+  supersession, wrong-account use, duplicate scans, stale confirmation, and
+  concurrent completion. Breaking is immediate; preserved Characters may
+  reconnect without reactivating prior Care, and rebinding never transfers
+  shared Care history. The full T-046 decision is recorded in
+  `docs/durable-mutual-connection-protocol.md`.
 
 ## Fulfilled milestone decisions
 
