@@ -24,8 +24,9 @@ Guild membership is orthogonal; Guild Care is deferred. Signals remain outside
 the Character and Connection model.
 
 These are product concepts, not approval of a database representation. The
-durable mutual-connection and identity-linking protocol remains owned by T-046
-and T-047.
+durable mutual-connection protocol is recorded in
+`docs/durable-mutual-connection-protocol.md`; identity-linking implementation
+remains owned by T-047.
 
 ## Dynamic Care audience
 
@@ -148,4 +149,4 @@ rules. This policy deliberately defers:
   before DCP-15;
 - notification behavior to a separately selected jobs/notification task;
 - a generalized Care taxonomy to a separately selected product task; and
-- production identity linking to T-046 and T-047.
+- production identity linking to T-047.
