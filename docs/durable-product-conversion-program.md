@@ -1,8 +1,10 @@
 # Durable Product Conversion Program
 
 Status: tranche 1 completed through T-042 on 2026-09-07. T-043's product policy
-was approved on 2026-09-08. Tranche 2 implementation remains inactive until
-the product owner explicitly loads T-044 through T-052.
+was approved on 2026-09-08, T-044's review was completed on 2026-09-08, and
+T-046's protocol was approved on 2026-09-09. Tranche 2 implementation remains
+inactive until the product owner explicitly loads an implementation task; T-045
+and T-047 through T-052 remain proposed.
 
 ## Strategy
 
@@ -179,6 +181,6 @@ On 2026-09-08 the product owner approved T-043's durable Care policy:
    presentation, notifications, generalized taxonomy, and production identity
    linking remain in their named later tasks.
 
-Tranche 1 and T-043 are complete. T-044 through T-052 remain proposed and are
-not approved for implementation until the product owner explicitly loads the
-tranche.
+Tranche 1, T-043, T-044, and T-046 are complete. T-045 and T-047 through
+T-052 remain proposed and are not approved for implementation until the product
+owner explicitly loads the tranche.
