@@ -10,11 +10,13 @@ Use `.cmd` shims when PowerShell blocks script wrappers.
 nvm use 22.23.2
 corepack.cmd enable
 corepack.cmd prepare pnpm@11.1.2 --activate
-pnpm.cmd setup
+pnpm.cmd install --frozen-lockfile
 Copy-Item .env.example .env
 pnpm.cmd services:up
 pnpm.cmd db:migrate
 ```
+
+`pnpm.cmd setup` is an existing convenience command that also runs the full project check. Because verification is product-owner controlled, Codex should not run `setup` unless the product owner explicitly asks for that verification.
 
 Run API and web app in separate terminals:
 
@@ -73,6 +75,12 @@ pnpm.cmd build
 pnpm.cmd openapi:check
 pnpm.cmd db:migrations:check
 pnpm.cmd test:database
+```
+
+Before the first E2E run on a workstation, install the pinned Playwright Chromium runtime:
+
+```powershell
+pnpm.cmd e2e:install
 pnpm.cmd test:e2e
 ```
 
