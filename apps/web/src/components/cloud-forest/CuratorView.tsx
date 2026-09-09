@@ -4,7 +4,6 @@ import {
   curatorGuilds,
   curatorSignals,
   curatorTribeNeighborhoods,
-  curatorUser,
 } from "@/data/cloudForest";
 import { cn } from "@/lib/utils";
 import type {
@@ -52,6 +51,7 @@ type CuratorViewProps = {
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   partyPeople: CuratorPerson[];
+  user: CuratorPerson;
 };
 
 function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
@@ -110,6 +110,7 @@ export function CuratorView({
   onSetRequestMinimized,
   onWithdraw,
   partyPeople,
+  user,
 }: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
   const triggerIdRef = useRef<string | null>(null);
@@ -223,7 +224,7 @@ export function CuratorView({
           peopleState={curatedPeopleStatus}
           peopleStateMessage={curatedPeopleError}
           people={partyPeople}
-          user={curatorUser}
+          user={user}
         />
       </CuratorLayerSection>
       <CuratorLayerSection label="Tribe">

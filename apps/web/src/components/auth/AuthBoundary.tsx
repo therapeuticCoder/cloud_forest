@@ -268,6 +268,7 @@ export function AuthBoundary({
     <>
       <DashboardShell
         apiClient={apiClient}
+        currentPersonId={boundary.currentPersonId}
         onSignOut={() => void signOut()}
         signOutError={signOutError}
         signingOut={signingOut}

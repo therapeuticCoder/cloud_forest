@@ -1,5 +1,5 @@
 export type CareRequester =
-  | { kind: "self"; id: "you"; displayName: "You" }
+  | { kind: "self"; id: string; displayName: string }
   | { kind: "party"; id: string; displayName: string };
 
 export type CarePersonId = string;

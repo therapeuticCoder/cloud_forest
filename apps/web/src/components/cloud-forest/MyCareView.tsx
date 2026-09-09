@@ -27,6 +27,7 @@ type MyCareViewProps = {
   onWithdraw: (requestId: string) => void;
   signOutError?: string;
   signingOut: boolean;
+  viewerId: string;
 };
 
 const historyLabels = {
@@ -54,6 +55,7 @@ export function MyCareView({
   onWithdraw,
   signOutError,
   signingOut,
+  viewerId,
 }: MyCareViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -107,8 +109,8 @@ export function MyCareView({
                   onSetMinimized={onSetRequestMinimized}
                   onWithdraw={onWithdraw}
                   request={request}
-                  viewerId="you"
-                  viewerIsClaimer={claim?.claimerId === "you"}
+                  viewerId={viewerId}
+                  viewerIsClaimer={claim?.claimerId === viewerId}
                 />
               );
             })
@@ -139,12 +141,12 @@ export function MyCareView({
               const viewerCompletion = careLifecycle.completions.find(
                 (completion) =>
                   completion.requestId === request.id &&
-                  completion.participantId === "you",
+                  completion.participantId === viewerId,
               );
               const otherParticipantCompleted = careLifecycle.completions.some(
                 (completion) =>
                   completion.requestId === request.id &&
-                  completion.participantId !== "you" &&
+                  completion.participantId !== viewerId &&
                   completion.decision === "completed",
               );
               return (
@@ -162,7 +164,7 @@ export function MyCareView({
                   otherParticipantCompleted={otherParticipantCompleted}
                   request={request}
                   viewerCompletion={viewerCompletion?.decision}
-                  viewerId="you"
+                  viewerId={viewerId}
                   viewerIsClaimer
                 />
               );
@@ -207,7 +209,7 @@ export function MyCareView({
                       <small>
                         From{" "}
                         {request?.requester.displayName ?? gratitude.receiverId}{" "}
-                        to {gratitude.giverId === "you" ? "you" : giverName}.
+                        to {gratitude.giverId === viewerId ? "you" : giverName}.
                       </small>
                       {gratitude.message ? <p>{gratitude.message}</p> : null}
                     </div>

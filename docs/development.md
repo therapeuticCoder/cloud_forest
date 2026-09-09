@@ -14,7 +14,12 @@ pnpm.cmd install --frozen-lockfile
 Copy-Item .env.example .env
 pnpm.cmd services:up
 pnpm.cmd db:migrate
+pnpm.cmd db:fixtures:seed:local
 ```
+
+The local fixture command provisions the invited development accounts and their
+fictional Party data. It is intentionally separate from `db:migrate` so schema
+migrations never create product or test users.
 
 `pnpm.cmd setup` is an existing convenience command that also runs the full project check. Because verification is product-owner controlled, Codex should not run `setup` unless the product owner explicitly asks for that verification.
 
