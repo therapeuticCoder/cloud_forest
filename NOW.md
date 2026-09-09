@@ -17,17 +17,16 @@ Build a coherent trusted-tester alpha for fewer than 100 people. Alpha succeeds 
 
 ## Now
 
-**Project reset.** Replace process-heavy documentation with a small durable product library, establish the alpha roadmap, and remove obsolete process machinery. Do not begin a new feature during this reset.
+**Get In.** Make invitation, sign-in, and session entry calm and usable for alpha testers. Use the existing Better Auth/invitation/session foundation rather than redesigning authentication from scratch. The result should give an invited tester a clear path into the real application and make session state understandable without adding unrelated account-management scope.
 
 ## Next
 
-1. **Get In** — make invitation/sign-in/session entry calm and usable for alpha testers.
-2. **Relationships** — make Character → Connection → Holding/Party/Tribe a coherent durable curation loop; implement the approved mutual Connection flow. Guilds remain a visible promise.
-3. **Care** — make one complete aid/care path genuinely shared between real users.
-4. **Posting** — let users write ordinary posts into Timeline with an appropriate audience/layer model.
-5. **Signals** — follow at least one external federated source and bring real outside activity into Timeline, quiet and collapsed by default.
-6. **Alpha coherence** — use the whole product end to end; remove remaining prototype fixtures; decompose oversized coordinators into single-responsibility components; separate global styling from component/feature styling; repair confusing seams. This is not a general hardening sprint.
-7. **Front Door** — create a small landing page that explains Cloud Forest and provides the alpha entry path.
+1. **Relationships** — make Character → Connection → Holding/Party/Tribe a coherent durable curation loop; implement the approved mutual Connection flow. Guilds remain a visible promise.
+2. **Care** — make one complete aid/care path genuinely shared between real users.
+3. **Posting** — let users write ordinary posts into Timeline with an appropriate audience/layer model.
+4. **Signals** — follow at least one external federated source and bring real outside activity into Timeline, quiet and collapsed by default.
+5. **Alpha coherence** — use the whole product end to end; remove remaining prototype fixtures; decompose oversized coordinators into single-responsibility components; separate global styling from component/feature styling; repair confusing seams. This is not a general hardening sprint.
+6. **Front Door** — create a small landing page that explains Cloud Forest and provides the alpha entry path.
 
 ## Known temporary debt
 
