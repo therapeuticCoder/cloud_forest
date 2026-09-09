@@ -1,53 +1,30 @@
 # Agent Instructions
 
-Cloud Forest uses supervised agentic development. `docs/workflow.md` routes work
-to the collaboration mode explicitly selected by the product owner.
+Cloud Forest is being built as a small trusted-tester alpha. Work with the product owner on one explicit increment at a time.
 
-## Invariants
+## Always
 
-- Work on one bounded task at a time, on a fresh `codex/` branch from current
-  `main`. Preserve unrelated human changes and never rewrite or discard them.
-- Before editing, inspect Git state and the active backlog item; read only the
-  repository documents and code needed for that task. Read
-  `docs/design-guide.md` before user-facing visual work.
-- State the task, likely files, assumptions, exclusions, and verification plan.
-  Wait for approval when the selected workflow or a material product or
-  architecture choice requires it.
-- Keep changes small and legible. Do not add dependencies, external services,
-  production integrations, lasting architecture, or expanded product behavior
-  without explicit approval.
-- Do not add secrets, analytics, tracking, production assets, or real client,
-  patient, or other sensitive data.
-- Investigate environment, permission, dependency, and build failures when they
-  appear. Resolve them narrowly or report the exact command, evidence, and
-  recovery plan; never normalize or silently defer them.
-- Verification discipline is non-negotiable: never enter a blind test-and-patch
-  loop, never rerun a full gate without a named reason, and never claim success
-  from partial output. Read and classify the latest failure, make one focused
-  repair, and follow the owner’s instruction about whether checks may run. See
-  `docs/development.md` and `docs/workflow.md` for the mandatory recovery rules.
-- Follow the invoked workflow skill for responsibility boundaries around tests,
-  previews, Git publication, review monitoring, merge, and cleanup.
-- After work, report the diff scope, verification evidence, failures or limits,
-  process state, and useful follow-up.
+- Stay inside the assigned story. Do not pursue cleanup, hardening, refactors, edge cases, documentation, or adjacent features unless they are required for the story or the product owner asks.
+- If a product, UX, dependency, architecture, privacy, or destructive-operation decision is missing, stop and ask instead of inventing it.
+- Do not run tests, builds, lint, typecheck, E2E, or other verification unless the product owner explicitly asks you to. Verification belongs to the product owner.
+- Do not retry a command that failed because of a known permission boundary. Ask once for the narrow permission/elevation required.
+- Read only the code and documentation relevant to the current story. A skill may be read once per conversation; do not repeatedly reload it.
+- Keep changes small and legible. Preserve unrelated human work.
+- Ask before adding dependencies, external services, production integrations, or materially changing product behavior.
+- Never add real client, patient, or other sensitive data, secrets, analytics, tracking, or engagement mechanics.
 
-## Product and code boundaries
+## Product boundaries
 
-- The human remains product owner and reviewer. Ask before changing product
-  behavior, dependencies, architecture, services, or scope.
-- Cloud Forest facilitates community, not attention or engagement. Relationship
-  quality matters more than quantity.
-- Canonical limits are 5 Party relationships, 100 Tribe people, 5 Guilds, and
-  10 Signals. A separate self tile does not consume a Party slot.
-- Prefer user-controlled, interoperable data flows. Do not invent storage,
-  synchronization, hosting, or federation architecture ahead of a requirement.
-- Preserve existing behavior unless the task changes it. Favor semantic,
-  accessible HTML; typed, purpose-named React components; straightforward
-  control flow; responsive interaction; and existing shadcn/ui components when
-  they reduce complexity.
-- Do not introduce routing, global state, authentication, persistence, backend
-  calls, or unrelated refactors unless the approved task requires them.
-- Treat visual directions as provisional until the product owner approves the
-  rendered desktop and mobile result and durable guidance is recorded.
+- The product owner is the final product and design authority.
+- Cloud Forest exists to help people tend relationships, exchange care, cooperate, and retain control of their attention.
+- Party is capped at 5, Tribe at 100, Guilds at 5, and Signals at 10.
+- Characters are private curation. Connections require mutual consent. Private Character data never becomes shared merely because a Connection exists.
+- Prefer straightforward React/TypeScript and existing project patterns. Do not introduce generalized architecture ahead of a demonstrated need.
 
-If instructions conflict, stop and ask the product owner rather than guessing.
+## Stewardship
+
+Temporary prototype code should become working product code or be deleted. Git history is sufficient historical storage.
+
+When a real alpha story touches an oversized coordinator, test file, or stylesheet, make a cohesive extraction if it directly simplifies that story. Do not start standalone cleanup projects unless the product owner asks.
+
+Durable product decisions belong in the smallest relevant file under `docs/`. Implementation history belongs in Git, not new documentation.
