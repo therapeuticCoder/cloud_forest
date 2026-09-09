@@ -13,12 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import {
-  activityActors,
-  cloudForestActivities,
-  mockNowIso,
-} from "@/data/cloudForestMockData";
-import type { CloudForestActivity } from "@/types/cloudForest";
+import type { CloudForestLayer } from "@/types/cloudForest";
 import type {
   CareGratitude,
   CarePersonId,
@@ -31,20 +26,14 @@ import { CareGratitudeCard } from "./CareGratitudeCard";
 import { CareRequestCard } from "./CareRequestCard";
 import { TimelineCard, type TimelineCardItem } from "./TimelineCard";
 
-const actorsById = new Map(activityActors.map((actor) => [actor.id, actor]));
 const selectedTimelineItemId = "timeline-item-mira-soup-001";
-const visibleActivityIds = ["p2", "g1", "s1", "t2", "p4", "g2", "s2"];
-const visibleActivities = visibleActivityIds
-  .map((id) => cloudForestActivities.find((activity) => activity.id === id))
-  .filter(
-    (activity): activity is CloudForestActivity => activity !== undefined,
-  );
 const timelineApiClient = createApiClient({
   baseUrl: "",
   fetch: (input, init) => globalThis.fetch(input, init),
 });
 
 type RemoteTimelineItem = GetTimelineItemResponse["data"]["timelineItem"];
+type TimelineLayerFilter = Exclude<CloudForestLayer, "self">;
 
 type TimelineItemState =
   | { status: "loading" }
@@ -63,31 +52,6 @@ function formatActivityTime(publishedAt: string) {
   return formatter.format(new Date(publishedAt)).replace(",", " ·");
 }
 
-function isToday(publishedAt: string) {
-  const current = new Date(mockNowIso);
-  const published = new Date(publishedAt);
-
-  return (
-    current.getUTCFullYear() === published.getUTCFullYear() &&
-    current.getUTCMonth() === published.getUTCMonth() &&
-    current.getUTCDate() === published.getUTCDate()
-  );
-}
-
-function mockActivityToCardItem(
-  activity: CloudForestActivity,
-): TimelineCardItem | null {
-  const actor = actorsById.get(activity.actorId);
-  if (!actor) return null;
-
-  return {
-    id: activity.id,
-    actor,
-    content: activity.content,
-    publishedAt: activity.publishedAt,
-  };
-}
-
 function remoteTimelineItemToCardItem(
   item: RemoteTimelineItem,
 ): TimelineCardItem {
@@ -103,21 +67,6 @@ function remoteTimelineItemToCardItem(
     content: item.content,
     publishedAt: item.publishedAt,
   };
-}
-
-function ActivityList({ activities }: { activities: CloudForestActivity[] }) {
-  return activities.map((activity) => {
-    const item = mockActivityToCardItem(activity);
-    if (!item) return null;
-
-    return (
-      <TimelineCard
-        key={activity.id}
-        item={item}
-        time={formatActivityTime(activity.publishedAt)}
-      />
-    );
-  });
 }
 
 type CareListing =
@@ -199,8 +148,10 @@ function CareListings({
 
 function RemoteTimelineSlot({
   apiClient,
+  layerFilter,
 }: {
   apiClient: Pick<ApiClient, "getTimelineItem">;
+  layerFilter: TimelineLayerFilter | null;
 }) {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<TimelineItemState>({ status: "loading" });
@@ -232,6 +183,13 @@ function RemoteTimelineSlot({
 
   if (state.status === "success") {
     const item = remoteTimelineItemToCardItem(state.item);
+    if (layerFilter !== null && item.actor.layer !== layerFilter) {
+      return (
+        <div aria-live="polite" className="timeline-remote-state" role="status">
+          No live Timeline item is available in this layer.
+        </div>
+      );
+    }
     return (
       <TimelineCard item={item} time={formatActivityTime(item.publishedAt)} />
     );
@@ -314,6 +272,9 @@ export function TimelinePanel({
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
     "all",
   );
+  const [layerFilter, setLayerFilter] = useState<TimelineLayerFilter | null>(
+    null,
+  );
   const careListings = [
     ...careOffers.map((offer) => ({ kind: "give" as const, item: offer })),
     ...careRequests.map((request) => ({
@@ -329,35 +290,58 @@ export function TimelinePanel({
     (listing) => careFilter === "all" || listing.kind === careFilter,
   );
   const showCareListingsOnly = careFilter !== "all";
-  const todayActivities = visibleActivities.filter((activity) =>
-    isToday(activity.publishedAt),
-  );
-  const yesterdayActivities = visibleActivities.filter(
-    (activity) => !isToday(activity.publishedAt),
-  );
+  const toggleLayerFilter = (nextLayer: TimelineLayerFilter) => {
+    setLayerFilter((current) => (current === nextLayer ? null : nextLayer));
+    setCareFilter("all");
+  };
 
   return (
     <div className="timeline-feed">
       <div aria-label="Relationship layers" className="timeline-layer-key">
-        <span className="timeline-key timeline-key--party">
-          <UsersRound />
-        </span>
-        <span className="timeline-key timeline-key--tribe">
-          <Sprout />
-        </span>
-        <span className="timeline-key timeline-key--guild">
-          <Building2 />
-        </span>
-        <span className="timeline-key timeline-key--signal">
-          <RadioTower />
-        </span>
+        <button
+          aria-label="Filter to Party"
+          aria-pressed={layerFilter === "party"}
+          className="timeline-key timeline-key--party"
+          onClick={() => toggleLayerFilter("party")}
+          type="button"
+        >
+          <UsersRound aria-hidden="true" />
+        </button>
+        <button
+          aria-label="Filter to Tribe"
+          aria-pressed={layerFilter === "tribe"}
+          className="timeline-key timeline-key--tribe"
+          onClick={() => toggleLayerFilter("tribe")}
+          type="button"
+        >
+          <Sprout aria-hidden="true" />
+        </button>
+        <button
+          aria-label="Filter to Guild"
+          aria-pressed={layerFilter === "guild"}
+          className="timeline-key timeline-key--guild"
+          onClick={() => toggleLayerFilter("guild")}
+          type="button"
+        >
+          <Building2 aria-hidden="true" />
+        </button>
+        <button
+          aria-label="Filter to Signal"
+          aria-pressed={layerFilter === "signal"}
+          className="timeline-key timeline-key--signal"
+          onClick={() => toggleLayerFilter("signal")}
+          type="button"
+        >
+          <RadioTower aria-hidden="true" />
+        </button>
         <button
           aria-label="Filter to Give offers"
           aria-pressed={careFilter === "give"}
           className="timeline-key timeline-key--give"
-          onClick={() =>
-            setCareFilter((current) => (current === "give" ? "all" : "give"))
-          }
+          onClick={() => {
+            setLayerFilter(null);
+            setCareFilter((current) => (current === "give" ? "all" : "give"));
+          }}
           type="button"
         >
           <Gift aria-hidden="true" />
@@ -367,11 +351,12 @@ export function TimelinePanel({
           aria-pressed={careFilter === "receive"}
           className="timeline-key timeline-key--receive"
           data-care-receive-filter
-          onClick={() =>
+          onClick={() => {
+            setLayerFilter(null);
             setCareFilter((current) =>
               current === "receive" ? "all" : "receive",
-            )
-          }
+            );
+          }}
           type="button"
         >
           <HandHeart aria-hidden="true" />
@@ -429,31 +414,31 @@ export function TimelinePanel({
           )
         ) : (
           <>
-            <CareListings
-              claimedRequestIds={claimedRequestIds}
-              listings={careListings}
-              minimizedRequestIds={minimizedRequestIds}
-              onOfferHelp={onOfferHelp}
-              onRecordCompleted={onRecordCompleted}
-              onRecordNotCompleted={onRecordNotCompleted}
-              onPass={onPass}
-              onSetRequestMinimized={onSetRequestMinimized}
-              onWithdraw={onWithdraw}
-              onWithdrawOffer={onWithdrawOffer}
-              passableRequestIds={passableRequestIds}
-              viewerClaimedRequestIds={viewerClaimedRequestIds}
-              viewerCompletedRequestIds={viewerCompletedRequestIds}
-              otherParticipantCompletedRequestIds={
-                otherParticipantCompletedRequestIds
-              }
-              viewerId={viewerId}
+            {layerFilter === null ? (
+              <CareListings
+                claimedRequestIds={claimedRequestIds}
+                listings={careListings}
+                minimizedRequestIds={minimizedRequestIds}
+                onOfferHelp={onOfferHelp}
+                onRecordCompleted={onRecordCompleted}
+                onRecordNotCompleted={onRecordNotCompleted}
+                onPass={onPass}
+                onSetRequestMinimized={onSetRequestMinimized}
+                onWithdraw={onWithdraw}
+                onWithdrawOffer={onWithdrawOffer}
+                passableRequestIds={passableRequestIds}
+                viewerClaimedRequestIds={viewerClaimedRequestIds}
+                viewerCompletedRequestIds={viewerCompletedRequestIds}
+                otherParticipantCompletedRequestIds={
+                  otherParticipantCompletedRequestIds
+                }
+                viewerId={viewerId}
+              />
+            ) : null}
+            <RemoteTimelineSlot
+              apiClient={apiClient}
+              layerFilter={layerFilter}
             />
-            <RemoteTimelineSlot apiClient={apiClient} />
-            <ActivityList activities={todayActivities} />
-            <div className="timeline-day-divider" role="separator">
-              <span>Yesterday</span>
-            </div>
-            <ActivityList activities={yesterdayActivities} />
           </>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock3, HandHeart, Send } from "lucide-react";
+import { ArrowLeft, Clock3, HandHeart, LogOut, Send } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,13 @@ type MyCareViewProps = {
   history: CareHistoryEntry[];
   gratitudes: CareGratitude[];
   onBack: () => void;
+  onSignOut: () => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onWithdraw: (requestId: string) => void;
+  signOutError?: string;
+  signingOut: boolean;
 };
 
 const historyLabels = {
@@ -44,10 +47,13 @@ export function MyCareView({
   history,
   gratitudes,
   onBack,
+  onSignOut,
   onSetRequestMinimized,
   onRecordCompleted,
   onRecordNotCompleted,
   onWithdraw,
+  signOutError,
+  signingOut,
 }: MyCareViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -69,7 +75,6 @@ export function MyCareView({
           <ArrowLeft aria-hidden="true" />
         </Button>
         <div>
-          <span>Personal care commitments</span>
           <h1 ref={headingRef} tabIndex={-1}>
             My Care
           </h1>
@@ -236,6 +241,26 @@ export function MyCareView({
               Completed and closed care will appear here for you only.
             </p>
           )}
+        </section>
+
+        <section
+          aria-label="Session management"
+          className="my-care-view__section my-care-view__session"
+        >
+          {signOutError ? (
+            <p className="my-care-view__session-error" role="alert">
+              {signOutError}
+            </p>
+          ) : null}
+          <button
+            className="my-care-view__signout"
+            disabled={signingOut}
+            onClick={onSignOut}
+            type="button"
+          >
+            <LogOut aria-hidden="true" />
+            {signingOut ? "Signing out…" : "Sign out of Cloud Forest"}
+          </button>
         </section>
       </div>
     </section>

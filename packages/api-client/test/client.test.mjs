@@ -30,6 +30,48 @@ test("getHealth returns the typed v1 success result", async () => {
   });
 });
 
+test("session methods preserve the invited session contract", async () => {
+  const requests = [];
+  const client = createApiClient({
+    baseUrl: "https://api.example.test",
+    fetch: async (url, options) => {
+      requests.push({ url, options });
+      if (options.method === "GET") {
+        return jsonResponse({
+          apiVersion: "v1",
+          data: { currentPersonId: "person-fictional-river" },
+        });
+      }
+      return {
+        status: 204,
+        async text() {
+          return "";
+        },
+      };
+    },
+  });
+
+  assert.deepEqual(await client.getCurrentSession(), {
+    ok: true,
+    status: 200,
+    value: {
+      apiVersion: "v1",
+      data: { currentPersonId: "person-fictional-river" },
+    },
+  });
+  assert.deepEqual(await client.logout(), {
+    ok: true,
+    status: 204,
+    value: null,
+  });
+  assert.equal(requests[0].url, "https://api.example.test/api/v1/session");
+  assert.equal(
+    requests[1].url,
+    "https://api.example.test/api/v1/session/logout",
+  );
+  assert.equal(requests[1].options.credentials, "include");
+});
+
 test("getTimelineItem encodes its path parameter and returns typed errors", async () => {
   const client = createApiClient({
     baseUrl: "https://api.example.test",

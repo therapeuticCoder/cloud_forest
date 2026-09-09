@@ -20,6 +20,15 @@ test("the API reads the migrated Timeline item through the database resolver", a
     timelineItemResolver: createTimelineItemResolver(
       createTimelineItemRepository(database),
     ),
+    sessionResolver: {
+      async resolve() {
+        return {
+          userId: "account-fictional-owner",
+          personId: "person-fictional-owner",
+        };
+      },
+      async logout() {},
+    },
   });
   t.after(async () => {
     await server.close();

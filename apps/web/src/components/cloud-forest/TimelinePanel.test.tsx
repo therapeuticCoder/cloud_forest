@@ -74,7 +74,7 @@ describe("TimelinePanel live item seam", () => {
     expect(cards[1]).toHaveTextContent("Meal offer");
   });
 
-  it("shows loading and then renders the API-backed item among mock content", async () => {
+  it("shows loading and then renders the API-backed item", async () => {
     let resolveRequest: ((value: GetTimelineItemResult) => void) | undefined;
     const apiClient = {
       getTimelineItem: vi.fn(
@@ -90,8 +90,6 @@ describe("TimelinePanel live item seam", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       "Loading one live Timeline item",
     );
-    expect(screen.getByText("Ren")).toBeInTheDocument();
-
     resolveRequest?.({
       ok: true,
       status: 200,
@@ -104,7 +102,7 @@ describe("TimelinePanel live item seam", () => {
     });
   });
 
-  it("shows an accessible empty state while preserving mock content", async () => {
+  it("shows an accessible empty state when the API item is unavailable", async () => {
     const apiClient = {
       getTimelineItem: vi.fn().mockResolvedValue({
         ok: false,
@@ -125,7 +123,31 @@ describe("TimelinePanel live item seam", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(
       "No live Timeline item is available",
     );
-    expect(screen.getByText("Ren")).toBeInTheDocument();
+  });
+
+  it("filters the API-backed item by relationship layer", async () => {
+    const user = userEvent.setup();
+    const apiClient = {
+      getTimelineItem: vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        value: { apiVersion: "v1", data: { timelineItem } },
+      }),
+    };
+
+    render(<TimelinePanel apiClient={apiClient} />);
+    expect(await screen.findByText(timelineItem.content)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Filter to Tribe" }));
+    expect(
+      await screen.findByText(
+        "No live Timeline item is available in this layer.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(timelineItem.content)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Filter to Party" }));
+    expect(await screen.findByText(timelineItem.content)).toBeInTheDocument();
   });
 
   it("offers a keyboard-accessible retry after a recoverable error", async () => {

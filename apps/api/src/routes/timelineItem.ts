@@ -10,6 +10,8 @@ import {
 } from "@cloud-forest/api-contracts";
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
+import type { SessionResolver } from "../sessionResolver.ts";
+
 type TimelineItemSuccessResult = {
   statusCode: 200;
   body: GetTimelineItemSuccessResponse;
@@ -26,6 +28,7 @@ export type TimelineItemResolverResult =
 
 export type TimelineItemResolver = (
   request: GetTimelineItemRequest,
+  ownerUserId: string,
 ) => Promise<TimelineItemResolverResult> | TimelineItemResolverResult;
 
 export const defaultTimelineItemResolver: TimelineItemResolver = () => ({
@@ -41,6 +44,7 @@ export const defaultTimelineItemResolver: TimelineItemResolver = () => ({
 
 interface TimelineItemRoutesOptions {
   resolver: TimelineItemResolver;
+  sessionResolver: SessionResolver;
 }
 
 export const timelineItemRoutes: FastifyPluginAsyncTypebox<
@@ -75,7 +79,17 @@ export const timelineItemRoutes: FastifyPluginAsyncTypebox<
       },
     },
     async (request, reply) => {
-      const result = await options.resolver(request.params);
+      const current = await options.sessionResolver.resolve(request);
+      if (current === null) {
+        return reply.status(404).send({
+          apiVersion,
+          error: {
+            code: "TIMELINE_ITEM_NOT_FOUND",
+            message: "Timeline item not found.",
+          },
+        });
+      }
+      const result = await options.resolver(request.params, current.userId);
       return reply.status(result.statusCode).send(result.body);
     },
   );

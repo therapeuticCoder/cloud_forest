@@ -270,6 +270,23 @@ button:focus-visible {
 .timeline-layer-key button.timeline-key {
   appearance: none;
   padding: 0;
+  cursor: pointer;
+}
+
+.timeline-key--party {
+  background: var(--forest-party);
+}
+
+.timeline-key--tribe {
+  background: var(--forest-tribe);
+}
+
+.timeline-key--guild {
+  background: var(--forest-guild);
+}
+
+.timeline-key--signal {
+  background: var(--forest-signal);
 }
 
 .timeline-key--give {
@@ -2034,6 +2051,52 @@ article[aria-label="Party layer"] {
 .my-care-view__section-heading h2 {
   margin: 0;
   font-size: 1.4rem;
+}
+
+.my-care-view__session {
+  justify-items: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(228, 236, 217, 0.22);
+}
+
+.my-care-view__session-error {
+  margin: 0;
+  color: #f6b29a;
+}
+
+.my-care-view__signout {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1.1rem;
+  color: #f3f5ec;
+  background: var(--forest-pine);
+  font: inherit;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.my-care-view__signout:hover {
+  background: #103426;
+}
+
+.my-care-view__signout:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 3px;
+}
+
+.my-care-view__signout:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.my-care-view__signout svg {
+  width: 1.1rem;
 }
 
 .my-care-card {

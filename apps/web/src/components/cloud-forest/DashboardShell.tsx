@@ -34,12 +34,7 @@ import {
   useCuratedPeople,
   type CuratedPersonApiClient,
 } from "./useCuratedPeople";
-import {
-  PartyAction,
-  PartyActions,
-  Portrait,
-  type PartySelfControl,
-} from "./PartyLayer";
+import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard } from "./ReceiveCareWizard";
@@ -82,11 +77,15 @@ function viewFromLocation(): CloudForestView {
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
 
 export function DashboardShell({
-  currentPersonControl,
   apiClient,
+  onSignOut,
+  signOutError,
+  signingOut,
 }: {
-  currentPersonControl?: PartySelfControl;
   apiClient?: CuratedPersonApiClient;
+  onSignOut: () => void;
+  signOutError?: string;
+  signingOut: boolean;
 }) {
   const [activeView, setActiveView] =
     useState<CloudForestView>(viewFromLocation);
@@ -845,28 +844,18 @@ export function DashboardShell({
       >
         <header className="party-header timeline-header">
           <button
-            aria-label={currentPersonControl?.ariaLabel ?? "Open My Care"}
+            aria-label="Open My Care"
             className="party-self global-view-self"
             data-my-care-trigger="timeline"
-            data-prototype-current-person={
-              currentPersonControl ? "true" : undefined
+            onClick={() =>
+              openCareDestination(
+                { kind: "my-care" },
+                '[data-my-care-trigger="timeline"]',
+              )
             }
-            onClick={
-              currentPersonControl?.onOpen ??
-              (() =>
-                openCareDestination(
-                  { kind: "my-care" },
-                  '[data-my-care-trigger="timeline"]',
-                ))
-            }
-            ref={currentPersonControl?.triggerRef}
             type="button"
           >
-            <Portrait
-              initials={currentPersonControl?.initials}
-              personId={currentPersonControl?.personId ?? curatorUser.id}
-              small
-            />
+            <Portrait personId={curatorUser.id} small />
           </button>
           <h1>Timeline</h1>
           <button
@@ -957,7 +946,6 @@ export function DashboardShell({
                     ? curatedPeople.message
                     : undefined
                 }
-                currentPersonControl={currentPersonControl}
                 onAddPartyMember={openAddWizard}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
@@ -999,6 +987,7 @@ export function DashboardShell({
               history={selfCareHistory}
               gratitudes={selfCareGratitudes}
               onBack={backFromCareDestination}
+              onSignOut={onSignOut}
               onSetRequestMinimized={(requestId, minimized) => {
                 const changedAt = new Date().toISOString();
                 const presentation = selectCareRequestPresentation(
@@ -1036,6 +1025,8 @@ export function DashboardShell({
               onWithdraw={(requestId) =>
                 withdrawCareRequestAs(requestId, CURRENT_CARE_VIEWER_ID)
               }
+              signOutError={signOutError}
+              signingOut={signingOut}
             />
           ) : careDestination?.kind === "not-completed" ? (
             <NotCompletedCareView
