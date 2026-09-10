@@ -79,12 +79,18 @@ export type { CuratedPersonApiClient } from "./useCuratedPeople";
 export function DashboardShell({
   apiClient,
   currentPersonId,
+  role,
+  onCreateSignupCode,
   onSignOut,
   signOutError,
   signingOut,
 }: {
   apiClient?: CuratedPersonApiClient;
   currentPersonId: string;
+  role: "admin" | "user";
+  onCreateSignupCode: () => Promise<
+    { ok: true; link: string } | { ok: false; message: string }
+  >;
   onSignOut: () => void;
   signOutError?: string;
   signingOut: boolean;
@@ -992,6 +998,8 @@ export function DashboardShell({
               history={selfCareHistory}
               gratitudes={selfCareGratitudes}
               onBack={backFromCareDestination}
+              isAdmin={role === "admin"}
+              onCreateSignupCode={onCreateSignupCode}
               onSignOut={onSignOut}
               onSetRequestMinimized={(requestId, minimized) => {
                 const changedAt = new Date().toISOString();

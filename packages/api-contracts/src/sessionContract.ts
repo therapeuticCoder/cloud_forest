@@ -5,12 +5,16 @@ export const sessionPath = "/api/v1/session";
 export const logoutPath = "/api/v1/session/logout";
 
 const personIdSchema = Type.String({ minLength: 1, maxLength: 128 });
+const roleSchema = Type.Union([Type.Literal("admin"), Type.Literal("user")]);
 
 export const currentSessionResponseSchema = Type.Object(
   {
     apiVersion: Type.Literal("v1"),
     data: Type.Object(
-      { currentPersonId: personIdSchema },
+      {
+        currentPersonId: personIdSchema,
+        role: Type.Optional(roleSchema),
+      },
       { additionalProperties: false },
     ),
   },

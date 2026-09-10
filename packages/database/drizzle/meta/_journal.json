@@ -57,6 +57,13 @@
       "when": 1788988442909,
       "tag": "0007_scope_timeline_items",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789063200000,
+      "tag": "0008_signup_codes_and_roles",
+      "breakpoints": true
     }
   ]
 }

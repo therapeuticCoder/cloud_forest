@@ -21,13 +21,16 @@ import type {
 } from "@cloud-forest/database";
 import { partyRoutes } from "./routes/party.ts";
 import { curatedPersonRoutes } from "./routes/curatedPerson.ts";
+import { signupRoutes } from "./routes/signup.ts";
 
 export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   timelineItemResolver?: TimelineItemResolver;
   sessionResolver?: SessionResolver;
   authHandler?: AuthHandler;
+  signupAuthHandler?: AuthHandler;
   partyRepository?: PartyRepository;
   curatedPersonRepository?: CuratedPersonRepository;
+  identityRepository?: import("@cloud-forest/database").IdentityRepository;
 }
 
 const missingSessionResolver: SessionResolver = {
@@ -36,6 +39,19 @@ const missingSessionResolver: SessionResolver = {
   },
   async logout() {},
 };
+const missingAuthHandler: AuthHandler = async () => {
+  throw new Error("Auth handler is not configured.");
+};
+const missingIdentityRepository = new Proxy(
+  {},
+  {
+    get() {
+      return () => {
+        throw new Error("Identity repository is not configured.");
+      };
+    },
+  },
+) as import("@cloud-forest/database").IdentityRepository;
 const missingPartyRepository = new Proxy(
   {},
   {
@@ -86,6 +102,11 @@ export function buildApi(
   if (options.authHandler !== undefined) {
     server.register(authRoutes, { handler: options.authHandler });
   }
+  server.register(signupRoutes, {
+    authHandler: options.signupAuthHandler ?? missingAuthHandler,
+    identityRepository: options.identityRepository ?? missingIdentityRepository,
+    sessionResolver: options.sessionResolver ?? missingSessionResolver,
+  });
   server.register(partyRoutes, {
     repository: options.partyRepository ?? missingPartyRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,

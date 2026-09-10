@@ -107,7 +107,7 @@ test("an invited password account resolves its session and expires", async (t) =
   assert.equal(active.statusCode, 200);
   assert.deepEqual(active.json(), {
     apiVersion: "v1",
-    data: { currentPersonId: ids.person },
+    data: { currentPersonId: ids.person, role: "user" },
   });
 
   const wrongPassword = await auth.handler(

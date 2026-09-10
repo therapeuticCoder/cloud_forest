@@ -17,10 +17,12 @@ import {
 export const fictionalPartyOwnerId = "person-fictional-owner";
 export const fictionalPartyOwnerUserId = "account-fictional-owner";
 export const fictionalPartyOwnerEmail = "river@example.test";
+export const fictionalPartyOwnerUsername = "river";
 export const fictionalPartyOwnerPassword = "cloud-forest-local-password";
 export const fictionalEmptyUserPersonId = "person-fictional-empty-user";
 export const fictionalEmptyUserId = "account-fictional-empty-user";
 export const fictionalEmptyUserEmail = "empty@example.test";
+export const fictionalEmptyUserUsername = "empty";
 export const fictionalEmptyUserPassword = fictionalPartyOwnerPassword;
 export const fictionalPartyInvitationId = "invite-fictional-party";
 export const fictionalPartyMobileInvitationId = "invite-fictional-party-mobile";
@@ -96,6 +98,8 @@ export async function seedFictionalPartyFixture(
     id: fictionalPartyOwnerUserId,
     name: "River Okafor",
     email: fictionalPartyOwnerEmail,
+    username: fictionalPartyOwnerUsername,
+    role: "admin",
     emailVerified: true,
     createdAt: now,
     updatedAt: now,
@@ -132,6 +136,7 @@ export async function seedFictionalPartyFixture(
     id: fictionalEmptyUserId,
     name: "Empty User",
     email: fictionalEmptyUserEmail,
+    username: fictionalEmptyUserUsername,
     emailVerified: true,
     createdAt: now,
     updatedAt: now,

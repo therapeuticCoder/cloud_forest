@@ -6,6 +6,7 @@ import type { IdentityRepository } from "@cloud-forest/database";
 export type CurrentPerson = {
   readonly userId: string;
   readonly personId: string;
+  readonly role?: "admin" | "user";
 };
 
 export interface SessionApi {
@@ -36,10 +37,12 @@ export function createSessionResolver(
       });
       if (session === null) return options.developmentSession ?? null;
 
-      const personId = await identityRepository.findPersonIdForAccount(
+      const identity = await identityRepository.findIdentityForAccount(
         session.user.id,
       );
-      return personId === null ? null : { userId: session.user.id, personId };
+      return identity === null
+        ? null
+        : { userId: session.user.id, ...identity };
     },
     async logout(request: FastifyRequest): Promise<void> {
       const headers = fromNodeHeaders(request.headers);

@@ -21,9 +21,16 @@ const invitedAuth = createInvitedAuth(
   process.env.BETTER_AUTH_SECRET ??
     "cloud-forest-local-test-secret-must-be-32-chars",
 );
+const signupAuth = createInvitedAuth(
+  database,
+  process.env.BETTER_AUTH_SECRET ??
+    "cloud-forest-local-test-secret-must-be-32-chars",
+  { allowSignUp: true },
+);
+const identityRepository = createIdentityRepository(database);
 const sessionResolver = createSessionResolver(
   invitedAuth.api,
-  createIdentityRepository(database),
+  identityRepository,
 );
 
 let server: FastifyInstance;
@@ -36,7 +43,9 @@ try {
       sessionResolver,
       partyRepository: createPartyRepository(database),
       curatedPersonRepository: createCuratedPersonRepository(database),
+      identityRepository,
       authHandler: invitedAuth.handler,
+      signupAuthHandler: signupAuth.handler,
     },
   });
 } catch (error) {

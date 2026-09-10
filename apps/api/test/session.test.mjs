@@ -34,7 +34,7 @@ test("the session route derives a current person and rejects missing sessions", 
   assert.equal(current.statusCode, 200);
   assert.deepEqual(current.json(), {
     apiVersion: "v1",
-    data: { currentPersonId: "person-fictional-river" },
+    data: { currentPersonId: "person-fictional-river", role: "user" },
   });
 });
 
