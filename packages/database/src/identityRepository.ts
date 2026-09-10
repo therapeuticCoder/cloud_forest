@@ -65,20 +65,55 @@ export function createIdentityRepository(database: DatabaseClient) {
       displayName: string;
       now: Date;
     }): Promise<void> {
-      await database.insert(people).values({
-        id: input.personId,
-        createdAt: input.now,
+      await database.transaction(async (transaction) => {
+        await transaction.insert(people).values({
+          id: input.personId,
+          createdAt: input.now,
+        });
+        await transaction.insert(accountPeople).values({
+          accountId: input.accountId,
+          personId: input.personId,
+          createdAt: input.now,
+        });
+        await transaction.insert(personProfiles).values({
+          personId: input.personId,
+          displayName: input.displayName,
+          createdAt: input.now,
+          updatedAt: input.now,
+        });
       });
-      await database.insert(accountPeople).values({
-        accountId: input.accountId,
-        personId: input.personId,
-        createdAt: input.now,
-      });
-      await database.insert(personProfiles).values({
-        personId: input.personId,
-        displayName: input.displayName,
-        createdAt: input.now,
-        updatedAt: input.now,
+    },
+
+    async deleteAccountForSignup(input: {
+      accountId: string | null;
+      personId: string;
+      username: string;
+    }): Promise<void> {
+      await database.transaction(async (transaction) => {
+        const accountId =
+          input.accountId ??
+          (
+            await transaction
+              .select({ id: users.id })
+              .from(users)
+              .where(eq(users.username, input.username))
+              .limit(1)
+          )[0]?.id;
+        if (accountId === undefined) return;
+
+        await transaction
+          .delete(accountPeople)
+          .where(
+            and(
+              eq(accountPeople.accountId, accountId),
+              eq(accountPeople.personId, input.personId),
+            ),
+          );
+        await transaction
+          .delete(personProfiles)
+          .where(eq(personProfiles.personId, input.personId));
+        await transaction.delete(people).where(eq(people.id, input.personId));
+        await transaction.delete(users).where(eq(users.id, accountId));
       });
     },
 

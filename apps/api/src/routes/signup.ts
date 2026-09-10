@@ -54,6 +54,26 @@ const forbidden = {
   },
 };
 
+class SignupCodeUnavailableError extends Error {
+  constructor() {
+    super("Signup code is unavailable.");
+    this.name = "SignupCodeUnavailableError";
+  }
+}
+
+function accountIdFromSignupResponse(body: string): string | null {
+  try {
+    const parsed: unknown = JSON.parse(body);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const user = (parsed as { user?: unknown }).user;
+    if (typeof user !== "object" || user === null) return null;
+    const id = (user as { id?: unknown }).id;
+    return typeof id === "string" && id.length > 0 ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 export const signupRoutes: FastifyPluginAsyncTypebox<{
   authHandler: AuthHandler;
   identityRepository: IdentityRepository;
@@ -87,62 +107,95 @@ export const signupRoutes: FastifyPluginAsyncTypebox<{
       }
       const username = request.body.username.trim().toLowerCase();
       const now = new Date();
-      const consumed = await options.identityRepository.consumeSignupCode(
-        request.body.code.trim(),
-        now,
-      );
-      if (!consumed) {
-        return reply
-          .status(400)
-          .send(
-            signupError(
-              "That signup code is invalid or has already been used.",
-            ),
-          );
-      }
+      const personId = `person-${randomUUID()}`;
+      let accountId: string | null = null;
+      let accountCreated = false;
 
-      const authHeaders = new Headers({ "content-type": "application/json" });
-      if (request.headers.cookie !== undefined) {
-        authHeaders.set("cookie", request.headers.cookie);
-      }
-      if (request.headers.origin !== undefined) {
-        authHeaders.set("origin", request.headers.origin);
-      }
-      if (request.headers.referer !== undefined) {
-        authHeaders.set("referer", request.headers.referer);
-      }
-      const authResponse = await options.authHandler(
-        new Request("http://127.0.0.1:3001/api/auth/sign-up/email", {
-          method: "POST",
-          headers: authHeaders,
-          body: JSON.stringify({
-            name: displayName,
-            username,
-            email: `${username}@cloudforest.local`,
-            password: request.body.password,
+      try {
+        const authHeaders = new Headers({
+          "content-type": "application/json",
+        });
+        if (request.headers.cookie !== undefined) {
+          authHeaders.set("cookie", request.headers.cookie);
+        }
+        if (request.headers.origin !== undefined) {
+          authHeaders.set("origin", request.headers.origin);
+        }
+        if (request.headers.referer !== undefined) {
+          authHeaders.set("referer", request.headers.referer);
+        }
+        const authResponse = await options.authHandler(
+          new Request("http://127.0.0.1:3001/api/auth/sign-up/email", {
+            method: "POST",
+            headers: authHeaders,
+            body: JSON.stringify({
+              name: displayName,
+              username,
+              email: `${username}@cloudforest.local`,
+              password: request.body.password,
+            }),
           }),
-        }),
-      );
-      authResponse.headers.forEach((value, key) => reply.header(key, value));
-      const body = await authResponse.text();
-      if (!authResponse.ok) return reply.status(400).send(body);
+        );
+        const body = await authResponse.text();
+        if (!authResponse.ok) return reply.status(400).send(body);
+        accountCreated = true;
 
-      const accountId =
-        await options.identityRepository.findAccountIdByUsername(username);
-      if (accountId === null) {
+        accountId =
+          accountIdFromSignupResponse(body) ??
+          (await options.identityRepository.findAccountIdByUsername(username));
+        if (accountId === null) {
+          throw new Error(
+            "Signup created an account without returning its id.",
+          );
+        }
+        await options.identityRepository.createPersonForAccount({
+          accountId,
+          personId,
+          displayName,
+          now,
+        });
+        const consumed = await options.identityRepository.consumeSignupCode(
+          request.body.code.trim(),
+          now,
+        );
+        if (!consumed) throw new SignupCodeUnavailableError();
+
+        authResponse.headers.forEach((value, key) => reply.header(key, value));
+        return reply.status(200).send(body);
+      } catch (error) {
+        if (accountCreated) {
+          try {
+            await options.identityRepository.deleteAccountForSignup({
+              accountId,
+              personId,
+              username,
+            });
+          } catch (cleanupError) {
+            request.log.error(
+              { err: cleanupError, accountId },
+              "Signup cleanup failed",
+            );
+          }
+        }
+        if (error instanceof SignupCodeUnavailableError) {
+          return reply
+            .status(400)
+            .send(
+              signupError(
+                "That signup code is invalid or has already been used.",
+              ),
+            );
+        }
+        request.log.error(
+          { err: error },
+          "Signup failed after account creation",
+        );
         return reply
           .status(500)
           .send(
             signupError("Cloud Forest could not finish creating your account."),
           );
       }
-      await options.identityRepository.createPersonForAccount({
-        accountId,
-        personId: `person-${randomUUID()}`,
-        displayName,
-        now,
-      });
-      return reply.status(200).send(body);
     },
   });
 

@@ -2,9 +2,34 @@ ALTER TABLE "user" ADD COLUMN "username" varchar(30);
 --> statement-breakpoint
 ALTER TABLE "user" ADD COLUMN "role" varchar(16) DEFAULT 'user' NOT NULL;
 --> statement-breakpoint
-UPDATE "user"
-SET "username" = lower(split_part("email", '@', 1))
-WHERE "username" IS NULL;
+DO $$
+DECLARE
+	account RECORD;
+	candidate varchar(30);
+	base_username varchar(320);
+	suffix integer;
+BEGIN
+	FOR account IN
+		SELECT "id", lower(split_part("email", '@', 1)) AS base_username
+		FROM "user"
+		WHERE "username" IS NULL
+		ORDER BY "created_at", "id"
+	LOOP
+		base_username := account.base_username;
+		candidate := left(base_username, 30);
+		suffix := 2;
+		WHILE EXISTS (SELECT 1 FROM "user" WHERE "username" = candidate) LOOP
+			candidate := left(
+				base_username,
+				greatest(1, 30 - length(suffix::text) - 1)
+			) || '-' || suffix::text;
+			suffix := suffix + 1;
+		END LOOP;
+		UPDATE "user"
+		SET "username" = candidate
+		WHERE "id" = account.id;
+	END LOOP;
+END $$;
 --> statement-breakpoint
 UPDATE "user"
 SET "role" = 'admin'
