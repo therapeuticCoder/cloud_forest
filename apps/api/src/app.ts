@@ -77,6 +77,7 @@ export function buildApi(
   options: BuildApiOptions = { logger: false },
 ): FastifyInstance {
   const server = Fastify({
+    bodyLimit: 2 * 1024 * 1024,
     logger: options.logger,
     routerOptions: { maxParamLength: 256 },
   }).withTypeProvider<TypeBoxTypeProvider>();

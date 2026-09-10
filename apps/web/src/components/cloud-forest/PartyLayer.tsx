@@ -1,12 +1,4 @@
-import {
-  Gift,
-  HandHeart,
-  List,
-  PenLine,
-  Sprout,
-  UserRoundPlus,
-  UsersRound,
-} from "lucide-react";
+import { Gift, HandHeart, PenLine, Sprout, UserRoundPlus } from "lucide-react";
 
 import communityPortraits from "@/assets/timeline/community-portraits.png";
 import solArdenPortrait from "@/assets/curator/sol-arden.png";
@@ -14,14 +6,11 @@ import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 type PartyLayerProps = {
   onAdd: (slotIndex?: number) => void;
-  onNavigateToTimeline: () => void;
-  onOpenMyCare: () => void;
   onRetry: () => void;
   onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
   people: CuratorPerson[];
   peopleState: "loading" | "ready" | "error";
   peopleStateMessage?: string;
-  user: CuratorPerson;
 };
 
 type PortraitPosition =
@@ -198,31 +187,43 @@ export function PartyAction({
 
 export function PartyActions({
   activeView,
+  addDisabled = false,
+  careActionsDisabled = false,
   onAdd,
   onGive,
   onReceive,
-  partyIsFull,
 }: {
   activeView: "timeline" | "curator";
+  addDisabled?: boolean;
+  careActionsDisabled?: boolean;
   onAdd?: () => void;
   onGive?: () => void;
   onReceive?: () => void;
-  partyIsFull?: boolean;
 }) {
   return (
     <div aria-label="Party actions" className="party-actions">
       <PartyAction
         icon={activeView === "timeline" ? PenLine : UserRoundPlus}
         onClick={activeView === "curator" ? onAdd : undefined}
-        disabled={activeView === "curator" && partyIsFull}
+        disabled={activeView === "curator" && addDisabled}
         tone="primary"
       >
         {activeView === "timeline" ? "Write" : "Add"}
       </PartyAction>
-      <PartyAction icon={Gift} onClick={onGive} tone="quiet">
+      <PartyAction
+        disabled={careActionsDisabled}
+        icon={Gift}
+        onClick={onGive}
+        tone="quiet"
+      >
         Give
       </PartyAction>
-      <PartyAction icon={HandHeart} onClick={onReceive} tone="quiet">
+      <PartyAction
+        disabled={careActionsDisabled}
+        icon={HandHeart}
+        onClick={onReceive}
+        tone="quiet"
+      >
         Receive
       </PartyAction>
     </div>
@@ -230,15 +231,12 @@ export function PartyActions({
 }
 
 export function PartyLayer({
-  onNavigateToTimeline,
   onAdd,
-  onOpenMyCare,
   onRetry,
   onSelect,
   people,
   peopleState,
   peopleStateMessage,
-  user,
 }: PartyLayerProps) {
   const partySlots = Array.from(
     { length: partySlotCount },
@@ -247,28 +245,6 @@ export function PartyLayer({
 
   return (
     <div aria-label="Party people" className="party-layer">
-      <header className="party-header">
-        <button
-          aria-label="Open My Care"
-          className="party-self"
-          data-curator-tile={`party-${user.id}`}
-          data-my-care-trigger="curator"
-          onClick={onOpenMyCare}
-          type="button"
-        >
-          <Portrait initials={user.initials} personId={user.id} small />
-        </button>
-        <h1>Party</h1>
-        <button
-          aria-label="Go to Timeline"
-          className="party-wordmark"
-          onClick={onNavigateToTimeline}
-          type="button"
-        >
-          Timeline <List aria-hidden="true" strokeWidth={1.5} />
-        </button>
-      </header>
-
       <div className="party-grid">
         {peopleState === "loading" ? (
           <div className="party-state-message" role="status">
@@ -321,13 +297,6 @@ export function PartyLayer({
       </div>
       <div aria-hidden="true" className="party-ornament party-ornament--right">
         <Sprout strokeWidth={1.3} />
-      </div>
-
-      <div aria-label="Continue to Tribe" className="party-continuation">
-        <span />
-        <UsersRound aria-hidden="true" strokeWidth={1.5} />
-        <strong>Tribe</strong>
-        <span />
       </div>
     </div>
   );

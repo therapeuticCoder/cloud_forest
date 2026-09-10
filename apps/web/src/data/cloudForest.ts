@@ -3,7 +3,6 @@ export {
   curatorMockData,
   curatorPartyPeople,
   curatorSignals,
-  curatorTribeNeighborhoods,
   curatorUser,
   createInitials,
 } from "./curatorMockData";

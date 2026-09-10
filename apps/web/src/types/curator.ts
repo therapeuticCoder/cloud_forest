@@ -5,7 +5,11 @@ export type CuratorPerson = {
   relationshipTitle: string;
   relationshipNote: string;
   recentStatus: string;
+  placement?: "party" | "tribe" | "guild" | "signal" | "holding";
   portraitUrl?: string;
+  privateDescription?: string;
+  relationshipShape?: string;
+  version?: number;
 };
 
 export type CuratorNeighborhood = {
@@ -44,7 +48,6 @@ export type CuratorSignal = {
 export type CuratorMockData = {
   user: CuratorPerson;
   partyPeople: CuratorPerson[];
-  tribeNeighborhoods: CuratorNeighborhood[];
   guilds: CuratorGuild[];
   signals: CuratorSignal[];
 };
@@ -52,5 +55,6 @@ export type CuratorMockData = {
 export type CuratorSelection =
   | { layer: "party"; item: CuratorPerson }
   | { layer: "tribe"; item: CuratorPerson }
+  | { layer: "holding"; item: CuratorPerson }
   | { layer: "guild"; item: CuratorGuild }
   | { layer: "signal"; item: CuratorSignal };

@@ -6,6 +6,7 @@ const curatedPersonId = Type.String({ minLength: 1, maxLength: 128 });
 const nickname = Type.String({ minLength: 1, maxLength: 200 });
 const relationshipShape = Type.String({ minLength: 1, maxLength: 200 });
 const privateDescription = Type.String({ maxLength: 10_000 });
+const portraitUrl = Type.String({ maxLength: 2_000_000 });
 const version = Type.Integer({ minimum: 1 });
 
 export const curatedPersonPlacementSchema = Type.Union([
@@ -22,6 +23,7 @@ export const curatedPersonSchema = Type.Object(
     nickname,
     relationshipShape,
     privateDescription,
+    portraitUrl: Type.Optional(portraitUrl),
     placement: curatedPersonPlacementSchema,
     linkedUserId: Type.Union([curatedPersonId, Type.Null()]),
     version,
@@ -40,7 +42,9 @@ export const curatedPersonErrorSchema = Type.Object(
           Type.Literal("UNAUTHORIZED"),
           Type.Literal("NOT_FOUND"),
           Type.Literal("VALIDATION_ERROR"),
+          Type.Literal("HOLDING_FULL"),
           Type.Literal("PARTY_FULL"),
+          Type.Literal("TRIBE_FULL"),
           Type.Literal("STALE_WRITE_CONFLICT"),
         ]),
         message: Type.String({ minLength: 1, maxLength: 500 }),
@@ -76,6 +80,7 @@ export const createCuratedPersonBodySchema = Type.Object(
     nickname,
     relationshipShape,
     privateDescription,
+    portraitUrl: Type.Optional(portraitUrl),
     placement: curatedPersonPlacementSchema,
   },
   { additionalProperties: false },
@@ -85,6 +90,7 @@ export const updateCuratedPersonBodySchema = Type.Object(
     nickname,
     relationshipShape,
     privateDescription,
+    portraitUrl: Type.Optional(portraitUrl),
     placement: curatedPersonPlacementSchema,
     expectedVersion: version,
   },

@@ -233,6 +233,7 @@ export const curatedPersons = pgTable(
       length: 200,
     }).notNull(),
     privateDescription: text("private_description").notNull().default(""),
+    portraitUrl: text("portrait_url").notNull().default(""),
     placement: varchar("placement", { length: 16 })
       .$type<CuratedPersonPlacement>()
       .notNull(),
@@ -258,6 +259,10 @@ export const curatedPersons = pgTable(
     check(
       "curated_persons_private_description_length",
       sql`char_length(${table.privateDescription}) <= 10000`,
+    ),
+    check(
+      "curated_persons_portrait_url_length",
+      sql`char_length(${table.portraitUrl}) <= 2000000`,
     ),
     check(
       "curated_persons_placement_allowed",

@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, ImagePlus, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,7 @@ export type AddPartyMemberDraft = {
 };
 
 type AddPartyMemberWizardProps = {
+  destination: "Holding" | "Party" | "Tribe";
   onCancel: () => void;
   onComplete: (
     draft: AddPartyMemberDraft,
@@ -22,6 +23,7 @@ type AddPartyMemberWizardProps = {
 };
 
 const steps = ["Name", "Portrait", "Relationship", "Private note", "Preview"];
+const maximumPortraitBytes = 1_400_000;
 
 function initialsFor(displayName: string) {
   return displayName
@@ -34,6 +36,7 @@ function initialsFor(displayName: string) {
 }
 
 export function AddPartyMemberWizard({
+  destination,
   errorMessage,
   isSubmitting = false,
   onCancel,
@@ -42,9 +45,9 @@ export function AddPartyMemberWizard({
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
   const [portraitUrl, setPortraitUrl] = useState<string | undefined>(undefined);
+  const [portraitError, setPortraitError] = useState<string | undefined>();
   const [relationshipNote, setRelationshipNote] = useState("");
   const [relationshipTitle, setRelationshipTitle] = useState("");
-  const portraitUrlRef = useRef<string | undefined>(undefined);
 
   const canContinue =
     (step === 0 && displayName.trim().length > 0) ||
@@ -54,31 +57,29 @@ export function AddPartyMemberWizard({
     step === 4;
 
   const choosePortrait = (file: File | undefined) => {
-    if (file) {
-      if (portraitUrlRef.current) {
-        URL.revokeObjectURL(portraitUrlRef.current);
-      }
-      const nextPortraitUrl = URL.createObjectURL(file);
-      portraitUrlRef.current = nextPortraitUrl;
-      setPortraitUrl(nextPortraitUrl);
+    if (!file) return;
+    if (file.size > maximumPortraitBytes) {
+      setPortraitError("Choose an image smaller than 1.4 MB.");
+      return;
     }
-    setStep(2);
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      setPortraitUrl(
+        typeof reader.result === "string" ? reader.result : undefined,
+      );
+      setPortraitError(undefined);
+      setStep(2);
+    });
+    reader.readAsDataURL(file);
   };
 
   const skipPortrait = () => {
-    if (portraitUrlRef.current) {
-      URL.revokeObjectURL(portraitUrlRef.current);
-      portraitUrlRef.current = undefined;
-      setPortraitUrl(undefined);
-    }
+    setPortraitUrl(undefined);
+    setPortraitError(undefined);
     setStep(2);
   };
 
   const handleCancel = () => {
-    if (portraitUrlRef.current) {
-      URL.revokeObjectURL(portraitUrlRef.current);
-      portraitUrlRef.current = undefined;
-    }
     onCancel();
   };
 
@@ -99,14 +100,13 @@ export function AddPartyMemberWizard({
       relationshipTitle: relationshipTitle.trim(),
     });
     if (completed === false) return;
-    if (portraitUrlRef.current) {
-      URL.revokeObjectURL(portraitUrlRef.current);
-      portraitUrlRef.current = undefined;
-    }
   };
 
   return (
-    <section aria-label="Add a Party member" className="party-wizard">
+    <section
+      aria-label={`Add a ${destination === "Holding" ? "Character" : `${destination} member`}`}
+      className="party-wizard"
+    >
       <header className="party-wizard__header">
         <Button
           aria-label={step === 0 ? "Close wizard" : "Back"}
@@ -128,7 +128,7 @@ export function AddPartyMemberWizard({
           {step + 1} of {steps.length}
         </span>
         <Button
-          aria-label="Cancel adding Party member"
+          aria-label={`Cancel adding ${destination === "Holding" ? "Character" : `${destination} member`}`}
           className="party-wizard__cancel"
           onClick={handleCancel}
           type="button"
@@ -190,6 +190,11 @@ export function AddPartyMemberWizard({
                 Skip for now
               </Button>
             </div>
+            {portraitError ? (
+              <p className="party-wizard__error" role="status">
+                {portraitError}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
@@ -226,8 +231,12 @@ export function AddPartyMemberWizard({
           <label className="party-wizard__question">
             <span className="party-wizard__title">Who are they to you?</span>
             <span className="party-wizard__hint">
-              A short private answer for their Party card. For example: “my safe
-              harbor,” “the one who gets it,” or “a steady light.”
+              A short private answer for{" "}
+              {destination === "Holding"
+                ? "your Holding record"
+                : `their ${destination} card`}
+              . For example: “my safe harbor,” “the one who gets it,” or “a
+              steady light.”
             </span>
             <textarea
               autoFocus
@@ -242,7 +251,9 @@ export function AddPartyMemberWizard({
         {step === 4 ? (
           <div className="party-wizard__question party-wizard__preview-wrap">
             <h1 className="party-wizard__title">
-              {displayName.trim()} belongs in your party!
+              {destination === "Holding"
+                ? `${displayName.trim()} is safe in Holding.`
+                : `${displayName.trim()} belongs in your ${destination}!`}
             </h1>
             <div className="party-wizard__preview">
               {portraitUrl ? (
@@ -272,7 +283,7 @@ export function AddPartyMemberWizard({
           type="button"
         >
           {step === 4 ? <Check aria-hidden="true" /> : null}
-          {step === 4 ? "Add to Party" : "Continue"}
+          {step === 4 ? `Add to ${destination}` : "Continue"}
         </Button>
       </footer>
     </section>

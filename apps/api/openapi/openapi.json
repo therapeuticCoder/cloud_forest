@@ -103,6 +103,10 @@
                                   }
                                 ]
                               },
+                              "portraitUrl": {
+                                "maxLength": 2000000,
+                                "type": "string"
+                              },
                               "privateDescription": {
                                 "maxLength": 10000,
                                 "type": "string"
@@ -191,7 +195,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -277,6 +293,10 @@
                         "type": "string"
                       }
                     ]
+                  },
+                  "portraitUrl": {
+                    "maxLength": 2000000,
+                    "type": "string"
                   },
                   "privateDescription": {
                     "maxLength": 10000,
@@ -392,6 +412,10 @@
                                   }
                                 ]
                               },
+                              "portraitUrl": {
+                                "maxLength": 2000000,
+                                "type": "string"
+                              },
                               "privateDescription": {
                                 "maxLength": 10000,
                                 "type": "string"
@@ -480,7 +504,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -552,7 +588,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -624,7 +672,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -696,7 +756,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -864,6 +936,10 @@
                                   }
                                 ]
                               },
+                              "portraitUrl": {
+                                "maxLength": 2000000,
+                                "type": "string"
+                              },
                               "privateDescription": {
                                 "maxLength": 10000,
                                 "type": "string"
@@ -952,7 +1028,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1024,7 +1112,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1096,7 +1196,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1168,7 +1280,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1270,6 +1394,10 @@
                         "type": "string"
                       }
                     ]
+                  },
+                  "portraitUrl": {
+                    "maxLength": 2000000,
+                    "type": "string"
                   },
                   "privateDescription": {
                     "maxLength": 10000,
@@ -1386,6 +1514,10 @@
                                   }
                                 ]
                               },
+                              "portraitUrl": {
+                                "maxLength": 2000000,
+                                "type": "string"
+                              },
                               "privateDescription": {
                                 "maxLength": 10000,
                                 "type": "string"
@@ -1474,7 +1606,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1546,7 +1690,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1618,7 +1774,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1690,7 +1858,19 @@
                             },
                             {
                               "enum": [
+                                "HOLDING_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },

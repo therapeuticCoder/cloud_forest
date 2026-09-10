@@ -11,6 +11,7 @@ export {
   createParty,
   createPartyPosition,
   PARTY_CAPACITY,
+  TRIBE_CAPACITY,
   curatedPersonPlacements,
   relationshipLayers,
   type CuratedPersonPlacement,

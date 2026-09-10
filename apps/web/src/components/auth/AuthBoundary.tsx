@@ -497,7 +497,16 @@ export function AuthBoundary({
 
   const signIn = async (email: string, password: string) => {
     const result = await sessionClient.signIn(email, password);
-    if (result.ok) await checkSession();
+    if (result.ok) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("view");
+      window.history.replaceState(
+        {},
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
+      await checkSession();
+    }
     return result;
   };
 

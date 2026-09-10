@@ -350,6 +350,7 @@ function StateContent({
     case "add":
       return (
         <AddPartyMemberWizard
+          destination="Party"
           onCancel={() => onChange("empty")}
           onComplete={() => onChange("edit")}
         />

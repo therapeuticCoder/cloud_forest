@@ -1,76 +1,9 @@
 import type {
   CuratorGuild,
   CuratorMockData,
-  CuratorNeighborhood,
   CuratorPerson,
   CuratorSignal,
 } from "@/types/curator";
-
-const tribeFirstNames = [
-  "Ari",
-  "Bea",
-  "Cleo",
-  "Dara",
-  "Eli",
-  "Faye",
-  "Gio",
-  "Hana",
-  "Ira",
-  "Jules",
-  "Kira",
-  "Len",
-  "Mara",
-  "Nico",
-  "Ola",
-  "Pax",
-  "Quin",
-  "Rhea",
-  "Sage",
-  "Tavi",
-  "Uma",
-  "Vale",
-  "Wren",
-  "Xan",
-  "Yara",
-  "Zed",
-  "Nell",
-  "Orin",
-  "Pia",
-  "Remy",
-];
-
-const neighborhoodSeeds = [
-  {
-    id: "nearby-family",
-    name: "Nearby Family",
-    description: "Extended family and long-running household-adjacent ties.",
-    suffix: "Vale",
-  },
-  {
-    id: "old-friends",
-    name: "Old Friends",
-    description: "People with shared history who do not need constant contact.",
-    suffix: "Lane",
-  },
-  {
-    id: "workshop",
-    name: "Workshop",
-    description: "Collaborators, peers, and people from making contexts.",
-    suffix: "Forge",
-  },
-  {
-    id: "neighbors",
-    name: "Neighbors",
-    description: "Local, civic, and place-based familiar faces.",
-    suffix: "Row",
-  },
-  {
-    id: "loose-orbit",
-    name: "Loose Orbit",
-    description: "Warm acquaintances and lightweight recurring connections.",
-    suffix: "Field",
-  },
-];
 
 export function createInitials(displayName: string) {
   return displayName
@@ -79,26 +12,6 @@ export function createInitials(displayName: string) {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-}
-
-function createTribePeople(neighborhoodId: string, suffix: string) {
-  return tribeFirstNames.slice(0, 20).map((firstName, index): CuratorPerson => {
-    const displayName = `${firstName} ${suffix}`;
-
-    return {
-      id: `${neighborhoodId}-${index + 1}`,
-      displayName,
-      initials: createInitials(displayName),
-      relationshipTitle: "Tribe connection",
-      relationshipNote: "Tribe",
-      recentStatus:
-        index % 3 === 0
-          ? "Quiet lately"
-          : index % 3 === 1
-            ? "Light check-in"
-            : "Recent overlap",
-    };
-  });
 }
 
 export const curatorPartyPeople: CuratorPerson[] = [
@@ -152,14 +65,6 @@ export const curatorUser: CuratorPerson = {
   relationshipNote: "Your profile",
   recentStatus: "Your place in the forest",
 };
-
-export const curatorTribeNeighborhoods: CuratorNeighborhood[] =
-  neighborhoodSeeds.map((neighborhood) => ({
-    id: neighborhood.id,
-    name: neighborhood.name,
-    description: neighborhood.description,
-    people: createTribePeople(neighborhood.id, neighborhood.suffix),
-  }));
 
 export const curatorGuilds: CuratorGuild[] = [
   {
@@ -289,7 +194,6 @@ export const curatorSignals: CuratorSignal[] = [
 export const curatorMockData: CuratorMockData = {
   user: curatorUser,
   partyPeople: curatorPartyPeople,
-  tribeNeighborhoods: curatorTribeNeighborhoods,
   guilds: curatorGuilds,
   signals: curatorSignals,
 };

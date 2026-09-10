@@ -248,6 +248,7 @@ export interface operations {
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly portraitUrl?: string;
                                 readonly privateDescription: string;
                                 readonly relationshipShape: string;
                                 /** Format: date-time */
@@ -268,7 +269,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -288,6 +289,7 @@ export interface operations {
                 readonly "application/json": {
                     readonly nickname: string;
                     readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                    readonly portraitUrl?: string;
                     readonly privateDescription: string;
                     readonly relationshipShape: string;
                 };
@@ -312,6 +314,7 @@ export interface operations {
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly portraitUrl?: string;
                                 readonly privateDescription: string;
                                 readonly relationshipShape: string;
                                 /** Format: date-time */
@@ -332,7 +335,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -348,7 +351,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -364,7 +367,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -380,7 +383,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -423,6 +426,7 @@ export interface operations {
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly portraitUrl?: string;
                                 readonly privateDescription: string;
                                 readonly relationshipShape: string;
                                 /** Format: date-time */
@@ -443,7 +447,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -459,7 +463,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -475,7 +479,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -491,7 +495,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -514,6 +518,7 @@ export interface operations {
                     readonly expectedVersion: number;
                     readonly nickname: string;
                     readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                    readonly portraitUrl?: string;
                     readonly privateDescription: string;
                     readonly relationshipShape: string;
                 };
@@ -538,6 +543,7 @@ export interface operations {
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
+                                readonly portraitUrl?: string;
                                 readonly privateDescription: string;
                                 readonly relationshipShape: string;
                                 /** Format: date-time */
@@ -558,7 +564,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -574,7 +580,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -590,7 +596,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
@@ -606,7 +612,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "PARTY_FULL" | "STALE_WRITE_CONFLICT";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "HOLDING_FULL" | "PARTY_FULL" | "TRIBE_FULL" | "STALE_WRITE_CONFLICT";
                             readonly message: string;
                         };
                     };
