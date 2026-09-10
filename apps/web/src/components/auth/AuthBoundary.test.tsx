@@ -79,7 +79,7 @@ describe("AuthBoundary", () => {
               status: 200 as const,
               value: {
                 apiVersion: "v1" as const,
-                data: { currentPersonId: "you" },
+                data: { currentPersonId: "you", displayName: "River Tester" },
               },
             }
           : unauthorizedSessionClient().getCurrentSession(),
@@ -121,7 +121,7 @@ describe("AuthBoundary", () => {
         status: 200 as const,
         value: {
           apiVersion: "v1" as const,
-          data: { currentPersonId: "you" },
+          data: { currentPersonId: "you", displayName: "River Tester" },
         },
       })),
     };

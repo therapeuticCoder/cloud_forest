@@ -4,7 +4,7 @@ import { curatorMockData } from "./curatorMockData";
 
 describe("curatorMockData", () => {
   it("provides the canonical Curator layer counts", () => {
-    expect(curatorMockData.user.displayName).toBe("You");
+    expect(curatorMockData.user.displayName).toBe("River Tester");
     expect(curatorMockData.partyPeople).toHaveLength(5);
     expect(curatorMockData.tribeNeighborhoods).toHaveLength(5);
     expect(curatorMockData.guilds).toHaveLength(5);

@@ -8,7 +8,7 @@ test("the session route derives a current person and rejects missing sessions", 
     sessionResolver: {
       async resolve(request) {
         return request.headers.cookie === "session=valid"
-          ? { personId: "person-fictional-river" }
+          ? { displayName: "River Tester", personId: "person-fictional-river" }
           : null;
       },
       async logout() {},
@@ -34,7 +34,11 @@ test("the session route derives a current person and rejects missing sessions", 
   assert.equal(current.statusCode, 200);
   assert.deepEqual(current.json(), {
     apiVersion: "v1",
-    data: { currentPersonId: "person-fictional-river" },
+    data: {
+      currentPersonId: "person-fictional-river",
+      displayName: "River Tester",
+      role: "user",
+    },
   });
 });
 
@@ -43,7 +47,10 @@ test("logout requires a trusted current person", async (t) => {
   const server = buildApi({
     sessionResolver: {
       async resolve() {
-        return { personId: "person-fictional-river" };
+        return {
+          displayName: "River Tester",
+          personId: "person-fictional-river",
+        };
       },
       async logout() {
         loggedOut = true;

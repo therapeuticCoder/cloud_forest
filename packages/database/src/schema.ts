@@ -16,6 +16,8 @@ import type {
   TimelineItemLayer,
 } from "@cloud-forest/domain";
 
+export type AccountRole = "admin" | "user";
+
 export const timelineItems = pgTable(
   "timeline_items",
   {
@@ -75,12 +77,21 @@ export const users = pgTable(
     id: varchar("id", { length: 128 }).primaryKey(),
     name: varchar("name", { length: 200 }).notNull(),
     email: varchar("email", { length: 320 }).notNull(),
+    username: varchar("username", { length: 30 }),
+    role: varchar("role", { length: 16 })
+      .$type<AccountRole>()
+      .notNull()
+      .default("user"),
     emailVerified: boolean("email_verified").notNull().default(false),
     image: text("image"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
   },
-  (table) => [uniqueIndex("user_email_unique").on(table.email)],
+  (table) => [
+    uniqueIndex("user_email_unique").on(table.email),
+    uniqueIndex("user_username_unique").on(table.username),
+    check("user_role_allowed", sql`${table.role} in ('admin', 'user')`),
+  ],
 );
 
 export const sessions = pgTable(
@@ -270,6 +281,23 @@ export const invitations = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [index("invitations_person_id_index").on(table.personId)],
+);
+
+export const signupCodes = pgTable(
+  "signup_codes",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    code: varchar("code", { length: 256 }).notNull(),
+    createdByUserId: varchar("created_by_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("signup_codes_code_unique").on(table.code),
+    index("signup_codes_creator_index").on(table.createdByUserId),
+  ],
 );
 
 export type TimelineItemRow = typeof timelineItems.$inferSelect;

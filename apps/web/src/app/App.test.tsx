@@ -80,7 +80,7 @@ const authenticatedSessionClient = {
     status: 200 as const,
     value: {
       apiVersion: "v1" as const,
-      data: { currentPersonId: "you" },
+      data: { currentPersonId: "you", displayName: "River Tester" },
     },
   }),
   signIn: async () => ({ ok: true as const }),

@@ -2059,6 +2059,94 @@ article[aria-label="Party layer"] {
   border-top: 1px solid rgba(228, 236, 217, 0.22);
 }
 
+.my-care-view__session-actions {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.75rem;
+  width: min(100%, 34rem);
+}
+
+.my-care-view__session-actions > button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.my-care-view__signup-code {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 34rem);
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(228, 236, 217, 0.22);
+}
+
+.my-care-view__signup-code-create,
+.my-care-view__signup-link-copy {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  color: #f3f5ec;
+  background: var(--forest-pine);
+  font: inherit;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.my-care-view__signup-code-create:hover,
+.my-care-view__signup-link-copy:hover {
+  background: #103426;
+}
+
+.my-care-view__signup-code-create:focus-visible,
+.my-care-view__signup-link-copy:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 3px;
+}
+
+.my-care-view__signup-code-create:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.my-care-view__signup-link {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.my-care-view__signup-link label {
+  color: #dce8d0;
+  font-size: 0.82rem;
+  font-weight: 680;
+}
+
+.my-care-view__signup-link input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+  border: 1px solid rgba(228, 236, 217, 0.35);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  color: var(--forest-ink);
+  background: #f3f5ec;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.my-care-view__signup-link-copy {
+  justify-self: start;
+}
+
+.my-care-view__signup-link-copy svg {
+  width: 1rem;
+}
+
 .my-care-view__session-error {
   margin: 0;
   color: #f6b29a;

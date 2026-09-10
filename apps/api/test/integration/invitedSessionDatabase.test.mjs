@@ -60,7 +60,7 @@ test("an invited password account resolves its session and expires", async (t) =
   await database.insert(people).values({ id: ids.person, createdAt: now });
   await database.insert(users).values({
     id: ids.account,
-    name: "River Okafor",
+    name: "River Tester",
     email: "river@example.test",
     emailVerified: true,
     createdAt: now,
@@ -107,7 +107,11 @@ test("an invited password account resolves its session and expires", async (t) =
   assert.equal(active.statusCode, 200);
   assert.deepEqual(active.json(), {
     apiVersion: "v1",
-    data: { currentPersonId: ids.person },
+    data: {
+      currentPersonId: ids.person,
+      displayName: "River Tester",
+      role: "user",
+    },
   });
 
   const wrongPassword = await auth.handler(

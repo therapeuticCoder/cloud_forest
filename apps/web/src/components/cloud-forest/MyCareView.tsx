@@ -1,5 +1,13 @@
-import { ArrowLeft, Clock3, HandHeart, LogOut, Send } from "lucide-react";
-import { useEffect, useRef } from "react";
+import {
+  ArrowLeft,
+  Check,
+  Clock3,
+  Copy,
+  HandHeart,
+  LogOut,
+  Send,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { carePerspectiveOptions } from "@/data/careLifecycleMockData";
@@ -20,6 +28,10 @@ type MyCareViewProps = {
   history: CareHistoryEntry[];
   gratitudes: CareGratitude[];
   onBack: () => void;
+  isAdmin: boolean;
+  onCreateSignupCode: () => Promise<
+    { ok: true; link: string } | { ok: false; message: string }
+  >;
   onSignOut: () => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
@@ -48,6 +60,8 @@ export function MyCareView({
   history,
   gratitudes,
   onBack,
+  isAdmin,
+  onCreateSignupCode,
   onSignOut,
   onSetRequestMinimized,
   onRecordCompleted,
@@ -58,10 +72,43 @@ export function MyCareView({
   viewerId,
 }: MyCareViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const [signupLink, setSignupLink] = useState<string>();
+  const [signupCodeError, setSignupCodeError] = useState<string>();
+  const [creatingSignupCode, setCreatingSignupCode] = useState(false);
+  const [signupLinkCopied, setSignupLinkCopied] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => headingRef.current?.focus());
   }, []);
+
+  const copySignupLink = async (link: string) => {
+    try {
+      if (navigator.clipboard === undefined) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(link);
+      setSignupLinkCopied(true);
+    } catch {
+      setSignupLinkCopied(false);
+      setSignupCodeError(
+        "The link is ready below, but Cloud Forest could not copy it automatically.",
+      );
+    }
+  };
+
+  const createSignupCode = async () => {
+    setCreatingSignupCode(true);
+    setSignupCodeError(undefined);
+    setSignupLinkCopied(false);
+    const result = await onCreateSignupCode();
+    if (result.ok) {
+      setSignupLink(result.link);
+      await copySignupLink(result.link);
+    } else {
+      setSignupCodeError(result.message);
+    }
+    setCreatingSignupCode(false);
+  };
 
   return (
     <section aria-label="My Care" className="my-care-view care-destination">
@@ -254,15 +301,57 @@ export function MyCareView({
               {signOutError}
             </p>
           ) : null}
-          <button
-            className="my-care-view__signout"
-            disabled={signingOut}
-            onClick={onSignOut}
-            type="button"
-          >
-            <LogOut aria-hidden="true" />
-            {signingOut ? "Signing out…" : "Sign out of Cloud Forest"}
-          </button>
+          <div className="my-care-view__session-actions">
+            {isAdmin ? (
+              <button
+                className="my-care-view__signup-code-create"
+                disabled={creatingSignupCode}
+                onClick={() => void createSignupCode()}
+                type="button"
+              >
+                {creatingSignupCode
+                  ? "Creating signup code…"
+                  : "Create signup code"}
+              </button>
+            ) : null}
+            <button
+              className="my-care-view__signout"
+              disabled={signingOut}
+              onClick={onSignOut}
+              type="button"
+            >
+              <LogOut aria-hidden="true" />
+              {signingOut ? "Signing out…" : "Sign out of Cloud Forest"}
+            </button>
+          </div>
+          {isAdmin ? (
+            <div className="my-care-view__signup-code">
+              {signupLink ? (
+                <div className="my-care-view__signup-link">
+                  <label htmlFor="signup-link">Signup link</label>
+                  <input id="signup-link" readOnly value={signupLink} />
+                  <button
+                    aria-label="Copy signup link"
+                    className="my-care-view__signup-link-copy"
+                    onClick={() => void copySignupLink(signupLink)}
+                    type="button"
+                  >
+                    {signupLinkCopied ? (
+                      <Check aria-hidden="true" />
+                    ) : (
+                      <Copy aria-hidden="true" />
+                    )}
+                    {signupLinkCopied ? "Copied" : "Copy link"}
+                  </button>
+                </div>
+              ) : null}
+              {signupCodeError ? (
+                <p className="my-care-view__session-error" role="alert">
+                  {signupCodeError}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </section>
       </div>
     </section>

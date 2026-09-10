@@ -5,6 +5,7 @@ export {
   curatorSignals,
   curatorTribeNeighborhoods,
   curatorUser,
+  createInitials,
 } from "./curatorMockData";
 
 export { incomingCareRequests } from "./careListingsMockData";

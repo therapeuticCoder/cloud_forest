@@ -160,6 +160,38 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/signup": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["signupV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/signup-codes": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["createSignupCodeV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/timeline-items/{timelineItemId}": {
         readonly parameters: {
             readonly query?: never;
@@ -1317,6 +1349,8 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly currentPersonId: string;
+                            readonly displayName: string;
+                            readonly role?: "admin" | "user";
                         };
                     };
                 };
@@ -1371,6 +1405,131 @@ export interface operations {
                             readonly code: "UNAUTHORIZED";
                             /** @enum {string} */
                             readonly message: "A valid invited session is required.";
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly signupV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly code: string;
+                    readonly firstName: string;
+                    readonly lastName: string;
+                    readonly password: string;
+                    readonly username: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": unknown;
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            /** @enum {string} */
+                            readonly code: "SIGNUP_FAILED";
+                            readonly message: string;
+                        };
+                    } | string;
+                };
+            };
+            /** @description Default Response */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            /** @enum {string} */
+                            readonly code: "SIGNUP_FAILED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly createSignupCodeV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 201: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly link: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            /** @enum {string} */
+                            readonly code: "UNAUTHORIZED";
+                            /** @enum {string} */
+                            readonly message: "A valid invited session is required.";
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            /** @enum {string} */
+                            readonly code: "FORBIDDEN";
+                            readonly message: string;
                         };
                     };
                 };

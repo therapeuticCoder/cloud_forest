@@ -33,7 +33,11 @@ export const sessionRoutes: FastifyPluginAsyncTypebox<{
       if (currentPerson === null) return reply.status(401).send(unauthorized);
       return {
         apiVersion: "v1" as const,
-        data: { currentPersonId: currentPerson.personId },
+        data: {
+          currentPersonId: currentPerson.personId,
+          displayName: currentPerson.displayName,
+          role: currentPerson.role ?? "user",
+        },
       };
     },
   });

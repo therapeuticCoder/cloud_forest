@@ -107,6 +107,38 @@
   font-size: 1.04rem !important;
 }
 
+.auth-boundary-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin: 24px 0 20px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(8, 36, 25, 0.08);
+}
+
+.auth-boundary-tab {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  color: #365044;
+  background: transparent;
+  font: inherit;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.auth-boundary-tab[aria-selected="true"] {
+  color: #f4f5ec;
+  background: var(--forest-pine);
+}
+
+.auth-boundary-tab:focus-visible,
+.auth-boundary-visibility-toggle:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 2px;
+}
+
 .auth-boundary-primary {
   font: inherit;
 }
@@ -164,6 +196,54 @@
   outline: 3px solid var(--forest-amber);
   outline-offset: 3px;
   border-color: var(--forest-pine);
+}
+
+.auth-boundary-password-field {
+  position: relative;
+}
+
+.auth-boundary-password-field input {
+  padding-right: 52px;
+}
+
+.auth-boundary-visibility-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 10px;
+  color: var(--forest-ink);
+  background: transparent;
+  cursor: pointer;
+}
+
+.auth-boundary-visibility-toggle svg {
+  width: 19px;
+}
+
+.auth-boundary-field-status {
+  margin: 7px 4px 12px !important;
+  color: #365044 !important;
+  font-size: 0.82rem !important;
+}
+
+.auth-boundary-field-hint {
+  margin: -3px 4px 9px !important;
+  color: #365044 !important;
+  font-size: 0.78rem !important;
+}
+
+.auth-boundary-field-status--available {
+  color: #28653b !important;
+}
+
+.auth-boundary-field-status--taken {
+  color: #7a2716 !important;
 }
 
 .auth-boundary-announcement,

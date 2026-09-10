@@ -8,9 +8,32 @@ export type PasswordSignInResult =
   | { ok: true }
   | { ok: false; kind: "network" | "http"; message: string };
 
+export type UsernameAvailabilityResult =
+  | { ok: true; available: boolean }
+  | { ok: false; kind: "network" | "http"; message: string };
+
+export type SignUpResult =
+  | { ok: true }
+  | { ok: false; kind: "network" | "http"; message: string };
+
+export type SignUpInput = {
+  code: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  password: string;
+};
+
+export type CreateSignupCodeResult =
+  | { ok: true; link: string }
+  | { ok: false; kind: "network" | "http"; message: string };
+
 export interface SessionClient {
   getCurrentSession(): Promise<CurrentSessionResult>;
-  signIn(email: string, password: string): Promise<PasswordSignInResult>;
+  signIn(identifier: string, password: string): Promise<PasswordSignInResult>;
+  checkUsername?(username: string): Promise<UsernameAvailabilityResult>;
+  signUp?(input: SignUpInput): Promise<SignUpResult>;
+  createSignupCode?(): Promise<CreateSignupCodeResult>;
   logout(): Promise<LogoutResult>;
 }
 
@@ -22,24 +45,29 @@ const apiClient = createApiClient({
 export const defaultSessionClient: SessionClient = {
   getCurrentSession: () => apiClient.getCurrentSession(),
   logout: () => apiClient.logout(),
-  async signIn(email, password) {
+  async signIn(identifier, password) {
     try {
-      const response = await globalThis.fetch("/api/auth/sign-in/email", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const isEmail = identifier.includes("@");
+      const response = await globalThis.fetch(
+        isEmail ? "/api/auth/sign-in/email" : "/api/auth/sign-in/username",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            ...(isEmail ? { email: identifier } : { username: identifier }),
+            password,
+          }),
+        },
+      );
 
       if (response.ok) return { ok: true };
 
       return {
         ok: false,
         kind: "http",
-        message: "That email and password combination wasn’t recognized.",
+        message:
+          "That username or email and password combination wasn’t recognized.",
       };
     } catch {
       return {
@@ -47,6 +75,108 @@ export const defaultSessionClient: SessionClient = {
         kind: "network",
         message:
           "Cloud Forest couldn’t reach the sign-in service. Try again when you’re ready.",
+      };
+    }
+  },
+  async checkUsername(username) {
+    try {
+      const response = await globalThis.fetch(
+        "/api/auth/is-username-available",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username }),
+        },
+      );
+      const body = (await response.json().catch(() => null)) as {
+        available?: unknown;
+      } | null;
+      if (response.ok && typeof body?.available === "boolean") {
+        return { ok: true, available: body.available };
+      }
+      return {
+        ok: false,
+        kind: "http",
+        message: "Cloud Forest couldn’t check that username right now.",
+      };
+    } catch {
+      return {
+        ok: false,
+        kind: "network",
+        message:
+          "Cloud Forest couldn’t reach the username check. Try again when you’re ready.",
+      };
+    }
+  },
+  async signUp({ code, firstName, lastName, username, password }) {
+    try {
+      const response = await globalThis.fetch("/api/v1/signup", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          code,
+          firstName,
+          lastName,
+          username,
+          password,
+        }),
+      });
+      if (response.ok) return { ok: true };
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: unknown };
+        message?: unknown;
+      } | null;
+      const message =
+        typeof body?.error?.message === "string"
+          ? body.error.message
+          : typeof body?.message === "string"
+            ? body.message
+            : response.status === 409 || response.status === 422
+              ? "That username is already taken. Choose another one."
+              : "Cloud Forest couldn’t create that account. Check your signup code and try again.";
+      return { ok: false, kind: "http", message };
+    } catch {
+      return {
+        ok: false,
+        kind: "network",
+        message:
+          "Cloud Forest couldn’t reach the signup service. Try again when you’re ready.",
+      };
+    }
+  },
+  async createSignupCode() {
+    try {
+      const response = await globalThis.fetch("/api/v1/signup-codes", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "x-cloud-forest-app-origin": window.location.origin,
+        },
+        credentials: "include",
+      });
+      const body = (await response.json().catch(() => null)) as {
+        data?: { link?: unknown };
+        error?: { message?: unknown };
+      } | null;
+      if (response.ok && typeof body?.data?.link === "string") {
+        return { ok: true, link: body.data.link };
+      }
+      return {
+        ok: false,
+        kind: "http",
+        message:
+          typeof body?.error?.message === "string"
+            ? body.error.message
+            : "Cloud Forest couldn’t create a signup code.",
+      };
+    } catch {
+      return {
+        ok: false,
+        kind: "network",
+        message:
+          "Cloud Forest couldn’t reach the signup-code service. Try again when you’re ready.",
       };
     }
   },

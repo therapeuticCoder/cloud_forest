@@ -1,6 +1,10 @@
 import { Gift, HandHeart, Sprout } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { curatorUser, incomingCareRequests } from "@/data/cloudForest";
+import {
+  createInitials,
+  curatorUser,
+  incomingCareRequests,
+} from "@/data/cloudForest";
 import { incomingCareAudienceSnapshot } from "@/data/careLifecycleMockData";
 import {
   canPassCareRequest,
@@ -79,12 +83,20 @@ export type { CuratedPersonApiClient } from "./useCuratedPeople";
 export function DashboardShell({
   apiClient,
   currentPersonId,
+  displayName,
+  role,
+  onCreateSignupCode,
   onSignOut,
   signOutError,
   signingOut,
 }: {
   apiClient?: CuratedPersonApiClient;
   currentPersonId: string;
+  displayName: string;
+  role: "admin" | "user";
+  onCreateSignupCode: () => Promise<
+    { ok: true; link: string } | { ok: false; message: string }
+  >;
   onSignOut: () => void;
   signOutError?: string;
   signingOut: boolean;
@@ -99,8 +111,13 @@ export function DashboardShell({
       ? CURRENT_CARE_VIEWER_ID
       : currentPersonId;
   const currentUser = useMemo(
-    () => ({ ...curatorUser, id: currentPersonId }),
-    [currentPersonId],
+    () => ({
+      ...curatorUser,
+      displayName,
+      id: currentPersonId,
+      initials: createInitials(displayName),
+    }),
+    [currentPersonId, displayName],
   );
   const [careOffers, setCareOffers] = useState<GiveCareOffer[]>([]);
   const [careLifecycle, setCareLifecycle] = useState(() =>
@@ -992,6 +1009,8 @@ export function DashboardShell({
               history={selfCareHistory}
               gratitudes={selfCareGratitudes}
               onBack={backFromCareDestination}
+              isAdmin={role === "admin"}
+              onCreateSignupCode={onCreateSignupCode}
               onSignOut={onSignOut}
               onSetRequestMinimized={(requestId, minimized) => {
                 const changedAt = new Date().toISOString();
