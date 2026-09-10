@@ -11,6 +11,8 @@ import type { SessionResolver } from "../sessionResolver.ts";
 
 const signupCodeBody = Type.Object({
   code: Type.String({ minLength: 1, maxLength: 256 }),
+  firstName: Type.String({ minLength: 1, maxLength: 100 }),
+  lastName: Type.String({ minLength: 1, maxLength: 100 }),
   username: Type.String({ minLength: 3, maxLength: 30 }),
   password: Type.String({ minLength: 8, maxLength: 200 }),
 });
@@ -69,6 +71,20 @@ export const signupRoutes: FastifyPluginAsyncTypebox<{
       },
     },
     handler: async (request, reply) => {
+      const firstName = request.body.firstName.trim();
+      const lastName = request.body.lastName.trim();
+      const displayName = `${firstName} ${lastName}`;
+      if (!firstName || !lastName || displayName.length > 200) {
+        return reply
+          .status(400)
+          .send(
+            signupError(
+              displayName.length > 200
+                ? "Choose shorter first and last names."
+                : "Enter your first and last name.",
+            ),
+          );
+      }
       const username = request.body.username.trim().toLowerCase();
       const now = new Date();
       const consumed = await options.identityRepository.consumeSignupCode(
@@ -89,12 +105,18 @@ export const signupRoutes: FastifyPluginAsyncTypebox<{
       if (request.headers.cookie !== undefined) {
         authHeaders.set("cookie", request.headers.cookie);
       }
+      if (request.headers.origin !== undefined) {
+        authHeaders.set("origin", request.headers.origin);
+      }
+      if (request.headers.referer !== undefined) {
+        authHeaders.set("referer", request.headers.referer);
+      }
       const authResponse = await options.authHandler(
         new Request("http://127.0.0.1:3001/api/auth/sign-up/email", {
           method: "POST",
           headers: authHeaders,
           body: JSON.stringify({
-            name: username,
+            name: displayName,
             username,
             email: `${username}@cloudforest.local`,
             password: request.body.password,
@@ -117,7 +139,7 @@ export const signupRoutes: FastifyPluginAsyncTypebox<{
       await options.identityRepository.createPersonForAccount({
         accountId,
         personId: `person-${randomUUID()}`,
-        displayName: username,
+        displayName,
         now,
       });
       return reply.status(200).send(body);

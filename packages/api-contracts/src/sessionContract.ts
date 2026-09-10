@@ -13,6 +13,7 @@ export const currentSessionResponseSchema = Type.Object(
     data: Type.Object(
       {
         currentPersonId: personIdSchema,
+        displayName: Type.String({ minLength: 1, maxLength: 200 }),
         role: Type.Optional(roleSchema),
       },
       { additionalProperties: false },

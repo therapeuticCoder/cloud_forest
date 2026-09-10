@@ -1349,6 +1349,7 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly currentPersonId: string;
+                            readonly displayName: string;
                             readonly role?: "admin" | "user";
                         };
                     };
@@ -1421,6 +1422,8 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly code: string;
+                    readonly firstName: string;
+                    readonly lastName: string;
                     readonly password: string;
                     readonly username: string;
                 };

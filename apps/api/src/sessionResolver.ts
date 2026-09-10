@@ -4,6 +4,7 @@ import type { FastifyRequest } from "fastify";
 import type { IdentityRepository } from "@cloud-forest/database";
 
 export type CurrentPerson = {
+  readonly displayName: string;
   readonly userId: string;
   readonly personId: string;
   readonly role?: "admin" | "user";

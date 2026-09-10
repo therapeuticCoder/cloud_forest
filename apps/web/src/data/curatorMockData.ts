@@ -72,11 +72,13 @@ const neighborhoodSeeds = [
   },
 ];
 
-function createInitials(displayName: string) {
+export function createInitials(displayName: string) {
   return displayName
-    .split(" ")
+    .trim()
+    .split(/\s+/)
     .map((part) => part[0])
-    .join("");
+    .join("")
+    .toUpperCase();
 }
 
 function createTribePeople(neighborhoodId: string, suffix: string) {
@@ -144,8 +146,8 @@ export const curatorPartyPeople: CuratorPerson[] = [
 
 export const curatorUser: CuratorPerson = {
   id: "you",
-  displayName: "You",
-  initials: "YOU",
+  displayName: "River Tester",
+  initials: "RT",
   relationshipTitle: "your place in the forest",
   relationshipNote: "Your profile",
   recentStatus: "Your place in the forest",

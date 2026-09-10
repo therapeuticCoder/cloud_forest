@@ -35,6 +35,7 @@ export const sessionRoutes: FastifyPluginAsyncTypebox<{
         apiVersion: "v1" as const,
         data: {
           currentPersonId: currentPerson.personId,
+          displayName: currentPerson.displayName,
           role: currentPerson.role ?? "user",
         },
       };

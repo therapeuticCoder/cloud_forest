@@ -11,6 +11,7 @@ import {
 } from "./schema.ts";
 
 export type AccountIdentity = {
+  displayName: string;
   personId: string;
   role: "admin" | "user";
 };
@@ -31,11 +32,19 @@ export function createIdentityRepository(database: DatabaseClient) {
     ): Promise<AccountIdentity | null> {
       const [identity] = await database
         .select({
+          displayName: sql<string>`coalesce(
+            ${personProfiles.displayName},
+            ${users.name}
+          )`,
           personId: accountPeople.personId,
           role: users.role,
         })
         .from(accountPeople)
         .innerJoin(users, eq(accountPeople.accountId, users.id))
+        .leftJoin(
+          personProfiles,
+          eq(accountPeople.personId, personProfiles.personId),
+        )
         .where(eq(accountPeople.accountId, accountId))
         .limit(1);
       return identity ?? null;

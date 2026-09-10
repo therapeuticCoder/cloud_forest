@@ -296,8 +296,13 @@ export function MyCareView({
           aria-label="Session management"
           className="my-care-view__section my-care-view__session"
         >
-          {isAdmin ? (
-            <div className="my-care-view__signup-code">
+          {signOutError ? (
+            <p className="my-care-view__session-error" role="alert">
+              {signOutError}
+            </p>
+          ) : null}
+          <div className="my-care-view__session-actions">
+            {isAdmin ? (
               <button
                 className="my-care-view__signup-code-create"
                 disabled={creatingSignupCode}
@@ -308,6 +313,19 @@ export function MyCareView({
                   ? "Creating signup code…"
                   : "Create signup code"}
               </button>
+            ) : null}
+            <button
+              className="my-care-view__signout"
+              disabled={signingOut}
+              onClick={onSignOut}
+              type="button"
+            >
+              <LogOut aria-hidden="true" />
+              {signingOut ? "Signing out…" : "Sign out of Cloud Forest"}
+            </button>
+          </div>
+          {isAdmin ? (
+            <div className="my-care-view__signup-code">
               {signupLink ? (
                 <div className="my-care-view__signup-link">
                   <label htmlFor="signup-link">Signup link</label>
@@ -334,20 +352,6 @@ export function MyCareView({
               ) : null}
             </div>
           ) : null}
-          {signOutError ? (
-            <p className="my-care-view__session-error" role="alert">
-              {signOutError}
-            </p>
-          ) : null}
-          <button
-            className="my-care-view__signout"
-            disabled={signingOut}
-            onClick={onSignOut}
-            type="button"
-          >
-            <LogOut aria-hidden="true" />
-            {signingOut ? "Signing out…" : "Sign out of Cloud Forest"}
-          </button>
         </section>
       </div>
     </section>

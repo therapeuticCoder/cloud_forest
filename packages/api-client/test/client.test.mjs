@@ -39,7 +39,10 @@ test("session methods preserve the invited session contract", async () => {
       if (options.method === "GET") {
         return jsonResponse({
           apiVersion: "v1",
-          data: { currentPersonId: "person-fictional-river" },
+          data: {
+            currentPersonId: "person-fictional-river",
+            displayName: "River Tester",
+          },
         });
       }
       return {
@@ -56,7 +59,10 @@ test("session methods preserve the invited session contract", async () => {
     status: 200,
     value: {
       apiVersion: "v1",
-      data: { currentPersonId: "person-fictional-river" },
+      data: {
+        currentPersonId: "person-fictional-river",
+        displayName: "River Tester",
+      },
     },
   });
   assert.deepEqual(await client.logout(), {

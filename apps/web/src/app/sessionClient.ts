@@ -16,6 +16,14 @@ export type SignUpResult =
   | { ok: true }
   | { ok: false; kind: "network" | "http"; message: string };
 
+export type SignUpInput = {
+  code: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  password: string;
+};
+
 export type CreateSignupCodeResult =
   | { ok: true; link: string }
   | { ok: false; kind: "network" | "http"; message: string };
@@ -24,11 +32,7 @@ export interface SessionClient {
   getCurrentSession(): Promise<CurrentSessionResult>;
   signIn(identifier: string, password: string): Promise<PasswordSignInResult>;
   checkUsername?(username: string): Promise<UsernameAvailabilityResult>;
-  signUp?(
-    code: string,
-    username: string,
-    password: string,
-  ): Promise<SignUpResult>;
+  signUp?(input: SignUpInput): Promise<SignUpResult>;
   createSignupCode?(): Promise<CreateSignupCodeResult>;
   logout(): Promise<LogoutResult>;
 }
@@ -105,13 +109,19 @@ export const defaultSessionClient: SessionClient = {
       };
     }
   },
-  async signUp(code, username, password) {
+  async signUp({ code, firstName, lastName, username, password }) {
     try {
       const response = await globalThis.fetch("/api/v1/signup", {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ code, username, password }),
+        body: JSON.stringify({
+          code,
+          firstName,
+          lastName,
+          username,
+          password,
+        }),
       });
       if (response.ok) return { ok: true };
       const body = (await response.json().catch(() => null)) as {

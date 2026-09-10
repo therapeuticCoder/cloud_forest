@@ -15,7 +15,11 @@ import {
   type CuratedPersonApiClient,
 } from "@/components/cloud-forest/DashboardShell";
 import { PwaNotice } from "@/components/pwa/PwaNotice";
-import { defaultSessionClient, type SessionClient } from "@/app/sessionClient";
+import {
+  defaultSessionClient,
+  type SessionClient,
+  type SignUpInput,
+} from "@/app/sessionClient";
 
 import "./auth-boundary.css";
 
@@ -30,6 +34,7 @@ type BoundaryState =
   | {
       status: "signed-in";
       currentPersonId: string;
+      displayName: string;
       role: "admin" | "user";
     };
 
@@ -97,9 +102,7 @@ function EntryScreen({
     password: string,
   ) => Promise<{ ok: true } | { ok: false; message: string }>;
   onSignUp: (
-    code: string,
-    username: string,
-    password: string,
+    input: SignUpInput,
   ) => Promise<{ ok: true } | { ok: false; message: string }>;
   onCheckUsername: (
     username: string,
@@ -108,6 +111,8 @@ function EntryScreen({
   >;
 }) {
   const codeId = useId();
+  const firstNameId = useId();
+  const lastNameId = useId();
   const identifierId = useId();
   const usernameId = useId();
   const passwordId = useId();
@@ -121,6 +126,8 @@ function EntryScreen({
     initialSignupCode ? "signup" : "login",
   );
   const [code, setCode] = useState(initialSignupCode);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -189,7 +196,18 @@ function EntryScreen({
                 ok: false as const,
                 message: "Your passwords do not match.",
               }
-            : await onSignUp(code.trim(), username.trim(), password);
+            : !firstName.trim() || !lastName.trim()
+              ? {
+                  ok: false as const,
+                  message: "Enter your first and last name.",
+                }
+              : await onSignUp({
+                  code: code.trim(),
+                  firstName: firstName.trim(),
+                  lastName: lastName.trim(),
+                  username: username.trim(),
+                  password,
+                });
     if (!result.ok) setError(result.message);
 
     setPending(false);
@@ -259,6 +277,26 @@ function EntryScreen({
                 required
                 type="text"
                 value={code}
+              />
+              <label htmlFor={firstNameId}>First name</label>
+              <input
+                autoComplete="given-name"
+                id={firstNameId}
+                name="first-name"
+                onChange={(event) => setFirstName(event.target.value)}
+                required
+                type="text"
+                value={firstName}
+              />
+              <label htmlFor={lastNameId}>Last name</label>
+              <input
+                autoComplete="family-name"
+                id={lastNameId}
+                name="last-name"
+                onChange={(event) => setLastName(event.target.value)}
+                required
+                type="text"
+                value={lastName}
               />
               <label htmlFor={usernameId}>Username</label>
               <input
@@ -426,6 +464,7 @@ export function AuthBoundary({
       setBoundary({
         status: "signed-in",
         currentPersonId: result.value.data.currentPersonId,
+        displayName: result.value.data.displayName,
         role: result.value.data.role ?? "user",
       });
     } else {
@@ -462,14 +501,14 @@ export function AuthBoundary({
     return result;
   };
 
-  const signUp = async (code: string, username: string, password: string) => {
+  const signUp = async (input: SignUpInput) => {
     if (sessionClient.signUp === undefined) {
       return {
         ok: false as const,
         message: "Signup is unavailable right now.",
       };
     }
-    const result = await sessionClient.signUp(code, username, password);
+    const result = await sessionClient.signUp(input);
     if (result.ok) await checkSession();
     return result;
   };
@@ -528,6 +567,7 @@ export function AuthBoundary({
       <DashboardShell
         apiClient={apiClient}
         currentPersonId={boundary.currentPersonId}
+        displayName={boundary.displayName}
         role={boundary.role}
         onCreateSignupCode={createSignupCode}
         onSignOut={() => void signOut()}

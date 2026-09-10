@@ -85,7 +85,7 @@ export function Portrait({
     );
   }
 
-  if (personId === "you") {
+  if (personId === "you" && !initials) {
     return (
       <span
         aria-hidden="true"
@@ -256,7 +256,7 @@ export function PartyLayer({
           onClick={onOpenMyCare}
           type="button"
         >
-          <Portrait personId={user.id} small />
+          <Portrait initials={user.initials} personId={user.id} small />
         </button>
         <h1>Party</h1>
         <button

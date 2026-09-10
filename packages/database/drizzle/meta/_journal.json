@@ -64,6 +64,20 @@
       "when": 1789063200000,
       "tag": "0008_signup_codes_and_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789120000000,
+      "tag": "0009_name_empty_tester",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789123600000,
+      "tag": "0010_name_river_tester",
+      "breakpoints": true
     }
   ]
 }

@@ -96,7 +96,7 @@ export async function seedFictionalPartyFixture(
   );
   await database.insert(users).values({
     id: fictionalPartyOwnerUserId,
-    name: "River Okafor",
+    name: "River Tester",
     email: fictionalPartyOwnerEmail,
     username: fictionalPartyOwnerUsername,
     role: "admin",
@@ -134,7 +134,7 @@ export async function seedFictionalPartyFixture(
   });
   await database.insert(users).values({
     id: fictionalEmptyUserId,
-    name: "Empty User",
+    name: "Empty Tester",
     email: fictionalEmptyUserEmail,
     username: fictionalEmptyUserUsername,
     emailVerified: true,
@@ -185,14 +185,14 @@ export async function seedFictionalPartyFixture(
     fictionalPartyPersonIds.map((personId, index) =>
       repository.createProfile({
         personId,
-        displayName: index === 0 ? "River Okafor" : `Fictional Member ${index}`,
+        displayName: index === 0 ? "River Tester" : `Fictional Member ${index}`,
         now,
       }),
     ),
   );
   await repository.createProfile({
     personId: fictionalEmptyUserPersonId,
-    displayName: "Empty User",
+    displayName: "Empty Tester",
     now,
   });
   for (const memberPersonId of fictionalPartyMemberIds) {

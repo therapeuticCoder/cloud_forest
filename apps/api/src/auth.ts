@@ -5,6 +5,15 @@ import { username } from "better-auth/plugins";
 import type { DatabaseClient } from "@cloud-forest/database";
 import * as schema from "@cloud-forest/database/schema";
 
+const authAllowedHosts = (
+  process.env.BETTER_AUTH_ALLOWED_HOSTS ??
+  "scollinsstudio.tail7ad917.ts.net,127.0.0.1,localhost"
+)
+  .split(",")
+  .map((host) => host.trim())
+  .filter(Boolean);
+const authFallbackUrl = process.env.BETTER_AUTH_URL ?? "http://127.0.0.1:3001";
+
 export interface InvitedAuthOptions {
   sessionExpiresIn?: number;
   allowSignUp?: boolean;
@@ -22,7 +31,11 @@ export function createInvitedAuth(
       usePlural: true,
     }),
     secret,
-    baseURL: "http://127.0.0.1:3001",
+    baseURL: {
+      allowedHosts: authAllowedHosts,
+      fallback: authFallbackUrl,
+      protocol: "auto",
+    },
     emailAndPassword: {
       enabled: true,
       disableSignUp: !(options.allowSignUp ?? false),

@@ -4664,6 +4664,11 @@
                           "minLength": 1,
                           "type": "string"
                         },
+                        "displayName": {
+                          "maxLength": 200,
+                          "minLength": 1,
+                          "type": "string"
+                        },
                         "role": {
                           "anyOf": [
                             {
@@ -4682,7 +4687,8 @@
                         }
                       },
                       "required": [
-                        "currentPersonId"
+                        "currentPersonId",
+                        "displayName"
                       ],
                       "type": "object"
                     }
@@ -4819,6 +4825,16 @@
                     "minLength": 1,
                     "type": "string"
                   },
+                  "firstName": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
                   "password": {
                     "maxLength": 200,
                     "minLength": 8,
@@ -4832,6 +4848,8 @@
                 },
                 "required": [
                   "code",
+                  "firstName",
+                  "lastName",
                   "username",
                   "password"
                 ],
