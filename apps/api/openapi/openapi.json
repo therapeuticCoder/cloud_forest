@@ -197,6 +197,12 @@
                             },
                             {
                               "enum": [
+                                "TRIBE_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "STALE_WRITE_CONFLICT"
                               ],
                               "type": "string"
@@ -486,6 +492,12 @@
                             },
                             {
                               "enum": [
+                                "TRIBE_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "STALE_WRITE_CONFLICT"
                               ],
                               "type": "string"
@@ -553,6 +565,12 @@
                             {
                               "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -630,6 +648,12 @@
                             },
                             {
                               "enum": [
+                                "TRIBE_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "STALE_WRITE_CONFLICT"
                               ],
                               "type": "string"
@@ -697,6 +721,12 @@
                             {
                               "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -958,6 +988,12 @@
                             },
                             {
                               "enum": [
+                                "TRIBE_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "STALE_WRITE_CONFLICT"
                               ],
                               "type": "string"
@@ -1025,6 +1061,12 @@
                             {
                               "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1102,6 +1144,12 @@
                             },
                             {
                               "enum": [
+                                "TRIBE_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "STALE_WRITE_CONFLICT"
                               ],
                               "type": "string"
@@ -1169,6 +1217,12 @@
                             {
                               "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1480,6 +1534,12 @@
                             },
                             {
                               "enum": [
+                                "TRIBE_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "STALE_WRITE_CONFLICT"
                               ],
                               "type": "string"
@@ -1547,6 +1607,12 @@
                             {
                               "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },
@@ -1624,6 +1690,12 @@
                             },
                             {
                               "enum": [
+                                "TRIBE_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
                                 "STALE_WRITE_CONFLICT"
                               ],
                               "type": "string"
@@ -1691,6 +1763,12 @@
                             {
                               "enum": [
                                 "PARTY_FULL"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "TRIBE_FULL"
                               ],
                               "type": "string"
                             },

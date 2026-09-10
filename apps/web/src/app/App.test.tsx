@@ -156,24 +156,32 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: /write/i })).toBeInTheDocument();
   });
 
-  it("renders the four gallery layers at their canonical sizes", async () => {
+  it("renders durable Holding and Tribe layers without fictional Tribe people", async () => {
     await openCurator();
 
+    const holdingLayer = screen.getByRole("article", {
+      name: /holding layer/i,
+    });
     const partyLayer = screen.getByRole("article", { name: /party layer/i });
     const tribeLayer = screen.getByRole("article", { name: /tribe layer/i });
     const guildLayer = screen.getByRole("article", { name: /guilds layer/i });
     const signalLayer = screen.getByRole("article", { name: /signals layer/i });
 
+    expect(
+      within(holdingLayer).getByRole("button", { name: /add character/i }),
+    ).toBeInTheDocument();
+    expect(
+      within(holdingLayer).getByText(/a quiet place to begin/i),
+    ).toBeInTheDocument();
     expect(partyLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(6);
     expect(
       within(partyLayer).getByRole("button", { name: /open my care/i }),
     ).toBeInTheDocument();
-    expect(within(tribeLayer).getAllByRole("button")).toHaveLength(100);
+    expect(
+      within(tribeLayer).getByText(/your tribe is waiting/i),
+    ).toBeInTheDocument();
     expect(within(guildLayer).getAllByRole("button")).toHaveLength(5);
     expect(within(signalLayer).getAllByRole("button")).toHaveLength(10);
-    expect(
-      within(tribeLayer).getAllByRole("region", { name: /neighborhood/i }),
-    ).toHaveLength(5);
     expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /studio night/i }),

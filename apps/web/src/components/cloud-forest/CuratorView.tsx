@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  curatorGuilds,
-  curatorSignals,
-  curatorTribeNeighborhoods,
-} from "@/data/cloudForest";
+import { curatorGuilds, curatorSignals } from "@/data/cloudForest";
 import { cn } from "@/lib/utils";
 import type {
   CareLifecycleState,
@@ -19,6 +15,7 @@ import {
 } from "./AddPartyMemberWizard";
 import { CuratorDetailView } from "./CuratorDetailView";
 import { GuildsLayer } from "./GuildsLayer";
+import { HoldingLayer } from "./HoldingLayer";
 import { PartyLayer } from "./PartyLayer";
 import { SignalsLayer } from "./SignalsLayer";
 import { TribeLayer } from "./TribeLayer";
@@ -29,19 +26,31 @@ type CuratorLayerSectionProps = {
 };
 
 type CuratorViewProps = {
+  addDestination: "holding" | "party";
   addSubmission: { pending: boolean; error?: string };
   addWizardOpen: boolean;
   careLifecycle: CareLifecycleState;
   careViewerId: CarePersonId;
+  characterSubmission: { pending: boolean; error?: string };
   curatedPeopleStatus: "loading" | "ready" | "error";
   curatedPeopleError?: string;
   onAddPartyMember: (slotIndex?: number) => void;
+  onAddHoldingCharacter: () => void;
   onCancelAdd: () => void;
   onCompleteAdd: (
     draft: AddPartyMemberDraft,
   ) => void | boolean | Promise<void | boolean>;
   onRetryCuratedPeople: () => void;
   onDetailOpenChange: (open: boolean) => void;
+  onUpdateCharacter: (
+    person: CuratorPerson,
+    update: {
+      nickname: string;
+      placement: "holding" | "party" | "tribe";
+      privateDescription: string;
+      relationshipShape: string;
+    },
+  ) => Promise<CuratorPerson | null>;
   onNavigateToTimeline: () => void;
   onOpenMyCare: () => void;
   onOfferHelp: (request: ReceiveCareRequest) => void;
@@ -51,6 +60,8 @@ type CuratorViewProps = {
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onWithdraw: (requestId: string) => void;
   partyPeople: CuratorPerson[];
+  holdingPeople: CuratorPerson[];
+  tribePeople: CuratorPerson[];
   user: CuratorPerson;
 };
 
@@ -90,17 +101,21 @@ function CuratorLayerSection({ children, label }: CuratorLayerSectionProps) {
 }
 
 export function CuratorView({
+  addDestination,
   addSubmission,
   addWizardOpen,
   careLifecycle,
   careViewerId,
+  characterSubmission,
   curatedPeopleError,
   curatedPeopleStatus,
   onAddPartyMember,
+  onAddHoldingCharacter,
   onCancelAdd,
   onCompleteAdd,
   onRetryCuratedPeople,
   onDetailOpenChange,
+  onUpdateCharacter,
   onNavigateToTimeline,
   onOpenMyCare,
   onOfferHelp,
@@ -110,6 +125,8 @@ export function CuratorView({
   onSetRequestMinimized,
   onWithdraw,
   partyPeople,
+  holdingPeople,
+  tribePeople,
   user,
 }: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
@@ -183,6 +200,7 @@ export function CuratorView({
   if (addWizardOpen) {
     return (
       <AddPartyMemberWizard
+        destination={addDestination === "holding" ? "Holding" : "Party"}
         errorMessage={addSubmission.error}
         isSubmitting={addSubmission.pending}
         onCancel={onCancelAdd}
@@ -195,12 +213,14 @@ export function CuratorView({
     return (
       <CuratorDetailView
         careLifecycle={careLifecycle}
+        characterSubmission={characterSubmission}
         onBack={handleBack}
         onOfferHelp={onOfferHelp}
         onPass={onPass}
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
         onSetRequestMinimized={onSetRequestMinimized}
+        onUpdateCharacter={onUpdateCharacter}
         onWithdraw={onWithdraw}
         selection={selection}
         viewerId={careViewerId}
@@ -214,6 +234,16 @@ export function CuratorView({
       aria-label="Curator view"
       className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-slate-950 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
+      <CuratorLayerSection label="Holding">
+        <HoldingLayer
+          onAdd={onAddHoldingCharacter}
+          onRetry={onRetryCuratedPeople}
+          onSelect={handleSelect}
+          people={holdingPeople}
+          peopleState={curatedPeopleStatus}
+          peopleStateMessage={curatedPeopleError}
+        />
+      </CuratorLayerSection>
       <CuratorLayerSection label="Party">
         <PartyLayer
           onAdd={onAddPartyMember}
@@ -229,8 +259,11 @@ export function CuratorView({
       </CuratorLayerSection>
       <CuratorLayerSection label="Tribe">
         <TribeLayer
-          neighborhoods={curatorTribeNeighborhoods}
           onSelect={handleSelect}
+          onRetry={onRetryCuratedPeople}
+          people={tribePeople}
+          peopleState={curatedPeopleStatus}
+          peopleStateMessage={curatedPeopleError}
         />
       </CuratorLayerSection>
       <CuratorLayerSection label="Guilds">

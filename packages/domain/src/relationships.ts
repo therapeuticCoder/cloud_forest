@@ -17,6 +17,7 @@ export const curatedPersonPlacements = [
 export type CuratedPersonPlacement = (typeof curatedPersonPlacements)[number];
 
 export const PARTY_CAPACITY = 5;
+export const TRIBE_CAPACITY = 100;
 
 declare const partyPositionBrand: unique symbol;
 

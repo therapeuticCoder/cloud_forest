@@ -24,6 +24,7 @@ const message = {
   NOT_FOUND: "The requested private Person was not found.",
   VALIDATION_ERROR: "Invalid private Person request.",
   PARTY_FULL: "Your Party already has five relationships.",
+  TRIBE_FULL: "Your Tribe already has 100 people.",
   STALE_WRITE_CONFLICT:
     "This private Person has changed. Refresh and try again.",
 } as const;
@@ -130,12 +131,19 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
       });
       if (!result.ok) {
         return reply
-          .status(result.error === "party-capacity-exceeded" ? 409 : 404)
+          .status(
+            result.error === "party-capacity-exceeded" ||
+              result.error === "tribe-capacity-exceeded"
+              ? 409
+              : 404,
+          )
           .send(
             error(
               result.error === "party-capacity-exceeded"
                 ? "PARTY_FULL"
-                : "NOT_FOUND",
+                : result.error === "tribe-capacity-exceeded"
+                  ? "TRIBE_FULL"
+                  : "NOT_FOUND",
             ),
           );
       }
@@ -169,7 +177,9 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
             ? "NOT_FOUND"
             : result.error === "party-capacity-exceeded"
               ? "PARTY_FULL"
-              : "STALE_WRITE_CONFLICT";
+              : result.error === "tribe-capacity-exceeded"
+                ? "TRIBE_FULL"
+                : "STALE_WRITE_CONFLICT";
         return reply.status(code === "NOT_FOUND" ? 404 : 409).send(error(code));
       }
       return ownedPeople(current.userId, request.params.curatedPersonId);

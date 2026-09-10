@@ -111,8 +111,14 @@ test("curated Person API derives the owner from the trusted session", async (t) 
 test("curated Person API maps capacity, stale, and private deletion outcomes", async (t) => {
   const repository = {
     ...createRepository(),
-    async create() {
-      return { ok: false, error: "party-capacity-exceeded" };
+    async create(input) {
+      return {
+        ok: false,
+        error:
+          input.placement === "tribe"
+            ? "tribe-capacity-exceeded"
+            : "party-capacity-exceeded",
+      };
     },
     async update() {
       return { ok: false, error: "stale-write-conflict" };
@@ -144,6 +150,19 @@ test("curated Person API maps capacity, stale, and private deletion outcomes", a
   });
   assert.equal(full.statusCode, 409);
   assert.equal(full.json().error.code, "PARTY_FULL");
+
+  const tribeFull = await server.inject({
+    method: "POST",
+    url: "/api/v1/curated-persons",
+    payload: {
+      nickname: "Full Tribe",
+      relationshipShape: "Friend",
+      privateDescription: "",
+      placement: "tribe",
+    },
+  });
+  assert.equal(tribeFull.statusCode, 409);
+  assert.equal(tribeFull.json().error.code, "TRIBE_FULL");
 
   const stale = await server.inject({
     method: "PATCH",

@@ -2,7 +2,12 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-export type CuratorTileTone = "party" | "tribe" | "guild" | "signal";
+export type CuratorTileTone =
+  | "party"
+  | "tribe"
+  | "holding"
+  | "guild"
+  | "signal";
 
 type CuratorTileProps = {
   id: string;
@@ -20,6 +25,8 @@ const toneClassNames: Record<CuratorTileTone, string> = {
     "border-emerald-300/65 bg-emerald-300/[0.04] text-emerald-300 hover:border-emerald-200 focus-visible:ring-emerald-300/75 active:bg-emerald-300/10",
   tribe:
     "border-cyan-300/60 bg-cyan-300/[0.035] text-cyan-300 hover:border-cyan-200 focus-visible:ring-cyan-300/75 active:bg-cyan-300/10",
+  holding:
+    "border-lime-200/35 bg-lime-100/[0.035] text-lime-100 hover:border-lime-100 focus-visible:ring-lime-100/75 active:bg-lime-100/10",
   guild:
     "border-violet-300/60 bg-violet-300/[0.035] text-violet-300 hover:border-violet-200 focus-visible:ring-violet-300/75 active:bg-violet-300/10",
   signal:

@@ -5,7 +5,7 @@ import {
   RadioTower,
   Sprout,
 } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,18 +18,28 @@ import type {
   CarePersonId,
   ReceiveCareRequest,
 } from "@/types/careRequest";
-import type { CuratorSelection } from "@/types/curator";
+import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 import { CareRequestCard } from "./CareRequestCard";
 
 type CuratorDetailViewProps = {
   careLifecycle: CareLifecycleState;
+  characterSubmission: { pending: boolean; error?: string };
   onBack: () => void;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onPass: (request: ReceiveCareRequest) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
+  onUpdateCharacter: (
+    person: CuratorPerson,
+    update: {
+      nickname: string;
+      placement: "holding" | "party" | "tribe";
+      privateDescription: string;
+      relationshipShape: string;
+    },
+  ) => Promise<CuratorPerson | null>;
   onWithdraw: (requestId: string) => void;
   selection: CuratorSelection;
   viewerId: CarePersonId;
@@ -38,6 +48,7 @@ type CuratorDetailViewProps = {
 const layerLabels = {
   party: "Party",
   tribe: "Tribe",
+  holding: "Holding",
   guild: "Guild",
   signal: "Signal",
 } as const;
@@ -49,7 +60,11 @@ function getSelectionName(selection: CuratorSelection) {
 }
 
 function SelectionVisual({ selection }: { selection: CuratorSelection }) {
-  if (selection.layer === "party" || selection.layer === "tribe") {
+  if (
+    selection.layer === "party" ||
+    selection.layer === "tribe" ||
+    selection.layer === "holding"
+  ) {
     return <span>{selection.item.initials}</span>;
   }
 
@@ -63,25 +78,57 @@ function SelectionVisual({ selection }: { selection: CuratorSelection }) {
 const layerStyles = {
   party: "border-emerald-300/65 text-emerald-300",
   tribe: "border-cyan-300/60 text-cyan-300",
+  holding: "border-lime-200/50 text-lime-200",
   guild: "border-violet-300/60 text-violet-300",
   signal: "border-amber-300/55 text-amber-300",
 } as const;
 
+function isCharacterSelection(
+  selection: CuratorSelection,
+): selection is Extract<
+  CuratorSelection,
+  { layer: "party" | "tribe" | "holding" }
+> {
+  return (
+    selection.layer === "party" ||
+    selection.layer === "tribe" ||
+    selection.layer === "holding"
+  );
+}
+
 export function CuratorDetailView({
   careLifecycle,
+  characterSubmission,
   onBack,
   onOfferHelp,
   onPass,
   onRecordCompleted,
   onRecordNotCompleted,
   onSetRequestMinimized,
+  onUpdateCharacter,
   onWithdraw,
   selection,
   viewerId,
 }: CuratorDetailViewProps) {
   const selectionName = getSelectionName(selection);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const isPerson = selection.layer === "party" || selection.layer === "tribe";
+  const isPerson = isCharacterSelection(selection);
+  const initialCharacter =
+    isPerson && selection.item.version !== undefined ? selection.item : null;
+  const [character, setCharacter] = useState(initialCharacter);
+  const [draft, setDraft] = useState(() =>
+    character
+      ? {
+          nickname: character.displayName,
+          placement: selection.layer as "holding" | "party" | "tribe",
+          privateDescription:
+            character.privateDescription ?? character.relationshipTitle,
+          relationshipShape:
+            character.relationshipShape ?? character.relationshipNote,
+        }
+      : null,
+  );
+  const activeLayer = character && draft ? draft.placement : selection.layer;
   const profileOwnerId = isPerson ? selection.item.id : undefined;
   const now = new Date().toISOString();
   const careRequests = useMemo(
@@ -101,6 +148,17 @@ export function CuratorDetailView({
     requestAnimationFrame(() => headingRef.current?.focus());
   }, []);
 
+  const saveCharacter = async (
+    placement: "holding" | "party" | "tribe" = draft?.placement ?? "holding",
+  ) => {
+    if (!character || !draft) return;
+    const saved = await onUpdateCharacter(character, { ...draft, placement });
+    if (saved) {
+      setCharacter(saved);
+      setDraft((current) => (current ? { ...current, placement } : current));
+    }
+  };
+
   return (
     <section
       aria-label={`${selectionName} details`}
@@ -119,7 +177,7 @@ export function CuratorDetailView({
 
       <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-6">
         <div
-          className={`grid aspect-square w-[min(48vw,14rem)] place-items-center rounded-2xl border bg-slate-900/35 text-[clamp(3rem,14vw,7rem)] font-medium ${layerStyles[selection.layer]}`}
+          className={`grid aspect-square w-[min(48vw,14rem)] place-items-center rounded-2xl border bg-slate-900/35 text-[clamp(3rem,14vw,7rem)] font-medium ${layerStyles[activeLayer]}`}
         >
           <SelectionVisual selection={selection} />
         </div>
@@ -132,10 +190,97 @@ export function CuratorDetailView({
           >
             {selectionName}
           </h1>
-          <p className={layerStyles[selection.layer]}>
-            {layerLabels[selection.layer]}
-          </p>
+          <p className={layerStyles[activeLayer]}>{layerLabels[activeLayer]}</p>
         </div>
+
+        {character && draft ? (
+          <section className="w-full rounded-2xl border border-lime-100/20 bg-lime-100/[0.035] p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-lime-200/75">
+              Private Character
+            </p>
+            <div className="mt-4 grid gap-4">
+              <label className="grid gap-1.5 text-sm text-slate-300">
+                Name or nickname
+                <input
+                  className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-base text-slate-100"
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, nickname: event.target.value }
+                        : current,
+                    )
+                  }
+                  value={draft.nickname}
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm text-slate-300">
+                Relationship shape
+                <input
+                  className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-base text-slate-100"
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, relationshipShape: event.target.value }
+                        : current,
+                    )
+                  }
+                  value={draft.relationshipShape}
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm text-slate-300">
+                Private note
+                <textarea
+                  className="min-h-24 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-base text-slate-100"
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, privateDescription: event.target.value }
+                        : current,
+                    )
+                  }
+                  value={draft.privateDescription}
+                />
+              </label>
+              <Button
+                className="bg-lime-200 text-slate-950 hover:bg-lime-100"
+                disabled={
+                  characterSubmission.pending ||
+                  !draft.nickname.trim() ||
+                  !draft.relationshipShape.trim()
+                }
+                onClick={() => void saveCharacter()}
+                type="button"
+              >
+                Save private details
+              </Button>
+              <div className="border-t border-lime-100/15 pt-4">
+                <p className="text-sm text-slate-300">Move this Character</p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {(["holding", "party", "tribe"] as const).map((placement) => (
+                    <Button
+                      className="border border-lime-100/25 text-slate-100 hover:bg-lime-100/10"
+                      disabled={
+                        characterSubmission.pending ||
+                        draft.placement === placement
+                      }
+                      key={placement}
+                      onClick={() => void saveCharacter(placement)}
+                      type="button"
+                      variant="ghost"
+                    >
+                      {layerLabels[placement]}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              {characterSubmission.error ? (
+                <p className="text-sm text-rose-200" role="status">
+                  {characterSubmission.error}
+                </p>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
         {isPerson ? (
           <section

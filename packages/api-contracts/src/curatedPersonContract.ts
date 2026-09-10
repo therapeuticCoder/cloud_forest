@@ -41,6 +41,7 @@ export const curatedPersonErrorSchema = Type.Object(
           Type.Literal("NOT_FOUND"),
           Type.Literal("VALIDATION_ERROR"),
           Type.Literal("PARTY_FULL"),
+          Type.Literal("TRIBE_FULL"),
           Type.Literal("STALE_WRITE_CONFLICT"),
         ]),
         message: Type.String({ minLength: 1, maxLength: 500 }),

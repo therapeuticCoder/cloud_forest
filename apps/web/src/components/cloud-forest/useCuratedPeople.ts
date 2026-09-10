@@ -52,6 +52,10 @@ export function curatedPersonToCuratorPerson(
     relationshipTitle: person.privateDescription || person.relationshipShape,
     relationshipNote: person.relationshipShape,
     recentStatus: "Private relationship record",
+    placement: person.placement,
+    privateDescription: person.privateDescription,
+    relationshipShape: person.relationshipShape,
+    version: person.version,
   };
 }
 
@@ -123,6 +127,23 @@ export function useCuratedPeople(
     [apiClient, applyResult],
   );
 
+  const update = useCallback(
+    async (
+      curatedPersonId: string,
+      input: Parameters<CuratedPersonApiClient["updateCuratedPerson"]>[1],
+    ) => {
+      const result = await apiClient.updateCuratedPerson(
+        curatedPersonId,
+        input,
+      );
+      if (result.ok) {
+        applyResult(result);
+      }
+      return result;
+    },
+    [apiClient, applyResult],
+  );
+
   const partyPeople = useMemo(
     () =>
       people.people
@@ -131,5 +152,29 @@ export function useCuratedPeople(
     [people.people],
   );
 
-  return { add, load, partyPeople, people };
+  const tribePeople = useMemo(
+    () =>
+      people.people
+        .filter((person) => person.placement === "tribe")
+        .map(curatedPersonToCuratorPerson),
+    [people.people],
+  );
+
+  const holdingPeople = useMemo(
+    () =>
+      people.people
+        .filter((person) => person.placement === "holding")
+        .map(curatedPersonToCuratorPerson),
+    [people.people],
+  );
+
+  return {
+    add,
+    holdingPeople,
+    load,
+    partyPeople,
+    people,
+    tribePeople,
+    update,
+  };
 }

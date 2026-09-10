@@ -1,12 +1,15 @@
 import { randomUUID } from "node:crypto";
 
 import { and, asc, eq, sql } from "drizzle-orm";
-import type { CuratedPersonPlacement } from "@cloud-forest/domain";
+import {
+  PARTY_CAPACITY,
+  TRIBE_CAPACITY,
+  type CuratedPersonPlacement,
+} from "@cloud-forest/domain";
 
 import type { DatabaseClient } from "./client.ts";
 import { curatedPersons } from "./schema.ts";
 
-const partyCapacity = 5;
 type TransactionClient = Parameters<
   Parameters<DatabaseClient["transaction"]>[0]
 >[0];
@@ -14,6 +17,7 @@ type TransactionClient = Parameters<
 export type CuratedPersonRepositoryError =
   | "curated-person-not-found"
   | "party-capacity-exceeded"
+  | "tribe-capacity-exceeded"
   | "stale-write-conflict";
 
 export type CuratedPersonRepositoryResult<T> =
@@ -30,9 +34,10 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
     );
   }
 
-  async function countParty(
+  async function countPlacement(
     transaction: TransactionClient,
     ownerUserId: string,
+    placement: "party" | "tribe",
   ) {
     const rows = await transaction
       .select({ id: curatedPersons.id })
@@ -40,10 +45,24 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
       .where(
         and(
           eq(curatedPersons.ownerUserId, ownerUserId),
-          eq(curatedPersons.placement, "party"),
+          eq(curatedPersons.placement, placement),
         ),
       );
     return rows.length;
+  }
+
+  function capacityFor(placement: CuratedPersonPlacement) {
+    if (placement === "party") return PARTY_CAPACITY;
+    if (placement === "tribe") return TRIBE_CAPACITY;
+    return null;
+  }
+
+  function capacityErrorFor(
+    placement: CuratedPersonPlacement,
+  ): "party-capacity-exceeded" | "tribe-capacity-exceeded" | null {
+    if (placement === "party") return "party-capacity-exceeded";
+    if (placement === "tribe") return "tribe-capacity-exceeded";
+    return null;
   }
 
   return {
@@ -68,10 +87,14 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
       return database.transaction(async (transaction) => {
         await lockOwner(transaction, input.ownerUserId);
         if (
-          input.placement === "party" &&
-          (await countParty(transaction, input.ownerUserId)) >= partyCapacity
+          (input.placement === "party" || input.placement === "tribe") &&
+          (await countPlacement(
+            transaction,
+            input.ownerUserId,
+            input.placement,
+          )) >= capacityFor(input.placement)!
         ) {
-          return { ok: false, error: "party-capacity-exceeded" };
+          return { ok: false, error: capacityErrorFor(input.placement)! };
         }
 
         const [created] = await transaction
@@ -122,11 +145,15 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
         if (existing.version !== input.expectedVersion)
           return { ok: false, error: "stale-write-conflict" };
         if (
-          input.placement === "party" &&
-          existing.placement !== "party" &&
-          (await countParty(transaction, input.ownerUserId)) >= partyCapacity
+          (input.placement === "party" || input.placement === "tribe") &&
+          existing.placement !== input.placement &&
+          (await countPlacement(
+            transaction,
+            input.ownerUserId,
+            input.placement,
+          )) >= capacityFor(input.placement)!
         ) {
-          return { ok: false, error: "party-capacity-exceeded" };
+          return { ok: false, error: capacityErrorFor(input.placement)! };
         }
 
         const [updated] = await transaction

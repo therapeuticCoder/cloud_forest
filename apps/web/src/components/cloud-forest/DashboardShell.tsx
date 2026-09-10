@@ -30,11 +30,13 @@ import type {
   GiveCareOffer,
   ReceiveCareRequest,
 } from "@/types/careRequest";
+import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
 import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
 import {
   curationErrorMessage,
+  curatedPersonToCuratorPerson,
   useCuratedPeople,
   type CuratedPersonApiClient,
 } from "./useCuratedPeople";
@@ -131,11 +133,21 @@ export function DashboardShell({
   const [curatorDetailOpen, setCuratorDetailOpen] = useState(false);
   const {
     add: addCuratedPerson,
+    holdingPeople,
     load: loadCuratedPeople,
     partyPeople,
     people: curatedPeople,
+    tribePeople,
+    update: updateCuratedPerson,
   } = useCuratedPeople(apiClient, activeView === "curator");
   const [addSubmission, setAddSubmission] = useState<{
+    pending: boolean;
+    error?: string;
+  }>({ pending: false });
+  const [addDestination, setAddDestination] = useState<"holding" | "party">(
+    "party",
+  );
+  const [characterSubmission, setCharacterSubmission] = useState<{
     pending: boolean;
     error?: string;
   }>({ pending: false });
@@ -197,6 +209,15 @@ export function DashboardShell({
         (slotIndex ?? firstEmptySlot) + 1
       }`;
       setAddSubmission({ pending: false });
+      setAddDestination("party");
+      setAddWizardOpen(true);
+    }
+  };
+  const openAddHoldingCharacter = () => {
+    if (curatedPeople.status === "ready") {
+      focusTargetIdRef.current = "holding-add";
+      setAddSubmission({ pending: false });
+      setAddDestination("holding");
       setAddWizardOpen(true);
     }
   };
@@ -206,16 +227,44 @@ export function DashboardShell({
       nickname: draft.displayName,
       relationshipShape: draft.relationshipNote,
       privateDescription: draft.relationshipTitle,
-      placement: "party",
+      placement: addDestination,
     });
     if (!result.ok) {
       setAddSubmission({ pending: false, error: curationErrorMessage(result) });
       return false;
     }
-    focusTargetIdRef.current = `party-${result.value.data.changedPersonId}`;
+    focusTargetIdRef.current = `${addDestination}-${result.value.data.changedPersonId}`;
     setAddSubmission({ pending: false });
     setAddWizardOpen(false);
     return true;
+  };
+  const updateCharacter = async (
+    person: CuratorPerson,
+    update: {
+      nickname: string;
+      placement: "holding" | "party" | "tribe";
+      privateDescription: string;
+      relationshipShape: string;
+    },
+  ) => {
+    if (person.version === undefined) return null;
+    setCharacterSubmission({ pending: true });
+    const result = await updateCuratedPerson(person.id, {
+      ...update,
+      expectedVersion: person.version,
+    });
+    if (!result.ok) {
+      setCharacterSubmission({
+        pending: false,
+        error: curationErrorMessage(result),
+      });
+      return null;
+    }
+    setCharacterSubmission({ pending: false });
+    const updatedPerson = result.value.data.people.find(
+      (candidate) => candidate.id === person.id,
+    );
+    return updatedPerson ? curatedPersonToCuratorPerson(updatedPerson) : null;
   };
 
   const applyCareLifecycleAction = (action: CareLifecycleAction) => {
@@ -957,10 +1006,12 @@ export function DashboardShell({
               />
             ) : (
               <CuratorView
+                addDestination={addDestination}
                 addSubmission={addSubmission}
                 addWizardOpen={addWizardOpen}
                 careLifecycle={careLifecycle}
                 careViewerId={careViewerId}
+                characterSubmission={characterSubmission}
                 curatedPeopleStatus={curatedPeople.status}
                 curatedPeopleError={
                   curatedPeople.status === "error"
@@ -968,10 +1019,12 @@ export function DashboardShell({
                     : undefined
                 }
                 onAddPartyMember={openAddWizard}
+                onAddHoldingCharacter={openAddHoldingCharacter}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
                 onRetryCuratedPeople={() => void loadCuratedPeople()}
                 onDetailOpenChange={setCuratorDetailOpen}
+                onUpdateCharacter={updateCharacter}
                 onNavigateToTimeline={() => navigateToView("timeline")}
                 onOpenMyCare={() =>
                   openCareDestination(
@@ -991,6 +1044,8 @@ export function DashboardShell({
                 onSetRequestMinimized={setCareRequestMinimized}
                 onWithdraw={withdrawCareRequestAs}
                 partyPeople={partyPeople}
+                holdingPeople={holdingPeople}
+                tribePeople={tribePeople}
                 user={currentUser}
               />
             )}

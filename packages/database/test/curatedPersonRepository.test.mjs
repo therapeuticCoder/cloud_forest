@@ -37,7 +37,7 @@ function input(placement = "party", nickname = "Mira") {
   };
 }
 
-test("curated Persons are owner-scoped and Party capacity is atomic", async (t) => {
+test("curated Persons are owner-scoped and Party and Tribe capacity are atomic", async (t) => {
   const { database, pool } = createDatabaseClient(
     getTestDatabaseUrl(process.env),
   );
@@ -79,6 +79,20 @@ test("curated Persons are owner-scoped and Party capacity is atomic", async (t) 
     1,
   );
   assert.equal((await repository.listOwned(owner)).length, 5);
+
+  const tribeAdditions = await Promise.all(
+    Array.from({ length: 101 }, (_, index) =>
+      repository.create(input("tribe", `Tribe person ${index + 1}`)),
+    ),
+  );
+  assert.equal(tribeAdditions.filter((result) => result.ok).length, 100);
+  assert.equal(
+    tribeAdditions.filter(
+      (result) => !result.ok && result.error === "tribe-capacity-exceeded",
+    ).length,
+    1,
+  );
+  assert.equal((await repository.listOwned(owner)).length, 105);
   assert.deepEqual(await repository.listOwned(otherOwner), []);
 });
 

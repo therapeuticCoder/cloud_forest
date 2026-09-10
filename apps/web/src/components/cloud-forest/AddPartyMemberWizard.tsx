@@ -13,6 +13,7 @@ export type AddPartyMemberDraft = {
 };
 
 type AddPartyMemberWizardProps = {
+  destination: "Holding" | "Party";
   onCancel: () => void;
   onComplete: (
     draft: AddPartyMemberDraft,
@@ -34,6 +35,7 @@ function initialsFor(displayName: string) {
 }
 
 export function AddPartyMemberWizard({
+  destination,
   errorMessage,
   isSubmitting = false,
   onCancel,
@@ -106,7 +108,10 @@ export function AddPartyMemberWizard({
   };
 
   return (
-    <section aria-label="Add a Party member" className="party-wizard">
+    <section
+      aria-label={`Add a ${destination === "Holding" ? "Character" : "Party member"}`}
+      className="party-wizard"
+    >
       <header className="party-wizard__header">
         <Button
           aria-label={step === 0 ? "Close wizard" : "Back"}
@@ -128,7 +133,7 @@ export function AddPartyMemberWizard({
           {step + 1} of {steps.length}
         </span>
         <Button
-          aria-label="Cancel adding Party member"
+          aria-label={`Cancel adding ${destination === "Holding" ? "Character" : "Party member"}`}
           className="party-wizard__cancel"
           onClick={handleCancel}
           type="button"
@@ -226,8 +231,12 @@ export function AddPartyMemberWizard({
           <label className="party-wizard__question">
             <span className="party-wizard__title">Who are they to you?</span>
             <span className="party-wizard__hint">
-              A short private answer for their Party card. For example: “my safe
-              harbor,” “the one who gets it,” or “a steady light.”
+              A short private answer for{" "}
+              {destination === "Party"
+                ? "their Party card"
+                : "your Holding record"}
+              . For example: “my safe harbor,” “the one who gets it,” or “a
+              steady light.”
             </span>
             <textarea
               autoFocus
@@ -242,7 +251,9 @@ export function AddPartyMemberWizard({
         {step === 4 ? (
           <div className="party-wizard__question party-wizard__preview-wrap">
             <h1 className="party-wizard__title">
-              {displayName.trim()} belongs in your party!
+              {destination === "Party"
+                ? `${displayName.trim()} belongs in your Party!`
+                : `${displayName.trim()} is safe in Holding.`}
             </h1>
             <div className="party-wizard__preview">
               {portraitUrl ? (
@@ -272,7 +283,7 @@ export function AddPartyMemberWizard({
           type="button"
         >
           {step === 4 ? <Check aria-hidden="true" /> : null}
-          {step === 4 ? "Add to Party" : "Continue"}
+          {step === 4 ? `Add to ${destination}` : "Continue"}
         </Button>
       </footer>
     </section>
