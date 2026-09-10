@@ -135,9 +135,9 @@ export function DashboardShell({
     pending: boolean;
     error?: string;
   }>({ pending: false });
-  const [addDestination, setAddDestination] = useState<"holding" | "party">(
-    "party",
-  );
+  const [addDestination, setAddDestination] = useState<
+    "holding" | "party" | "tribe"
+  >("party");
   const [characterSubmission, setCharacterSubmission] = useState<{
     pending: boolean;
     error?: string;
@@ -209,14 +209,29 @@ export function DashboardShell({
   }, []);
 
   const revealChrome = () => setChromeHidden(false);
-  const openAddWizard = (slotIndex?: number) => {
-    if (curatedPeople.status === "ready" && partyPeople.length < 5) {
+  const openAddWizard = (
+    destination: "holding" | "party" | "tribe",
+    slotIndex?: number,
+  ) => {
+    const destinationPeople =
+      destination === "holding"
+        ? holdingPeople
+        : destination === "tribe"
+          ? tribePeople
+          : partyPeople;
+    const capacity = destination === "tribe" ? 100 : 5;
+
+    if (
+      curatedPeople.status === "ready" &&
+      destinationPeople.length < capacity
+    ) {
       const firstEmptySlot = Math.min(partyPeople.length, 4);
-      focusTargetIdRef.current = `party-add-${
-        (slotIndex ?? firstEmptySlot) + 1
-      }`;
+      focusTargetIdRef.current =
+        destination === "party"
+          ? `party-add-${(slotIndex ?? firstEmptySlot) + 1}`
+          : null;
       setAddSubmission({ pending: false });
-      setAddDestination("party");
+      setAddDestination(destination);
       setAddWizardOpen(true);
     }
   };
@@ -1138,7 +1153,7 @@ export function DashboardShell({
         >
           <PartyActions
             activeView={activeView}
-            onAdd={openAddWizard}
+            onAdd={() => openAddWizard("party")}
             onGive={openGiveWizard}
             onReceive={openReceiveWizard}
           />

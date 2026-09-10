@@ -124,12 +124,12 @@ export function CuratorDetailView({
   selection,
   viewerId,
 }: CuratorDetailViewProps) {
-  const selectionName = getSelectionName(selection);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const isPerson = isCharacterSelection(selection);
   const initialCharacter =
     isPerson && selection.item.version !== undefined ? selection.item : null;
   const [character, setCharacter] = useState(initialCharacter);
+  const selectionName = character?.displayName ?? getSelectionName(selection);
   const [draft, setDraft] = useState(() =>
     character
       ? {

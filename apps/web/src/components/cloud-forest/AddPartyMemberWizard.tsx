@@ -13,7 +13,7 @@ export type AddPartyMemberDraft = {
 };
 
 type AddPartyMemberWizardProps = {
-  destination: "Holding" | "Party";
+  destination: "Holding" | "Party" | "Tribe";
   onCancel: () => void;
   onComplete: (
     draft: AddPartyMemberDraft,
@@ -104,7 +104,7 @@ export function AddPartyMemberWizard({
 
   return (
     <section
-      aria-label={`Add a ${destination === "Holding" ? "Character" : "Party member"}`}
+      aria-label={`Add a ${destination === "Holding" ? "Character" : `${destination} member`}`}
       className="party-wizard"
     >
       <header className="party-wizard__header">
@@ -128,7 +128,7 @@ export function AddPartyMemberWizard({
           {step + 1} of {steps.length}
         </span>
         <Button
-          aria-label={`Cancel adding ${destination === "Holding" ? "Character" : "Party member"}`}
+          aria-label={`Cancel adding ${destination === "Holding" ? "Character" : `${destination} member`}`}
           className="party-wizard__cancel"
           onClick={handleCancel}
           type="button"
@@ -232,9 +232,9 @@ export function AddPartyMemberWizard({
             <span className="party-wizard__title">Who are they to you?</span>
             <span className="party-wizard__hint">
               A short private answer for{" "}
-              {destination === "Party"
-                ? "their Party card"
-                : "your Holding record"}
+              {destination === "Holding"
+                ? "your Holding record"
+                : `their ${destination} card`}
               . For example: “my safe harbor,” “the one who gets it,” or “a
               steady light.”
             </span>
@@ -251,9 +251,9 @@ export function AddPartyMemberWizard({
         {step === 4 ? (
           <div className="party-wizard__question party-wizard__preview-wrap">
             <h1 className="party-wizard__title">
-              {destination === "Party"
-                ? `${displayName.trim()} belongs in your Party!`
-                : `${displayName.trim()} is safe in Holding.`}
+              {destination === "Holding"
+                ? `${displayName.trim()} is safe in Holding.`
+                : `${displayName.trim()} belongs in your ${destination}!`}
             </h1>
             <div className="party-wizard__preview">
               {portraitUrl ? (

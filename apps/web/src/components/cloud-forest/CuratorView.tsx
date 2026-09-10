@@ -33,7 +33,6 @@ type CuratorLayerSectionProps = {
   onNavigateToTimeline: () => void;
   onOpenMyCare: (returnFocusSelector: string) => void;
   onReceive: () => void;
-  partyIsFull: boolean;
   user: CuratorPerson;
 };
 
@@ -59,7 +58,7 @@ const layerOuterBackgrounds: Record<string, string> = {
 };
 
 type CuratorViewProps = {
-  addDestination: "holding" | "party";
+  addDestination: "holding" | "party" | "tribe";
   addSubmission: { pending: boolean; error?: string };
   addWizardOpen: boolean;
   careLifecycle: CareLifecycleState;
@@ -67,7 +66,10 @@ type CuratorViewProps = {
   characterSubmission: { pending: boolean; error?: string };
   curatedPeopleStatus: "loading" | "ready" | "error";
   curatedPeopleError?: string;
-  onAddPartyMember: (slotIndex?: number) => void;
+  onAddPartyMember: (
+    destination: "holding" | "party" | "tribe",
+    slotIndex?: number,
+  ) => void;
   onCancelAdd: () => void;
   onCompleteAdd: (
     draft: AddPartyMemberDraft,
@@ -133,7 +135,6 @@ function CuratorLayerSection({
   onNavigateToTimeline,
   onOpenMyCare,
   onReceive,
-  partyIsFull,
   user,
 }: CuratorLayerSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -211,7 +212,6 @@ function CuratorLayerSection({
             onGive(`[aria-label="${label} layer"] [data-party-action="give"]`)
           }
           onReceive={onReceive}
-          partyIsFull={partyIsFull}
         />
         {nextLayer ? <LayerContinuation nextLayer={nextLayer} /> : null}
       </section>
@@ -248,8 +248,6 @@ export function CuratorView({
   tribePeople,
   user,
 }: CuratorViewProps) {
-  const partyIsFull =
-    curatedPeopleStatus !== "ready" || partyPeople.length >= 5;
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
   const triggerIdRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLElement>(null);
@@ -324,7 +322,13 @@ export function CuratorView({
   if (addWizardOpen) {
     return (
       <AddPartyMemberWizard
-        destination={addDestination === "holding" ? "Holding" : "Party"}
+        destination={
+          addDestination === "holding"
+            ? "Holding"
+            : addDestination === "tribe"
+              ? "Tribe"
+              : "Party"
+        }
         errorMessage={addSubmission.error}
         isSubmitting={addSubmission.pending}
         onCancel={onCancelAdd}
@@ -359,16 +363,17 @@ export function CuratorView({
       className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-slate-950 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <CuratorLayerSection
-        addDisabled={holdingPeople.length >= 5}
+        addDisabled={
+          curatedPeopleStatus !== "ready" || holdingPeople.length >= 5
+        }
         count={`${holdingPeople.length}/5`}
         label="Holding"
         nextLayer="Party"
-        onAddPartyMember={() => onAddPartyMember()}
+        onAddPartyMember={() => onAddPartyMember("holding")}
         onGive={onGive}
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
-        partyIsFull={partyIsFull}
         user={user}
       >
         <HoldingLayer
@@ -380,20 +385,19 @@ export function CuratorView({
         />
       </CuratorLayerSection>
       <CuratorLayerSection
-        addDisabled={partyPeople.length >= 5}
+        addDisabled={curatedPeopleStatus !== "ready" || partyPeople.length >= 5}
         count={`${partyPeople.length}/5`}
         label="Party"
         nextLayer="Tribe"
-        onAddPartyMember={() => onAddPartyMember()}
+        onAddPartyMember={() => onAddPartyMember("party")}
         onGive={onGive}
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
-        partyIsFull={partyIsFull}
         user={user}
       >
         <PartyLayer
-          onAdd={onAddPartyMember}
+          onAdd={(slotIndex) => onAddPartyMember("party", slotIndex)}
           onSelect={handleSelect}
           onRetry={onRetryCuratedPeople}
           peopleState={curatedPeopleStatus}
@@ -402,16 +406,17 @@ export function CuratorView({
         />
       </CuratorLayerSection>
       <CuratorLayerSection
-        addDisabled={tribePeople.length >= 100}
+        addDisabled={
+          curatedPeopleStatus !== "ready" || tribePeople.length >= 100
+        }
         count={`${tribePeople.length}/100`}
         label="Tribe"
         nextLayer="Guilds"
-        onAddPartyMember={() => onAddPartyMember()}
+        onAddPartyMember={() => onAddPartyMember("tribe")}
         onGive={onGive}
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
-        partyIsFull={partyIsFull}
         user={user}
       >
         <TribeLayer
@@ -423,31 +428,29 @@ export function CuratorView({
         />
       </CuratorLayerSection>
       <CuratorLayerSection
-        addDisabled={curatorGuilds.length >= 5}
+        addDisabled
         count={`${curatorGuilds.length}/5`}
         label="Guilds"
         nextLayer="Signals"
-        onAddPartyMember={() => onAddPartyMember()}
+        onAddPartyMember={() => undefined}
         onGive={onGive}
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
-        partyIsFull={partyIsFull}
         user={user}
       >
         <GuildsLayer guilds={curatorGuilds} onSelect={handleSelect} />
       </CuratorLayerSection>
       <CuratorLayerSection
-        addDisabled={curatorSignals.length >= 10}
+        addDisabled
         careActionsDisabled
         count={`${curatorSignals.length}/10`}
         label="Signals"
-        onAddPartyMember={() => onAddPartyMember()}
+        onAddPartyMember={() => undefined}
         onGive={onGive}
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
-        partyIsFull={partyIsFull}
         user={user}
       >
         <SignalsLayer onSelect={handleSelect} signals={curatorSignals} />
