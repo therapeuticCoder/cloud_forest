@@ -1,11 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { and, asc, eq, sql } from "drizzle-orm";
-import {
-  PARTY_CAPACITY,
-  TRIBE_CAPACITY,
-  type CuratedPersonPlacement,
-} from "@cloud-forest/domain";
+import type { CuratedPersonPlacement } from "@cloud-forest/domain";
 
 import type { DatabaseClient } from "./client.ts";
 import { curatedPersons } from "./schema.ts";
@@ -13,9 +9,13 @@ import { curatedPersons } from "./schema.ts";
 type TransactionClient = Parameters<
   Parameters<DatabaseClient["transaction"]>[0]
 >[0];
+const partyCapacity = 5;
+const tribeCapacity = 100;
+const holdingCapacity = 5;
 
 export type CuratedPersonRepositoryError =
   | "curated-person-not-found"
+  | "holding-capacity-exceeded"
   | "party-capacity-exceeded"
   | "tribe-capacity-exceeded"
   | "stale-write-conflict";
@@ -37,7 +37,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
   async function countPlacement(
     transaction: TransactionClient,
     ownerUserId: string,
-    placement: "party" | "tribe",
+    placement: "holding" | "party" | "tribe",
   ) {
     const rows = await transaction
       .select({ id: curatedPersons.id })
@@ -52,14 +52,20 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
   }
 
   function capacityFor(placement: CuratedPersonPlacement) {
-    if (placement === "party") return PARTY_CAPACITY;
-    if (placement === "tribe") return TRIBE_CAPACITY;
+    if (placement === "holding") return holdingCapacity;
+    if (placement === "party") return partyCapacity;
+    if (placement === "tribe") return tribeCapacity;
     return null;
   }
 
   function capacityErrorFor(
     placement: CuratedPersonPlacement,
-  ): "party-capacity-exceeded" | "tribe-capacity-exceeded" | null {
+  ):
+    | "holding-capacity-exceeded"
+    | "party-capacity-exceeded"
+    | "tribe-capacity-exceeded"
+    | null {
+    if (placement === "holding") return "holding-capacity-exceeded";
     if (placement === "party") return "party-capacity-exceeded";
     if (placement === "tribe") return "tribe-capacity-exceeded";
     return null;
@@ -79,6 +85,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
       nickname: string;
       relationshipShape: string;
       privateDescription: string;
+      portraitUrl?: string;
       placement: CuratedPersonPlacement;
       now: Date;
     }): Promise<
@@ -87,7 +94,9 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
       return database.transaction(async (transaction) => {
         await lockOwner(transaction, input.ownerUserId);
         if (
-          (input.placement === "party" || input.placement === "tribe") &&
+          (input.placement === "holding" ||
+            input.placement === "party" ||
+            input.placement === "tribe") &&
           (await countPlacement(
             transaction,
             input.ownerUserId,
@@ -105,6 +114,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
             nickname: input.nickname,
             relationshipShape: input.relationshipShape,
             privateDescription: input.privateDescription,
+            portraitUrl: input.portraitUrl ?? "",
             placement: input.placement,
             createdAt: input.now,
             updatedAt: input.now,
@@ -123,6 +133,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
       nickname: string;
       relationshipShape: string;
       privateDescription: string;
+      portraitUrl?: string;
       placement: CuratedPersonPlacement;
       expectedVersion: number;
       now: Date;
@@ -145,7 +156,9 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
         if (existing.version !== input.expectedVersion)
           return { ok: false, error: "stale-write-conflict" };
         if (
-          (input.placement === "party" || input.placement === "tribe") &&
+          (input.placement === "holding" ||
+            input.placement === "party" ||
+            input.placement === "tribe") &&
           existing.placement !== input.placement &&
           (await countPlacement(
             transaction,
@@ -162,6 +175,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
             nickname: input.nickname,
             relationshipShape: input.relationshipShape,
             privateDescription: input.privateDescription,
+            portraitUrl: input.portraitUrl ?? existing.portraitUrl,
             placement: input.placement,
             version: sql`${curatedPersons.version} + 1`,
             updatedAt: input.now,

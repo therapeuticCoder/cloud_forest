@@ -21,6 +21,7 @@ import type {
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 import { CareRequestCard } from "./CareRequestCard";
+import { Portrait } from "./PartyLayer";
 
 type CuratorDetailViewProps = {
   careLifecycle: CareLifecycleState;
@@ -37,6 +38,7 @@ type CuratorDetailViewProps = {
       nickname: string;
       placement: "holding" | "party" | "tribe";
       privateDescription: string;
+      portraitUrl?: string;
       relationshipShape: string;
     },
   ) => Promise<CuratorPerson | null>;
@@ -59,13 +61,25 @@ function getSelectionName(selection: CuratorSelection) {
     : selection.item.name;
 }
 
-function SelectionVisual({ selection }: { selection: CuratorSelection }) {
+function SelectionVisual({
+  portraitUrl,
+  selection,
+}: {
+  portraitUrl?: string;
+  selection: CuratorSelection;
+}) {
   if (
     selection.layer === "party" ||
     selection.layer === "tribe" ||
     selection.layer === "holding"
   ) {
-    return <span>{selection.item.initials}</span>;
+    return (
+      <Portrait
+        initials={selection.item.initials}
+        personId={selection.item.id}
+        portraitUrl={portraitUrl}
+      />
+    );
   }
 
   if (selection.layer === "guild") {
@@ -76,11 +90,11 @@ function SelectionVisual({ selection }: { selection: CuratorSelection }) {
 }
 
 const layerStyles = {
-  party: "border-emerald-300/65 text-emerald-300",
-  tribe: "border-cyan-300/60 text-cyan-300",
-  holding: "border-lime-200/50 text-lime-200",
-  guild: "border-violet-300/60 text-violet-300",
-  signal: "border-amber-300/55 text-amber-300",
+  party: "border-amber-200/60 text-amber-100",
+  tribe: "border-lime-200/60 text-lime-100",
+  holding: "border-amber-100/50 text-amber-100",
+  guild: "border-cyan-200/60 text-cyan-100",
+  signal: "border-slate-200/60 text-slate-100",
 } as const;
 
 function isCharacterSelection(
@@ -123,6 +137,7 @@ export function CuratorDetailView({
           placement: selection.layer as "holding" | "party" | "tribe",
           privateDescription:
             character.privateDescription ?? character.relationshipTitle,
+          portraitUrl: character.portraitUrl,
           relationshipShape:
             character.relationshipShape ?? character.relationshipNote,
         }
@@ -177,9 +192,12 @@ export function CuratorDetailView({
 
       <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-6">
         <div
-          className={`grid aspect-square w-[min(48vw,14rem)] place-items-center rounded-2xl border bg-slate-900/35 text-[clamp(3rem,14vw,7rem)] font-medium ${layerStyles[activeLayer]}`}
+          className={`relative grid aspect-square w-[min(48vw,14rem)] place-items-center overflow-hidden rounded-2xl border bg-slate-900/35 text-[clamp(3rem,14vw,7rem)] font-medium ${layerStyles[activeLayer]}`}
         >
-          <SelectionVisual selection={selection} />
+          <SelectionVisual
+            portraitUrl={character?.portraitUrl}
+            selection={selection}
+          />
         </div>
 
         <div className="flex flex-col items-center gap-1 text-center">

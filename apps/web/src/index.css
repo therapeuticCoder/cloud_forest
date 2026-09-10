@@ -630,8 +630,23 @@ button:focus-visible {
 }
 
 @media (max-width: 700px) {
+  .cloud-forest-app[data-active-view="timeline"] {
+    background:
+      radial-gradient(
+        circle at 82% 78%,
+        rgba(74, 130, 58, 0.5),
+        transparent 36%
+      ),
+      linear-gradient(180deg, #210d06, #4a210d 55%, #123a28);
+  }
   .timeline-view {
-    padding: 24px 0 104px;
+    min-height: calc(100svh - 5rem);
+    margin: 0;
+    padding: 1rem 0 6.5rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
   .timeline-feed {
     width: calc(100% - 32px);
@@ -780,14 +795,28 @@ button:focus-visible {
     content: "✣";
   }
   .timeline-chrome--top {
-    margin: 18px 16px 0;
+    margin: 16px 16px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 15px;
-    border-radius: 16px;
-    background: rgba(5, 34, 23, 0.97);
-    box-shadow: 0 8px 24px rgba(8, 12, 8, 0.22);
+    padding: 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .timeline-header {
+    min-height: 3.25rem;
+  }
+  .timeline-header h1 {
+    justify-self: start;
+    font-size: 1.875rem;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+  }
+  .timeline-header .party-wordmark {
+    color: rgba(231, 232, 216, 0.75);
+    font-size: 0;
   }
   .timeline-brand,
   .timeline-compose {
@@ -912,12 +941,6 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-/* Party visual shell: a narrow, portrait-led first pass for the Curator. */
-article[aria-label="Party layer"] {
-  padding: 1rem 0.75rem 8rem;
-  background: var(--forest-bark);
-}
-
 .cloud-forest-app[data-active-view="curator"] .timeline-chrome--top {
   display: none;
 }
@@ -929,9 +952,12 @@ article[aria-label="Party layer"] {
 .party-layer {
   position: relative;
   display: flex;
+  width: 100%;
   min-height: 0;
   height: 100%;
+  padding-bottom: 0.5rem;
   flex-direction: column;
+  box-sizing: border-box;
   gap: 0.75rem;
   margin: 0 auto;
   max-width: 56rem;
@@ -940,10 +966,20 @@ article[aria-label="Party layer"] {
 
 .party-header {
   display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 0.8rem;
   min-height: 3.6rem;
+}
+
+.party-count {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(228, 236, 217, 0.24);
+  border-radius: 999px;
+  color: rgba(231, 232, 216, 0.84);
+  background: rgba(8, 36, 25, 0.38);
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .party-header h1 {
@@ -1015,7 +1051,7 @@ article[aria-label="Party layer"] {
   min-height: 0;
   flex: 1;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(8rem, 1fr));
   gap: 0.65rem;
 }
 
@@ -1040,8 +1076,10 @@ article[aria-label="Party layer"] {
 
 .party-card {
   display: flex;
+  width: 100%;
+  height: 100%;
   min-width: 0;
-  min-height: 0;
+  min-height: 8rem;
   flex-direction: column;
   overflow: visible;
   gap: 0.2rem;
@@ -1147,8 +1185,12 @@ article[aria-label="Party layer"] {
 
 .party-card--empty .party-card__portrait {
   display: grid;
+  width: 100%;
+  height: 100%;
   place-items: center;
+  border-width: 2px;
   border-style: dashed;
+  border-color: rgba(157, 187, 87, 0.72);
   background: rgba(228, 236, 217, 0.08);
   color: rgba(228, 236, 217, 0.78);
 }
@@ -1527,35 +1569,7 @@ article[aria-label="Party layer"] {
   color: rgba(231, 232, 216, 0.42);
 }
 
-.party-continuation {
-  display: grid;
-  grid-template-columns: 1fr auto auto 1fr;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.2rem 0;
-  color: rgba(190, 155, 88, 0.7);
-}
-
-.party-continuation span {
-  height: 1px;
-  background: rgba(190, 155, 88, 0.55);
-}
-
-.party-continuation svg {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.party-continuation strong {
-  font-size: 1.05rem;
-  font-weight: 560;
-}
-
 @media (min-width: 700px) {
-  article[aria-label="Party layer"] {
-    padding: 4.5rem 2rem 2rem;
-  }
-
   .party-layer {
     min-height: 0;
     gap: 1rem;
@@ -1598,6 +1612,21 @@ article[aria-label="Party layer"] {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .timeline-chrome--top.global-view-chrome {
+    padding: 0 16px;
+  }
+
+  .party-header.timeline-header {
+    grid-template-columns: 3.25rem auto minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .timeline-header .party-wordmark {
+    justify-self: end;
+  }
 }
 
 @media (min-width: 701px) {

@@ -1,11 +1,10 @@
-import { Plus, Sprout } from "lucide-react";
+import { Sprout } from "lucide-react";
 
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
-import { CuratorTile } from "./CuratorTile";
+import { Portrait } from "./PartyLayer";
 
 type HoldingLayerProps = {
-  onAdd: () => void;
   onRetry: () => void;
   onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
   people: CuratorPerson[];
@@ -13,8 +12,42 @@ type HoldingLayerProps = {
   peopleStateMessage?: string;
 };
 
+function HoldingCharacterRow({
+  onSelect,
+  person,
+}: {
+  onSelect: (trigger: HTMLButtonElement) => void;
+  person: CuratorPerson;
+}) {
+  return (
+    <button
+      aria-label={`Open ${person.displayName}`}
+      className="group grid min-h-20 grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-amber-100/15 bg-[#25140d]/70 px-3 text-left shadow-[inset_0_1px_rgba(255,230,185,0.06)] transition hover:-translate-y-0.5 hover:border-amber-100/35 hover:bg-[#311a0f] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber-100"
+      data-curator-tile={`holding-${person.id}`}
+      onClick={(event) => onSelect(event.currentTarget)}
+      type="button"
+    >
+      <span className="grid size-14 place-items-center overflow-hidden rounded-full border border-amber-100/20 bg-[#120905] text-lg font-medium text-amber-100">
+        <Portrait
+          initials={person.initials}
+          personId={person.id}
+          portraitUrl={person.portraitUrl}
+          small
+        />
+      </span>
+      <span className="min-w-0">
+        <strong className="block truncate text-base font-medium text-stone-100">
+          {person.displayName}
+        </strong>
+        <span className="mt-0.5 block truncate text-sm text-amber-100/65">
+          {person.relationshipTitle}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 export function HoldingLayer({
-  onAdd,
   onRetry,
   onSelect,
   people,
@@ -22,39 +55,15 @@ export function HoldingLayer({
   peopleStateMessage,
 }: HoldingLayerProps) {
   return (
-    <section className="mx-auto flex h-full w-full max-w-6xl flex-col rounded-[2rem] border border-lime-100/15 bg-[linear-gradient(145deg,rgba(21,47,30,0.96),rgba(8,25,18,0.98))] p-5 text-slate-100 shadow-2xl shadow-black/20 sm:p-8">
-      <header className="flex items-start justify-between gap-5 border-b border-lime-100/15 pb-5">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-lime-200/70">
-            Private curation
-          </p>
-          <h1 className="mt-1 text-4xl font-medium tracking-tight sm:text-5xl">
-            Holding
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
-            Keep Characters here while their place in your Forest is still
-            undecided.
-          </p>
-        </div>
-        <button
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-lime-200 px-4 py-2 font-medium text-slate-950 transition hover:bg-lime-100 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-lime-100"
-          data-curator-tile="holding-add"
-          onClick={onAdd}
-          type="button"
-        >
-          <Plus aria-hidden="true" className="size-4" />
-          Add Character
-        </button>
-      </header>
-
+    <div className="flex h-full min-h-0 flex-col text-stone-100">
       {peopleState === "loading" ? (
-        <p className="m-auto text-slate-300" role="status">
+        <p className="m-auto text-stone-300" role="status">
           Loading your private Characters…
         </p>
       ) : null}
       {peopleState === "error" ? (
         <div
-          className="m-auto grid max-w-md justify-items-center gap-3 text-center text-slate-300"
+          className="m-auto grid max-w-md justify-items-center gap-3 text-center text-stone-300"
           role="alert"
         >
           <p>
@@ -62,7 +71,7 @@ export function HoldingLayer({
               "Your private Characters are temporarily unavailable."}
           </p>
           <button
-            className="rounded-full border border-lime-100/30 px-4 py-2 text-lime-100"
+            className="rounded-full border border-amber-100/30 px-4 py-2 text-amber-100"
             onClick={onRetry}
             type="button"
           >
@@ -74,35 +83,31 @@ export function HoldingLayer({
         <div className="m-auto max-w-md text-center">
           <Sprout
             aria-hidden="true"
-            className="mx-auto mb-4 text-lime-200/70"
+            className="mx-auto mb-4 text-amber-100/70"
           />
           <h2 className="text-xl font-medium">A quiet place to begin.</h2>
-          <p className="mt-2 leading-6 text-slate-300">
-            Add a private Character now. You can move them to Party or Tribe
-            when the time is right.
+          <p className="mt-2 leading-6 text-stone-300">
+            Characters you are still considering will appear here. Move one to
+            Party or Tribe when the time is right.
           </p>
         </div>
       ) : null}
       {peopleState === "ready" && people.length > 0 ? (
         <div
           aria-label="Holding Characters"
-          className="grid flex-1 auto-rows-fr grid-cols-2 gap-3 overflow-y-auto pt-5 sm:grid-cols-3 lg:grid-cols-4"
+          className="grid flex-1 content-start gap-2 overflow-y-auto py-5"
         >
           {people.map((person) => (
-            <CuratorTile
+            <HoldingCharacterRow
               key={person.id}
-              id={`holding-${person.id}`}
-              label={person.displayName}
               onSelect={(trigger) =>
                 onSelect({ layer: "holding", item: person }, trigger)
               }
-              tone="holding"
-              visual={person.initials}
-              visualClassName="text-[clamp(1.5rem,5vmin,3rem)]"
+              person={person}
             />
           ))}
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

@@ -54,6 +54,7 @@ export function curatedPersonToCuratorPerson(
     recentStatus: "Private relationship record",
     placement: person.placement,
     privateDescription: person.privateDescription,
+    portraitUrl: person.portraitUrl,
     relationshipShape: person.relationshipShape,
     version: person.version,
   };

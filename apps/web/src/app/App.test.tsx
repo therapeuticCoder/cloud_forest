@@ -168,20 +168,24 @@ describe("App", () => {
     const signalLayer = screen.getByRole("article", { name: /signals layer/i });
 
     expect(
-      within(holdingLayer).getByRole("button", { name: /add character/i }),
-    ).toBeInTheDocument();
+      within(holdingLayer).queryByRole("button", {
+        name: /add a character/i,
+      }),
+    ).not.toBeInTheDocument();
     expect(
       within(holdingLayer).getByText(/a quiet place to begin/i),
     ).toBeInTheDocument();
-    expect(partyLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(6);
+    expect(partyLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(5);
     expect(
-      within(partyLayer).getByRole("button", { name: /open my care/i }),
-    ).toBeInTheDocument();
+      screen.getAllByRole("button", { name: /open my care/i }),
+    ).not.toHaveLength(0);
     expect(
       within(tribeLayer).getByText(/your tribe is waiting/i),
     ).toBeInTheDocument();
-    expect(within(guildLayer).getAllByRole("button")).toHaveLength(5);
-    expect(within(signalLayer).getAllByRole("button")).toHaveLength(10);
+    expect(guildLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(5);
+    expect(signalLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(
+      10,
+    );
     expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /studio night/i }),
@@ -300,7 +304,12 @@ describe("App", () => {
   it("adds a Party member through the mobile wizard", async () => {
     const user = await openCurator();
 
-    await user.click(screen.getByRole("button", { name: /add$/i }));
+    await user.click(
+      within(screen.getByRole("article", { name: /party layer/i })).getByRole(
+        "button",
+        { name: /add$/i },
+      ),
+    );
     await user.type(screen.getByPlaceholderText("Their name"), "Nia");
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.click(screen.getByRole("button", { name: "Skip for now" }));
@@ -322,7 +331,12 @@ describe("App", () => {
     expect(
       screen.queryByRole("button", { name: /add a party member/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^add$/i })).toBeDisabled();
+    expect(
+      within(screen.getByRole("article", { name: /party layer/i })).getByRole(
+        "button",
+        { name: /^add$/i },
+      ),
+    ).toBeDisabled();
   });
 
   it("opens and cancels the wizard from the empty Party slot", async () => {
@@ -537,7 +551,12 @@ describe("App", () => {
   it("opens Receive from Curator and returns to Timeline after asking", async () => {
     const user = await openCurator();
 
-    await user.click(screen.getByRole("button", { name: "Receive" }));
+    await user.click(
+      within(screen.getByRole("article", { name: /party layer/i })).getByRole(
+        "button",
+        { name: "Receive" },
+      ),
+    );
     expect(
       screen.getByRole("region", { name: /ask my party for a meal/i }),
     ).toBeInTheDocument();
@@ -617,7 +636,12 @@ describe("App", () => {
   it("opens Give from Curator and returns to Curator when cancelled", async () => {
     const user = await openCurator();
 
-    await user.click(screen.getByRole("button", { name: "Give" }));
+    await user.click(
+      within(screen.getByRole("article", { name: /party layer/i })).getByRole(
+        "button",
+        { name: "Give" },
+      ),
+    );
     expect(
       screen.getByRole("region", { name: /offer a meal to my party/i }),
     ).toBeInTheDocument();
@@ -627,7 +651,12 @@ describe("App", () => {
     );
     expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Give" })).toHaveFocus(),
+      expect(
+        within(screen.getByRole("article", { name: /party layer/i })).getByRole(
+          "button",
+          { name: "Give" },
+        ),
+      ).toHaveFocus(),
     );
   });
 

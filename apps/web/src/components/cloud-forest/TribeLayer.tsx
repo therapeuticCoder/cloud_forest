@@ -2,7 +2,7 @@ import { Sprout } from "lucide-react";
 
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
-import { CuratorTile } from "./CuratorTile";
+import { Portrait } from "./PartyLayer";
 
 type TribeLayerProps = {
   people: CuratorPerson[];
@@ -12,6 +12,36 @@ type TribeLayerProps = {
   onRetry: () => void;
 };
 
+function TribePerson({
+  onSelect,
+  person,
+}: {
+  onSelect: (trigger: HTMLButtonElement) => void;
+  person: CuratorPerson;
+}) {
+  return (
+    <button
+      aria-label={`Open ${person.displayName}`}
+      className="group flex min-h-0 flex-col items-center justify-center gap-1.5 rounded-2xl border border-lime-100/15 bg-emerald-950/35 px-2 py-2 text-center transition hover:-translate-y-0.5 hover:border-lime-100/35 hover:bg-emerald-900/45 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-lime-100"
+      data-curator-tile={`tribe-${person.id}`}
+      onClick={(event) => onSelect(event.currentTarget)}
+      type="button"
+    >
+      <span className="grid size-10 place-items-center overflow-hidden rounded-full border border-lime-100/20 bg-emerald-950 text-sm font-medium text-lime-100 sm:size-12">
+        <Portrait
+          initials={person.initials}
+          personId={person.id}
+          portraitUrl={person.portraitUrl}
+          small
+        />
+      </span>
+      <span className="w-full truncate text-xs font-medium text-slate-100 sm:text-sm">
+        {person.displayName}
+      </span>
+    </button>
+  );
+}
+
 export function TribeLayer({
   onRetry,
   onSelect,
@@ -19,33 +49,21 @@ export function TribeLayer({
   peopleState,
   peopleStateMessage,
 }: TribeLayerProps) {
-  return (
-    <section className="mx-auto flex h-full w-full max-w-6xl flex-col rounded-[2rem] border border-lime-100/15 bg-[radial-gradient(circle_at_top_right,rgba(163,230,53,0.13),transparent_36%),linear-gradient(145deg,rgba(10,35,25,0.94),rgba(8,22,18,0.94))] p-5 text-slate-100 shadow-2xl shadow-black/20 sm:p-8">
-      <header className="flex items-start justify-between gap-6 border-b border-lime-100/15 pb-5">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-lime-200/70">
-            Broader circle
-          </p>
-          <h1 className="mt-1 text-4xl font-medium tracking-tight sm:text-5xl">
-            Tribe
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
-            The people who belong in your wider relationship circle.
-          </p>
-        </div>
-        <span className="rounded-full border border-lime-100/20 bg-lime-100/5 px-3 py-1 text-sm text-lime-100/85">
-          {people.length} of 100
-        </span>
-      </header>
+  const pages = Array.from(
+    { length: Math.max(1, Math.ceil(people.length / 10)) },
+    (_, pageIndex) => people.slice(pageIndex * 10, (pageIndex + 1) * 10),
+  );
 
+  return (
+    <div className="flex h-full min-h-0 flex-col text-slate-100">
       {peopleState === "loading" ? (
-        <p className="m-auto text-slate-300" role="status">
+        <p className="m-auto text-slate-200" role="status">
           Loading your Tribe…
         </p>
       ) : null}
       {peopleState === "error" ? (
         <div
-          className="m-auto grid max-w-md justify-items-center gap-3 text-center text-slate-300"
+          className="m-auto grid max-w-md justify-items-center gap-3 text-center text-slate-200"
           role="alert"
         >
           <p>
@@ -68,7 +86,7 @@ export function TribeLayer({
             className="mx-auto mb-4 text-lime-200/70"
           />
           <h2 className="text-xl font-medium">Your Tribe is waiting.</h2>
-          <p className="mt-2 leading-6 text-slate-300">
+          <p className="mt-2 leading-6 text-slate-200">
             Move a Character here from Holding when they belong in your broader
             circle.
           </p>
@@ -77,23 +95,27 @@ export function TribeLayer({
       {peopleState === "ready" && people.length > 0 ? (
         <div
           aria-label="Tribe people"
-          className="grid flex-1 auto-rows-fr grid-cols-2 gap-3 overflow-y-auto pt-5 sm:grid-cols-3 lg:grid-cols-4"
+          className="flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overscroll-x-contain pt-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {people.map((person) => (
-            <CuratorTile
-              key={person.id}
-              id={`tribe-${person.id}`}
-              label={person.displayName}
-              onSelect={(trigger) =>
-                onSelect({ layer: "tribe", item: person }, trigger)
-              }
-              tone="tribe"
-              visual={person.initials}
-              visualClassName="text-[clamp(1.5rem,5vmin,3rem)]"
-            />
+          {pages.map((page, index) => (
+            <div
+              aria-label={`Tribe page ${index + 1}`}
+              className="grid min-w-full snap-start snap-always grid-cols-2 grid-rows-5 gap-2"
+              key={index}
+            >
+              {page.map((person) => (
+                <TribePerson
+                  key={person.id}
+                  onSelect={(trigger) =>
+                    onSelect({ layer: "tribe", item: person }, trigger)
+                  }
+                  person={person}
+                />
+              ))}
+            </div>
           ))}
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

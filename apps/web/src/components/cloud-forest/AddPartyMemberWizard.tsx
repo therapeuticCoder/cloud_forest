@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, ImagePlus, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +23,7 @@ type AddPartyMemberWizardProps = {
 };
 
 const steps = ["Name", "Portrait", "Relationship", "Private note", "Preview"];
+const maximumPortraitBytes = 1_400_000;
 
 function initialsFor(displayName: string) {
   return displayName
@@ -44,9 +45,9 @@ export function AddPartyMemberWizard({
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
   const [portraitUrl, setPortraitUrl] = useState<string | undefined>(undefined);
+  const [portraitError, setPortraitError] = useState<string | undefined>();
   const [relationshipNote, setRelationshipNote] = useState("");
   const [relationshipTitle, setRelationshipTitle] = useState("");
-  const portraitUrlRef = useRef<string | undefined>(undefined);
 
   const canContinue =
     (step === 0 && displayName.trim().length > 0) ||
@@ -56,31 +57,29 @@ export function AddPartyMemberWizard({
     step === 4;
 
   const choosePortrait = (file: File | undefined) => {
-    if (file) {
-      if (portraitUrlRef.current) {
-        URL.revokeObjectURL(portraitUrlRef.current);
-      }
-      const nextPortraitUrl = URL.createObjectURL(file);
-      portraitUrlRef.current = nextPortraitUrl;
-      setPortraitUrl(nextPortraitUrl);
+    if (!file) return;
+    if (file.size > maximumPortraitBytes) {
+      setPortraitError("Choose an image smaller than 1.4 MB.");
+      return;
     }
-    setStep(2);
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      setPortraitUrl(
+        typeof reader.result === "string" ? reader.result : undefined,
+      );
+      setPortraitError(undefined);
+      setStep(2);
+    });
+    reader.readAsDataURL(file);
   };
 
   const skipPortrait = () => {
-    if (portraitUrlRef.current) {
-      URL.revokeObjectURL(portraitUrlRef.current);
-      portraitUrlRef.current = undefined;
-      setPortraitUrl(undefined);
-    }
+    setPortraitUrl(undefined);
+    setPortraitError(undefined);
     setStep(2);
   };
 
   const handleCancel = () => {
-    if (portraitUrlRef.current) {
-      URL.revokeObjectURL(portraitUrlRef.current);
-      portraitUrlRef.current = undefined;
-    }
     onCancel();
   };
 
@@ -101,10 +100,6 @@ export function AddPartyMemberWizard({
       relationshipTitle: relationshipTitle.trim(),
     });
     if (completed === false) return;
-    if (portraitUrlRef.current) {
-      URL.revokeObjectURL(portraitUrlRef.current);
-      portraitUrlRef.current = undefined;
-    }
   };
 
   return (
@@ -195,6 +190,11 @@ export function AddPartyMemberWizard({
                 Skip for now
               </Button>
             </div>
+            {portraitError ? (
+              <p className="party-wizard__error" role="status">
+                {portraitError}
+              </p>
+            ) : null}
           </div>
         ) : null}
 

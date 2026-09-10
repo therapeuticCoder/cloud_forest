@@ -23,6 +23,7 @@ const message = {
   UNAUTHORIZED: "A valid invited session is required.",
   NOT_FOUND: "The requested private Person was not found.",
   VALIDATION_ERROR: "Invalid private Person request.",
+  HOLDING_FULL: "Holding already has five Characters.",
   PARTY_FULL: "Your Party already has five relationships.",
   TRIBE_FULL: "Your Tribe already has 100 people.",
   STALE_WRITE_CONFLICT:
@@ -46,6 +47,7 @@ function toApiPerson(
     nickname: person.nickname,
     relationshipShape: person.relationshipShape,
     privateDescription: person.privateDescription,
+    portraitUrl: person.portraitUrl || undefined,
     placement: person.placement,
     linkedUserId: person.linkedUserId,
     version: person.version,
@@ -132,18 +134,21 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
       if (!result.ok) {
         return reply
           .status(
-            result.error === "party-capacity-exceeded" ||
+            result.error === "holding-capacity-exceeded" ||
+              result.error === "party-capacity-exceeded" ||
               result.error === "tribe-capacity-exceeded"
               ? 409
               : 404,
           )
           .send(
             error(
-              result.error === "party-capacity-exceeded"
-                ? "PARTY_FULL"
-                : result.error === "tribe-capacity-exceeded"
-                  ? "TRIBE_FULL"
-                  : "NOT_FOUND",
+              result.error === "holding-capacity-exceeded"
+                ? "HOLDING_FULL"
+                : result.error === "party-capacity-exceeded"
+                  ? "PARTY_FULL"
+                  : result.error === "tribe-capacity-exceeded"
+                    ? "TRIBE_FULL"
+                    : "NOT_FOUND",
             ),
           );
       }
@@ -175,11 +180,13 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
         const code =
           result.error === "curated-person-not-found"
             ? "NOT_FOUND"
-            : result.error === "party-capacity-exceeded"
-              ? "PARTY_FULL"
-              : result.error === "tribe-capacity-exceeded"
-                ? "TRIBE_FULL"
-                : "STALE_WRITE_CONFLICT";
+            : result.error === "holding-capacity-exceeded"
+              ? "HOLDING_FULL"
+              : result.error === "party-capacity-exceeded"
+                ? "PARTY_FULL"
+                : result.error === "tribe-capacity-exceeded"
+                  ? "TRIBE_FULL"
+                  : "STALE_WRITE_CONFLICT";
         return reply.status(code === "NOT_FOUND" ? 404 : 409).send(error(code));
       }
       return ownedPeople(current.userId, request.params.curatedPersonId);

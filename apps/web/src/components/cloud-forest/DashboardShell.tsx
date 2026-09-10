@@ -1,4 +1,4 @@
-import { Gift, HandHeart, Sprout } from "lucide-react";
+import { Gift, HandHeart, TreePine } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createInitials,
@@ -73,13 +73,6 @@ type CareDestination =
       returnToMyCare: boolean;
     };
 
-function viewFromLocation(): CloudForestView {
-  if (typeof window === "undefined") return "timeline";
-  return new URLSearchParams(window.location.search).get("view") === "curator"
-    ? "curator"
-    : "timeline";
-}
-
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
 
 export function DashboardShell({
@@ -103,8 +96,7 @@ export function DashboardShell({
   signOutError?: string;
   signingOut: boolean;
 }) {
-  const [activeView, setActiveView] =
-    useState<CloudForestView>(viewFromLocation);
+  const [activeView, setActiveView] = useState<CloudForestView>("timeline");
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
@@ -130,7 +122,6 @@ export function DashboardShell({
   >();
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
-  const [curatorDetailOpen, setCuratorDetailOpen] = useState(false);
   const {
     add: addCuratedPerson,
     holdingPeople,
@@ -158,28 +149,44 @@ export function DashboardShell({
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
 
-  const navigateToView = useCallback((view: CloudForestView) => {
-    if (viewFromLocation() === view) {
+  const navigateToView = useCallback(
+    (view: CloudForestView) => {
+      if (activeView === view) return;
+
+      const url = new URL(window.location.href);
+      url.searchParams.delete("view");
+
+      window.history.pushState(
+        { ...window.history.state, cloudForestView: view },
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
       setActiveView(view);
-      return;
-    }
+    },
+    [activeView],
+  );
 
-    const url = new URL(window.location.href);
-    if (view === "curator") url.searchParams.set("view", "curator");
-    else url.searchParams.delete("view");
-
-    window.history.pushState(
-      { ...window.history.state, cloudForestView: view },
-      "",
-      `${url.pathname}${url.search}${url.hash}`,
-    );
-    setActiveView(view);
+  useEffect(() => {
+    const handleViewPopState = () =>
+      setActiveView(
+        window.history.state?.cloudForestView === "curator"
+          ? "curator"
+          : "timeline",
+      );
+    window.addEventListener("popstate", handleViewPopState);
+    return () => window.removeEventListener("popstate", handleViewPopState);
   }, []);
 
   useEffect(() => {
-    const handleViewPopState = () => setActiveView(viewFromLocation());
-    window.addEventListener("popstate", handleViewPopState);
-    return () => window.removeEventListener("popstate", handleViewPopState);
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("view")) return;
+
+    url.searchParams.delete("view");
+    window.history.replaceState(
+      { ...window.history.state, cloudForestView: "timeline" },
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
   }, []);
 
   useEffect(() => {
@@ -213,20 +220,13 @@ export function DashboardShell({
       setAddWizardOpen(true);
     }
   };
-  const openAddHoldingCharacter = () => {
-    if (curatedPeople.status === "ready") {
-      focusTargetIdRef.current = "holding-add";
-      setAddSubmission({ pending: false });
-      setAddDestination("holding");
-      setAddWizardOpen(true);
-    }
-  };
   const completeAdd = async (draft: AddPartyMemberDraft) => {
     setAddSubmission({ pending: true });
     const result = await addCuratedPerson({
       nickname: draft.displayName,
       relationshipShape: draft.relationshipNote,
       privateDescription: draft.relationshipTitle,
+      portraitUrl: draft.portraitUrl,
       placement: addDestination,
     });
     if (!result.ok) {
@@ -244,6 +244,7 @@ export function DashboardShell({
       nickname: string;
       placement: "holding" | "party" | "tribe";
       privateDescription: string;
+      portraitUrl?: string;
       relationshipShape: string;
     },
   ) => {
@@ -298,8 +299,9 @@ export function DashboardShell({
     focusTargetIdRef.current = "receive";
     setReceiveWizardOpen(true);
   };
-  const openGiveWizard = () => {
-    focusTargetIdRef.current = "give";
+  const openGiveWizard = (returnFocusSelector?: string) => {
+    focusTargetIdRef.current =
+      typeof returnFocusSelector === "string" ? returnFocusSelector : "give";
     setGiveWizardOpen(true);
   };
 
@@ -660,6 +662,11 @@ export function DashboardShell({
     const focusTargetId = focusTargetIdRef.current;
     focusTargetIdRef.current = null;
     requestAnimationFrame(() => {
+      if (focusTargetId.startsWith("[")) {
+        document.querySelector<HTMLButtonElement>(focusTargetId)?.focus();
+        return;
+      }
+
       if (focusTargetId === "receive" || focusTargetId === "give") {
         const actionButtons = [
           ...document.querySelectorAll<HTMLButtonElement>(
@@ -933,7 +940,7 @@ export function DashboardShell({
             onClick={() => navigateToView("curator")}
             type="button"
           >
-            Curator <Sprout aria-hidden="true" strokeWidth={1.5} />
+            <TreePine aria-hidden="true" strokeWidth={1.5} />
           </button>
           {!receiveWizardOpen &&
           !giveWizardOpen &&
@@ -1019,18 +1026,14 @@ export function DashboardShell({
                     : undefined
                 }
                 onAddPartyMember={openAddWizard}
-                onAddHoldingCharacter={openAddHoldingCharacter}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
                 onRetryCuratedPeople={() => void loadCuratedPeople()}
-                onDetailOpenChange={setCuratorDetailOpen}
+                onGive={openGiveWizard}
                 onUpdateCharacter={updateCharacter}
                 onNavigateToTimeline={() => navigateToView("timeline")}
-                onOpenMyCare={() =>
-                  openCareDestination(
-                    { kind: "my-care" },
-                    '[data-my-care-trigger="curator"]',
-                  )
+                onOpenMyCare={(returnFocusSelector) =>
+                  openCareDestination({ kind: "my-care" }, returnFocusSelector)
                 }
                 onOfferHelp={(request) =>
                   openCareDestination(
@@ -1041,6 +1044,7 @@ export function DashboardShell({
                 onPass={passCareRequest}
                 onRecordCompleted={recordCompletionOrOpenGratitude}
                 onRecordNotCompleted={openNotCompleted}
+                onReceive={openReceiveWizard}
                 onSetRequestMinimized={setCareRequestMinimized}
                 onWithdraw={withdrawCareRequestAs}
                 partyPeople={partyPeople}
@@ -1126,7 +1130,7 @@ export function DashboardShell({
       {!receiveWizardOpen &&
       !giveWizardOpen &&
       !careDestination &&
-      (activeView === "timeline" || (!addWizardOpen && !curatorDetailOpen)) ? (
+      activeView === "timeline" ? (
         <div
           className="timeline-chrome timeline-chrome--bottom"
           data-hidden={chromeHidden}
@@ -1137,10 +1141,6 @@ export function DashboardShell({
             onAdd={openAddWizard}
             onGive={openGiveWizard}
             onReceive={openReceiveWizard}
-            partyIsFull={
-              activeView === "curator" &&
-              (curatedPeople.status !== "ready" || partyPeople.length >= 5)
-            }
           />
         </div>
       ) : null}
