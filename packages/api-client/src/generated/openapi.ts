@@ -328,6 +328,7 @@ export interface operations {
                         readonly data: {
                             /** Format: date-time */
                             readonly expiresAt: string;
+                            readonly signupCode: string;
                             /** @enum {string} */
                             readonly state: "pending";
                             readonly token: string;
@@ -348,7 +349,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER" | "SIGNUP_INVITATION_FAILED";
                             readonly message: string;
                         };
                     };
@@ -364,7 +365,23 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER" | "SIGNUP_INVITATION_FAILED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER" | "SIGNUP_INVITATION_FAILED";
                             readonly message: string;
                         };
                     };

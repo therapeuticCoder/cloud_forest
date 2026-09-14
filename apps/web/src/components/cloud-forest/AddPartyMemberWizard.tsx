@@ -156,7 +156,7 @@ export function AddPartyMemberWizard({
       <div className="party-wizard__content">
         {step === 0 ? (
           <label className="party-wizard__question">
-            <span className="party-wizard__title">What are their names?</span>
+            <span className="party-wizard__title">What do you call them</span>
             <span className="party-wizard__hint">
               These private details help you recognize the right person.
             </span>

@@ -54,6 +54,11 @@
                               "format": "date-time",
                               "type": "string"
                             },
+                            "signupCode": {
+                              "maxLength": 256,
+                              "minLength": 1,
+                              "type": "string"
+                            },
                             "state": {
                               "enum": [
                                 "pending"
@@ -69,6 +74,7 @@
                           "required": [
                             "state",
                             "token",
+                            "signupCode",
                             "expiresAt"
                           ],
                           "type": "object"
@@ -159,6 +165,12 @@
                                 "CHARACTER_LINKED_TO_ANOTHER_USER"
                               ],
                               "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "SIGNUP_INVITATION_FAILED"
+                              ],
+                              "type": "string"
                             }
                           ]
                         },
@@ -241,6 +253,102 @@
                             {
                               "enum": [
                                 "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "SIGNUP_INVITATION_FAILED"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "SIGNUP_INVITATION_FAILED"
                               ],
                               "type": "string"
                             }

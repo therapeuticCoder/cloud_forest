@@ -19,17 +19,22 @@ function HoldingCharacterRow({
   onSelect: (trigger: HTMLButtonElement) => void;
   person: CuratorPerson;
 }) {
+  const isConnection =
+    person.linkedUserId !== null && person.linkedUserId !== undefined;
+
   return (
     <button
       aria-label={`Open ${person.displayName}`}
-      className="group grid min-h-20 grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-amber-100/15 bg-[#25140d]/70 px-3 text-left shadow-[inset_0_1px_rgba(255,230,185,0.06)] transition hover:-translate-y-0.5 hover:border-amber-100/35 hover:bg-[#311a0f] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber-100"
+      className={`group grid min-h-20 grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-3 rounded-2xl border bg-[#25140d]/70 px-3 text-left shadow-[inset_0_1px_rgba(255,230,185,0.06)] transition hover:-translate-y-0.5 hover:bg-[#311a0f] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber-100 ${isConnection ? "border-amber-200/60 hover:border-amber-100" : "border-amber-100/15 hover:border-amber-100/35"}`}
       data-curator-tile={`holding-${person.id}`}
       onClick={(event) => onSelect(event.currentTarget)}
       type="button"
     >
       <span className="grid size-14 place-items-center overflow-hidden rounded-full border border-amber-100/20 bg-[#120905] text-lg font-medium text-amber-100">
         <Portrait
+          grayscale={!isConnection}
           initials={person.initials}
+          layer="holding"
           personId={person.id}
           portraitUrl={person.portraitUrl}
           showInitials

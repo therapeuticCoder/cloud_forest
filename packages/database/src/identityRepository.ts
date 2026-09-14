@@ -3,6 +3,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import type { DatabaseClient } from "./client.ts";
 import {
   accountPeople,
+  connectionPairings,
   invitations,
   people,
   personProfiles,
@@ -121,23 +122,68 @@ export function createIdentityRepository(database: DatabaseClient) {
       id: string;
       code: string;
       createdByUserId: string;
+      connectionPairingId?: string;
       now: Date;
     }): Promise<void> {
       await database.insert(signupCodes).values({
         id: input.id,
         code: input.code,
         createdByUserId: input.createdByUserId,
+        connectionPairingId: input.connectionPairingId,
         createdAt: input.now,
       });
     },
 
     async consumeSignupCode(code: string, now: Date): Promise<boolean> {
-      const result = await database
-        .update(signupCodes)
-        .set({ usedAt: now })
-        .where(and(eq(signupCodes.code, code), isNull(signupCodes.usedAt)))
-        .returning({ id: signupCodes.id });
-      return result.length === 1;
+      return database.transaction(async (transaction) => {
+        const [candidate] = await transaction
+          .select({
+            id: signupCodes.id,
+            pairingId: signupCodes.connectionPairingId,
+            pairingStatus: connectionPairings.status,
+            pairingExpiresAt: connectionPairings.expiresAt,
+          })
+          .from(signupCodes)
+          .leftJoin(
+            connectionPairings,
+            eq(signupCodes.connectionPairingId, connectionPairings.id),
+          )
+          .where(
+            and(
+              eq(signupCodes.code, code),
+              isNull(signupCodes.usedAt),
+              isNull(signupCodes.revokedAt),
+            ),
+          )
+          .limit(1);
+        if (!candidate) return false;
+
+        if (
+          candidate.pairingId !== null &&
+          (candidate.pairingStatus !== "pending" ||
+            candidate.pairingExpiresAt === null ||
+            candidate.pairingExpiresAt <= now)
+        ) {
+          await transaction
+            .update(signupCodes)
+            .set({ revokedAt: now })
+            .where(eq(signupCodes.id, candidate.id));
+          return false;
+        }
+
+        const result = await transaction
+          .update(signupCodes)
+          .set({ usedAt: now })
+          .where(
+            and(
+              eq(signupCodes.id, candidate.id),
+              isNull(signupCodes.usedAt),
+              isNull(signupCodes.revokedAt),
+            ),
+          )
+          .returning({ id: signupCodes.id });
+        return result.length === 1;
+      });
     },
 
     async consumeInvitation(invitationId: string, now: Date): Promise<boolean> {

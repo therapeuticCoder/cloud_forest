@@ -103,6 +103,16 @@ export function MyCareView({
     const result = await onCreateSignupCode();
     if (result.ok) {
       setSignupLink(result.link);
+      const signupCode = new URL(result.link).searchParams.get("signup");
+      if (signupCode) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("signup", signupCode);
+        window.history.replaceState(
+          { ...window.history.state },
+          "",
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+      }
       await copySignupLink(result.link);
     } else {
       setSignupCodeError(result.message);

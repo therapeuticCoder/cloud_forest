@@ -12,7 +12,7 @@ export type ConnectionPairing = {
 
 type ConnectionPairingError = { error: { message: string } };
 type CreateConnectionPairingResult =
-  | { state: "pending"; token: string; expiresAt: string }
+  | { state: "pending"; token: string; signupCode: string; expiresAt: string }
   | { state: "already-connected" };
 
 type ApiResult<T> = { ok: true; value: T } | { ok: false; message: string };

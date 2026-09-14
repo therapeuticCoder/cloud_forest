@@ -19,17 +19,22 @@ function TribePerson({
   onSelect: (trigger: HTMLButtonElement) => void;
   person: CuratorPerson;
 }) {
+  const isConnection =
+    person.linkedUserId !== null && person.linkedUserId !== undefined;
+
   return (
     <button
       aria-label={`Open ${person.displayName}`}
-      className="group flex min-h-0 flex-col items-center justify-center gap-1.5 rounded-2xl border border-lime-100/15 bg-emerald-950/35 px-2 py-2 text-center transition hover:-translate-y-0.5 hover:border-lime-100/35 hover:bg-emerald-900/45 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-lime-100"
+      className={`group flex min-h-0 flex-col items-center justify-center gap-1.5 rounded-2xl border bg-emerald-950/35 px-2 py-2 text-center transition hover:-translate-y-0.5 hover:bg-emerald-900/45 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-lime-100 ${isConnection ? "border-amber-200/60 hover:border-amber-100" : "border-lime-100/15 hover:border-lime-100/35"}`}
       data-curator-tile={`tribe-${person.id}`}
       onClick={(event) => onSelect(event.currentTarget)}
       type="button"
     >
       <span className="grid size-10 place-items-center overflow-hidden rounded-full border border-lime-100/20 bg-emerald-950 text-sm font-medium text-lime-100 sm:size-12">
         <Portrait
+          grayscale={!isConnection}
           initials={person.initials}
+          layer="tribe"
           personId={person.id}
           portraitUrl={person.portraitUrl}
           showInitials

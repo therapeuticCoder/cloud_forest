@@ -131,6 +131,7 @@ export function buildApi(
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
   server.register(connectionPairingRoutes, {
+    identityRepository: options.identityRepository ?? missingIdentityRepository,
     repository: options.connectionRepository ?? missingConnectionRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });

@@ -380,12 +380,17 @@ export const signupCodes = pgTable(
     createdByUserId: varchar("created_by_user_id", { length: 128 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    connectionPairingId: varchar("connection_pairing_id", {
+      length: 128,
+    }).references(() => connectionPairings.id, { onDelete: "cascade" }),
     usedAt: timestamp("used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [
     uniqueIndex("signup_codes_code_unique").on(table.code),
     index("signup_codes_creator_index").on(table.createdByUserId),
+    index("signup_codes_pairing_index").on(table.connectionPairingId),
   ],
 );
 

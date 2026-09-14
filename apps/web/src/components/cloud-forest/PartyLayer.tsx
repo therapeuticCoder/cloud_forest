@@ -42,21 +42,34 @@ export function Portrait({
   portraitUrl,
   showInitials = false,
   small = false,
+  layer = "party",
+  grayscale = false,
 }: {
   initials?: string;
+  layer?: "party" | "tribe" | "holding";
   personId: string;
   portraitUrl?: string;
+  grayscale?: boolean;
   showInitials?: boolean;
   small?: boolean;
 }) {
+  const grayscaleClass = grayscale
+    ? small
+      ? " party-self-portrait--grayscale"
+      : " party-portrait--grayscale"
+    : "";
+  const fallbackClass = small
+    ? `party-self-portrait party-self-portrait--fallback party-self-portrait--fallback-${layer}`
+    : `party-portrait party-portrait--fallback party-portrait--fallback-${layer}`;
+
   if (portraitUrl) {
     return (
       <img
         alt=""
         className={
           small
-            ? "party-self-portrait"
-            : "party-portrait party-portrait--single"
+            ? `party-self-portrait${grayscaleClass}`
+            : `party-portrait party-portrait--single${grayscaleClass}`
         }
         src={portraitUrl}
       />
@@ -69,8 +82,8 @@ export function Portrait({
         alt=""
         className={
           small
-            ? "party-self-portrait"
-            : "party-portrait party-portrait--single"
+            ? `party-self-portrait${grayscaleClass}`
+            : `party-portrait party-portrait--single${grayscaleClass}`
         }
         src={solArdenPortrait}
       />
@@ -79,14 +92,7 @@ export function Portrait({
 
   if (personId === "you" && !initials) {
     return (
-      <span
-        aria-hidden="true"
-        className={
-          small
-            ? "party-self-portrait party-self-portrait--fallback"
-            : "party-portrait party-portrait--fallback"
-        }
-      >
+      <span aria-hidden="true" className={fallbackClass}>
         Y
       </span>
     );
@@ -94,14 +100,7 @@ export function Portrait({
 
   if (!portraitPositions[personId]) {
     return (
-      <span
-        aria-hidden="true"
-        className={
-          small
-            ? "party-self-portrait party-self-portrait--fallback"
-            : "party-portrait party-portrait--fallback"
-        }
-      >
+      <span aria-hidden="true" className={fallbackClass}>
         {showInitials ? initials : null}
       </span>
     );
@@ -112,8 +111,8 @@ export function Portrait({
       aria-hidden="true"
       className={
         small
-          ? "party-self-portrait party-self-portrait--sheet"
-          : "party-portrait"
+          ? `party-self-portrait party-self-portrait--sheet${grayscaleClass}`
+          : `party-portrait${grayscaleClass}`
       }
       style={{
         backgroundImage: `url(${communityPortraits})`,
@@ -133,23 +132,37 @@ function PartyCard({
   person: CuratorPerson;
   slotIndex: number;
 }) {
+  const isConnection =
+    person.linkedUserId !== null && person.linkedUserId !== undefined;
+
   return (
     <button
       aria-label={`Open ${person.displayName}`}
-      className="party-card"
+      className={`party-card${isConnection ? " party-card--connection" : ""}`}
       data-curator-tile={`party-${person.id}`}
+      data-party-kind={isConnection ? "connection" : "character"}
       data-party-slot={slotIndex}
       onClick={(event) => onSelect(event.currentTarget)}
       type="button"
     >
       <span className="party-card__portrait">
-        <Portrait personId={person.id} portraitUrl={person.portraitUrl} />
+        <Portrait
+          grayscale={!isConnection}
+          layer="party"
+          personId={person.id}
+          portraitUrl={person.portraitUrl}
+        />
         <span className="party-card__name">
           {person.nickname ?? person.displayName}
         </span>
       </span>
-      <span className="party-card__nameplate">
-        <span className="party-card__note">{person.relationshipTitle}</span>
+      <span
+        aria-hidden={!isConnection}
+        className={`party-card__nameplate${isConnection ? " party-card__nameplate--connection" : ""}`}
+      >
+        {isConnection ? (
+          <span className="party-card__note">{person.relationshipTitle}</span>
+        ) : null}
       </span>
     </button>
   );

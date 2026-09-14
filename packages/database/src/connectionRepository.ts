@@ -1,12 +1,13 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 
-import { and, eq, isNull, or, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
 import type { DatabaseClient } from "./client.ts";
 import {
   connectionPairings,
   connections,
   curatedPersons,
+  signupCodes,
   users,
 } from "./schema.ts";
 
@@ -111,6 +112,24 @@ export function createConnectionRepository(database: DatabaseClient) {
     return character ?? null;
   }
 
+  async function revokeSignupCodes(
+    transaction: TransactionClient,
+    pairingIds: string[],
+    now: Date,
+  ) {
+    if (pairingIds.length === 0) return;
+    await transaction
+      .update(signupCodes)
+      .set({ revokedAt: now })
+      .where(
+        and(
+          inArray(signupCodes.connectionPairingId, pairingIds),
+          isNull(signupCodes.usedAt),
+          isNull(signupCodes.revokedAt),
+        ),
+      );
+  }
+
   return {
     async start(input: {
       initiatorUserId: string;
@@ -146,7 +165,7 @@ export function createConnectionRepository(database: DatabaseClient) {
           }
         }
 
-        await transaction
+        const superseded = await transaction
           .update(connectionPairings)
           .set({
             status: "superseded",
@@ -161,7 +180,13 @@ export function createConnectionRepository(database: DatabaseClient) {
               ),
               eq(connectionPairings.status, "pending"),
             ),
-          );
+          )
+          .returning({ id: connectionPairings.id });
+        await revokeSignupCodes(
+          transaction,
+          superseded.map(({ id }) => id),
+          input.now,
+        );
 
         const [pairing] = await transaction
           .insert(connectionPairings)
@@ -186,6 +211,9 @@ export function createConnectionRepository(database: DatabaseClient) {
         const pairing = await findPairing(transaction, input.token);
         if (pairing === null) return null;
         const state = stateFor(pairing, input.now);
+        if (state === "expired") {
+          await revokeSignupCodes(transaction, [pairing.id], input.now);
+        }
         if (
           pairing.receiverUserId !== null &&
           pairing.initiatorUserId !== input.viewerUserId &&
@@ -241,7 +269,14 @@ export function createConnectionRepository(database: DatabaseClient) {
     > {
       return database.transaction(async (transaction) => {
         const pairing = await findPairing(transaction, input.token);
-        if (pairing === null || stateFor(pairing, input.now) !== "pending") {
+        if (pairing === null) {
+          return { ok: false, error: "inactive-pairing" };
+        }
+        const state = stateFor(pairing, input.now);
+        if (state !== "pending") {
+          if (state === "expired") {
+            await revokeSignupCodes(transaction, [pairing.id], input.now);
+          }
           return { ok: false, error: "inactive-pairing" };
         }
         if (pairing.initiatorUserId === input.receiverUserId) {
@@ -318,7 +353,14 @@ export function createConnectionRepository(database: DatabaseClient) {
     > {
       return database.transaction(async (transaction) => {
         const pairing = await findPairing(transaction, input.token);
-        if (pairing === null || stateFor(pairing, input.now) !== "pending") {
+        if (pairing === null) {
+          return { ok: false, error: "inactive-pairing" };
+        }
+        const state = stateFor(pairing, input.now);
+        if (state !== "pending") {
+          if (state === "expired") {
+            await revokeSignupCodes(transaction, [pairing.id], input.now);
+          }
           return { ok: false, error: "inactive-pairing" };
         }
         if (
@@ -459,6 +501,7 @@ export function createConnectionRepository(database: DatabaseClient) {
           .returning();
         if (!completed)
           throw new Error("Pairing completion did not return a record.");
+        await revokeSignupCodes(transaction, [completed.id], input.now);
         return { ok: true, value: { pairing: completed, state: "connected" } };
       });
     },
@@ -470,7 +513,14 @@ export function createConnectionRepository(database: DatabaseClient) {
     }): Promise<ConnectionRepositoryResult<null>> {
       return database.transaction(async (transaction) => {
         const pairing = await findPairing(transaction, input.token);
-        if (pairing === null || stateFor(pairing, input.now) !== "pending") {
+        if (pairing === null) {
+          return { ok: false, error: "inactive-pairing" };
+        }
+        const state = stateFor(pairing, input.now);
+        if (state !== "pending") {
+          if (state === "expired") {
+            await revokeSignupCodes(transaction, [pairing.id], input.now);
+          }
           return { ok: false, error: "inactive-pairing" };
         }
         if (
@@ -494,9 +544,11 @@ export function createConnectionRepository(database: DatabaseClient) {
             ),
           )
           .returning({ id: connectionPairings.id });
-        return cancelled.length === 1
-          ? { ok: true, value: null }
-          : { ok: false, error: "inactive-pairing" };
+        if (cancelled.length !== 1) {
+          return { ok: false, error: "inactive-pairing" };
+        }
+        await revokeSignupCodes(transaction, [pairing.id], input.now);
+        return { ok: true, value: null };
       });
     },
   };

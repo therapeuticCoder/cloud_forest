@@ -1116,7 +1116,7 @@ button:focus-visible {
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  border: 0.45rem solid var(--forest-party);
+  border: 2px solid var(--forest-party);
   border-radius: 1.25rem;
   box-shadow: 0 0.35rem 0.8rem rgba(6, 10, 3, 0.24);
   background: #879087;
@@ -1137,6 +1137,11 @@ button:focus-visible {
 
 .party-portrait--single {
   object-position: center;
+}
+
+.party-portrait--grayscale,
+.party-self-portrait--grayscale {
+  filter: grayscale(1);
 }
 
 .party-portrait--fallback {
@@ -1180,11 +1185,20 @@ button:focus-visible {
   justify-content: center;
   gap: 0.12rem;
   padding: 0.35rem 0.4rem 0.42rem;
-  border: 0.2rem solid var(--forest-party);
+  border: 2px solid var(--forest-party);
   border-radius: 0.85rem;
   background: #e9eedc;
   box-shadow: 0 0.25rem 0.6rem rgba(6, 10, 3, 0.16);
+  opacity: 0;
   text-align: center;
+}
+
+.party-card--connection .party-card__portrait {
+  border-color: var(--forest-amber);
+}
+
+.party-card__nameplate--connection {
+  opacity: 1;
 }
 
 .party-card__note {
@@ -1487,6 +1501,35 @@ button:focus-visible {
   background: var(--forest-pine);
   font-size: 1.5rem;
   font-weight: 700;
+}
+
+.party-portrait--fallback-party,
+.party-self-portrait--fallback-party {
+  background:
+    radial-gradient(circle at 82% 78%, rgba(74, 130, 58, 0.5), transparent 36%),
+    linear-gradient(180deg, #210d06, #4a210d 55%, #123a28);
+}
+
+.party-portrait--fallback-tribe,
+.party-self-portrait--fallback-tribe {
+  background:
+    radial-gradient(
+      circle at 82% 14%,
+      rgba(163, 230, 53, 0.2),
+      transparent 26%
+    ),
+    linear-gradient(180deg, #174c2d, #062e1d);
+}
+
+.party-portrait--fallback-holding,
+.party-self-portrait--fallback-holding {
+  background:
+    radial-gradient(
+      circle at 85% 15%,
+      rgba(120, 53, 15, 0.28),
+      transparent 26%
+    ),
+    linear-gradient(180deg, #050403, #180b05 44%, #55260d);
 }
 
 .party-ornament {
