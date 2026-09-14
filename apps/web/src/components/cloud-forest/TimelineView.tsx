@@ -25,12 +25,14 @@ export function TimelineView({
   onSetRequestMinimized = () => undefined,
   onWithdraw = () => undefined,
   onWithdrawOffer = () => undefined,
+  onOfflineChange,
   passableRequestIds = noPassableRequestIds,
   passAnnouncement,
   viewerId = "you",
   viewerClaimedRequestIds = noClaimedRequestIds,
   viewerCompletedRequestIds = noCompletedRequestIds,
   otherParticipantCompletedRequestIds = noCompletedRequestIds,
+  cacheOwnerId,
 }: {
   careOffers?: GiveCareOffer[];
   careGratitudes?: CareGratitude[];
@@ -45,8 +47,10 @@ export function TimelineView({
   onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
   onWithdraw?: (requestId: string) => void;
   onWithdrawOffer?: (offerId: string) => void;
+  onOfflineChange?: (offline: boolean) => void;
   passableRequestIds?: Set<string>;
   passAnnouncement?: string;
+  cacheOwnerId?: string;
   viewerId?: CarePersonId;
   viewerClaimedRequestIds?: Set<string>;
   viewerCompletedRequestIds?: Set<string>;
@@ -68,8 +72,10 @@ export function TimelineView({
         onSetRequestMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         onWithdrawOffer={onWithdrawOffer}
+        onOfflineChange={onOfflineChange}
         passableRequestIds={passableRequestIds}
         passAnnouncement={passAnnouncement}
+        cacheOwnerId={cacheOwnerId}
         viewerClaimedRequestIds={viewerClaimedRequestIds}
         viewerCompletedRequestIds={viewerCompletedRequestIds}
         otherParticipantCompletedRequestIds={

@@ -7,6 +7,11 @@ import {
 } from "@cloud-forest/api-client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import {
+  clearCuratedPeopleSnapshot,
+  loadCuratedPeopleSnapshot,
+  saveCuratedPeopleSnapshot,
+} from "@/lib/curatedPeopleStorage";
 import type { CuratorPerson } from "@/types/curator";
 
 export type CuratedPersonApiClient = Pick<
@@ -19,11 +24,23 @@ export type CuratedPersonApiClient = Pick<
 export type CuratedPersonRecord =
   GetCuratedPersonsResponse["data"]["people"][number];
 export type CuratedPeopleState =
-  | { status: "loading"; people: readonly CuratedPersonRecord[] }
-  | { status: "ready"; people: readonly CuratedPersonRecord[] }
+  | {
+      status: "loading";
+      people: readonly CuratedPersonRecord[];
+      source: "cache" | "live" | "none";
+      offline: boolean;
+    }
+  | {
+      status: "ready";
+      people: readonly CuratedPersonRecord[];
+      source: "cache" | "live" | "none";
+      offline: boolean;
+    }
   | {
       status: "error";
-      people: readonly CuratedPersonRecord[];
+      people: readonly [];
+      source: "cache" | "live" | "none";
+      offline: boolean;
       message: string;
     };
 
@@ -77,23 +94,74 @@ export function curationErrorMessage(
 export function useCuratedPeople(
   apiClient: CuratedPersonApiClient = defaultApiClient,
   enabled = true,
+  ownerId = "",
 ) {
-  const [people, setPeople] = useState<CuratedPeopleState>({
-    status: "loading",
-    people: [],
+  const [people, setPeople] = useState<CuratedPeopleState>(() => {
+    const cachedPeople = ownerId
+      ? loadCuratedPeopleSnapshot(ownerId)
+      : undefined;
+    return cachedPeople !== undefined
+      ? {
+          status: "ready",
+          people: cachedPeople,
+          source: "cache",
+          offline: false,
+        }
+      : { status: "loading", people: [], source: "none", offline: false };
   });
 
-  const applyResult = useCallback((result: GetCuratedPersonsResult) => {
-    if (result.ok) {
-      setPeople({ status: "ready", people: result.value.data.people });
-    } else {
-      setPeople({
-        status: "error",
-        people: [],
-        message: curationErrorMessage(result),
-      });
-    }
-  }, []);
+  const applyResult = useCallback(
+    (result: GetCuratedPersonsResult) => {
+      if (result.ok) {
+        saveCuratedPeopleSnapshot(ownerId, result.value.data.people);
+        setPeople({
+          status: "ready",
+          people: result.value.data.people,
+          source: "live",
+          offline: false,
+        });
+      } else if (
+        result.kind === "network" ||
+        (result.kind === "unexpected-response" && result.status >= 500)
+      ) {
+        const cachedPeople = ownerId
+          ? loadCuratedPeopleSnapshot(ownerId)
+          : undefined;
+        if (cachedPeople !== undefined) {
+          setPeople({
+            status: "ready",
+            people: cachedPeople,
+            source: "cache",
+            offline: true,
+          });
+          return;
+        }
+
+        setPeople({
+          status: "error",
+          people: [],
+          source: "none",
+          offline: true,
+          message: curationErrorMessage(result),
+        });
+      } else {
+        if (
+          (result.kind === "http" || result.kind === "unexpected-response") &&
+          result.status === 401
+        ) {
+          clearCuratedPeopleSnapshot(ownerId);
+        }
+        setPeople({
+          status: "error",
+          people: [],
+          source: "none",
+          offline: false,
+          message: curationErrorMessage(result),
+        });
+      }
+    },
+    [ownerId],
+  );
 
   const requestPeople = useCallback(
     () => apiClient.getCuratedPersons(),
@@ -102,8 +170,10 @@ export function useCuratedPeople(
 
   const load = useCallback(async () => {
     setPeople((current) => ({
-      status: "loading",
+      status: current.people.length > 0 ? "ready" : "loading",
       people: current.people,
+      source: current.people.length > 0 ? current.source : "none",
+      offline: current.offline,
     }));
     const result = await requestPeople();
     applyResult(result);

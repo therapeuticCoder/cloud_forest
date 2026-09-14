@@ -14,6 +14,13 @@ import {
   DashboardShell,
   type CuratedPersonApiClient,
 } from "@/components/cloud-forest/DashboardShell";
+import { clearCuratedPeopleSnapshot } from "@/lib/curatedPeopleStorage";
+import { clearTimelineItemSnapshot } from "@/lib/timelineItemStorage";
+import {
+  clearSessionSnapshot,
+  loadSessionSnapshot,
+  saveSessionSnapshot,
+} from "@/lib/sessionSnapshotStorage";
 import { PwaNotice } from "@/components/pwa/PwaNotice";
 import {
   defaultSessionClient,
@@ -36,6 +43,7 @@ type BoundaryState =
       currentPersonId: string;
       displayName: string;
       role: "admin" | "user";
+      connection: "live" | "offline";
     };
 
 type UsernameCheck = {
@@ -442,8 +450,11 @@ function sessionErrorMessage(
   if (result.kind === "network") {
     return "Cloud Forest couldn’t confirm your session. Try again when you’re ready.";
   }
+  if (result.status === 401) {
+    return "Your Cloud Forest session has ended. Please sign in again.";
+  }
   if (result.kind === "unexpected-response") {
-    return "Cloud Forest couldn’t confirm your session. Enter your email and password again.";
+    return "Cloud Forest is temporarily unavailable. Try again when you’re ready.";
   }
   return undefined;
 }
@@ -461,18 +472,60 @@ export function AuthBoundary({
   const checkSession = useCallback(async () => {
     const result = await sessionClient.getCurrentSession();
     if (result.ok) {
-      setBoundary({
-        status: "signed-in",
+      const session = {
         currentPersonId: result.value.data.currentPersonId,
         displayName: result.value.data.displayName,
         role: result.value.data.role ?? "user",
-      });
-    } else {
+      } as const;
+      const previousSession = loadSessionSnapshot();
+      if (
+        previousSession &&
+        previousSession.currentPersonId !== session.currentPersonId
+      ) {
+        clearCuratedPeopleSnapshot(previousSession.currentPersonId);
+        clearTimelineItemSnapshot(previousSession.currentPersonId);
+      }
+      saveSessionSnapshot(session);
       setBoundary({
-        status: "signed-out",
-        message: sessionErrorMessage(result),
+        status: "signed-in",
+        ...session,
+        connection: "live",
       });
+      return;
     }
+
+    if (
+      result.kind === "network" ||
+      (result.kind === "unexpected-response" && result.status >= 500)
+    ) {
+      const cachedSession = loadSessionSnapshot();
+      if (cachedSession) {
+        setBoundary({
+          status: "signed-in",
+          ...cachedSession,
+          connection: "offline",
+        });
+        return;
+      }
+
+      setBoundary((current) =>
+        current.status === "signed-in"
+          ? { ...current, connection: "offline" }
+          : { status: "signed-out", message: sessionErrorMessage(result) },
+      );
+      return;
+    }
+
+    const cachedSession = loadSessionSnapshot();
+    if (cachedSession) {
+      clearCuratedPeopleSnapshot(cachedSession.currentPersonId);
+      clearTimelineItemSnapshot(cachedSession.currentPersonId);
+    }
+    clearSessionSnapshot();
+    setBoundary({
+      status: "signed-out",
+      message: sessionErrorMessage(result),
+    });
   }, [sessionClient]);
 
   useEffect(() => {
@@ -484,13 +537,16 @@ export function AuthBoundary({
 
   useEffect(() => {
     const handleFocus = () => void checkSession();
+    const handleOnline = () => void checkSession();
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") void checkSession();
     };
     window.addEventListener("focus", handleFocus);
+    window.addEventListener("online", handleOnline);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("online", handleOnline);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [checkSession]);
@@ -549,8 +605,24 @@ export function AuthBoundary({
     setSigningOut(true);
     setSignOutError(undefined);
     const result = await sessionClient.logout();
+    const clearLocalAccess = () => {
+      if (boundary.status === "signed-in") {
+        clearCuratedPeopleSnapshot(boundary.currentPersonId);
+        clearTimelineItemSnapshot(boundary.currentPersonId);
+      }
+      clearSessionSnapshot();
+    };
+
     if (result.ok || (result.kind === "http" && result.status === 401)) {
+      clearLocalAccess();
       setBoundary({ status: "signed-out", message: "You’re signed out." });
+    } else if (result.kind === "network") {
+      clearLocalAccess();
+      setBoundary({
+        status: "signed-out",
+        message:
+          "You’re signed out on this device. Reconnect when you’re ready to end the server session.",
+      });
     } else {
       setSignOutError(
         "Cloud Forest couldn’t end this session. Please try signing out again.",
@@ -574,10 +646,12 @@ export function AuthBoundary({
   return (
     <>
       <DashboardShell
+        key={boundary.currentPersonId}
         apiClient={apiClient}
         currentPersonId={boundary.currentPersonId}
         displayName={boundary.displayName}
         role={boundary.role}
+        sessionOffline={boundary.connection === "offline"}
         onCreateSignupCode={createSignupCode}
         onSignOut={() => void signOut()}
         signOutError={signOutError}

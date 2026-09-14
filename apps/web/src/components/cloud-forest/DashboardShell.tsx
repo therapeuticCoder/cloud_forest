@@ -1,4 +1,4 @@
-import { Gift, HandHeart, TreePine } from "lucide-react";
+import { CloudOff, Gift, HandHeart, TreePine } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createInitials,
@@ -82,6 +82,7 @@ export function DashboardShell({
   currentPersonId,
   displayName,
   role,
+  sessionOffline = false,
   onCreateSignupCode,
   onSignOut,
   signOutError,
@@ -91,6 +92,7 @@ export function DashboardShell({
   currentPersonId: string;
   displayName: string;
   role: "admin" | "user";
+  sessionOffline?: boolean;
   onCreateSignupCode: () => Promise<
     { ok: true; link: string } | { ok: false; message: string }
   >;
@@ -135,7 +137,16 @@ export function DashboardShell({
     people: curatedPeople,
     tribePeople,
     update: updateCuratedPerson,
-  } = useCuratedPeople(apiClient, activeView === "curator");
+  } = useCuratedPeople(apiClient, activeView === "curator", currentPersonId);
+  const [isOnline, setIsOnline] = useState(
+    () => typeof navigator === "undefined" || navigator.onLine,
+  );
+  const [timelineApiOffline, setTimelineApiOffline] = useState(false);
+  const appIsOffline =
+    sessionOffline ||
+    !isOnline ||
+    (activeView === "timeline" && timelineApiOffline);
+  const wasOnlineRef = useRef(isOnline);
   const [addSubmission, setAddSubmission] = useState<{
     pending: boolean;
     error?: string;
@@ -153,6 +164,31 @@ export function DashboardShell({
   const ignoreNextCarePopStateRef = useRef(false);
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
+  const curatorIsOffline =
+    appIsOffline || curatedPeople.offline || curatedPeople.source === "cache";
+  const canEditCuratedPeople =
+    !curatorIsOffline &&
+    curatedPeople.status === "ready" &&
+    curatedPeople.source === "live";
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    const cameOnline = !wasOnlineRef.current && isOnline;
+    wasOnlineRef.current = isOnline;
+    if (cameOnline && activeView === "curator") {
+      void loadCuratedPeople();
+    }
+  }, [activeView, isOnline, loadCuratedPeople]);
 
   const navigateToView = useCallback(
     (view: CloudForestView) => {
@@ -230,10 +266,7 @@ export function DashboardShell({
           : partyPeople;
     const capacity = destination === "tribe" ? 100 : 5;
 
-    if (
-      curatedPeople.status === "ready" &&
-      destinationPeople.length < capacity
-    ) {
+    if (canEditCuratedPeople && destinationPeople.length < capacity) {
       const firstEmptySlot = Math.min(partyPeople.length, 4);
       focusTargetIdRef.current =
         destination === "party"
@@ -245,6 +278,13 @@ export function DashboardShell({
     }
   };
   const completeAdd = async (draft: AddPartyMemberDraft) => {
+    if (!canEditCuratedPeople) {
+      setAddSubmission({
+        pending: false,
+        error: "Adding a Character requires a connection.",
+      });
+      return false;
+    }
     setAddSubmission({ pending: true });
     const result = await addCuratedPerson({
       firstName: draft.firstName,
@@ -276,7 +316,7 @@ export function DashboardShell({
       relationshipShape: string;
     },
   ) => {
-    if (person.version === undefined) return null;
+    if (person.version === undefined || !canEditCuratedPeople) return null;
     setCharacterSubmission({ pending: true });
     const result = await updateCuratedPerson(person.id, {
       ...update,
@@ -988,9 +1028,12 @@ export function DashboardShell({
       >
         <header className="party-header timeline-header">
           <button
-            aria-label="Open My Care"
+            aria-label={
+              appIsOffline ? "Open My Care (offline)" : "Open My Care"
+            }
             className="party-self global-view-self"
             data-my-care-trigger="timeline"
+            title={appIsOffline ? "Offline — showing cached data" : undefined}
             onClick={() =>
               openCareDestination(
                 { kind: "my-care" },
@@ -999,12 +1042,16 @@ export function DashboardShell({
             }
             type="button"
           >
-            <Portrait
-              initials={currentUser.initials}
-              personId={currentUser.id}
-              showInitials
-              small
-            />
+            {appIsOffline ? (
+              <CloudOff aria-hidden="true" className="size-7 text-amber-100" />
+            ) : (
+              <Portrait
+                initials={currentUser.initials}
+                personId={currentUser.id}
+                showInitials
+                small
+              />
+            )}
           </button>
           <h1>Timeline</h1>
           <button
@@ -1053,6 +1100,8 @@ export function DashboardShell({
           >
             {activeView === "timeline" ? (
               <TimelineView
+                cacheOwnerId={currentPersonId}
+                onOfflineChange={setTimelineApiOffline}
                 careOffers={careOffers}
                 careGratitudes={tribeCareGratitudes}
                 careGratitudeRequests={careLifecycle.requests}
@@ -1092,6 +1141,8 @@ export function DashboardShell({
                 careLifecycle={careLifecycle}
                 careViewerId={careViewerId}
                 characterSubmission={characterSubmission}
+                curatedPeopleCached={curatedPeople.source === "cache"}
+                curatedPeopleOffline={curatorIsOffline}
                 curatedPeopleStatus={curatedPeople.status}
                 curatedPeopleError={
                   curatedPeople.status === "error"
