@@ -8,6 +8,7 @@ import {
   createDatabaseClient,
   curatedPersons,
   getTestDatabaseUrl,
+  relationshipBlocks,
   users,
 } from "../src/index.ts";
 
@@ -106,14 +107,24 @@ test("curated Persons support holding placement, versioned edits, and deletion",
     await pool.end();
   });
   await removeFixture(database);
-  await database.insert(users).values({
-    id: owner,
-    name: "Curation Owner",
-    email: "curation-owner@example.test",
-    emailVerified: true,
-    createdAt: now,
-    updatedAt: now,
-  });
+  await database.insert(users).values([
+    {
+      id: owner,
+      name: "Curation Owner",
+      email: "curation-owner@example.test",
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: otherOwner,
+      name: "Other Owner",
+      email: "curation-other@example.test",
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]);
 
   const created = await repository.create(input("holding", "Ari"));
   assert.equal(created.ok, true);
@@ -140,6 +151,16 @@ test("curated Persons support holding placement, versioned edits, and deletion",
     }),
     { ok: false, error: "stale-write-conflict" },
   );
+  await database
+    .update(curatedPersons)
+    .set({ linkedUserId: otherOwner })
+    .where(eq(curatedPersons.id, created.value.id));
+  await database.insert(relationshipBlocks).values({
+    blockerUserId: owner,
+    blockedUserId: otherOwner,
+    contextCuratedPersonId: created.value.id,
+    createdAt: now,
+  });
   assert.deepEqual(
     await repository.remove({
       ownerUserId: owner,
@@ -149,4 +170,84 @@ test("curated Persons support holding placement, versioned edits, and deletion",
     { ok: true, value: null },
   );
   assert.deepEqual(await repository.listOwned(owner), []);
+  assert.deepEqual(
+    await database
+      .select()
+      .from(relationshipBlocks)
+      .where(eq(relationshipBlocks.blockerUserId, owner)),
+    [],
+  );
+});
+
+test("blocked Characters do not consume Party, Tribe, or Holding capacity", async (t) => {
+  const { database, pool } = createDatabaseClient(
+    getTestDatabaseUrl(process.env),
+  );
+  const repository = createCuratedPersonRepository(database);
+  t.after(async () => {
+    await removeFixture(database);
+    await pool.end();
+  });
+  await removeFixture(database);
+  await database.insert(users).values([
+    {
+      id: owner,
+      name: "Curation Owner",
+      email: "curation-owner@example.test",
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: otherOwner,
+      name: "Other Owner",
+      email: "curation-other@example.test",
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]);
+
+  const createMany = async (placement, count) => {
+    const results = await Promise.all(
+      Array.from({ length: count }, (_, index) =>
+        repository.create(input(placement, `${placement}-${index + 1}`)),
+      ),
+    );
+    assert.equal(results.filter((result) => result.ok).length, count);
+    return results.filter((result) => result.ok).map((result) => result.value);
+  };
+  const party = await createMany("party", 5);
+  const tribe = await createMany("tribe", 100);
+  const holding = await createMany("holding", 5);
+
+  await database
+    .update(curatedPersons)
+    .set({ linkedUserId: otherOwner })
+    .where(eq(curatedPersons.id, party[0].id));
+  await database.insert(relationshipBlocks).values({
+    blockerUserId: owner,
+    blockedUserId: otherOwner,
+    contextCuratedPersonId: party[0].id,
+    createdAt: now,
+  });
+  for (const person of [tribe[0], holding[0]]) {
+    await database
+      .update(curatedPersons)
+      .set({ linkedUserId: otherOwner })
+      .where(eq(curatedPersons.id, person.id));
+  }
+
+  assert.equal(
+    (await repository.create(input("party", "party-open"))).ok,
+    true,
+  );
+  assert.equal(
+    (await repository.create(input("tribe", "tribe-open"))).ok,
+    true,
+  );
+  assert.equal(
+    (await repository.create(input("holding", "holding-open"))).ok,
+    true,
+  );
 });

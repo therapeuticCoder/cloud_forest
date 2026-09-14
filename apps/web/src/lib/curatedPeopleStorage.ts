@@ -61,6 +61,9 @@ function isCuratedPersonRecord(value: unknown): value is CuratedPersonRecord {
       value.placement === "signal") &&
     (value.linkedUserId === null ||
       (isString(value.linkedUserId) && value.linkedUserId.length > 0)) &&
+    (value.relationshipState === "character" ||
+      value.relationshipState === "connected" ||
+      value.relationshipState === "blocked") &&
     typeof value.version === "number" &&
     Number.isInteger(value.version) &&
     value.version >= 1 &&

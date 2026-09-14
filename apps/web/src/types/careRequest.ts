@@ -87,7 +87,8 @@ export type CareHistoryOutcome =
   | "completed"
   | "not-completed"
   | "expired"
-  | "withdrawn";
+  | "withdrawn"
+  | "orphaned";
 
 export type CareHistoryEntry = {
   id: string;

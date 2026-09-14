@@ -7,6 +7,7 @@ import {
   connectionPairings,
   connections,
   curatedPersons,
+  relationshipBlocks,
   signupCodes,
   users,
 } from "./schema.ts";
@@ -29,7 +30,9 @@ export type ConnectionRepositoryError =
   | "character-linked-to-another-user"
   | "inactive-pairing"
   | "not-pairing-participant"
-  | "receiver-required";
+  | "receiver-required"
+  | "relationship-not-found"
+  | "blocked-user";
 
 export type ConnectionRepositoryResult<T> =
   | { ok: true; value: T }
@@ -94,6 +97,30 @@ export function createConnectionRepository(database: DatabaseClient) {
     return connection ?? null;
   }
 
+  async function isBlocked(
+    transaction: TransactionClient,
+    firstUserId: string,
+    secondUserId: string,
+  ) {
+    const [block] = await transaction
+      .select({ blockerUserId: relationshipBlocks.blockerUserId })
+      .from(relationshipBlocks)
+      .where(
+        or(
+          and(
+            eq(relationshipBlocks.blockerUserId, firstUserId),
+            eq(relationshipBlocks.blockedUserId, secondUserId),
+          ),
+          and(
+            eq(relationshipBlocks.blockerUserId, secondUserId),
+            eq(relationshipBlocks.blockedUserId, firstUserId),
+          ),
+        ),
+      )
+      .limit(1);
+    return block !== undefined;
+  }
+
   async function ownedCharacter(
     transaction: TransactionClient,
     ownerUserId: string,
@@ -130,6 +157,42 @@ export function createConnectionRepository(database: DatabaseClient) {
       );
   }
 
+  async function invalidatePendingPairings(
+    transaction: TransactionClient,
+    firstUserId: string,
+    secondUserId: string,
+    now: Date,
+  ) {
+    const invalidated = await transaction
+      .update(connectionPairings)
+      .set({
+        status: "cancelled",
+        cancelledAt: now,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(connectionPairings.status, "pending"),
+          or(
+            and(
+              eq(connectionPairings.initiatorUserId, firstUserId),
+              eq(connectionPairings.receiverUserId, secondUserId),
+            ),
+            and(
+              eq(connectionPairings.initiatorUserId, secondUserId),
+              eq(connectionPairings.receiverUserId, firstUserId),
+            ),
+          ),
+        ),
+      )
+      .returning({ id: connectionPairings.id });
+    await revokeSignupCodes(
+      transaction,
+      invalidated.map(({ id }) => id),
+      now,
+    );
+  }
+
   return {
     async start(input: {
       initiatorUserId: string;
@@ -152,6 +215,20 @@ export function createConnectionRepository(database: DatabaseClient) {
           return { ok: false, error: "character-not-found" };
         }
         if (character.linkedUserId !== null) {
+          await lockUsers(
+            transaction,
+            input.initiatorUserId,
+            character.linkedUserId,
+          );
+          if (
+            await isBlocked(
+              transaction,
+              input.initiatorUserId,
+              character.linkedUserId,
+            )
+          ) {
+            return { ok: false, error: "blocked-user" };
+          }
           const connection = await existingConnection(
             transaction,
             input.initiatorUserId,
@@ -213,6 +290,16 @@ export function createConnectionRepository(database: DatabaseClient) {
         const state = stateFor(pairing, input.now);
         if (state === "expired") {
           await revokeSignupCodes(transaction, [pairing.id], input.now);
+        }
+        if (
+          pairing.receiverUserId !== null &&
+          (await isBlocked(
+            transaction,
+            pairing.initiatorUserId,
+            pairing.receiverUserId,
+          ))
+        ) {
+          return null;
         }
         if (
           pairing.receiverUserId !== null &&
@@ -294,6 +381,15 @@ export function createConnectionRepository(database: DatabaseClient) {
           input.receiverUserId,
         );
         if (
+          await isBlocked(
+            transaction,
+            pairing.initiatorUserId,
+            input.receiverUserId,
+          )
+        ) {
+          return { ok: false, error: "inactive-pairing" };
+        }
+        if (
           (await existingConnection(
             transaction,
             pairing.initiatorUserId,
@@ -313,7 +409,15 @@ export function createConnectionRepository(database: DatabaseClient) {
           character.linkedUserId !== null &&
           character.linkedUserId !== pairing.initiatorUserId
         ) {
-          return { ok: false, error: "character-linked-to-another-user" };
+          if (
+            (await existingConnection(
+              transaction,
+              input.receiverUserId,
+              character.linkedUserId,
+            )) !== null
+          ) {
+            return { ok: false, error: "character-linked-to-another-user" };
+          }
         }
         const [resolved] = await transaction
           .update(connectionPairings)
@@ -380,6 +484,15 @@ export function createConnectionRepository(database: DatabaseClient) {
           pairing.initiatorUserId,
           pairing.receiverUserId,
         );
+        if (
+          await isBlocked(
+            transaction,
+            pairing.initiatorUserId,
+            pairing.receiverUserId,
+          )
+        ) {
+          return { ok: false, error: "inactive-pairing" };
+        }
         const confirmation =
           input.userId === pairing.initiatorUserId
             ? { initiatorConfirmedAt: input.now }
@@ -434,9 +547,19 @@ export function createConnectionRepository(database: DatabaseClient) {
             initiatorCharacter === null ||
             receiverCharacter === null ||
             (initiatorCharacter.linkedUserId !== null &&
-              initiatorCharacter.linkedUserId !== receiverUserId) ||
+              initiatorCharacter.linkedUserId !== receiverUserId &&
+              (await existingConnection(
+                transaction,
+                confirmed.initiatorUserId,
+                initiatorCharacter.linkedUserId,
+              )) !== null) ||
             (receiverCharacter.linkedUserId !== null &&
-              receiverCharacter.linkedUserId !== confirmed.initiatorUserId)
+              receiverCharacter.linkedUserId !== confirmed.initiatorUserId &&
+              (await existingConnection(
+                transaction,
+                receiverUserId,
+                receiverCharacter.linkedUserId,
+              )) !== null)
           ) {
             throw new Error(
               "Resolved Characters are no longer available for this connection.",
@@ -453,10 +576,6 @@ export function createConnectionRepository(database: DatabaseClient) {
               and(
                 eq(curatedPersons.id, confirmed.initiatorCuratedPersonId),
                 eq(curatedPersons.ownerUserId, confirmed.initiatorUserId),
-                or(
-                  isNull(curatedPersons.linkedUserId),
-                  eq(curatedPersons.linkedUserId, receiverUserId),
-                ),
               ),
             )
             .returning({ id: curatedPersons.id });
@@ -471,10 +590,6 @@ export function createConnectionRepository(database: DatabaseClient) {
               and(
                 eq(curatedPersons.id, receiverCuratedPersonId),
                 eq(curatedPersons.ownerUserId, receiverUserId),
-                or(
-                  isNull(curatedPersons.linkedUserId),
-                  eq(curatedPersons.linkedUserId, confirmed.initiatorUserId),
-                ),
               ),
             )
             .returning({ id: curatedPersons.id });
@@ -503,6 +618,203 @@ export function createConnectionRepository(database: DatabaseClient) {
           throw new Error("Pairing completion did not return a record.");
         await revokeSignupCodes(transaction, [completed.id], input.now);
         return { ok: true, value: { pairing: completed, state: "connected" } };
+      });
+    },
+
+    async end(input: {
+      userId: string;
+      curatedPersonId: string;
+      deleteCharacter: boolean;
+      now: Date;
+    }): Promise<ConnectionRepositoryResult<null>> {
+      return database.transaction(async (transaction) => {
+        const character = await ownedCharacter(
+          transaction,
+          input.userId,
+          input.curatedPersonId,
+        );
+        if (character === null) {
+          return { ok: false, error: "character-not-found" };
+        }
+        if (character.linkedUserId === null) {
+          return { ok: false, error: "relationship-not-found" };
+        }
+        await lockUsers(transaction, input.userId, character.linkedUserId);
+        const connection = await existingConnection(
+          transaction,
+          input.userId,
+          character.linkedUserId,
+        );
+        if (connection === null) {
+          return { ok: false, error: "relationship-not-found" };
+        }
+        const [firstUserId, secondUserId] = orderedUsers(
+          input.userId,
+          character.linkedUserId,
+        );
+        await transaction
+          .delete(connections)
+          .where(
+            and(
+              eq(connections.firstUserId, firstUserId),
+              eq(connections.secondUserId, secondUserId),
+            ),
+          );
+        if (input.deleteCharacter) {
+          await transaction
+            .delete(curatedPersons)
+            .where(
+              and(
+                eq(curatedPersons.id, input.curatedPersonId),
+                eq(curatedPersons.ownerUserId, input.userId),
+              ),
+            );
+        }
+        return { ok: true, value: null };
+      });
+    },
+
+    async block(input: {
+      userId: string;
+      curatedPersonId: string;
+      now: Date;
+    }): Promise<ConnectionRepositoryResult<null>> {
+      return database.transaction(async (transaction) => {
+        const character = await ownedCharacter(
+          transaction,
+          input.userId,
+          input.curatedPersonId,
+        );
+        if (character === null) {
+          return { ok: false, error: "character-not-found" };
+        }
+        if (character.linkedUserId === null) {
+          return { ok: false, error: "relationship-not-found" };
+        }
+        await lockUsers(transaction, input.userId, character.linkedUserId);
+        await transaction
+          .insert(relationshipBlocks)
+          .values({
+            blockerUserId: input.userId,
+            blockedUserId: character.linkedUserId,
+            contextCuratedPersonId: input.curatedPersonId,
+            createdAt: input.now,
+          })
+          .onConflictDoNothing();
+        await invalidatePendingPairings(
+          transaction,
+          input.userId,
+          character.linkedUserId,
+          input.now,
+        );
+        const connection = await existingConnection(
+          transaction,
+          input.userId,
+          character.linkedUserId,
+        );
+        if (connection !== null) {
+          const [firstUserId, secondUserId] = orderedUsers(
+            input.userId,
+            character.linkedUserId,
+          );
+          await transaction
+            .delete(connections)
+            .where(
+              and(
+                eq(connections.firstUserId, firstUserId),
+                eq(connections.secondUserId, secondUserId),
+              ),
+            );
+        }
+        return { ok: true, value: null };
+      });
+    },
+
+    async unblock(input: {
+      userId: string;
+      blockedUserId: string;
+    }): Promise<ConnectionRepositoryResult<null>> {
+      return database.transaction(async (transaction) => {
+        const removed = await transaction
+          .delete(relationshipBlocks)
+          .where(
+            and(
+              eq(relationshipBlocks.blockerUserId, input.userId),
+              eq(relationshipBlocks.blockedUserId, input.blockedUserId),
+            ),
+          )
+          .returning({ blockerUserId: relationshipBlocks.blockerUserId });
+        return removed.length === 1
+          ? { ok: true, value: null }
+          : { ok: false, error: "relationship-not-found" };
+      });
+    },
+
+    async blockPairing(input: {
+      token: string;
+      userId: string;
+      now: Date;
+    }): Promise<ConnectionRepositoryResult<null>> {
+      return database.transaction(async (transaction) => {
+        const pairing = await findPairing(transaction, input.token);
+        if (pairing === null) {
+          return { ok: false, error: "inactive-pairing" };
+        }
+        const state = stateFor(pairing, input.now);
+        if (state !== "pending" && state !== "completed") {
+          if (state === "expired") {
+            await revokeSignupCodes(transaction, [pairing.id], input.now);
+          }
+          return { ok: false, error: "inactive-pairing" };
+        }
+        const targetUserId =
+          input.userId === pairing.initiatorUserId
+            ? pairing.receiverUserId
+            : input.userId === pairing.receiverUserId
+              ? pairing.initiatorUserId
+              : null;
+        if (targetUserId === null) {
+          return { ok: false, error: "not-pairing-participant" };
+        }
+        await lockUsers(transaction, input.userId, targetUserId);
+        await transaction
+          .insert(relationshipBlocks)
+          .values({
+            blockerUserId: input.userId,
+            blockedUserId: targetUserId,
+            contextCuratedPersonId:
+              input.userId === pairing.initiatorUserId
+                ? pairing.initiatorCuratedPersonId
+                : pairing.receiverCuratedPersonId,
+            createdAt: input.now,
+          })
+          .onConflictDoNothing();
+        await invalidatePendingPairings(
+          transaction,
+          input.userId,
+          targetUserId,
+          input.now,
+        );
+        const connection = await existingConnection(
+          transaction,
+          input.userId,
+          targetUserId,
+        );
+        if (connection !== null) {
+          const [firstUserId, secondUserId] = orderedUsers(
+            input.userId,
+            targetUserId,
+          );
+          await transaction
+            .delete(connections)
+            .where(
+              and(
+                eq(connections.firstUserId, firstUserId),
+                eq(connections.secondUserId, secondUserId),
+              ),
+            );
+        }
+        return { ok: true, value: null };
       });
     },
 

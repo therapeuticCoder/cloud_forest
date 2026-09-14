@@ -19,18 +19,34 @@ import type {
   CarePersonId,
   ReceiveCareRequest,
 } from "@/types/careRequest";
-import type { CuratorPerson, CuratorSelection } from "@/types/curator";
+import {
+  hasActiveConnection,
+  type CuratorPerson,
+  type CuratorSelection,
+} from "@/types/curator";
 
 import { CareRequestCard } from "./CareRequestCard";
 import { layerBackgrounds, layerOuterBackgrounds } from "./curatorLayerStyles";
 import { partyRelationshipOptions } from "./partyRelationshipOptions";
 import { Portrait } from "./PartyLayer";
+import { RelationshipConfirmationDialog } from "./RelationshipConfirmationDialog";
 
 type CuratorDetailViewProps = {
   careLifecycle: CareLifecycleState;
   characterSubmission: { pending: boolean; error?: string };
   isOffline: boolean;
   onBack: () => void;
+  onBackToLayer: (
+    layer: "holding" | "party" | "tribe",
+    holdingTab?: "characters" | "blocks",
+  ) => void;
+  onBlockCharacter: (person: CuratorPerson) => Promise<boolean>;
+  onDeleteCharacter: (person: CuratorPerson) => Promise<boolean>;
+  onEndConnection: (
+    person: CuratorPerson,
+    deleteCharacter: boolean,
+  ) => Promise<boolean>;
+  onUnblockCharacter: (person: CuratorPerson) => Promise<boolean>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onPass: (request: ReceiveCareRequest) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
@@ -84,7 +100,7 @@ function SelectionVisual({
   ) {
     return (
       <Portrait
-        grayscale={selection.item.linkedUserId == null}
+        grayscale={!hasActiveConnection(selection.item)}
         initials={initials ?? selection.item.initials}
         layer={selection.layer}
         personId={selection.item.id}
@@ -125,6 +141,26 @@ const layerControlStyles = {
   signal: "border-slate-100/30 bg-slate-950/60 text-slate-100",
 } as const;
 
+const relationshipConfirmationCopy = {
+  "delete-character": {
+    confirmLabel: "Delete Character",
+    description: "This removes only your Character and its curation.",
+    title: "Delete this Character?",
+  },
+  "end-and-delete": {
+    confirmLabel: "End and delete",
+    description:
+      "This ends the mutual Connection and removes only your Character. The other person’s Character will remain theirs.",
+    title: "End Connection and delete Character?",
+  },
+  block: {
+    confirmLabel: "Block user",
+    description:
+      "This immediately ends the Connection or relationship attempt and prevents a new Connection while the block remains.",
+    title: "Block this Cloud Forest user?",
+  },
+} as const;
+
 function editorRelationshipShape(value: string) {
   return partyRelationshipOptions.includes(
     value as (typeof partyRelationshipOptions)[number],
@@ -149,8 +185,13 @@ function isCharacterSelection(
 export function CuratorDetailView({
   careLifecycle,
   characterSubmission,
+  onBackToLayer,
+  onBlockCharacter,
   isOffline,
   onBack,
+  onDeleteCharacter,
+  onEndConnection,
+  onUnblockCharacter,
   onOfferHelp,
   onPass,
   onRecordCompleted,
@@ -167,6 +208,9 @@ export function CuratorDetailView({
   const initialCharacter =
     isPerson && selection.item.version !== undefined ? selection.item : null;
   const [character, setCharacter] = useState(initialCharacter);
+  const [confirmationAction, setConfirmationAction] =
+    useState<keyof typeof relationshipConfirmationCopy>();
+  const [showEndChoice, setShowEndChoice] = useState(false);
   const selectionName = character?.displayName ?? getSelectionName(selection);
   const [draft, setDraft] = useState(() =>
     character
@@ -187,8 +231,10 @@ export function CuratorDetailView({
   const activeLayer = character && draft ? draft.placement : selection.layer;
   const activeLayerTheme = layerThemeLabels[activeLayer];
   const controlStyle = layerControlStyles[activeLayer];
+  const isConnected = character ? hasActiveConnection(character) : false;
+  const isBlocked = character?.relationshipState === "blocked";
   const layerDescription = character
-    ? `${layerLabels[activeLayer]} ${character.linkedUserId ? "Connection" : "Character"}`
+    ? `${layerLabels[activeLayer]} ${isBlocked ? "Blocked" : isConnected ? "Connection" : "Character"}`
     : layerLabels[activeLayer];
   const profileOwnerId = isPerson ? selection.item.id : undefined;
   const now = new Date().toISOString();
@@ -219,6 +265,73 @@ export function CuratorDetailView({
       setDraft((current) => (current ? { ...current, placement } : current));
     }
   };
+
+  const deleteCharacter = async () => {
+    if (!character) return;
+    if (await onDeleteCharacter(character)) {
+      if (isCharacterSelection(selection)) onBackToLayer(selection.layer);
+      else onBack();
+    }
+  };
+
+  const requestDeleteCharacter = () => {
+    if (character) setConfirmationAction("delete-character");
+  };
+
+  const endConnection = async (deleteLocalCharacter: boolean) => {
+    if (!character) return;
+    if (await onEndConnection(character, deleteLocalCharacter)) {
+      setShowEndChoice(false);
+      if (deleteLocalCharacter) {
+        if (isCharacterSelection(selection)) onBackToLayer(selection.layer);
+        else onBack();
+      } else {
+        setCharacter({ ...character, relationshipState: "character" });
+      }
+    }
+  };
+
+  const requestEndConnection = (deleteLocalCharacter: boolean) => {
+    if (deleteLocalCharacter) {
+      setConfirmationAction("end-and-delete");
+      return;
+    }
+    void endConnection(false);
+  };
+
+  const blockCharacter = async () => {
+    if (!character?.linkedUserId) return;
+    if (await onBlockCharacter(character)) {
+      onBackToLayer("holding", "blocks");
+    }
+  };
+
+  const requestBlockCharacter = () => {
+    if (character?.linkedUserId) setConfirmationAction("block");
+  };
+
+  const unblockCharacter = async () => {
+    if (!character) return;
+    if (await onUnblockCharacter(character)) {
+      setCharacter({
+        ...character,
+        blockedUserId: undefined,
+        relationshipState: "character",
+      });
+    }
+  };
+
+  const confirmRelationshipAction = () => {
+    const action = confirmationAction;
+    setConfirmationAction(undefined);
+    if (action === "delete-character") void deleteCharacter();
+    if (action === "end-and-delete") void endConnection(true);
+    if (action === "block") void blockCharacter();
+  };
+
+  const activeConfirmation = confirmationAction
+    ? relationshipConfirmationCopy[confirmationAction]
+    : null;
 
   return (
     <section
@@ -404,11 +517,93 @@ export function CuratorDetailView({
                   </p>
                 ) : null}
                 <div className="border-t border-lime-100/15 pt-4">
-                  {character.linkedUserId ? (
-                    <p className="flex items-center gap-2 text-sm text-lime-100">
-                      <Link2 aria-hidden="true" size={16} /> Connected to a
-                      Cloud Forest user
-                    </p>
+                  {isConnected ? (
+                    <div className="grid gap-3">
+                      <p className="flex items-center gap-2 text-sm text-lime-100">
+                        <Link2 aria-hidden="true" size={16} /> Connected to a
+                        Cloud Forest user
+                      </p>
+                      {showEndChoice ? (
+                        <div className="grid gap-2 rounded-xl border border-rose-100/20 bg-rose-950/20 p-3">
+                          <p className="text-sm text-slate-300">
+                            End this mutual Connection now. Your private
+                            Character can stay private, or you can delete it.
+                          </p>
+                          <Button
+                            className="border border-lime-100/25 text-slate-100 hover:bg-lime-100/10"
+                            disabled={isOffline || characterSubmission.pending}
+                            onClick={() => void endConnection(false)}
+                            type="button"
+                            variant="ghost"
+                          >
+                            End and keep Character
+                          </Button>
+                          <Button
+                            className="text-rose-100 hover:bg-rose-100/10"
+                            disabled={isOffline || characterSubmission.pending}
+                            onClick={() => requestEndConnection(true)}
+                            type="button"
+                            variant="ghost"
+                          >
+                            End and delete Character
+                          </Button>
+                          <Button
+                            className="text-slate-300 hover:bg-white/10"
+                            onClick={() => setShowEndChoice(false)}
+                            type="button"
+                            variant="ghost"
+                          >
+                            Keep Connection
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            className="border border-amber-100/25 text-slate-100 hover:bg-amber-100/10"
+                            disabled={isOffline || characterSubmission.pending}
+                            onClick={() => setShowEndChoice(true)}
+                            type="button"
+                            variant="ghost"
+                          >
+                            End Connection
+                          </Button>
+                          <Button
+                            className="text-rose-100 hover:bg-rose-100/10"
+                            disabled={isOffline || characterSubmission.pending}
+                            onClick={requestBlockCharacter}
+                            type="button"
+                            variant="ghost"
+                          >
+                            Block
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ) : isBlocked ? (
+                    <div className="grid gap-3">
+                      <p className="text-sm text-rose-100">
+                        This user is blocked. They cannot establish a new
+                        Connection with you while the block remains.
+                      </p>
+                      <Button
+                        className="border border-lime-100/25 text-slate-100 hover:bg-lime-100/10"
+                        disabled={isOffline || characterSubmission.pending}
+                        onClick={() => void unblockCharacter()}
+                        type="button"
+                        variant="ghost"
+                      >
+                        Unblock
+                      </Button>
+                      <Button
+                        className="text-rose-100 hover:bg-rose-100/10"
+                        disabled={isOffline || characterSubmission.pending}
+                        onClick={requestDeleteCharacter}
+                        type="button"
+                        variant="ghost"
+                      >
+                        Delete Character
+                      </Button>
+                    </div>
                   ) : (
                     <div className="grid gap-3">
                       <p className="text-sm text-slate-300">
@@ -424,6 +619,15 @@ export function CuratorDetailView({
                         <Link2 aria-hidden="true" /> Connect with a Cloud Forest
                         user
                       </Button>
+                      <Button
+                        className="text-rose-100 hover:bg-rose-100/10"
+                        disabled={isOffline || characterSubmission.pending}
+                        onClick={requestDeleteCharacter}
+                        type="button"
+                        variant="ghost"
+                      >
+                        Delete Character
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -431,7 +635,7 @@ export function CuratorDetailView({
             </section>
           ) : null}
 
-          {isPerson && character?.linkedUserId ? (
+          {isPerson && character && isConnected ? (
             <section
               aria-labelledby="profile-care-heading"
               className="curator-profile-care"
@@ -513,6 +717,15 @@ export function CuratorDetailView({
           ) : null}
         </div>
       </div>
+      <RelationshipConfirmationDialog
+        confirmLabel={activeConfirmation?.confirmLabel ?? "Confirm"}
+        description={activeConfirmation?.description ?? ""}
+        onCancel={() => setConfirmationAction(undefined)}
+        onConfirm={confirmRelationshipAction}
+        open={activeConfirmation !== null}
+        pending={characterSubmission.pending}
+        title={activeConfirmation?.title ?? "Confirm relationship action"}
+      />
     </section>
   );
 }

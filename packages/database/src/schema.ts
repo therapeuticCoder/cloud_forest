@@ -5,6 +5,7 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -361,6 +362,34 @@ export const careRequests = pgTable(
     check(
       "care_requests_not_self_claimed",
       sql`${table.claimantUserId} is null or ${table.requesterUserId} <> ${table.claimantUserId}`,
+    ),
+  ],
+);
+
+export const relationshipBlocks = pgTable(
+  "relationship_blocks",
+  {
+    blockerUserId: varchar("blocker_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    blockedUserId: varchar("blocked_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    contextCuratedPersonId: varchar("context_curated_person_id", {
+      length: 128,
+    }).references(() => curatedPersons.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.blockerUserId, table.blockedUserId],
+      name: "relationship_blocks_pkey",
+    }),
+    index("relationship_blocks_blocker_index").on(table.blockerUserId),
+    index("relationship_blocks_blocked_index").on(table.blockedUserId),
+    check(
+      "relationship_blocks_users_distinct",
+      sql`${table.blockerUserId} <> ${table.blockedUserId}`,
     ),
   ],
 );

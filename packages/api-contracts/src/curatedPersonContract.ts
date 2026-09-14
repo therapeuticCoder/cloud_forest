@@ -19,6 +19,11 @@ export const curatedPersonPlacementSchema = Type.Union([
   Type.Literal("signal"),
   Type.Literal("holding"),
 ]);
+export const curatedPersonRelationshipStateSchema = Type.Union([
+  Type.Literal("character"),
+  Type.Literal("connected"),
+  Type.Literal("blocked"),
+]);
 
 export const curatedPersonSchema = Type.Object(
   {
@@ -31,6 +36,8 @@ export const curatedPersonSchema = Type.Object(
     portraitUrl: Type.Optional(portraitUrl),
     placement: curatedPersonPlacementSchema,
     linkedUserId: Type.Union([curatedPersonId, Type.Null()]),
+    relationshipState: curatedPersonRelationshipStateSchema,
+    blockedUserId: Type.Optional(curatedPersonId),
     version,
     createdAt: Type.String({ format: "date-time" }),
     updatedAt: Type.String({ format: "date-time" }),
@@ -51,6 +58,7 @@ export const curatedPersonErrorSchema = Type.Object(
           Type.Literal("PARTY_FULL"),
           Type.Literal("TRIBE_FULL"),
           Type.Literal("STALE_WRITE_CONFLICT"),
+          Type.Literal("CONNECTED_CHARACTER"),
         ]),
         message: Type.String({ minLength: 1, maxLength: 500 }),
       },
@@ -109,6 +117,21 @@ export const removeCuratedPersonBodySchema = Type.Object(
   { expectedVersion: version },
   { additionalProperties: false },
 );
+export const endConnectionBodySchema = Type.Object(
+  { deleteCharacter: Type.Boolean() },
+  { additionalProperties: false },
+);
+export const unblockCuratedPersonBodySchema = Type.Object(
+  { blockedUserId: curatedPersonId },
+  { additionalProperties: false },
+);
+
+export const endConnectionPath =
+  "/api/v1/curated-persons/:curatedPersonId/end-connection";
+export const blockCuratedPersonPath =
+  "/api/v1/curated-persons/:curatedPersonId/block";
+export const unblockCuratedPersonPath =
+  "/api/v1/curated-persons/:curatedPersonId/unblock";
 
 export type CuratedPerson = Static<typeof curatedPersonSchema>;
 export type CuratedPersonErrorResponse = Static<

@@ -1,6 +1,10 @@
 import { Sprout } from "lucide-react";
 
-import type { CuratorPerson, CuratorSelection } from "@/types/curator";
+import {
+  hasActiveConnection,
+  type CuratorPerson,
+  type CuratorSelection,
+} from "@/types/curator";
 
 import { Portrait } from "./PartyLayer";
 
@@ -19,8 +23,7 @@ function TribePerson({
   onSelect: (trigger: HTMLButtonElement) => void;
   person: CuratorPerson;
 }) {
-  const isConnection =
-    person.linkedUserId !== null && person.linkedUserId !== undefined;
+  const isConnection = hasActiveConnection(person);
 
   return (
     <button

@@ -120,7 +120,8 @@ function isHistoryEntry(value: unknown): value is CareHistoryEntry {
     (value.outcome === "completed" ||
       value.outcome === "not-completed" ||
       value.outcome === "expired" ||
-      value.outcome === "withdrawn") &&
+      value.outcome === "withdrawn" ||
+      value.outcome === "orphaned") &&
     isTimestamp(value.recordedAt) &&
     (value.dispositionId === undefined || isString(value.dispositionId))
   );

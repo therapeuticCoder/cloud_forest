@@ -138,6 +138,8 @@ export function buildApi(
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
   server.register(curatedPersonRoutes, {
+    connectionRepository:
+      options.connectionRepository ?? missingConnectionRepository,
     repository:
       options.curatedPersonRepository ?? missingCuratedPersonRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,

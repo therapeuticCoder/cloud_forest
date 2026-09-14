@@ -88,3 +88,10 @@ export function cancelConnectionPairing(token: string) {
     `/api/v1/connection-pairings/${encodeURIComponent(token)}/cancel`,
   );
 }
+
+export function blockConnectionPairing(token: string) {
+  return request<null>(
+    "POST",
+    `/api/v1/connection-pairings/${encodeURIComponent(token)}/block`,
+  );
+}

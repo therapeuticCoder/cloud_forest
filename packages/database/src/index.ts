@@ -15,6 +15,7 @@ export {
   partyMemberships,
   curatedPersons,
   connections,
+  relationshipBlocks,
   connectionPairings,
   careRequests,
   accountPeople,
