@@ -5,6 +5,7 @@ import solArdenPortrait from "@/assets/curator/sol-arden.png";
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 type PartyLayerProps = {
+  addDisabled: boolean;
   onAdd: (slotIndex?: number) => void;
   onRetry: () => void;
   onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
@@ -229,6 +230,7 @@ export function PartyActions({
 }
 
 export function PartyLayer({
+  addDisabled,
   onAdd,
   onRetry,
   onSelect,
@@ -277,6 +279,7 @@ export function PartyLayer({
                   className="party-card party-card--empty"
                   data-curator-tile={`party-add-${index + 1}`}
                   data-party-slot={index}
+                  disabled={addDisabled}
                   key={`party-slot-${index}`}
                   onClick={() => onAdd(index)}
                   type="button"

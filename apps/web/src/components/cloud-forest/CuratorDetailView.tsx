@@ -29,6 +29,7 @@ import { Portrait } from "./PartyLayer";
 type CuratorDetailViewProps = {
   careLifecycle: CareLifecycleState;
   characterSubmission: { pending: boolean; error?: string };
+  isOffline: boolean;
   onBack: () => void;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onPass: (request: ReceiveCareRequest) => void;
@@ -146,6 +147,7 @@ function isCharacterSelection(
 export function CuratorDetailView({
   careLifecycle,
   characterSubmission,
+  isOffline,
   onBack,
   onOfferHelp,
   onPass,
@@ -274,6 +276,7 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
+                    readOnly={isOffline}
                     value={draft.firstName}
                   />
                 </label>
@@ -288,6 +291,7 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
+                    readOnly={isOffline}
                     value={draft.lastName}
                   />
                 </label>
@@ -302,6 +306,7 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
+                    readOnly={isOffline}
                     value={draft.nickname}
                   />
                 </label>
@@ -319,6 +324,7 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
+                    disabled={isOffline}
                     value={draft.relationshipShape}
                   >
                     {partyRelationshipOptions.map((option) => (
@@ -342,12 +348,20 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
+                    readOnly={isOffline}
                     value={draft.privateDescription}
                   />
                 </label>
+                {isOffline ? (
+                  <p className="text-sm text-amber-100/80" role="status">
+                    This is cached relationship data. Character changes require
+                    a connection.
+                  </p>
+                ) : null}
                 <Button
                   className="bg-lime-200 text-slate-950 hover:bg-lime-100"
                   disabled={
+                    isOffline ||
                     characterSubmission.pending ||
                     !draft.firstName.trim() ||
                     !draft.lastName.trim() ||
@@ -367,6 +381,7 @@ export function CuratorDetailView({
                         <Button
                           className="border border-lime-100/25 text-slate-100 hover:bg-lime-100/10"
                           disabled={
+                            isOffline ||
                             characterSubmission.pending ||
                             draft.placement === placement
                           }
@@ -400,7 +415,7 @@ export function CuratorDetailView({
                       </p>
                       <Button
                         className="min-h-12 w-full bg-lime-200 text-base text-slate-950 hover:bg-lime-100"
-                        disabled={characterSubmission.pending}
+                        disabled={isOffline || characterSubmission.pending}
                         onClick={() => void onStartConnection(character)}
                         type="button"
                       >

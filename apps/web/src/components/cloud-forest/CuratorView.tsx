@@ -1,4 +1,4 @@
-import { Cloud, RadioTower, UsersRound } from "lucide-react";
+import { Cloud, CloudOff, RadioTower, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { curatorGuilds, curatorSignals } from "@/data/cloudForest";
@@ -31,6 +31,7 @@ type CuratorLayerSectionProps = {
   careActionsDisabled?: boolean;
   children: React.ReactNode;
   count: string;
+  curatedPeopleOffline: boolean;
   label: CuratorLayerLabel;
   nextLayer?: "Party" | "Tribe" | "Guilds" | "Signals";
   onAddPartyMember: () => void;
@@ -50,6 +51,8 @@ type CuratorViewProps = {
   characterSubmission: { pending: boolean; error?: string };
   curatedPeopleStatus: "loading" | "ready" | "error";
   curatedPeopleError?: string;
+  curatedPeopleCached: boolean;
+  curatedPeopleOffline: boolean;
   onAddPartyMember: (
     destination: "holding" | "party" | "tribe",
     slotIndex?: number,
@@ -115,6 +118,7 @@ function CuratorLayerSection({
   addDisabled,
   careActionsDisabled = false,
   count,
+  curatedPeopleOffline,
   label,
   nextLayer,
   onAddPartyMember,
@@ -162,9 +166,16 @@ function CuratorLayerSection({
       >
         <header className="grid grid-cols-[3rem_minmax(0,1fr)_auto_auto] items-center gap-2 pb-4">
           <button
-            aria-label="Open My Care"
+            aria-label={
+              curatedPeopleOffline
+                ? "Open My Care (offline)"
+                : "Open My Care"
+            }
             className="party-self"
             data-my-care-trigger={`curator-${label.toLowerCase()}`}
+            title={
+              curatedPeopleOffline ? "Offline — showing cached data" : undefined
+            }
             onClick={() =>
               onOpenMyCare(
                 `[data-my-care-trigger="curator-${label.toLowerCase()}"]`,
@@ -172,12 +183,19 @@ function CuratorLayerSection({
             }
             type="button"
           >
-            <Portrait
-              initials={user.initials}
-              personId={user.id}
-              showInitials
-              small
-            />
+            {curatedPeopleOffline ? (
+              <CloudOff
+                aria-hidden="true"
+                className="size-7 text-amber-100"
+              />
+            ) : (
+              <Portrait
+                initials={user.initials}
+                personId={user.id}
+                showInitials
+                small
+              />
+            )}
           </button>
           <h1 className="min-w-0 truncate text-3xl font-medium tracking-tight sm:text-4xl">
             {label}
@@ -218,7 +236,9 @@ export function CuratorView({
   careLifecycle,
   careViewerId,
   characterSubmission,
+  curatedPeopleCached,
   curatedPeopleError,
+  curatedPeopleOffline,
   curatedPeopleStatus,
   onAddPartyMember,
   onCancelAdd,
@@ -253,6 +273,7 @@ export function CuratorView({
     (person) =>
       person.linkedUserId !== null && person.linkedUserId !== undefined,
   );
+  const addDisabled = curatedPeopleOffline || curatedPeopleStatus !== "ready";
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -349,6 +370,7 @@ export function CuratorView({
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
         onSetRequestMinimized={onSetRequestMinimized}
+        isOffline={curatedPeopleOffline || curatedPeopleCached}
         onStartConnection={onStartConnection}
         onUpdateCharacter={onUpdateCharacter}
         onWithdraw={onWithdraw}
@@ -365,9 +387,7 @@ export function CuratorView({
       className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-slate-950 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <CuratorLayerSection
-        addDisabled={
-          curatedPeopleStatus !== "ready" || holdingPeople.length >= 5
-        }
+        addDisabled={addDisabled || holdingPeople.length >= 5}
         count={`${holdingPeople.length}/5`}
         label="Holding"
         nextLayer="Party"
@@ -376,6 +396,7 @@ export function CuratorView({
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
+        curatedPeopleOffline={curatedPeopleOffline}
         user={user}
       >
         <HoldingLayer
@@ -387,7 +408,7 @@ export function CuratorView({
         />
       </CuratorLayerSection>
       <CuratorLayerSection
-        addDisabled={curatedPeopleStatus !== "ready" || partyPeople.length >= 5}
+        addDisabled={addDisabled || partyPeople.length >= 5}
         careActionsDisabled={!partyHasConnection}
         count={`${partyPeople.length}/5`}
         label="Party"
@@ -397,9 +418,11 @@ export function CuratorView({
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
+        curatedPeopleOffline={curatedPeopleOffline}
         user={user}
       >
         <PartyLayer
+          addDisabled={addDisabled}
           onAdd={(slotIndex) => onAddPartyMember("party", slotIndex)}
           onSelect={handleSelect}
           onRetry={onRetryCuratedPeople}
@@ -409,9 +432,7 @@ export function CuratorView({
         />
       </CuratorLayerSection>
       <CuratorLayerSection
-        addDisabled={
-          curatedPeopleStatus !== "ready" || tribePeople.length >= 100
-        }
+        addDisabled={addDisabled || tribePeople.length >= 100}
         careActionsDisabled={!tribeHasConnection}
         count={`${tribePeople.length}/100`}
         label="Tribe"
@@ -421,6 +442,7 @@ export function CuratorView({
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
+        curatedPeopleOffline={curatedPeopleOffline}
         user={user}
       >
         <TribeLayer
@@ -441,6 +463,7 @@ export function CuratorView({
         onNavigateToTimeline={onNavigateToTimeline}
         onOpenMyCare={onOpenMyCare}
         onReceive={onReceive}
+        curatedPeopleOffline={curatedPeopleOffline}
         user={user}
       >
         <GuildsLayer guilds={curatorGuilds} onSelect={handleSelect} />
@@ -449,6 +472,7 @@ export function CuratorView({
         addDisabled
         careActionsDisabled
         count={`${curatorSignals.length}/10`}
+        curatedPeopleOffline={curatedPeopleOffline}
         label="Signals"
         onAddPartyMember={() => undefined}
         onGive={onGive}

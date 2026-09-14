@@ -20,6 +20,10 @@ import type {
   GiveCareOffer,
   ReceiveCareRequest,
 } from "@/types/careRequest";
+import {
+  loadTimelineItemSnapshot,
+  saveTimelineItemSnapshot,
+} from "@/lib/timelineItemStorage";
 
 import { CareOfferCard } from "./CareOfferCard";
 import { CareGratitudeCard } from "./CareGratitudeCard";
@@ -37,9 +41,13 @@ type TimelineLayerFilter = Exclude<CloudForestLayer, "self">;
 
 type TimelineItemState =
   | { status: "loading" }
-  | { status: "success"; item: RemoteTimelineItem }
+  | {
+      status: "success";
+      item: RemoteTimelineItem;
+      source: "cache" | "live";
+    }
   | { status: "empty" }
-  | { status: "error" };
+  | { status: "error"; recoverable: boolean };
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -146,15 +154,23 @@ function CareListings({
   );
 }
 
-function RemoteTimelineSlot({
-  apiClient,
-  layerFilter,
-}: {
-  apiClient: Pick<ApiClient, "getTimelineItem">;
-  layerFilter: TimelineLayerFilter | null;
-}) {
+function initialTimelineItemState(cacheOwnerId?: string): TimelineItemState {
+  const cachedItem = cacheOwnerId
+    ? loadTimelineItemSnapshot(cacheOwnerId)
+    : undefined;
+  return cachedItem
+    ? { status: "success", item: cachedItem, source: "cache" }
+    : { status: "loading" };
+}
+
+function useRemoteTimelineItem(
+  apiClient: Pick<ApiClient, "getTimelineItem">,
+  cacheOwnerId?: string,
+) {
   const [attempt, setAttempt] = useState(0);
-  const [state, setState] = useState<TimelineItemState>({ status: "loading" });
+  const [state, setState] = useState<TimelineItemState>(() =>
+    initialTimelineItemState(cacheOwnerId),
+  );
 
   useEffect(() => {
     let active = true;
@@ -165,22 +181,55 @@ function RemoteTimelineSlot({
         if (!active) return;
 
         if (result.ok) {
-          setState({
-            status: "success",
-            item: result.value.data.timelineItem,
-          });
-        } else if (result.kind === "http" && result.status === 404) {
-          setState({ status: "empty" });
-        } else {
-          setState({ status: "error" });
+          const item = result.value.data.timelineItem;
+          saveTimelineItemSnapshot(cacheOwnerId ?? "", item);
+          setState({ status: "success", item, source: "live" });
+          return;
         }
+
+        if (result.kind === "http" && result.status === 404) {
+          setState({ status: "empty" });
+          return;
+        }
+
+        const recoverable =
+          result.kind === "network" ||
+          (result.kind === "unexpected-response" && result.status >= 500);
+        if (recoverable) {
+          const cachedItem = cacheOwnerId
+            ? loadTimelineItemSnapshot(cacheOwnerId)
+            : undefined;
+          if (cachedItem) {
+            setState({ status: "success", item: cachedItem, source: "cache" });
+            return;
+          }
+        }
+
+        setState({ status: "error", recoverable });
       });
 
     return () => {
       active = false;
     };
-  }, [apiClient, attempt]);
+  }, [apiClient, attempt, cacheOwnerId]);
 
+  const retry = () => {
+    setState({ status: "loading" });
+    setAttempt((value) => value + 1);
+  };
+
+  return { retry, state };
+}
+
+function TimelineItemSlot({
+  layerFilter,
+  onRetry,
+  state,
+}: {
+  layerFilter: TimelineLayerFilter | null;
+  onRetry: () => void;
+  state: TimelineItemState;
+}) {
   if (state.status === "success") {
     const item = remoteTimelineItemToCardItem(state.item);
     if (layerFilter !== null && item.actor.layer !== layerFilter) {
@@ -204,15 +253,10 @@ function RemoteTimelineSlot({
   }
 
   if (state.status === "error") {
-    const retry = () => {
-      setState({ status: "loading" });
-      setAttempt((value) => value + 1);
-    };
-
     return (
       <div className="timeline-remote-state" role="alert">
         <span>One live Timeline item could not be loaded.</span>
-        <button type="button" onClick={retry}>
+        <button type="button" onClick={onRetry}>
           Try again
         </button>
       </div>
@@ -241,8 +285,10 @@ export function TimelinePanel({
   onSetRequestMinimized = () => undefined,
   onWithdraw = () => undefined,
   onWithdrawOffer = () => undefined,
+  onOfflineChange,
   passableRequestIds = noPassableRequestIds,
   passAnnouncement,
+  cacheOwnerId,
   viewerClaimedRequestIds = noClaimedRequestIds,
   viewerCompletedRequestIds = noCompletedRequestIds,
   otherParticipantCompletedRequestIds = noCompletedRequestIds,
@@ -262,13 +308,24 @@ export function TimelinePanel({
   onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
   onWithdraw?: (requestId: string) => void;
   onWithdrawOffer?: (offerId: string) => void;
+  onOfflineChange?: (offline: boolean) => void;
   passableRequestIds?: Set<string>;
   passAnnouncement?: string;
+  cacheOwnerId?: string;
   viewerClaimedRequestIds?: Set<string>;
   viewerCompletedRequestIds?: Set<string>;
   otherParticipantCompletedRequestIds?: Set<string>;
   viewerId?: CarePersonId;
 }) {
+  const timelineItem = useRemoteTimelineItem(apiClient, cacheOwnerId);
+  useEffect(() => {
+    const timelineIsOffline =
+      (timelineItem.state.status === "success" &&
+        timelineItem.state.source === "cache") ||
+      (timelineItem.state.status === "error" &&
+        timelineItem.state.recoverable);
+    onOfflineChange?.(timelineIsOffline);
+  }, [onOfflineChange, timelineItem.state]);
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
     "all",
   );
@@ -435,9 +492,10 @@ export function TimelinePanel({
                 viewerId={viewerId}
               />
             ) : null}
-            <RemoteTimelineSlot
-              apiClient={apiClient}
+            <TimelineItemSlot
               layerFilter={layerFilter}
+              onRetry={timelineItem.retry}
+              state={timelineItem.state}
             />
           </>
         )}
