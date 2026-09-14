@@ -175,6 +175,7 @@ export const connectionPairingRoutes: FastifyPluginAsyncTypebox<
           id: `signup-code-${randomUUID()}`,
           code: signupCode,
           createdByUserId: current.userId,
+          connectionPairingId: result.value.pairing.id,
           now: new Date(),
         });
       } catch (signupCodeError) {

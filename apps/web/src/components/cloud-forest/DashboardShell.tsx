@@ -373,6 +373,7 @@ export function DashboardShell({
   const closePairing = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete("pairing");
+    url.searchParams.delete("signup");
     window.history.pushState(
       { ...window.history.state, cloudForestView: "curator" },
       "",
