@@ -1268,6 +1268,9 @@ button:focus-visible {
   padding: max(0.75rem, env(safe-area-inset-top)) 1rem
     max(1rem, env(safe-area-inset-bottom));
   color: #e7e8d8;
+}
+
+.party-wizard:not([data-layer]) {
   background: var(--forest-bark);
 }
 

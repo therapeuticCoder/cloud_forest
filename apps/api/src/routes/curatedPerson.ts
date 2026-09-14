@@ -6,15 +6,24 @@ import {
   curatedPersonsPath,
   curatedPersonsSuccessSchema,
   createCuratedPersonBodySchema,
+  blockCuratedPersonPath,
+  endConnectionBodySchema,
+  endConnectionPath,
+  unblockCuratedPersonBodySchema,
+  unblockCuratedPersonPath,
   removeCuratedPersonBodySchema,
   updateCuratedPersonBodySchema,
 } from "@cloud-forest/api-contracts";
-import type { CuratedPersonRepository } from "@cloud-forest/database";
+import type {
+  ConnectionRepository,
+  CuratedPersonRepository,
+} from "@cloud-forest/database";
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
 import type { SessionResolver } from "../sessionResolver.ts";
 
 type Options = {
+  connectionRepository: ConnectionRepository;
   repository: CuratedPersonRepository;
   sessionResolver: SessionResolver;
 };
@@ -28,6 +37,8 @@ const message = {
   TRIBE_FULL: "Your Tribe already has 100 people.",
   STALE_WRITE_CONFLICT:
     "This private Person has changed. Refresh and try again.",
+  CONNECTED_CHARACTER:
+    "End the Connection before deleting this private Character.",
 } as const;
 
 type CuratedPersonErrorCode = keyof typeof message;
@@ -52,6 +63,8 @@ function toApiPerson(
     portraitUrl: person.portraitUrl || undefined,
     placement: person.placement,
     linkedUserId: person.linkedUserId,
+    relationshipState: person.relationshipState,
+    ...(person.blockedUserId ? { blockedUserId: person.blockedUserId } : {}),
     version: person.version,
     createdAt: person.createdAt.toISOString(),
     updatedAt: person.updatedAt.toISOString(),
@@ -188,7 +201,9 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
                 ? "PARTY_FULL"
                 : result.error === "tribe-capacity-exceeded"
                   ? "TRIBE_FULL"
-                  : "STALE_WRITE_CONFLICT";
+                  : result.error === "curated-person-connected"
+                    ? "CONNECTED_CHARACTER"
+                    : "STALE_WRITE_CONFLICT";
         return reply.status(code === "NOT_FOUND" ? 404 : 409).send(error(code));
       }
       return ownedPeople(current.userId, request.params.curatedPersonId);
@@ -218,10 +233,91 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
         const code =
           result.error === "curated-person-not-found"
             ? "NOT_FOUND"
-            : "STALE_WRITE_CONFLICT";
+            : result.error === "curated-person-connected"
+              ? "CONNECTED_CHARACTER"
+              : "STALE_WRITE_CONFLICT";
         return reply.status(code === "NOT_FOUND" ? 404 : 409).send(error(code));
       }
       return ownedPeople(current.userId, request.params.curatedPersonId);
+    },
+  );
+
+  server.post(
+    endConnectionPath,
+    {
+      schema: {
+        operationId: "endConnectionV1",
+        tags: ["Relationships"],
+        params: curatedPersonParamsSchema,
+        body: endConnectionBodySchema,
+        response: responses,
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.connectionRepository.end({
+        userId: current.userId,
+        curatedPersonId: request.params.curatedPersonId,
+        ...request.body,
+        now: new Date(),
+      });
+      if (!result.ok) {
+        return reply
+          .status(result.error === "character-not-found" ? 404 : 409)
+          .send(error("NOT_FOUND"));
+      }
+      return ownedPeople(current.userId);
+    },
+  );
+
+  server.post(
+    blockCuratedPersonPath,
+    {
+      schema: {
+        operationId: "blockCuratedPersonV1",
+        tags: ["Relationships"],
+        params: curatedPersonParamsSchema,
+        response: responses,
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.connectionRepository.block({
+        userId: current.userId,
+        curatedPersonId: request.params.curatedPersonId,
+        now: new Date(),
+      });
+      if (!result.ok) {
+        return reply
+          .status(result.error === "character-not-found" ? 404 : 409)
+          .send(error("NOT_FOUND"));
+      }
+      return ownedPeople(current.userId);
+    },
+  );
+
+  server.post(
+    unblockCuratedPersonPath,
+    {
+      schema: {
+        operationId: "unblockCuratedPersonV1",
+        tags: ["Relationships"],
+        params: curatedPersonParamsSchema,
+        body: unblockCuratedPersonBodySchema,
+        response: responses,
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.connectionRepository.unblock({
+        userId: current.userId,
+        blockedUserId: request.body.blockedUserId,
+      });
+      if (!result.ok) return reply.status(409).send(error("NOT_FOUND"));
+      return ownedPeople(current.userId);
     },
   );
 };

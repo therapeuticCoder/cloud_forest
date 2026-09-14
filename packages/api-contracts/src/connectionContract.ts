@@ -145,6 +145,8 @@ export const confirmConnectionPairingPath =
   "/api/v1/connection-pairings/:token/confirm";
 export const cancelConnectionPairingPath =
   "/api/v1/connection-pairings/:token/cancel";
+export const blockConnectionPairingPath =
+  "/api/v1/connection-pairings/:token/block";
 
 export type ConnectionPairing = Static<typeof connectionPairingSchema>;
 export type CreateConnectionPairingSuccess = Static<

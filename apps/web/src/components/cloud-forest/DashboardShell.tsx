@@ -35,6 +35,11 @@ import type { CuratorPerson } from "@/types/curator";
 import { CuratorView } from "./CuratorView";
 import { ConnectionPairingView } from "./ConnectionPairingView";
 import { createConnectionPairing } from "./connectionPairingClient";
+import {
+  blockCuratedPerson,
+  endConnection as endCharacterConnection,
+  unblockCuratedPerson,
+} from "./relationshipExitClient";
 import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
 import {
   curationErrorMessage,
@@ -135,8 +140,10 @@ export function DashboardShell({
     useState<CareDestination | null>(null);
   const {
     add: addCuratedPerson,
+    blockedPeople,
     holdingPeople,
     load: loadCuratedPeople,
+    remove: removeCuratedPerson,
     partyPeople,
     people: curatedPeople,
     tribePeople,
@@ -338,6 +345,115 @@ export function DashboardShell({
       (candidate) => candidate.id === person.id,
     );
     return updatedPerson ? curatedPersonToCuratorPerson(updatedPerson) : null;
+  };
+
+  const deleteCharacter = async (person: CuratorPerson) => {
+    if (person.version === undefined || !canEditCuratedPeople) {
+      setCharacterSubmission({
+        pending: false,
+        error:
+          "Your private Characters are unavailable right now. Try again when you’re back online.",
+      });
+      return false;
+    }
+    setCharacterSubmission({ pending: true });
+    const result = await removeCuratedPerson(person.id, {
+      expectedVersion: person.version,
+    });
+    if (!result.ok) {
+      setCharacterSubmission({
+        pending: false,
+        error: curationErrorMessage(result),
+      });
+      return false;
+    }
+    setCharacterSubmission({ pending: false });
+    return true;
+  };
+
+  const orphanClaimedCare = (person: CuratorPerson) => {
+    const counterpartUserId = person.linkedUserId;
+    if (!counterpartUserId) return;
+    setCareLifecycle((currentState) => {
+      const transition = transitionCareLifecycle(currentState, {
+        type: "orphan-claimed-care",
+        participantIds: [careViewerId, counterpartUserId],
+        orphanedAt: new Date().toISOString(),
+      });
+      if (!transition.ok || transition.state === currentState) {
+        return currentState;
+      }
+      saveCareLifecycleState(transition.state, careViewerId);
+      return transition.state;
+    });
+  };
+
+  const endConnection = async (
+    person: CuratorPerson,
+    deleteLocalCharacter: boolean,
+  ) => {
+    if (!canEditCuratedPeople) {
+      setCharacterSubmission({
+        pending: false,
+        error:
+          "Your private relationships are unavailable right now. Try again when you’re back online.",
+      });
+      return false;
+    }
+    setCharacterSubmission({ pending: true });
+    const result = await endCharacterConnection(
+      person.id,
+      deleteLocalCharacter,
+    );
+    if (!result.ok) {
+      setCharacterSubmission({ pending: false, error: result.message });
+      return false;
+    }
+    orphanClaimedCare(person);
+    setCharacterSubmission({ pending: false });
+    await loadCuratedPeople();
+    return true;
+  };
+
+  const blockCharacter = async (person: CuratorPerson) => {
+    if (!canEditCuratedPeople) {
+      setCharacterSubmission({
+        pending: false,
+        error:
+          "Your private relationships are unavailable right now. Try again when you’re back online.",
+      });
+      return false;
+    }
+    setCharacterSubmission({ pending: true });
+    const result = await blockCuratedPerson(person.id);
+    if (!result.ok) {
+      setCharacterSubmission({ pending: false, error: result.message });
+      return false;
+    }
+    orphanClaimedCare(person);
+    setCharacterSubmission({ pending: false });
+    await loadCuratedPeople();
+    return true;
+  };
+
+  const unblockCharacter = async (person: CuratorPerson) => {
+    const blockedUserId = person.blockedUserId ?? person.linkedUserId;
+    if (!blockedUserId || !canEditCuratedPeople) {
+      setCharacterSubmission({
+        pending: false,
+        error: "This relationship is no longer available.",
+      });
+      return false;
+    }
+    setCharacterSubmission({ pending: true });
+    const result = await unblockCuratedPerson(person.id, blockedUserId);
+    if (!result.ok) {
+      setCharacterSubmission({ pending: false, error: result.message });
+      return false;
+    }
+    setCharacterSubmission({ pending: false });
+    await loadCuratedPeople();
+    return true;
   };
 
   const startConnection = async (person: CuratorPerson) => {
@@ -1161,8 +1277,11 @@ export function DashboardShell({
                     : undefined
                 }
                 onAddPartyMember={openAddWizard}
+                onBlockCharacter={blockCharacter}
                 onCancelAdd={() => setAddWizardOpen(false)}
                 onCompleteAdd={completeAdd}
+                onDeleteCharacter={deleteCharacter}
+                onEndConnection={endConnection}
                 onRetryCuratedPeople={() => void loadCuratedPeople()}
                 onGive={openGiveWizard}
                 onUpdateCharacter={updateCharacter}
@@ -1182,7 +1301,9 @@ export function DashboardShell({
                 onReceive={openReceiveWizard}
                 onSetRequestMinimized={setCareRequestMinimized}
                 onStartConnection={startConnection}
+                onUnblockCharacter={unblockCharacter}
                 onWithdraw={withdrawCareRequestAs}
+                blockedPeople={blockedPeople}
                 partyPeople={partyPeople}
                 holdingPeople={holdingPeople}
                 tribePeople={tribePeople}

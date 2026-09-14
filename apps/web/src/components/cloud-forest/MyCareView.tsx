@@ -47,6 +47,7 @@ const historyLabels = {
   "not-completed": "Not completed",
   expired: "Expired",
   withdrawn: "Withdrawn",
+  orphaned: "Connection ended",
 } as const;
 
 const historyDateFormatter = new Intl.DateTimeFormat("en-US", {

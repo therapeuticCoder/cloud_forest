@@ -1,6 +1,7 @@
 import {
   cancelConnectionPairingPath,
   cancelConnectionPairingSuccessSchema,
+  blockConnectionPairingPath,
   confirmConnectionPairingPath,
   connectionApiVersion,
   connectionPairingErrorSchema,
@@ -318,6 +319,34 @@ export const connectionPairingRoutes: FastifyPluginAsyncTypebox<
       const current = await auth(request);
       if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
       const result = await options.repository.cancel({
+        token: request.params.token,
+        userId: current.userId,
+        now: new Date(),
+      });
+      if (!result.ok)
+        return reply.status(409).send(error(repositoryErrorCode(result.error)));
+      return { apiVersion: connectionApiVersion, data: null };
+    },
+  );
+
+  server.post(
+    blockConnectionPairingPath,
+    {
+      schema: {
+        operationId: "blockConnectionPairingV1",
+        tags: ["Relationships"],
+        params: connectionPairingParamsSchema,
+        response: {
+          200: cancelConnectionPairingSuccessSchema,
+          401: connectionPairingErrorSchema,
+          409: connectionPairingErrorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.repository.blockPairing({
         token: request.params.token,
         userId: current.userId,
         now: new Date(),

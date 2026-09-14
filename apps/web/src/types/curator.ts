@@ -12,9 +12,18 @@ export type CuratorPerson = {
   portraitUrl?: string;
   privateDescription?: string;
   relationshipShape?: string;
+  relationshipState?: "character" | "connected" | "blocked";
+  blockedUserId?: string;
   linkedUserId?: string | null;
   version?: number;
 };
+
+export function hasActiveConnection(person: CuratorPerson) {
+  return (
+    person.relationshipState === "connected" ||
+    (person.relationshipState === undefined && person.linkedUserId != null)
+  );
+}
 
 export type CuratorNeighborhood = {
   id: string;
@@ -52,8 +61,6 @@ export type CuratorSignal = {
 export type CuratorMockData = {
   user: CuratorPerson;
   partyPeople: CuratorPerson[];
-  guilds: CuratorGuild[];
-  signals: CuratorSignal[];
 };
 
 export type CuratorSelection =
