@@ -16,11 +16,13 @@ export {
   curatedPersons,
   connections,
   connectionPairings,
+  careRequests,
   accountPeople,
   invitations,
   signupCodes,
   type AccountRole,
   type ConnectionPairingStatus,
+  type CareRequestStatus,
   type NewTimelineItemRow,
   type TimelineItemRow,
 } from "./schema.ts";
@@ -45,6 +47,10 @@ export {
   createPairingToken,
   type ConnectionRepository,
 } from "./connectionRepository.ts";
+export {
+  createCareRequestRepository,
+  type CareRequestRepository,
+} from "./careRequestRepository.ts";
 export {
   fictionalPartyMemberIds,
   fictionalPartyInvitationId,

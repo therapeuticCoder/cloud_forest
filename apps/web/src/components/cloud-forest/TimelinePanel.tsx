@@ -108,11 +108,11 @@ function CareListings({
   listings: CareListing[];
   minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
-  onRecordCompleted: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
-  onPass: (request: ReceiveCareRequest) => void;
-  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
-  onWithdraw: (requestId: string) => void;
+  onRecordCompleted?: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
+  onPass?: (request: ReceiveCareRequest) => void;
+  onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
+  onWithdraw?: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
   passableRequestIds: Set<string>;
   viewerClaimedRequestIds: Set<string>;
@@ -277,15 +277,16 @@ export function TimelinePanel({
   careGratitudes = [],
   careOffers = [],
   careRequests = [],
+  careRequestStatusMessage,
   careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
-  onRecordCompleted = () => undefined,
-  onRecordNotCompleted = () => undefined,
-  onPass = () => undefined,
-  onSetRequestMinimized = () => undefined,
-  onWithdraw = () => undefined,
+  onRecordCompleted,
+  onRecordNotCompleted,
+  onPass,
+  onSetRequestMinimized,
+  onWithdraw,
   onWithdrawOffer = () => undefined,
   onOfflineChange,
   passableRequestIds = noPassableRequestIds,
@@ -301,6 +302,7 @@ export function TimelinePanel({
   careGratitudeRequests?: ReceiveCareRequest[];
   careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
+  careRequestStatusMessage?: string;
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
@@ -420,6 +422,11 @@ export function TimelinePanel({
           <HandHeart aria-hidden="true" />
         </button>
       </div>
+      {careRequestStatusMessage ? (
+        <div aria-live="polite" className="timeline-remote-state" role="status">
+          {careRequestStatusMessage}
+        </div>
+      ) : null}
       {passAnnouncement ? (
         <p aria-live="polite" className="care-pass-announcement" role="status">
           {passAnnouncement}

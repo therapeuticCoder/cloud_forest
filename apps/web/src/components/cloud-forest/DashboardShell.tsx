@@ -1,35 +1,8 @@
 import { CloudOff, Gift, HandHeart, TreePine } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  createInitials,
-  curatorUser,
-  incomingCareRequests,
-} from "@/data/cloudForest";
-import { incomingCareAudienceSnapshot } from "@/data/careLifecycleMockData";
-import {
-  canPassCareRequest,
-  CURRENT_CARE_VIEWER_ID,
-  expireDueCareRequests,
-  haveAllPartyMembersPassed,
-  selectCareRequestPresentation,
-  selectNextCareRequestExpiration,
-  selectPrivateCareHistory,
-  selectPrivateCareGratitudes,
-  selectProfileCareRequests,
-  selectTimelineCareRequests,
-  selectTribeCareGratitudes,
-  transitionCareLifecycle,
-  type CareLifecycleAction,
-} from "@/lib/careLifecycle";
-import {
-  loadCareLifecycleState,
-  saveCareLifecycleState,
-} from "@/lib/careLifecycleStorage";
-import type {
-  CarePersonId,
-  GiveCareOffer,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import { createInitials, curatorUser } from "@/data/cloudForest";
+import { createCareLifecycleState } from "@/lib/careLifecycle";
+import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
@@ -42,47 +15,33 @@ import {
   useCuratedPeople,
   type CuratedPersonApiClient,
 } from "./useCuratedPeople";
+import {
+  careRequestErrorMessage,
+  useCareRequests,
+  type CareRequestApiClient,
+} from "./useCareRequests";
 import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
-import { ReceiveCareWizard } from "./ReceiveCareWizard";
+import { ReceiveCareWizard, type ReceiveCareDraft } from "./ReceiveCareWizard";
 import { GiveCareWizard } from "./GiveCareWizard";
 import { ClaimCareView } from "./ClaimCareView";
 import { MyCareView } from "./MyCareView";
-import { NotCompletedCareView } from "./NotCompletedCareView";
 import {
   clearPendingConnectionPairing,
   rememberPendingConnectionPairing,
 } from "@/lib/pendingConnectionPairing";
-import {
-  CareGratitudeWizard,
-  type CareGratitudeDraft,
-} from "./CareGratitudeWizard";
 
 type CareDestination =
   | { kind: "claim"; request: ReceiveCareRequest }
-  | { kind: "my-care" }
-  | {
-      kind: "not-completed";
-      actorId: CarePersonId;
-      completionFocusSelector: string;
-      parentReturnFocusSelector: string | null;
-      request: ReceiveCareRequest;
-      returnToMyCare: boolean;
-    }
-  | {
-      kind: "gratitude";
-      completionFocusSelector: string;
-      parentReturnFocusSelector: string | null;
-      receiverId: CarePersonId;
-      request: ReceiveCareRequest;
-      returnToMyCare: boolean;
-    };
+  | { kind: "my-care" };
 
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
+export type { CareRequestApiClient } from "./useCareRequests";
 
 export function DashboardShell({
   apiClient,
+  careApiClient,
   currentPersonId,
   displayName,
   role,
@@ -93,6 +52,7 @@ export function DashboardShell({
   signingOut,
 }: {
   apiClient?: CuratedPersonApiClient;
+  careApiClient?: CareRequestApiClient;
   currentPersonId: string;
   displayName: string;
   role: "admin" | "user";
@@ -111,10 +71,7 @@ export function DashboardShell({
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
-  const careViewerId =
-    currentPersonId === "person-fictional-owner"
-      ? CURRENT_CARE_VIEWER_ID
-      : currentPersonId;
+  const careViewerId = currentPersonId;
   const currentUser = useMemo(
     () => ({
       ...curatorUser,
@@ -125,12 +82,11 @@ export function DashboardShell({
     [currentPersonId, displayName],
   );
   const [careOffers, setCareOffers] = useState<GiveCareOffer[]>([]);
-  const [careLifecycle, setCareLifecycle] = useState(() =>
-    loadCareLifecycleState(incomingCareRequests, careViewerId),
-  );
-  const [carePassAnnouncement, setCarePassAnnouncement] = useState<
-    string | undefined
-  >();
+  const {
+    claim: claimCareRequest,
+    create: createCareRequest,
+    state: durableCareRequestsState,
+  } = useCareRequests(careApiClient, careViewerId);
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const {
@@ -385,32 +341,19 @@ export function DashboardShell({
     void loadCuratedPeople();
   };
 
-  const applyCareLifecycleAction = (action: CareLifecycleAction) => {
-    setCareLifecycle((currentState) => {
-      const transition = transitionCareLifecycle(currentState, action);
-      if (!transition.ok) return currentState;
-      saveCareLifecycleState(transition.state, careViewerId);
-      return transition.state;
-    });
-  };
-
-  const completeReceive = (request: ReceiveCareRequest) => {
-    applyCareLifecycleAction({ type: "publish-request", request });
+  const completeReceive = async (draft: ReceiveCareDraft) => {
+    const result = await createCareRequest(draft);
+    if (!result.ok) {
+      return { ok: false as const, message: careRequestErrorMessage(result) };
+    }
     setReceiveWizardOpen(false);
     navigateToView("timeline");
+    return { ok: true as const };
   };
   const completeGive = (offer: GiveCareOffer) => {
     setCareOffers((currentOffers) => [offer, ...currentOffers]);
     setGiveWizardOpen(false);
     navigateToView("timeline");
-  };
-  const withdrawCareRequestAs = (requestId: string, actorId = careViewerId) => {
-    applyCareLifecycleAction({
-      type: "withdraw-request",
-      requestId,
-      actorId,
-      withdrawnAt: new Date().toISOString(),
-    });
   };
   const openReceiveWizard = () => {
     focusTargetIdRef.current = "receive";
@@ -467,271 +410,27 @@ export function DashboardShell({
   }, []);
 
   const backFromCareDestination = useCallback(() => {
-    restoreFromCareDestination(
-      careReturnFocusSelectorRef.current,
-      (careDestination?.kind === "not-completed" &&
-        careDestination.returnToMyCare) ||
-        (careDestination?.kind === "gratitude" &&
-          careDestination.returnToMyCare),
-      careDestination?.kind === "not-completed" ||
-        careDestination?.kind === "gratitude"
-        ? careDestination.parentReturnFocusSelector
-        : null,
-    );
+    restoreFromCareDestination(careReturnFocusSelectorRef.current);
     rewindCareHistory();
-  }, [careDestination, restoreFromCareDestination, rewindCareHistory]);
+  }, [restoreFromCareDestination, rewindCareHistory]);
 
-  const confirmCareClaim = () => {
-    if (careDestination?.kind !== "claim") return;
-
-    const request = careDestination.request;
-    const claimedAt = new Date().toISOString();
-    applyCareLifecycleAction({
-      type: "claim-request",
-      claim: {
-        id: `care-claim-${request.id}-${careViewerId}`,
-        requestId: request.id,
-        claimerId: careViewerId,
-        claimedAt,
-      },
-    });
-    restoreFromCareDestination(`[data-care-claim-status="${request.id}"]`);
-    rewindCareHistory();
-  };
-
-  const recordCareCompleted = (
-    request: ReceiveCareRequest,
-    participantId = careViewerId,
-  ) => {
-    const decidedAt = new Date().toISOString();
-    const closedFocusSelector =
-      careDestination?.kind === "my-care"
-        ? '[data-my-care-section="commitments"]'
-        : document.querySelector(".curator-detail-view")
-          ? "[data-care-profile-heading]"
-          : "[data-care-receive-filter]";
-    let closesRequest = false;
-    setCareLifecycle((currentState) => {
-      const transition = transitionCareLifecycle(currentState, {
-        type: "record-completion",
-        completion: {
-          id: `care-completion-${request.id}-${participantId}`,
-          requestId: request.id,
-          participantId,
-          decision: "completed",
-          decidedAt,
-        },
-      });
-      if (!transition.ok) return currentState;
-      closesRequest = transition.state.history.some(
-        (entry) =>
-          entry.requestId === request.id && entry.outcome === "completed",
-      );
-      saveCareLifecycleState(transition.state, careViewerId);
-      return transition.state;
-    });
-    requestAnimationFrame(() => {
-      document
-        .querySelector<HTMLElement>(
-          closesRequest
-            ? closedFocusSelector
-            : `[data-care-outcome-status="${request.id}"]`,
-        )
-        ?.focus();
-    });
-  };
-
-  const openNotCompleted = (
-    request: ReceiveCareRequest,
-    actorId = careViewerId,
-  ) => {
-    const returnToMyCare = careDestination?.kind === "my-care";
-    const parentReturnFocusSelector = careReturnFocusSelectorRef.current;
-    const completionFocusSelector = returnToMyCare
-      ? '[data-my-care-section="commitments"]'
-      : document.querySelector(".curator-detail-view")
-        ? "[data-care-profile-heading]"
-        : "[data-care-receive-filter]";
-    const returnFocusSelector = returnToMyCare
-      ? `.my-care-view [data-care-outcome-action="${request.id}"]`
-      : document.querySelector(".curator-detail-view")
-        ? `.curator-detail-view [data-care-outcome-action="${request.id}"]`
-        : `[data-care-outcome-action="${request.id}"]`;
-    openCareDestination(
-      {
-        kind: "not-completed",
-        actorId,
-        completionFocusSelector,
-        parentReturnFocusSelector,
-        request,
-        returnToMyCare,
-      },
-      returnFocusSelector,
-    );
-  };
-
-  const openGratitude = (
-    request: ReceiveCareRequest,
-    receiverId = careViewerId,
-  ) => {
-    const returnToMyCare = careDestination?.kind === "my-care";
-    const parentReturnFocusSelector = careReturnFocusSelectorRef.current;
-    const profileOpen = Boolean(document.querySelector(".curator-detail-view"));
-    const completionFocusSelector = returnToMyCare
-      ? `.my-care-view [data-care-outcome-status="${request.id}"]`
-      : profileOpen
-        ? `.curator-detail-view [data-care-outcome-status="${request.id}"]`
-        : `[data-care-outcome-status="${request.id}"]`;
-    const returnFocusSelector = returnToMyCare
-      ? `.my-care-view [data-care-completed-action="${request.id}"]`
-      : profileOpen
-        ? `.curator-detail-view [data-care-completed-action="${request.id}"]`
-        : `[data-care-completed-action="${request.id}"]`;
-    openCareDestination(
-      {
-        kind: "gratitude",
-        completionFocusSelector,
-        parentReturnFocusSelector,
-        receiverId,
-        request,
-        returnToMyCare,
-      },
-      returnFocusSelector,
-    );
-  };
-
-  const recordCompletionOrOpenGratitude = (
-    request: ReceiveCareRequest,
-    participantId = careViewerId,
-  ) => {
-    if (participantId === request.requester.id) {
-      openGratitude(request, participantId);
-      return;
+  const confirmCareClaim = async () => {
+    if (careDestination?.kind !== "claim") {
+      return {
+        ok: false as const,
+        message: "This Care request is no longer available.",
+      };
     }
-    recordCareCompleted(request, participantId);
-  };
 
-  const confirmGratitude = (draft: CareGratitudeDraft) => {
-    if (careDestination?.kind !== "gratitude") return;
-    const {
-      completionFocusSelector,
-      parentReturnFocusSelector,
-      receiverId,
-      request,
-      returnToMyCare,
-    } = careDestination;
-    const createdAt = new Date().toISOString();
-
-    setCareLifecycle((currentState) => {
-      const claim = currentState.claims.find(
-        (candidate) => candidate.requestId === request.id,
-      );
-      if (!claim) return currentState;
-
-      const gratitudeTransition = transitionCareLifecycle(currentState, {
-        type: "record-gratitude",
-        gratitude: {
-          id: `care-gratitude-${request.id}-${receiverId}`,
-          requestId: request.id,
-          receiverId,
-          giverId: claim.claimerId,
-          statementId: draft.statementId,
-          message: draft.message,
-          postToTimeline: draft.postToTimeline,
-          anonymized: draft.postToTimeline && draft.anonymized,
-          createdAt,
-        },
-      });
-      if (!gratitudeTransition.ok) return currentState;
-
-      const completionTransition = transitionCareLifecycle(
-        gratitudeTransition.state,
-        {
-          type: "record-completion",
-          completion: {
-            id: `care-completion-${request.id}-${receiverId}`,
-            requestId: request.id,
-            participantId: receiverId,
-            decision: "completed",
-            decidedAt: createdAt,
-          },
-        },
-      );
-      if (!completionTransition.ok) return currentState;
-      saveCareLifecycleState(completionTransition.state, careViewerId);
-      return completionTransition.state;
-    });
+    const result = await claimCareRequest(careDestination.request.id);
+    if (!result.ok) {
+      return { ok: false as const, message: careRequestErrorMessage(result) };
+    }
     restoreFromCareDestination(
-      completionFocusSelector,
-      returnToMyCare,
-      parentReturnFocusSelector,
+      `[data-care-claim-status="${careDestination.request.id}"]`,
     );
     rewindCareHistory();
-  };
-
-  const confirmNotCompleted = (reason: string, tryAgain: boolean) => {
-    if (careDestination?.kind !== "not-completed") return;
-    const {
-      actorId,
-      completionFocusSelector,
-      parentReturnFocusSelector,
-      request,
-      returnToMyCare,
-    } = careDestination;
-    const disposedAt = new Date().toISOString();
-    const successorRequest = tryAgain
-      ? {
-          ...request,
-          id: `${request.id}-retry-${Date.now()}`,
-          createdAt: disposedAt,
-          expiresAt: new Date(
-            Date.parse(disposedAt) + 7 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        }
-      : undefined;
-
-    setCareLifecycle((currentState) => {
-      const completionTransition = transitionCareLifecycle(currentState, {
-        type: "record-completion",
-        completion: {
-          id: `care-completion-${request.id}-${actorId}`,
-          requestId: request.id,
-          participantId: actorId,
-          decision: "not-completed",
-          decidedAt: disposedAt,
-        },
-      });
-      if (!completionTransition.ok) return currentState;
-
-      const dispositionId = `care-disposition-${request.id}-${actorId}`;
-      const dispositionTransition = transitionCareLifecycle(
-        completionTransition.state,
-        {
-          type: "record-disposition",
-          disposition: {
-            id: dispositionId,
-            requestId: request.id,
-            actorId,
-            kind: tryAgain ? "retry" : "close",
-            reason,
-            disposedAt,
-            ...(successorRequest
-              ? { successorRequestId: successorRequest.id }
-              : {}),
-          },
-          ...(successorRequest ? { successorRequest } : {}),
-        },
-      );
-      if (!dispositionTransition.ok) return currentState;
-      saveCareLifecycleState(dispositionTransition.state, careViewerId);
-      return dispositionTransition.state;
-    });
-    restoreFromCareDestination(
-      completionFocusSelector,
-      returnToMyCare,
-      parentReturnFocusSelector,
-    );
-    rewindCareHistory();
+    return { ok: true as const };
   };
 
   useEffect(() => {
@@ -742,17 +441,7 @@ export function DashboardShell({
         ignoreNextCarePopStateRef.current = false;
         return;
       }
-      restoreFromCareDestination(
-        careReturnFocusSelectorRef.current,
-        (careDestination.kind === "not-completed" &&
-          careDestination.returnToMyCare) ||
-          (careDestination.kind === "gratitude" &&
-            careDestination.returnToMyCare),
-        careDestination.kind === "not-completed" ||
-          careDestination.kind === "gratitude"
-          ? careDestination.parentReturnFocusSelector
-          : null,
-      );
+      restoreFromCareDestination(careReturnFocusSelectorRef.current);
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") backFromCareDestination();
@@ -808,215 +497,59 @@ export function DashboardShell({
     });
   }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 
-  const claimedRequestIds = useMemo(
-    () => new Set(careLifecycle.claims.map((claim) => claim.requestId)),
-    [careLifecycle.claims],
-  );
-  const claimedRequests = useMemo(
-    () =>
-      selectProfileCareRequests(
-        careLifecycle,
-        careViewerId,
-        careViewerId,
-        new Date().toISOString(),
-      ).filter((request) =>
-        careLifecycle.claims.some(
-          (claim) =>
-            claim.requestId === request.id && claim.claimerId === careViewerId,
-        ),
+  const durableCareRequests = durableCareRequestsState.requests;
+  const durableCareLifecycle = useMemo(() => {
+    const lifecycle = createCareLifecycleState(durableCareRequests);
+    return {
+      ...lifecycle,
+      claims: durableCareRequests.flatMap((request) =>
+        request.claimant
+          ? [
+              {
+                id: `care-claim-${request.id}-${request.claimant.id}`,
+                requestId: request.id,
+                claimerId: request.claimant.id,
+                claimedAt: request.claimedAt ?? request.createdAt,
+              },
+            ]
+          : [],
       ),
-    [careLifecycle, careViewerId],
-  );
-  const selfProfileRequests = useMemo(
-    () =>
-      selectProfileCareRequests(
-        careLifecycle,
-        careViewerId,
-        careViewerId,
-        new Date().toISOString(),
-      ).filter((request) => request.requester.id === careViewerId),
-    [careLifecycle, careViewerId],
-  );
-  const selfCareHistory = useMemo(
-    () => selectPrivateCareHistory(careLifecycle, careViewerId, careViewerId),
-    [careLifecycle, careViewerId],
-  );
-  const selfCareGratitudes = useMemo(
-    () =>
-      selectPrivateCareGratitudes(careLifecycle, careViewerId, careViewerId),
-    [careLifecycle, careViewerId],
-  );
-  const tribeCareGratitudes = useMemo(
-    () => selectTribeCareGratitudes(careLifecycle),
-    [careLifecycle],
-  );
-  const viewerClaimedRequestIds = useMemo(
+    };
+  }, [durableCareRequests]);
+  const durableClaimedRequestIds = useMemo(
     () =>
       new Set(
-        careLifecycle.claims
-          .filter((claim) => claim.claimerId === careViewerId)
-          .map((claim) => claim.requestId),
-      ),
-    [careLifecycle.claims, careViewerId],
-  );
-  const viewerCompletedRequestIds = useMemo(
-    () =>
-      new Set(
-        careLifecycle.completions
-          .filter(
-            (completion) =>
-              completion.participantId === careViewerId &&
-              completion.decision === "completed",
-          )
-          .map((completion) => completion.requestId),
-      ),
-    [careLifecycle.completions, careViewerId],
-  );
-  const otherParticipantCompletedRequestIds = useMemo(
-    () =>
-      new Set(
-        careLifecycle.completions
-          .filter(
-            (completion) =>
-              completion.participantId !== careViewerId &&
-              completion.decision === "completed",
-          )
-          .map((completion) => completion.requestId),
-      ),
-    [careLifecycle.completions, careViewerId],
-  );
-  const timelineCareRequests = useMemo(
-    () =>
-      selectTimelineCareRequests(
-        careLifecycle,
-        careViewerId,
-        new Date().toISOString(),
-      ),
-    [careLifecycle, careViewerId],
-  );
-  const minimizedRequestIds = useMemo(
-    () =>
-      new Set(
-        timelineCareRequests
-          .filter(
-            (request) =>
-              selectCareRequestPresentation(
-                careLifecycle,
-                request.id,
-                careViewerId,
-              ).minimized,
-          )
+        durableCareRequests
+          .filter((request) => request.status === "claimed")
           .map((request) => request.id),
       ),
-    [careLifecycle, careViewerId, timelineCareRequests],
+    [durableCareRequests],
   );
-  const passableRequestIds = useMemo(() => {
-    const now = new Date().toISOString();
-    return new Set(
-      timelineCareRequests
-        .filter((request) =>
-          canPassCareRequest(careLifecycle, request.id, careViewerId, now),
-        )
-        .map((request) => request.id),
-    );
-  }, [careLifecycle, careViewerId, timelineCareRequests]);
-  const careAudienceSnapshot = useMemo(
-    () => ({
-      partyMemberIds: incomingCareAudienceSnapshot.partyMemberIds.filter(
-        (personId) => personId !== careViewerId,
+  const durableClaimedRequests = useMemo(
+    () =>
+      durableCareRequests.filter(
+        (request) => request.claimant?.id === careViewerId,
       ),
-      tribeMemberIds: incomingCareAudienceSnapshot.tribeMemberIds,
-    }),
-    [careViewerId],
+    [careViewerId, durableCareRequests],
   );
-
-  useEffect(() => {
-    let timeout: number | undefined;
-    const synchronizeExpirations = () => {
-      const now = new Date().toISOString();
-      setCareLifecycle((currentState) => {
-        const nextState = expireDueCareRequests(currentState, now);
-        if (nextState === currentState) return currentState;
-        saveCareLifecycleState(nextState, careViewerId);
-        return nextState;
-      });
-    };
-    const scheduleNextExpirationCheck = () => {
-      const now = new Date().toISOString();
-      const nextExpiry = selectNextCareRequestExpiration(careLifecycle, now);
-      if (nextExpiry === undefined) return;
-
-      const maximumTimeout = 2_147_483_647;
-      timeout = window.setTimeout(
-        () => {
-          synchronizeExpirations();
-          scheduleNextExpirationCheck();
-        },
-        Math.min(Math.max(nextExpiry - Date.parse(now), 0), maximumTimeout),
-      );
-    };
-
-    synchronizeExpirations();
-    scheduleNextExpirationCheck();
-    return () => {
-      if (timeout !== undefined) window.clearTimeout(timeout);
-    };
-  }, [careLifecycle, careViewerId]);
-
-  const setCareRequestMinimized = (requestId: string, minimized: boolean) => {
-    const changedAt = new Date().toISOString();
-    const presentation = selectCareRequestPresentation(
-      careLifecycle,
-      requestId,
-      careViewerId,
-    );
-    applyCareLifecycleAction(
-      presentation.seen
-        ? {
-            type: "set-seen-minimized",
-            requestId,
-            viewerId: careViewerId,
-            minimized,
-            changedAt,
-          }
-        : {
-            type: "mark-seen",
-            seenState: {
-              id: `care-seen-${requestId}-${careViewerId}`,
-              requestId,
-              viewerId: careViewerId,
-              seenAt: changedAt,
-              minimized,
-            },
-          },
-    );
-  };
-
-  const passCareRequest = (request: ReceiveCareRequest) => {
-    const transition = transitionCareLifecycle(careLifecycle, {
-      type: "pass-request",
-      pass: {
-        id: `care-pass-${request.id}-${careViewerId}`,
-        requestId: request.id,
-        actorId: careViewerId,
-        passedAt: new Date().toISOString(),
-      },
-    });
-    if (!transition.ok) return;
-
-    saveCareLifecycleState(transition.state, careViewerId);
-    setCareLifecycle(transition.state);
-    setCarePassAnnouncement(
-      haveAllPartyMembersPassed(transition.state, request)
-        ? `Your Party passed on ${request.requester.displayName.split(" ")[0]}’s request. It is now shared with the original Tribe audience.`
-        : `You passed on ${request.requester.displayName.split(" ")[0]}’s request this time. Other Party members can still respond.`,
-    );
-    requestAnimationFrame(() => {
-      document
-        .querySelector<HTMLButtonElement>("[data-care-receive-filter]")
-        ?.focus();
-    });
-  };
+  const durableSelfProfileRequests = useMemo(
+    () =>
+      durableCareRequests.filter(
+        (request) => request.requester.id === careViewerId,
+      ),
+    [careViewerId, durableCareRequests],
+  );
+  const durableViewerClaimedRequestIds = useMemo(
+    () => new Set(durableClaimedRequests.map((request) => request.id)),
+    [durableClaimedRequests],
+  );
+  const durableCareStatusMessage =
+    durableCareRequestsState.status === "loading"
+      ? "Loading shared Care…"
+      : durableCareRequestsState.status === "error"
+        ? durableCareRequestsState.message
+        : undefined;
+  const emptyCareLifecycle = useMemo(() => createCareLifecycleState(), []);
 
   if (pairingToken) {
     return (
@@ -1093,10 +626,8 @@ export function DashboardShell({
       </div>
       {receiveWizardOpen ? (
         <ReceiveCareWizard
-          audienceSnapshot={careAudienceSnapshot}
           onCancel={() => setReceiveWizardOpen(false)}
           onComplete={completeReceive}
-          viewerId={careViewerId}
         />
       ) : giveWizardOpen ? (
         <GiveCareWizard
@@ -1114,34 +645,23 @@ export function DashboardShell({
                 cacheOwnerId={currentPersonId}
                 onOfflineChange={setTimelineApiOffline}
                 careOffers={careOffers}
-                careGratitudes={tribeCareGratitudes}
-                careGratitudeRequests={careLifecycle.requests}
-                careRequests={timelineCareRequests}
-                claimedRequestIds={claimedRequestIds}
-                minimizedRequestIds={minimizedRequestIds}
+                careGratitudes={[]}
+                careGratitudeRequests={durableCareRequests}
+                careRequests={durableCareRequests}
+                careRequestStatusMessage={durableCareStatusMessage}
+                claimedRequestIds={durableClaimedRequestIds}
                 onOfferHelp={(request) =>
                   openCareDestination(
                     { kind: "claim", request },
                     `[data-care-claim-action="${request.id}"]`,
                   )
                 }
-                onPass={passCareRequest}
-                onRecordCompleted={recordCompletionOrOpenGratitude}
-                onRecordNotCompleted={openNotCompleted}
-                onSetRequestMinimized={setCareRequestMinimized}
-                onWithdraw={withdrawCareRequestAs}
                 onWithdrawOffer={(offerId) =>
                   setCareOffers((currentOffers) =>
                     currentOffers.filter((offer) => offer.id !== offerId),
                   )
                 }
-                passableRequestIds={passableRequestIds}
-                passAnnouncement={carePassAnnouncement}
-                viewerClaimedRequestIds={viewerClaimedRequestIds}
-                viewerCompletedRequestIds={viewerCompletedRequestIds}
-                otherParticipantCompletedRequestIds={
-                  otherParticipantCompletedRequestIds
-                }
+                viewerClaimedRequestIds={durableViewerClaimedRequestIds}
                 viewerId={careViewerId}
               />
             ) : (
@@ -1149,7 +669,7 @@ export function DashboardShell({
                 addDestination={addDestination}
                 addSubmission={addSubmission}
                 addWizardOpen={addWizardOpen}
-                careLifecycle={careLifecycle}
+                careLifecycle={emptyCareLifecycle}
                 careViewerId={careViewerId}
                 characterSubmission={characterSubmission}
                 curatedPeopleCached={curatedPeople.source === "cache"}
@@ -1176,13 +696,13 @@ export function DashboardShell({
                     `[data-care-claim-action="${request.id}"]`,
                   )
                 }
-                onPass={passCareRequest}
-                onRecordCompleted={recordCompletionOrOpenGratitude}
-                onRecordNotCompleted={openNotCompleted}
+                onPass={() => undefined}
+                onRecordCompleted={() => undefined}
+                onRecordNotCompleted={() => undefined}
                 onReceive={openReceiveWizard}
-                onSetRequestMinimized={setCareRequestMinimized}
+                onSetRequestMinimized={() => undefined}
                 onStartConnection={startConnection}
-                onWithdraw={withdrawCareRequestAs}
+                onWithdraw={() => undefined}
                 partyPeople={partyPeople}
                 holdingPeople={holdingPeople}
                 tribePeople={tribePeople}
@@ -1198,67 +718,16 @@ export function DashboardShell({
             />
           ) : careDestination?.kind === "my-care" ? (
             <MyCareView
-              activeRequests={selfProfileRequests}
-              careLifecycle={careLifecycle}
-              claimedRequests={claimedRequests}
-              history={selfCareHistory}
-              gratitudes={selfCareGratitudes}
+              activeRequests={durableSelfProfileRequests}
+              careLifecycle={durableCareLifecycle}
+              claimedRequests={durableClaimedRequests}
               onBack={backFromCareDestination}
               isAdmin={role === "admin"}
               onCreateSignupCode={onCreateSignupCode}
               onSignOut={onSignOut}
-              onSetRequestMinimized={(requestId, minimized) => {
-                const changedAt = new Date().toISOString();
-                const presentation = selectCareRequestPresentation(
-                  careLifecycle,
-                  requestId,
-                  careViewerId,
-                );
-                applyCareLifecycleAction(
-                  presentation.seen
-                    ? {
-                        type: "set-seen-minimized",
-                        requestId,
-                        viewerId: careViewerId,
-                        minimized,
-                        changedAt,
-                      }
-                    : {
-                        type: "mark-seen",
-                        seenState: {
-                          id: `care-seen-${requestId}-${careViewerId}`,
-                          requestId,
-                          viewerId: careViewerId,
-                          seenAt: changedAt,
-                          minimized,
-                        },
-                      },
-                );
-              }}
-              onRecordCompleted={(request) =>
-                recordCompletionOrOpenGratitude(request, careViewerId)
-              }
-              onRecordNotCompleted={(request) =>
-                openNotCompleted(request, careViewerId)
-              }
-              onWithdraw={(requestId) =>
-                withdrawCareRequestAs(requestId, careViewerId)
-              }
               viewerId={careViewerId}
               signOutError={signOutError}
               signingOut={signingOut}
-            />
-          ) : careDestination?.kind === "not-completed" ? (
-            <NotCompletedCareView
-              onBack={backFromCareDestination}
-              onConfirm={confirmNotCompleted}
-              request={careDestination.request}
-            />
-          ) : careDestination?.kind === "gratitude" ? (
-            <CareGratitudeWizard
-              onBack={backFromCareDestination}
-              onComplete={confirmGratitude}
-              request={careDestination.request}
             />
           ) : null}
         </>

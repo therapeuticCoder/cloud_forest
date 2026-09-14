@@ -1,6 +1,8 @@
 import {
   isCuratedPersonErrorResponse,
   isCuratedPersonsSuccessResponse,
+  isCareRequestErrorResponse,
+  isCareRequestsSuccessResponse,
   isGetTimelineItemErrorResponse,
   isGetTimelineItemSuccessResponse,
   isHealthResponse,
@@ -27,6 +29,9 @@ type CuratedPersonsOperation = operations["getCuratedPersonsV1"];
 type CreateCuratedPersonOperation = operations["createCuratedPersonV1"];
 type UpdateCuratedPersonOperation = operations["updateCuratedPersonV1"];
 type DeleteCuratedPersonOperation = operations["deleteCuratedPersonV1"];
+type GetCareRequestsOperation = operations["getCareRequestsV1"];
+type CreateCareRequestOperation = operations["createCareRequestV1"];
+type ClaimCareRequestOperation = operations["claimCareRequestV1"];
 type CurrentSessionOperation = operations["getCurrentSessionV1"];
 type LogoutOperation = operations["logoutV1"];
 
@@ -54,6 +59,36 @@ export type DeleteCuratedPersonInput =
 export type GetCuratedPersonsErrorResponse = OperationResponseBody<
   CuratedPersonsOperation,
   401
+>;
+export type GetCareRequestsResponse = OperationResponseBody<
+  GetCareRequestsOperation,
+  200
+>;
+export type CreateCareRequestInput =
+  CreateCareRequestOperation["requestBody"]["content"]["application/json"];
+export type ClaimCareRequestParameters =
+  ClaimCareRequestOperation["parameters"]["path"];
+export type CareRequestsErrorResponse = OperationResponseBody<
+  GetCareRequestsOperation,
+  401
+>;
+export type GetCareRequestsResult = ApiResult<
+  200,
+  GetCareRequestsResponse,
+  401,
+  CareRequestsErrorResponse
+>;
+export type CreateCareRequestResult = ApiResult<
+  200,
+  GetCareRequestsResponse,
+  400 | 401,
+  OperationResponseBody<CreateCareRequestOperation, 400 | 401>
+>;
+export type ClaimCareRequestResult = ApiResult<
+  200,
+  GetCareRequestsResponse,
+  400 | 401 | 404 | 409,
+  OperationResponseBody<ClaimCareRequestOperation, 400 | 401 | 404 | 409>
 >;
 export type CurrentSessionResponse = OperationResponseBody<
   CurrentSessionOperation,
@@ -144,6 +179,13 @@ export interface ApiClient {
     curatedPersonId: string,
     input: DeleteCuratedPersonInput,
   ): Promise<GetCuratedPersonsResult>;
+  getCareRequests(): Promise<GetCareRequestsResult>;
+  createCareRequest(
+    input: CreateCareRequestInput,
+  ): Promise<CreateCareRequestResult>;
+  claimCareRequest(
+    parameters: ClaimCareRequestParameters,
+  ): Promise<ClaimCareRequestResult>;
 }
 
 export interface CreateApiClientOptions {
@@ -318,6 +360,30 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         ),
       );
     },
+
+    async getCareRequests() {
+      return parseCareRequestsResponse(
+        await request("GET", "/api/v1/care-requests"),
+        [401] as const,
+      );
+    },
+
+    async createCareRequest(input) {
+      return parseCareRequestsResponse(
+        await request("POST", "/api/v1/care-requests", input),
+        [400, 401] as const,
+      );
+    },
+
+    async claimCareRequest({ careRequestId }) {
+      return parseCareRequestsResponse(
+        await request(
+          "POST",
+          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/claim`,
+        ),
+        [400, 401, 404, 409] as const,
+      );
+    },
   };
 }
 
@@ -357,6 +423,49 @@ function parseCuratedPersonsResponse(
       result.status === 404 ||
       result.status === 409) &&
     isCuratedPersonErrorResponse(result.body)
+  ) {
+    return {
+      ok: false,
+      kind: "http",
+      status: result.status,
+      error: result.body,
+    };
+  }
+  return {
+    ok: false,
+    kind: "unexpected-response",
+    status: result.status,
+    body: result.body,
+  };
+}
+
+function parseCareRequestsResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [401],
+): GetCareRequestsResult;
+function parseCareRequestsResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [400, 401],
+): CreateCareRequestResult;
+function parseCareRequestsResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [400, 401, 404, 409],
+): ClaimCareRequestResult;
+function parseCareRequestsResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly number[],
+): GetCareRequestsResult | CreateCareRequestResult | ClaimCareRequestResult {
+  if (result.kind === "network") return result;
+  if (result.status === 200 && isCareRequestsSuccessResponse(result.body)) {
+    return { ok: true, status: 200, value: result.body };
+  }
+  if (
+    (result.status === 400 ||
+      result.status === 401 ||
+      result.status === 404 ||
+      result.status === 409) &&
+    errorStatuses.includes(result.status) &&
+    isCareRequestErrorResponse(result.body)
   ) {
     return {
       ok: false,
