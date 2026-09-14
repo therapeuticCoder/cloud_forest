@@ -167,9 +167,7 @@ function CuratorLayerSection({
         <header className="grid grid-cols-[3rem_minmax(0,1fr)_auto_auto] items-center gap-2 pb-4">
           <button
             aria-label={
-              curatedPeopleOffline
-                ? "Open My Care (offline)"
-                : "Open My Care"
+              curatedPeopleOffline ? "Open My Care (offline)" : "Open My Care"
             }
             className="party-self"
             data-my-care-trigger={`curator-${label.toLowerCase()}`}
@@ -184,10 +182,7 @@ function CuratorLayerSection({
             type="button"
           >
             {curatedPeopleOffline ? (
-              <CloudOff
-                aria-hidden="true"
-                className="size-7 text-amber-100"
-              />
+              <CloudOff aria-hidden="true" className="size-7 text-amber-100" />
             ) : (
               <Portrait
                 initials={user.initials}

@@ -322,8 +322,7 @@ export function TimelinePanel({
     const timelineIsOffline =
       (timelineItem.state.status === "success" &&
         timelineItem.state.source === "cache") ||
-      (timelineItem.state.status === "error" &&
-        timelineItem.state.recoverable);
+      (timelineItem.state.status === "error" && timelineItem.state.recoverable);
     onOfflineChange?.(timelineIsOffline);
   }, [onOfflineChange, timelineItem.state]);
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(

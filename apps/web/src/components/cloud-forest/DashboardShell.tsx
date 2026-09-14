@@ -142,7 +142,10 @@ export function DashboardShell({
     () => typeof navigator === "undefined" || navigator.onLine,
   );
   const [timelineApiOffline, setTimelineApiOffline] = useState(false);
-  const appIsOffline = sessionOffline || !isOnline || timelineApiOffline;
+  const appIsOffline =
+    sessionOffline ||
+    !isOnline ||
+    (activeView === "timeline" && timelineApiOffline);
   const wasOnlineRef = useRef(isOnline);
   const [addSubmission, setAddSubmission] = useState<{
     pending: boolean;
@@ -162,9 +165,7 @@ export function DashboardShell({
   const [chromeHidden, setChromeHidden] = useState(false);
   const lastScrollY = useRef(0);
   const curatorIsOffline =
-    appIsOffline ||
-    curatedPeople.offline ||
-    curatedPeople.source === "cache";
+    appIsOffline || curatedPeople.offline || curatedPeople.source === "cache";
   const canEditCuratedPeople =
     !curatorIsOffline &&
     curatedPeople.status === "ready" &&
@@ -188,10 +189,6 @@ export function DashboardShell({
       void loadCuratedPeople();
     }
   }, [activeView, isOnline, loadCuratedPeople]);
-
-  useEffect(() => {
-    if (activeView !== "timeline") setTimelineApiOffline(false);
-  }, [activeView]);
 
   const navigateToView = useCallback(
     (view: CloudForestView) => {
