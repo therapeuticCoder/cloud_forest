@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { partyRelationshipOptions } from "./partyRelationshipOptions";
 
 export type AddPartyMemberDraft = {
-  displayName: string;
+  firstName: string;
+  lastName: string;
+  nickname: string;
   portraitUrl?: string;
   relationshipNote: string;
   relationshipTitle: string;
@@ -43,14 +45,19 @@ export function AddPartyMemberWizard({
   onComplete,
 }: AddPartyMemberWizardProps) {
   const [step, setStep] = useState(0);
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [portraitUrl, setPortraitUrl] = useState<string | undefined>(undefined);
   const [portraitError, setPortraitError] = useState<string | undefined>();
   const [relationshipNote, setRelationshipNote] = useState("");
   const [relationshipTitle, setRelationshipTitle] = useState("");
 
   const canContinue =
-    (step === 0 && displayName.trim().length > 0) ||
+    (step === 0 &&
+      firstName.trim().length > 0 &&
+      lastName.trim().length > 0 &&
+      nickname.trim().length > 0) ||
     (step === 2 && relationshipNote.trim().length > 0) ||
     (step === 3 && relationshipTitle.trim().length > 0) ||
     (step === 1 && true) ||
@@ -94,7 +101,9 @@ export function AddPartyMemberWizard({
     }
 
     const completed = await onComplete({
-      displayName: displayName.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      nickname: nickname.trim(),
       portraitUrl,
       relationshipNote: relationshipNote.trim(),
       relationshipTitle: relationshipTitle.trim(),
@@ -147,16 +156,28 @@ export function AddPartyMemberWizard({
       <div className="party-wizard__content">
         {step === 0 ? (
           <label className="party-wizard__question">
-            <span className="party-wizard__title">What do you call them?</span>
+            <span className="party-wizard__title">What are their names?</span>
             <span className="party-wizard__hint">
-              A name or nickname is enough.
+              These private details help you recognize the right person.
             </span>
             <input
               autoFocus
               className="party-wizard__input"
-              onChange={(event) => setDisplayName(event.target.value)}
-              placeholder="Their name"
-              value={displayName}
+              onChange={(event) => setFirstName(event.target.value)}
+              placeholder="First name"
+              value={firstName}
+            />
+            <input
+              className="party-wizard__input"
+              onChange={(event) => setLastName(event.target.value)}
+              placeholder="Last name"
+              value={lastName}
+            />
+            <input
+              className="party-wizard__input"
+              onChange={(event) => setNickname(event.target.value)}
+              placeholder="Nickname"
+              value={nickname}
             />
           </label>
         ) : null}
@@ -252,16 +273,16 @@ export function AddPartyMemberWizard({
           <div className="party-wizard__question party-wizard__preview-wrap">
             <h1 className="party-wizard__title">
               {destination === "Holding"
-                ? `${displayName.trim()} is safe in Holding.`
-                : `${displayName.trim()} belongs in your ${destination}!`}
+                ? `${nickname.trim()} is safe in Holding.`
+                : `${nickname.trim()} belongs in your ${destination}!`}
             </h1>
             <div className="party-wizard__preview">
               {portraitUrl ? (
                 <img alt="" src={portraitUrl} />
               ) : (
-                <span>{initialsFor(displayName)}</span>
+                <span>{initialsFor(`${firstName} ${lastName}`)}</span>
               )}
-              <strong>{displayName}</strong>
+              <strong>{nickname}</strong>
               <span>{relationshipTitle}</span>
               <small>{relationshipNote}</small>
             </div>

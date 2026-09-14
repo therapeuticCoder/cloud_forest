@@ -8,11 +8,13 @@ import { curatorPartyPeople } from "@/data/curatorMockData";
 function curatedPeopleResponse(
   people: Array<{
     id: string;
+    firstName: string;
+    lastName: string;
     nickname: string;
     relationshipShape: string;
     privateDescription: string;
     placement: "party";
-    linkedUserId: null;
+    linkedUserId: string | null;
     version: number;
     createdAt: string;
     updatedAt: string;
@@ -26,17 +28,21 @@ function curatedPeopleResponse(
 }
 
 function createCuratedPeopleFixture() {
-  let people = curatorPartyPeople.slice(0, 4).map((person, index) => ({
-    id: person.id,
-    nickname: person.displayName,
-    relationshipShape: person.relationshipNote,
-    privateDescription: person.relationshipTitle,
-    placement: "party" as const,
-    linkedUserId: null,
-    version: 1,
-    createdAt: `2026-09-07T12:0${index}:00.000Z`,
-    updatedAt: `2026-09-07T12:0${index}:00.000Z`,
-  }));
+  let people: Parameters<typeof curatedPeopleResponse>[0] = curatorPartyPeople
+    .slice(0, 4)
+    .map((person, index) => ({
+      id: person.id,
+      firstName: "",
+      lastName: "",
+      nickname: person.displayName,
+      relationshipShape: person.relationshipNote,
+      privateDescription: person.relationshipTitle,
+      placement: "party" as const,
+      linkedUserId: `connected-user-${index + 1}`,
+      version: 1,
+      createdAt: `2026-09-07T12:0${index}:00.000Z`,
+      updatedAt: `2026-09-07T12:0${index}:00.000Z`,
+    }));
 
   return async (input: RequestInfo | URL, init?: RequestInit) => {
     if (!String(input).includes("/api/v1/curated-persons")) {
@@ -47,6 +53,8 @@ function createCuratedPeopleFixture() {
       const draft = JSON.parse(String(init?.body));
       const created = {
         id: `curated-person-test-${people.length + 1}`,
+        firstName: draft.firstName,
+        lastName: draft.lastName,
         nickname: draft.nickname,
         relationshipShape: draft.relationshipShape,
         privateDescription: draft.privateDescription,
@@ -310,7 +318,9 @@ describe("App", () => {
         { name: /add$/i },
       ),
     );
-    await user.type(screen.getByPlaceholderText("Their name"), "Nia");
+    await user.type(screen.getByPlaceholderText("First name"), "Nia");
+    await user.type(screen.getByPlaceholderText("Last name"), "Patel");
+    await user.type(screen.getByPlaceholderText("Nickname"), "Nia");
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.click(screen.getByRole("button", { name: "Skip for now" }));
     await user.click(screen.getByRole("button", { name: "Relative" }));

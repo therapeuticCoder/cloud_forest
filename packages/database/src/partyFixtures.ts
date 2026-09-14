@@ -214,6 +214,8 @@ export async function seedFictionalPartyFixture(
       ([id, nickname, relationshipShape, privateDescription]) => ({
         id,
         ownerUserId: fictionalPartyOwnerUserId,
+        firstName: "",
+        lastName: "",
         nickname,
         relationshipShape,
         privateDescription,

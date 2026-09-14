@@ -1,4 +1,84 @@
 export interface paths {
+    readonly "/api/v1/connection-pairings": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["createConnectionPairingV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/connection-pairings/{token}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getConnectionPairingV1"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/connection-pairings/{token}/cancel": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["cancelConnectionPairingV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/connection-pairings/{token}/confirm": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["confirmConnectionPairingV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/connection-pairings/{token}/resolve": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["resolveConnectionPairingV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/curated-persons": {
         readonly parameters: {
             readonly query?: never;
@@ -221,6 +301,424 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    readonly createConnectionPairingV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly curatedPersonId: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            /** Format: date-time */
+                            readonly expiresAt: string;
+                            /** @enum {string} */
+                            readonly state: "pending";
+                            readonly token: string;
+                        } | {
+                            /** @enum {string} */
+                            readonly state: "already-connected";
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly getConnectionPairingV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly token: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            /** Format: date-time */
+                            readonly expiresAt: string;
+                            readonly initiator: {
+                                readonly displayName: string;
+                            };
+                            readonly initiatorConfirmed: boolean;
+                            readonly receiver?: {
+                                readonly displayName: string;
+                            };
+                            readonly receiverConfirmed: boolean;
+                            readonly receiverResolved: boolean;
+                            readonly state: "pending" | "completed" | "cancelled" | "superseded" | "expired";
+                            readonly viewerPlacement?: "party" | "tribe" | "holding";
+                            readonly viewerRole: "initiator" | "receiver" | "visitor";
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly cancelConnectionPairingV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly token: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: null;
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly confirmConnectionPairingV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly token: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            /** Format: date-time */
+                            readonly expiresAt: string;
+                            readonly initiator: {
+                                readonly displayName: string;
+                            };
+                            readonly initiatorConfirmed: boolean;
+                            readonly receiver?: {
+                                readonly displayName: string;
+                            };
+                            readonly receiverConfirmed: boolean;
+                            readonly receiverResolved: boolean;
+                            readonly state: "pending" | "completed" | "cancelled" | "superseded" | "expired";
+                            readonly viewerPlacement?: "party" | "tribe" | "holding";
+                            readonly viewerRole: "initiator" | "receiver" | "visitor";
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly resolveConnectionPairingV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly token: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly curatedPersonId: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            /** Format: date-time */
+                            readonly expiresAt: string;
+                            readonly initiator: {
+                                readonly displayName: string;
+                            };
+                            readonly initiatorConfirmed: boolean;
+                            readonly receiver?: {
+                                readonly displayName: string;
+                            };
+                            readonly receiverConfirmed: boolean;
+                            readonly receiverResolved: boolean;
+                            readonly state: "pending" | "completed" | "cancelled" | "superseded" | "expired";
+                            readonly viewerPlacement?: "party" | "tribe" | "holding";
+                            readonly viewerRole: "initiator" | "receiver" | "visitor";
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "INACTIVE_PAIRING" | "NOT_PAIRING_PARTICIPANT" | "RECEIVER_RESOLUTION_REQUIRED" | "CHARACTER_LINKED_TO_ANOTHER_USER";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     readonly getCuratedPersonsV1: {
         readonly parameters: {
             readonly query?: never;
@@ -244,7 +742,9 @@ export interface operations {
                             readonly people: readonly {
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly firstName: string;
                                 readonly id: string;
+                                readonly lastName: string;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -287,6 +787,8 @@ export interface operations {
         readonly requestBody: {
             readonly content: {
                 readonly "application/json": {
+                    readonly firstName: string;
+                    readonly lastName: string;
                     readonly nickname: string;
                     readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
                     readonly portraitUrl?: string;
@@ -310,7 +812,9 @@ export interface operations {
                             readonly people: readonly {
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly firstName: string;
                                 readonly id: string;
+                                readonly lastName: string;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -422,7 +926,9 @@ export interface operations {
                             readonly people: readonly {
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly firstName: string;
                                 readonly id: string;
+                                readonly lastName: string;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -516,6 +1022,8 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly expectedVersion: number;
+                    readonly firstName: string;
+                    readonly lastName: string;
                     readonly nickname: string;
                     readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
                     readonly portraitUrl?: string;
@@ -539,7 +1047,9 @@ export interface operations {
                             readonly people: readonly {
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly firstName: string;
                                 readonly id: string;
+                                readonly lastName: string;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";

@@ -38,3 +38,4 @@ export {
 } from "./sessionContract.ts";
 export * from "./partyContract.ts";
 export * from "./curatedPersonContract.ts";
+export * from "./connectionContract.ts";

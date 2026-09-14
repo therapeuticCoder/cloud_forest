@@ -1,6 +1,7 @@
 import {
   createDatabaseClient,
   createCuratedPersonRepository,
+  createConnectionRepository,
   createIdentityRepository,
   createPartyRepository,
   createTimelineItemRepository,
@@ -43,6 +44,7 @@ try {
       sessionResolver,
       partyRepository: createPartyRepository(database),
       curatedPersonRepository: createCuratedPersonRepository(database),
+      connectionRepository: createConnectionRepository(database),
       identityRepository,
       authHandler: invitedAuth.handler,
       signupAuthHandler: signupAuth.handler,

@@ -44,6 +44,8 @@ function toApiPerson(
 ) {
   return {
     id: person.id,
+    firstName: person.firstName,
+    lastName: person.lastName,
     nickname: person.nickname,
     relationshipShape: person.relationshipShape,
     privateDescription: person.privateDescription,

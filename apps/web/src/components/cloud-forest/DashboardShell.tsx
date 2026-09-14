@@ -33,6 +33,8 @@ import type {
 import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
+import { ConnectionPairingView } from "./ConnectionPairingView";
+import { createConnectionPairing } from "./connectionPairingClient";
 import type { AddPartyMemberDraft } from "./AddPartyMemberWizard";
 import {
   curationErrorMessage,
@@ -97,6 +99,9 @@ export function DashboardShell({
   signingOut: boolean;
 }) {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
+  const [pairingToken, setPairingToken] = useState(() =>
+    new URL(window.location.href).searchParams.get("pairing"),
+  );
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
@@ -167,12 +172,16 @@ export function DashboardShell({
   );
 
   useEffect(() => {
-    const handleViewPopState = () =>
+    const handleViewPopState = () => {
       setActiveView(
         window.history.state?.cloudForestView === "curator"
           ? "curator"
           : "timeline",
       );
+      setPairingToken(
+        new URL(window.location.href).searchParams.get("pairing"),
+      );
+    };
     window.addEventListener("popstate", handleViewPopState);
     return () => window.removeEventListener("popstate", handleViewPopState);
   }, []);
@@ -238,7 +247,9 @@ export function DashboardShell({
   const completeAdd = async (draft: AddPartyMemberDraft) => {
     setAddSubmission({ pending: true });
     const result = await addCuratedPerson({
-      nickname: draft.displayName,
+      firstName: draft.firstName,
+      lastName: draft.lastName,
+      nickname: draft.nickname,
       relationshipShape: draft.relationshipNote,
       privateDescription: draft.relationshipTitle,
       portraitUrl: draft.portraitUrl,
@@ -256,6 +267,8 @@ export function DashboardShell({
   const updateCharacter = async (
     person: CuratorPerson,
     update: {
+      firstName: string;
+      lastName: string;
       nickname: string;
       placement: "holding" | "party" | "tribe";
       privateDescription: string;
@@ -281,6 +294,44 @@ export function DashboardShell({
       (candidate) => candidate.id === person.id,
     );
     return updatedPerson ? curatedPersonToCuratorPerson(updatedPerson) : null;
+  };
+
+  const startConnection = async (person: CuratorPerson) => {
+    setCharacterSubmission({ pending: true });
+    const result = await createConnectionPairing(person.id);
+    if (!result.ok) {
+      setCharacterSubmission({ pending: false, error: result.message });
+      return;
+    }
+    if (result.value.state === "already-connected") {
+      setCharacterSubmission({
+        pending: false,
+        error: "Doh! You already have this connection.",
+      });
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("pairing", result.value.token);
+    window.history.pushState(
+      { ...window.history.state, cloudForestView: "curator" },
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+    setCharacterSubmission({ pending: false });
+    setPairingToken(result.value.token);
+  };
+
+  const closePairing = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("pairing");
+    window.history.pushState(
+      { ...window.history.state, cloudForestView: "curator" },
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+    setActiveView("curator");
+    setPairingToken(null);
+    void loadCuratedPeople();
   };
 
   const applyCareLifecycleAction = (action: CareLifecycleAction) => {
@@ -916,6 +967,12 @@ export function DashboardShell({
     });
   };
 
+  if (pairingToken) {
+    return (
+      <ConnectionPairingView onClose={closePairing} token={pairingToken} />
+    );
+  }
+
   return (
     <main
       className="cloud-forest-app"
@@ -945,6 +1002,7 @@ export function DashboardShell({
             <Portrait
               initials={currentUser.initials}
               personId={currentUser.id}
+              showInitials
               small
             />
           </button>
@@ -1061,6 +1119,7 @@ export function DashboardShell({
                 onRecordNotCompleted={openNotCompleted}
                 onReceive={openReceiveWizard}
                 onSetRequestMinimized={setCareRequestMinimized}
+                onStartConnection={startConnection}
                 onWithdraw={withdrawCareRequestAs}
                 partyPeople={partyPeople}
                 holdingPeople={holdingPeople}
