@@ -51,6 +51,7 @@ describe("AuthBoundary", () => {
   });
 
   afterEach(() => {
+    window.history.replaceState({}, "", "/");
     vi.restoreAllMocks();
   });
 
@@ -64,6 +65,26 @@ describe("AuthBoundary", () => {
     ).toBeVisible();
     expect(
       screen.queryByRole("region", { name: "Timeline view" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("treats an unauthenticated pairing URL as a continuation", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/?pairing=pairing-token-12345678901234567890&signup=invite-code",
+    );
+
+    render(<AuthBoundary sessionClient={unauthorizedSessionClient()} />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Continue to your connection",
+      }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Signup code")).toHaveValue("invite-code");
+    expect(
+      screen.queryByText(/session has ended|session has expired/i),
     ).not.toBeInTheDocument();
   });
 

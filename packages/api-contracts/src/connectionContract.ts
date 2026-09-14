@@ -3,6 +3,7 @@ import Compile from "typebox/compile";
 
 export const connectionApiVersion = "v1" as const;
 const pairingToken = Type.String({ minLength: 20, maxLength: 128 });
+const signupCode = Type.String({ minLength: 1, maxLength: 256 });
 const curatedPersonId = Type.String({ minLength: 1, maxLength: 128 });
 const curatedPersonPlacement = Type.Union([
   Type.Literal("party"),
@@ -14,6 +15,16 @@ const publicAccountIdentitySchema = Type.Object(
   { displayName: Type.String({ minLength: 1, maxLength: 200 }) },
   { additionalProperties: false },
 );
+const createConnectionPairingErrorCode = Type.Union([
+  Type.Literal("UNAUTHORIZED"),
+  Type.Literal("NOT_FOUND"),
+  Type.Literal("VALIDATION_ERROR"),
+  Type.Literal("INACTIVE_PAIRING"),
+  Type.Literal("NOT_PAIRING_PARTICIPANT"),
+  Type.Literal("RECEIVER_RESOLUTION_REQUIRED"),
+  Type.Literal("CHARACTER_LINKED_TO_ANOTHER_USER"),
+  Type.Literal("SIGNUP_INVITATION_FAILED"),
+]);
 
 export const connectionPairingStateSchema = Type.Union([
   Type.Literal("pending"),
@@ -64,6 +75,20 @@ export const connectionPairingErrorSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const createConnectionPairingErrorSchema = Type.Object(
+  {
+    apiVersion: Type.Literal(connectionApiVersion),
+    error: Type.Object(
+      {
+        code: createConnectionPairingErrorCode,
+        message: Type.String({ minLength: 1, maxLength: 500 }),
+      },
+      { additionalProperties: false },
+    ),
+  },
+  { additionalProperties: false },
+);
+
 export const createConnectionPairingBodySchema = Type.Object(
   { curatedPersonId },
   { additionalProperties: false },
@@ -85,6 +110,7 @@ export const createConnectionPairingSuccessSchema = Type.Object(
         {
           state: Type.Literal("pending"),
           token: pairingToken,
+          signupCode,
           expiresAt: Type.String({ format: "date-time" }),
         },
         { additionalProperties: false },

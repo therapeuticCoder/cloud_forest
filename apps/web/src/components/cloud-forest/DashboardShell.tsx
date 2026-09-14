@@ -51,6 +51,10 @@ import { ClaimCareView } from "./ClaimCareView";
 import { MyCareView } from "./MyCareView";
 import { NotCompletedCareView } from "./NotCompletedCareView";
 import {
+  clearPendingConnectionPairing,
+  rememberPendingConnectionPairing,
+} from "@/lib/pendingConnectionPairing";
+import {
   CareGratitudeWizard,
   type CareGratitudeDraft,
 } from "./CareGratitudeWizard";
@@ -352,10 +356,15 @@ export function DashboardShell({
     }
     const url = new URL(window.location.href);
     url.searchParams.set("pairing", result.value.token);
+    url.searchParams.set("signup", result.value.signupCode);
     window.history.pushState(
       { ...window.history.state, cloudForestView: "curator" },
       "",
       `${url.pathname}${url.search}${url.hash}`,
+    );
+    rememberPendingConnectionPairing(
+      result.value.token,
+      result.value.signupCode,
     );
     setCharacterSubmission({ pending: false });
     setPairingToken(result.value.token);
@@ -369,6 +378,7 @@ export function DashboardShell({
       "",
       `${url.pathname}${url.search}${url.hash}`,
     );
+    clearPendingConnectionPairing();
     setActiveView("curator");
     setPairingToken(null);
     void loadCuratedPeople();

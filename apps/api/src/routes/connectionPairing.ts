@@ -9,19 +9,24 @@ import {
   connectionPairingSuccessSchema,
   connectionPairingsPath,
   createConnectionPairingBodySchema,
+  createConnectionPairingErrorSchema,
   createConnectionPairingSuccessSchema,
   resolveConnectionPairingBodySchema,
   resolveConnectionPairingPath,
 } from "@cloud-forest/api-contracts";
+import { randomBytes, randomUUID } from "node:crypto";
+import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+
 import {
   createPairingToken,
   type ConnectionRepository,
+  type IdentityRepository,
 } from "@cloud-forest/database";
-import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
 import type { SessionResolver } from "../sessionResolver.ts";
 
 type Options = {
+  identityRepository: IdentityRepository;
   repository: ConnectionRepository;
   sessionResolver: SessionResolver;
 };
@@ -30,7 +35,10 @@ const messages = {
   UNAUTHORIZED: "A valid invited session is required.",
   NOT_FOUND: "This connection pairing is unavailable.",
   VALIDATION_ERROR: "Invalid connection pairing request.",
-  INACTIVE_PAIRING: "This connection pairing is no longer active.",
+  INACTIVE_PAIRING:
+    "This connection pairing has expired or is no longer active. Ask for a fresh request to continue.",
+  SIGNUP_INVITATION_FAILED:
+    "Cloud Forest could not prepare the invitation. Please try creating the pairing again.",
   NOT_PAIRING_PARTICIPANT: "This connection pairing is unavailable.",
   RECEIVER_RESOLUTION_REQUIRED:
     "Choose a private Character before confirming this connection.",
@@ -39,15 +47,23 @@ const messages = {
 } as const;
 
 type ErrorCode = keyof typeof messages;
+type CommonErrorCode = Exclude<ErrorCode, "SIGNUP_INVITATION_FAILED">;
 
-function error(code: ErrorCode) {
+function error(code: CommonErrorCode) {
   return {
     apiVersion: connectionApiVersion,
     error: { code, message: messages[code] },
   };
 }
 
-function repositoryErrorCode(errorName: string): ErrorCode {
+function createError(code: ErrorCode) {
+  return {
+    apiVersion: connectionApiVersion,
+    error: { code, message: messages[code] },
+  };
+}
+
+function repositoryErrorCode(errorName: string): CommonErrorCode {
   if (errorName === "character-not-found") return "NOT_FOUND";
   if (errorName === "character-linked-to-another-user") {
     return "CHARACTER_LINKED_TO_ANOTHER_USER";
@@ -129,8 +145,9 @@ export const connectionPairingRoutes: FastifyPluginAsyncTypebox<
         body: createConnectionPairingBodySchema,
         response: {
           200: createConnectionPairingSuccessSchema,
-          401: connectionPairingErrorSchema,
-          404: connectionPairingErrorSchema,
+          401: createConnectionPairingErrorSchema,
+          404: createConnectionPairingErrorSchema,
+          500: createConnectionPairingErrorSchema,
         },
       },
     },
@@ -152,11 +169,39 @@ export const connectionPairingRoutes: FastifyPluginAsyncTypebox<
           data: { state: "already-connected" },
         } as const;
       }
+      const signupCode = randomBytes(18).toString("base64url");
+      try {
+        await options.identityRepository.createSignupCode({
+          id: `signup-code-${randomUUID()}`,
+          code: signupCode,
+          createdByUserId: current.userId,
+          now: new Date(),
+        });
+      } catch (signupCodeError) {
+        try {
+          await options.repository.cancel({
+            token,
+            userId: current.userId,
+            now: new Date(),
+          });
+        } catch (cancelError) {
+          request.log.error(
+            { err: cancelError },
+            "Could not cancel the connection pairing after invitation creation failed",
+          );
+        }
+        request.log.error(
+          { err: signupCodeError },
+          "Could not create the signup invitation for a connection pairing",
+        );
+        return reply.status(500).send(createError("SIGNUP_INVITATION_FAILED"));
+      }
       return {
         apiVersion: connectionApiVersion,
         data: {
           state: "pending",
           token,
+          signupCode,
           expiresAt: result.value.pairing.expiresAt.toISOString(),
         },
       } as const;

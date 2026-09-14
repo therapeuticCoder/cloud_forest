@@ -84,7 +84,9 @@ function SelectionVisual({
   ) {
     return (
       <Portrait
+        grayscale={selection.item.linkedUserId == null}
         initials={initials ?? selection.item.initials}
+        layer={selection.layer}
         personId={selection.item.id}
         portraitUrl={portraitUrl}
         showInitials

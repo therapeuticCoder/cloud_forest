@@ -27,6 +27,7 @@ import {
   type SessionClient,
   type SignUpInput,
 } from "@/app/sessionClient";
+import { rememberPendingConnectionPairing } from "@/lib/pendingConnectionPairing";
 
 import "./auth-boundary.css";
 
@@ -103,6 +104,7 @@ function EntryScreen({
   onSignIn,
   onSignUp,
   onCheckUsername,
+  pairingToken,
 }: {
   message?: string;
   onSignIn: (
@@ -117,6 +119,7 @@ function EntryScreen({
   ) => Promise<
     { ok: true; available: boolean } | { ok: false; message: string }
   >;
+  pairingToken?: string | null;
 }) {
   const codeId = useId();
   const firstNameId = useId();
@@ -146,6 +149,7 @@ function EntryScreen({
   const announcement = message;
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
+  const hasPairingIntent = Boolean(pairingToken);
 
   const normalizedUsername = username.trim();
   const usernameStatus =
@@ -226,7 +230,13 @@ function EntryScreen({
       <AuthCard
         headingRef={headingRef}
         icon={<KeyRound />}
-        title={mode === "login" ? "Enter Cloud Forest" : "Join Cloud Forest"}
+        title={
+          hasPairingIntent
+            ? "Continue to your connection"
+            : mode === "login"
+              ? "Enter Cloud Forest"
+              : "Join Cloud Forest"
+        }
       >
         <div
           className="auth-boundary-tabs"
@@ -259,9 +269,13 @@ function EntryScreen({
           </button>
         </div>
         <p className="auth-boundary-lede">
-          {mode === "login"
-            ? "Use your invited Cloud Forest username or email and password."
-            : "Use the signup code from your Cloud Forest invitation."}
+          {hasPairingIntent
+            ? mode === "login"
+              ? "Sign in to continue to your pending Cloud Forest connection."
+              : "Use the signup code from your Cloud Forest invitation to continue to your pending connection."
+            : mode === "login"
+              ? "Use your invited Cloud Forest username or email and password."
+              : "Use the signup code from your Cloud Forest invitation."}
         </p>
         {announcement ? (
           <p className="auth-boundary-announcement" role="status">
@@ -446,7 +460,11 @@ function sessionErrorMessage(
     Awaited<ReturnType<SessionClient["getCurrentSession"]>>,
     { ok: true }
   >,
+  hasPairingIntent = false,
 ) {
+  if (hasPairingIntent && result.kind === "http" && result.status === 401) {
+    return undefined;
+  }
   if (result.kind === "network") {
     return "Cloud Forest couldn’t confirm your session. Try again when you’re ready.";
   }
@@ -463,6 +481,10 @@ export function AuthBoundary({
   apiClient,
   sessionClient = defaultSessionClient,
 }: AuthBoundaryProps) {
+  const pairingToken =
+    typeof window === "undefined"
+      ? null
+      : new URL(window.location.href).searchParams.get("pairing");
   const [boundary, setBoundary] = useState<BoundaryState>({
     status: "checking",
   });
@@ -511,7 +533,10 @@ export function AuthBoundary({
       setBoundary((current) =>
         current.status === "signed-in"
           ? { ...current, connection: "offline" }
-          : { status: "signed-out", message: sessionErrorMessage(result) },
+          : {
+              status: "signed-out",
+              message: sessionErrorMessage(result, Boolean(pairingToken)),
+            },
       );
       return;
     }
@@ -524,9 +549,9 @@ export function AuthBoundary({
     clearSessionSnapshot();
     setBoundary({
       status: "signed-out",
-      message: sessionErrorMessage(result),
+      message: sessionErrorMessage(result, Boolean(pairingToken)),
     });
-  }, [sessionClient]);
+  }, [pairingToken, sessionClient]);
 
   useEffect(() => {
     const initialCheck = window.setTimeout(() => {
@@ -556,11 +581,13 @@ export function AuthBoundary({
     if (result.ok) {
       const url = new URL(window.location.href);
       url.searchParams.delete("view");
+      if (pairingToken) url.searchParams.delete("signup");
       window.history.replaceState(
         {},
         "",
         `${url.pathname}${url.search}${url.hash}`,
       );
+      if (pairingToken) rememberPendingConnectionPairing(pairingToken, null);
       await checkSession();
     }
     return result;
@@ -574,7 +601,19 @@ export function AuthBoundary({
       };
     }
     const result = await sessionClient.signUp(input);
-    if (result.ok) await checkSession();
+    if (result.ok) {
+      if (pairingToken) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("signup");
+        window.history.replaceState(
+          { ...window.history.state },
+          "",
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+        rememberPendingConnectionPairing(pairingToken, null);
+      }
+      await checkSession();
+    }
     return result;
   };
 
@@ -634,12 +673,16 @@ export function AuthBoundary({
   if (boundary.status === "checking") return <LoadingScreen />;
   if (boundary.status === "signed-out") {
     return (
-      <EntryScreen
-        message={boundary.message}
-        onCheckUsername={checkUsername}
-        onSignIn={signIn}
-        onSignUp={signUp}
-      />
+      <>
+        <EntryScreen
+          message={boundary.message}
+          onCheckUsername={checkUsername}
+          onSignIn={signIn}
+          onSignUp={signUp}
+          pairingToken={pairingToken}
+        />
+        {pairingToken ? <PwaNotice /> : null}
+      </>
     );
   }
 

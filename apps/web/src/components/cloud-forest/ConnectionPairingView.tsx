@@ -42,8 +42,11 @@ export function ConnectionPairingView({
   const [newPrivateDescription, setNewPrivateDescription] = useState("");
   const { add, people } = useCuratedPeople();
   const pairingLink = useMemo(() => {
-    const url = new URL(window.location.href);
+    const currentUrl = new URL(window.location.href);
+    const url = new URL("/", currentUrl.origin);
     url.searchParams.set("pairing", token);
+    const signupCode = currentUrl.searchParams.get("signup");
+    if (signupCode) url.searchParams.set("signup", signupCode);
     return url.toString();
   }, [token]);
 
@@ -201,7 +204,9 @@ export function ConnectionPairingView({
             <h1 className="text-3xl font-medium tracking-tight">
               {pairing?.state === "completed"
                 ? "Connection established"
-                : "Upgrade to a mutual connection"}
+                : pairing?.state === "expired"
+                  ? "Pairing expired"
+                  : "Upgrade to a mutual connection"}
             </h1>
           </header>
 
@@ -455,7 +460,13 @@ export function ConnectionPairingView({
                   </Button>
                 </div>
               ) : null}
-              {pairing.state !== "pending" && pairing.state !== "completed" ? (
+              {pairing.state === "expired" ? (
+                <p className="text-center text-sm text-slate-300" role="status">
+                  This pairing expired before it was completed. Ask the other
+                  person to send a fresh connection request.
+                </p>
+              ) : pairing.state !== "pending" &&
+                pairing.state !== "completed" ? (
                 <p className="text-center text-sm text-slate-300">
                   This pairing is {pairing.state} and cannot establish a
                   connection.
