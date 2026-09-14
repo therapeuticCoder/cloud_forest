@@ -104,6 +104,35 @@ describe("care lifecycle prototype storage", () => {
     expect(loadCareLifecycleState(incomingCareRequests).gratitudes).toEqual([]);
   });
 
+  it("persists orphaned Care history after a Connection ends", () => {
+    const initial = loadCareLifecycleState(incomingCareRequests);
+    const claimed = transitionCareLifecycle(initial, {
+      type: "claim-request",
+      claim: {
+        id: "claim-1",
+        requestId: incomingCareRequests[0].id,
+        claimerId: "you",
+        claimedAt: "2026-09-03T14:00:00.000Z",
+      },
+    });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok) return;
+
+    const orphaned = transitionCareLifecycle(claimed.state, {
+      type: "orphan-claimed-care",
+      participantIds: ["anya", "you"],
+      orphanedAt: "2026-09-03T15:00:00.000Z",
+    });
+    expect(orphaned.ok).toBe(true);
+    if (!orphaned.ok) return;
+
+    saveCareLifecycleState(orphaned.state);
+
+    expect(loadCareLifecycleState(incomingCareRequests).history).toEqual(
+      orphaned.state.history,
+    );
+  });
+
   it.each([
     ["malformed JSON", "not-json"],
     ["an incomplete version-2 envelope", JSON.stringify({ version: 2 })],

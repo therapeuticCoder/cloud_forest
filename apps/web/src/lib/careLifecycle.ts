@@ -28,6 +28,11 @@ export type CareLifecycleErrorCode =
 export type CareLifecycleAction =
   | { type: "publish-request"; request: ReceiveCareRequest }
   | {
+      type: "orphan-claimed-care";
+      participantIds: [CarePersonId, CarePersonId];
+      orphanedAt: string;
+    }
+  | {
       type: "withdraw-request";
       requestId: string;
       actorId: CarePersonId;
@@ -319,6 +324,13 @@ function validateAction(
   action: Exclude<CareLifecycleAction, { type: "publish-request" }>,
 ) {
   switch (action.type) {
+    case "orphan-claimed-care":
+      return (
+        action.participantIds.length === 2 &&
+        action.participantIds.every(hasValidIdentity) &&
+        new Set(action.participantIds).size === action.participantIds.length &&
+        hasValidTimestamp(action.orphanedAt)
+      );
     case "withdraw-request":
       return (
         hasValidIdentity(action.requestId) &&
@@ -420,8 +432,47 @@ function participantIds(state: CareLifecycleState, requestId: string) {
   return [request.requester.id, claim.claimerId];
 }
 
+function orphanClaimedCare(
+  state: CareLifecycleState,
+  relationshipParticipantIds: [CarePersonId, CarePersonId],
+  orphanedAt: string,
+) {
+  const affectedRequestIds = state.requests
+    .filter((request) => {
+      const participants = participantIds(state, request.id);
+      return (
+        participants.length === relationshipParticipantIds.length &&
+        participants.every((participantId) =>
+          relationshipParticipantIds.includes(participantId),
+        ) &&
+        relationshipParticipantIds.every((participantId) =>
+          participants.includes(participantId),
+        ) &&
+        !isTerminal(state, request.id)
+      );
+    })
+    .map((request) => request.id);
+
+  if (affectedRequestIds.length === 0) return state;
+
+  return {
+    ...state,
+    history: [
+      ...state.history,
+      ...affectedRequestIds.flatMap((requestId) =>
+        participantIds(state, requestId).map((participantId) =>
+          historyEntry(requestId, participantId, "orphaned", orphanedAt),
+        ),
+      ),
+    ],
+  };
+}
+
 function getActionRequestId(
-  action: Exclude<CareLifecycleAction, { type: "publish-request" }>,
+  action: Exclude<
+    CareLifecycleAction,
+    { type: "publish-request" | "orphan-claimed-care" }
+  >,
 ) {
   switch (action.type) {
     case "withdraw-request":
@@ -455,6 +506,13 @@ export function transitionCareLifecycle(
       return reject(state, "duplicate-record");
     }
     return accept({ ...state, requests: [action.request, ...state.requests] });
+  }
+
+  if (action.type === "orphan-claimed-care") {
+    if (!validateAction(action)) return reject(state, "invalid-action");
+    return accept(
+      orphanClaimedCare(state, action.participantIds, action.orphanedAt),
+    );
   }
 
   if (!validateAction(action)) return reject(state, "invalid-action");

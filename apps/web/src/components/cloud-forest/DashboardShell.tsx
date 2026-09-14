@@ -371,6 +371,23 @@ export function DashboardShell({
     return true;
   };
 
+  const orphanClaimedCare = (person: CuratorPerson) => {
+    const counterpartUserId = person.linkedUserId;
+    if (!counterpartUserId) return;
+    setCareLifecycle((currentState) => {
+      const transition = transitionCareLifecycle(currentState, {
+        type: "orphan-claimed-care",
+        participantIds: [careViewerId, counterpartUserId],
+        orphanedAt: new Date().toISOString(),
+      });
+      if (!transition.ok || transition.state === currentState) {
+        return currentState;
+      }
+      saveCareLifecycleState(transition.state, careViewerId);
+      return transition.state;
+    });
+  };
+
   const endConnection = async (
     person: CuratorPerson,
     deleteLocalCharacter: boolean,
@@ -392,6 +409,7 @@ export function DashboardShell({
       setCharacterSubmission({ pending: false, error: result.message });
       return false;
     }
+    orphanClaimedCare(person);
     setCharacterSubmission({ pending: false });
     await loadCuratedPeople();
     return true;
@@ -412,6 +430,7 @@ export function DashboardShell({
       setCharacterSubmission({ pending: false, error: result.message });
       return false;
     }
+    orphanClaimedCare(person);
     setCharacterSubmission({ pending: false });
     await loadCuratedPeople();
     return true;

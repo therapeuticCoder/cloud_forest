@@ -379,6 +379,65 @@ describe("Receive-care lifecycle", () => {
     ).toMatchObject({ ok: false, error: "already-claimed" });
   });
 
+  it("orphanizes claimed Care for both participants when their Connection ends", () => {
+    const claimed = apply(createCareLifecycleState([request()]), {
+      type: "claim-request",
+      claim: claim(),
+    });
+    const orphaned = apply(claimed, {
+      type: "orphan-claimed-care",
+      participantIds: ["anya", "you"],
+      orphanedAt: "2026-09-04T12:00:00.000Z",
+    });
+
+    expect(orphaned.history).toEqual([
+      expect.objectContaining({
+        ownerId: "anya",
+        outcome: "orphaned",
+        recordedAt: "2026-09-04T12:00:00.000Z",
+      }),
+      expect.objectContaining({
+        ownerId: "you",
+        outcome: "orphaned",
+        recordedAt: "2026-09-04T12:00:00.000Z",
+      }),
+    ]);
+    expect(selectTimelineCareRequests(orphaned, "you", beforeExpiry)).toEqual(
+      [],
+    );
+    expect(
+      selectProfileCareRequests(orphaned, "you", "you", beforeExpiry),
+    ).toEqual([]);
+    expect(
+      transitionCareLifecycle(orphaned, {
+        type: "record-completion",
+        completion: {
+          id: "completion-you",
+          requestId: "request-1",
+          participantId: "you",
+          decision: "completed",
+          decidedAt: beforeExpiry,
+        },
+      }),
+    ).toMatchObject({ ok: false, error: "request-closed" });
+    expect(
+      transitionCareLifecycle(orphaned, {
+        type: "record-gratitude",
+        gratitude: {
+          id: "gratitude-1",
+          requestId: "request-1",
+          receiverId: "anya",
+          giverId: "you",
+          statementId: "meal-fed-when-needed",
+          message: "Thank you.",
+          postToTimeline: false,
+          anonymized: false,
+          createdAt: beforeExpiry,
+        },
+      }),
+    ).toMatchObject({ ok: false, error: "request-closed" });
+  });
+
   it("derives private claimed care for a profile owner", () => {
     const claimed = apply(createCareLifecycleState([request()]), {
       type: "claim-request",

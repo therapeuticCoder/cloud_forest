@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, asc, eq, or, sql } from "drizzle-orm";
+import { and, asc, eq, notExists, or, sql } from "drizzle-orm";
 import type { CuratedPersonPlacement } from "@cloud-forest/domain";
 
 import type { DatabaseClient } from "./client.ts";
@@ -47,6 +47,26 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
         and(
           eq(curatedPersons.ownerUserId, ownerUserId),
           eq(curatedPersons.placement, placement),
+          notExists(
+            transaction
+              .select({ blockerUserId: relationshipBlocks.blockerUserId })
+              .from(relationshipBlocks)
+              .where(
+                and(
+                  eq(relationshipBlocks.blockerUserId, ownerUserId),
+                  or(
+                    eq(
+                      relationshipBlocks.contextCuratedPersonId,
+                      curatedPersons.id,
+                    ),
+                    eq(
+                      relationshipBlocks.blockedUserId,
+                      curatedPersons.linkedUserId,
+                    ),
+                  ),
+                ),
+              ),
+          ),
         ),
       );
     return rows.length;
@@ -295,6 +315,9 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
             return { ok: false, error: "curated-person-connected" };
           }
         }
+        await transaction
+          .delete(relationshipBlocks)
+          .where(eq(relationshipBlocks.contextCuratedPersonId, existing.id));
         await transaction
           .delete(curatedPersons)
           .where(
