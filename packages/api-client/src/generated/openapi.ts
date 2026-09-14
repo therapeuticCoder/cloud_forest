@@ -399,6 +399,9 @@ export interface operations {
                                 readonly displayName: string;
                             };
                             readonly initiatorConfirmed: boolean;
+                            readonly receiver?: {
+                                readonly displayName: string;
+                            };
                             readonly receiverConfirmed: boolean;
                             readonly receiverResolved: boolean;
                             readonly state: "pending" | "completed" | "cancelled" | "superseded" | "expired";
@@ -527,6 +530,9 @@ export interface operations {
                                 readonly displayName: string;
                             };
                             readonly initiatorConfirmed: boolean;
+                            readonly receiver?: {
+                                readonly displayName: string;
+                            };
                             readonly receiverConfirmed: boolean;
                             readonly receiverResolved: boolean;
                             readonly state: "pending" | "completed" | "cancelled" | "superseded" | "expired";
@@ -635,6 +641,9 @@ export interface operations {
                                 readonly displayName: string;
                             };
                             readonly initiatorConfirmed: boolean;
+                            readonly receiver?: {
+                                readonly displayName: string;
+                            };
                             readonly receiverConfirmed: boolean;
                             readonly receiverResolved: boolean;
                             readonly state: "pending" | "completed" | "cancelled" | "superseded" | "expired";

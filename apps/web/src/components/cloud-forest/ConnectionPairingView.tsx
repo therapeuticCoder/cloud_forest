@@ -1,10 +1,11 @@
 import { QRCodeSVG } from "qrcode.react";
-import { ArrowLeft, Check, Copy, UserRoundPlus } from "lucide-react";
+import { ArrowLeft, Check, Copy, UserRoundPlus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
 import {
+  cancelConnectionPairing,
   confirmConnectionPairing,
   getConnectionPairing,
   type ConnectionPairing,
@@ -127,6 +128,18 @@ export function ConnectionPairingView({
     setPending(false);
   };
 
+  const cancel = async () => {
+    setPending(true);
+    setMessage(undefined);
+    const result = await cancelConnectionPairing(token);
+    if (result.ok) {
+      onClose();
+      return;
+    }
+    setMessage(result.message);
+    setPending(false);
+  };
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(pairingLink);
@@ -212,7 +225,9 @@ export function ConnectionPairingView({
               <section className="rounded-2xl border border-white/15 bg-black/20 p-5">
                 <p className="text-sm text-slate-300">
                   {isInitiator
-                    ? "This action will add a real person’s data and new functionality to your Cloud Forest Character. Your nickname and notes are private and won’t be shared."
+                    ? pairing.receiver
+                      ? `${pairing.receiver.displayName} selected a private Character for this mutual Cloud Forest connection. Your nickname and notes are private and won’t be shared.`
+                      : "This action will add a real person’s data and new functionality to your Cloud Forest Character. Your nickname and notes are private and won’t be shared."
                     : `${pairing.initiator.displayName} wants to make a mutual Cloud Forest connection with you.`}
                 </p>
                 {!isInitiator ? (
@@ -420,14 +435,25 @@ export function ConnectionPairingView({
               ) : null}
 
               {active && pairing.viewerRole !== "visitor" ? (
-                <Button
-                  className="text-slate-300 hover:bg-white/10"
-                  onClick={onClose}
-                  type="button"
-                  variant="ghost"
-                >
-                  Back to Curator
-                </Button>
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    className="text-slate-300 hover:bg-white/10"
+                    onClick={onClose}
+                    type="button"
+                    variant="ghost"
+                  >
+                    Back to Curator
+                  </Button>
+                  <Button
+                    className="text-rose-100 hover:bg-rose-100/10"
+                    disabled={pending}
+                    onClick={() => void cancel()}
+                    type="button"
+                    variant="ghost"
+                  >
+                    <X aria-hidden="true" /> Cancel this pairing
+                  </Button>
+                </div>
               ) : null}
               {pairing.state !== "pending" && pairing.state !== "completed" ? (
                 <p className="text-center text-sm text-slate-300">

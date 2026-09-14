@@ -99,6 +99,13 @@
       "when": 1789344000000,
       "tag": "0013_curated_person_names",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789430400000,
+      "tag": "0014_pairing_character_deletion",
+      "breakpoints": true
     }
   ]
 }

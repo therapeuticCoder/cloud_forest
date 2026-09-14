@@ -327,6 +327,20 @@
                         "initiatorConfirmed": {
                           "type": "boolean"
                         },
+                        "receiver": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "displayName": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "displayName"
+                          ],
+                          "type": "object"
+                        },
                         "receiverConfirmed": {
                           "type": "boolean"
                         },
@@ -876,6 +890,20 @@
                         "initiatorConfirmed": {
                           "type": "boolean"
                         },
+                        "receiver": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "displayName": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "displayName"
+                          ],
+                          "type": "object"
+                        },
                         "receiverConfirmed": {
                           "type": "boolean"
                         },
@@ -1397,6 +1425,20 @@
                         },
                         "initiatorConfirmed": {
                           "type": "boolean"
+                        },
+                        "receiver": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "displayName": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "displayName"
+                          ],
+                          "type": "object"
                         },
                         "receiverConfirmed": {
                           "type": "boolean"

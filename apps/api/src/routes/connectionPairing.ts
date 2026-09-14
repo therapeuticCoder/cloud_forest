@@ -72,19 +72,23 @@ function pairingPresentation(
     inspected.viewerPlacement === "holding"
       ? inspected.viewerPlacement
       : undefined;
+  const viewerRole =
+    pairing.initiatorUserId === viewerUserId
+      ? "initiator"
+      : pairing.receiverUserId === viewerUserId
+        ? "receiver"
+        : "visitor";
   return {
     apiVersion: connectionApiVersion,
     data: {
       state: inspected.state,
       expiresAt: pairing.expiresAt.toISOString(),
       initiator: { displayName: inspected.initiator.displayName },
+      ...(viewerRole === "initiator" && inspected.receiver
+        ? { receiver: { displayName: inspected.receiver.displayName } }
+        : {}),
       receiverResolved: pairing.receiverUserId !== null,
-      viewerRole:
-        pairing.initiatorUserId === viewerUserId
-          ? "initiator"
-          : pairing.receiverUserId === viewerUserId
-            ? "receiver"
-            : "visitor",
+      viewerRole,
       initiatorConfirmed: pairing.initiatorConfirmedAt !== null,
       receiverConfirmed: pairing.receiverConfirmedAt !== null,
       viewerPlacement,

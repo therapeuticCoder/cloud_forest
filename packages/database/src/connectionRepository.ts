@@ -199,6 +199,15 @@ export function createConnectionRepository(database: DatabaseClient) {
           .where(eq(users.id, pairing.initiatorUserId))
           .limit(1);
         if (!initiator) return null;
+        const receiver = pairing.receiverUserId
+          ? (
+              await transaction
+                .select({ displayName: users.name })
+                .from(users)
+                .where(eq(users.id, pairing.receiverUserId))
+                .limit(1)
+            )[0]
+          : undefined;
         const viewerCuratedPersonId =
           pairing.initiatorUserId === input.viewerUserId
             ? pairing.initiatorCuratedPersonId
@@ -216,6 +225,7 @@ export function createConnectionRepository(database: DatabaseClient) {
           pairing,
           state,
           initiator,
+          receiver,
           viewerPlacement: viewerCharacter?.placement,
         };
       });
@@ -282,11 +292,20 @@ export function createConnectionRepository(database: DatabaseClient) {
               eq(connectionPairings.id, pairing.id),
               eq(connectionPairings.status, "pending"),
               sql`${connectionPairings.expiresAt} > ${input.now}`,
+              or(
+                isNull(connectionPairings.receiverUserId),
+                and(
+                  eq(connectionPairings.receiverUserId, input.receiverUserId),
+                  eq(
+                    connectionPairings.receiverCuratedPersonId,
+                    input.receiverCuratedPersonId,
+                  ),
+                ),
+              ),
             ),
           )
           .returning();
-        if (!resolved)
-          throw new Error("Pairing resolution did not return a record.");
+        if (!resolved) return { ok: false, error: "inactive-pairing" };
         return { ok: true, value: { pairing: resolved, state: "pending" } };
       });
     },

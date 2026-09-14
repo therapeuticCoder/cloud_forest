@@ -28,6 +28,7 @@ export const connectionPairingSchema = Type.Object(
     state: connectionPairingStateSchema,
     expiresAt: Type.String({ format: "date-time" }),
     initiator: publicAccountIdentitySchema,
+    receiver: Type.Optional(publicAccountIdentitySchema),
     receiverResolved: Type.Boolean(),
     viewerRole: Type.Union([
       Type.Literal("initiator"),

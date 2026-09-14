@@ -315,14 +315,14 @@ export const connectionPairings = pgTable(
       length: 128,
     })
       .notNull()
-      .references(() => curatedPersons.id, { onDelete: "restrict" }),
+      .references(() => curatedPersons.id, { onDelete: "cascade" }),
     receiverUserId: varchar("receiver_user_id", { length: 128 }).references(
       () => users.id,
       { onDelete: "cascade" },
     ),
     receiverCuratedPersonId: varchar("receiver_curated_person_id", {
       length: 128,
-    }).references(() => curatedPersons.id, { onDelete: "restrict" }),
+    }).references(() => curatedPersons.id, { onDelete: "cascade" }),
     initiatorConfirmedAt: timestamp("initiator_confirmed_at", {
       withTimezone: true,
     }),

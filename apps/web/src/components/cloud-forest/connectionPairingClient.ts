@@ -2,6 +2,7 @@ export type ConnectionPairing = {
   state: "pending" | "completed" | "cancelled" | "superseded" | "expired";
   expiresAt: string;
   initiator: { displayName: string };
+  receiver?: { displayName: string };
   receiverResolved: boolean;
   viewerRole: "initiator" | "receiver" | "visitor";
   initiatorConfirmed: boolean;
