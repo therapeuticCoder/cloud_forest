@@ -450,6 +450,9 @@ function sessionErrorMessage(
   if (result.kind === "network") {
     return "Cloud Forest couldn’t confirm your session. Try again when you’re ready.";
   }
+  if (result.status === 401) {
+    return "Your Cloud Forest session has ended. Please sign in again.";
+  }
   if (result.kind === "unexpected-response") {
     return "Cloud Forest is temporarily unavailable. Try again when you’re ready.";
   }
@@ -491,7 +494,10 @@ export function AuthBoundary({
       return;
     }
 
-    if (result.kind === "network" || result.kind === "unexpected-response") {
+    if (
+      result.kind === "network" ||
+      (result.kind === "unexpected-response" && result.status >= 500)
+    ) {
       const cachedSession = loadSessionSnapshot();
       if (cachedSession) {
         setBoundary({
@@ -599,13 +605,24 @@ export function AuthBoundary({
     setSigningOut(true);
     setSignOutError(undefined);
     const result = await sessionClient.logout();
-    if (result.ok || (result.kind === "http" && result.status === 401)) {
+    const clearLocalAccess = () => {
       if (boundary.status === "signed-in") {
         clearCuratedPeopleSnapshot(boundary.currentPersonId);
         clearTimelineItemSnapshot(boundary.currentPersonId);
       }
       clearSessionSnapshot();
+    };
+
+    if (result.ok || (result.kind === "http" && result.status === 401)) {
+      clearLocalAccess();
       setBoundary({ status: "signed-out", message: "You’re signed out." });
+    } else if (result.kind === "network") {
+      clearLocalAccess();
+      setBoundary({
+        status: "signed-out",
+        message:
+          "You’re signed out on this device. Reconnect when you’re ready to end the server session.",
+      });
     } else {
       setSignOutError(
         "Cloud Forest couldn’t end this session. Please try signing out again.",

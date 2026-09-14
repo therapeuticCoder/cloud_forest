@@ -21,6 +21,7 @@ import type {
   ReceiveCareRequest,
 } from "@/types/careRequest";
 import {
+  clearTimelineItemSnapshot,
   loadTimelineItemSnapshot,
   saveTimelineItemSnapshot,
 } from "@/lib/timelineItemStorage";
@@ -188,6 +189,7 @@ function useRemoteTimelineItem(
         }
 
         if (result.kind === "http" && result.status === 404) {
+          clearTimelineItemSnapshot(cacheOwnerId ?? "");
           setState({ status: "empty" });
           return;
         }

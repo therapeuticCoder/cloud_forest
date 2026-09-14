@@ -13,6 +13,8 @@ Build a coherent trusted-tester alpha for fewer than 100 people. Alpha succeeds 
 - Holding is a real private curation workspace; Tribe is real and no longer depends on mocked people.
 - Character portraits are durable.
 - The existing ordinary Timeline item is user-backed, but much Timeline content remains fixture-driven.
+- The installed PWA has a bounded offline read path: after a successful online load, the current user's session, Curator relationship data, and existing ordinary Timeline item can reopen from local cache. App-shell updates do not clear that product data; confirmed authentication failures and local sign-out do.
+- Server-dependent mutations are currently unavailable offline. A future, separately scoped increment should make Curator mostly usable offline by persisting active Care/history and post drafts, saving local mutations for later sync, and treating the local owner's state as authoritative for now without building merge capability or a general offline-first system.
 - The mutual Connection experience was prototyped and its consent/privacy behavior is decided, but durable Connection establishment is not implemented.
 - Care has a rich device-local interaction prototype, not a real multi-user shared lifecycle.
 - Guilds and Signals are currently fixture-backed.

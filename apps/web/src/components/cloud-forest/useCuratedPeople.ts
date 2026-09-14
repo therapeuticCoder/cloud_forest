@@ -8,6 +8,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  clearCuratedPeopleSnapshot,
   loadCuratedPeopleSnapshot,
   saveCuratedPeopleSnapshot,
 } from "@/lib/curatedPeopleStorage";
@@ -144,6 +145,12 @@ export function useCuratedPeople(
           message: curationErrorMessage(result),
         });
       } else {
+        if (
+          (result.kind === "http" || result.kind === "unexpected-response") &&
+          result.status === 401
+        ) {
+          clearCuratedPeopleSnapshot(ownerId);
+        }
         setPeople({
           status: "error",
           people: [],
