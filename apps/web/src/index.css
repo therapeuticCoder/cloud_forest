@@ -1139,6 +1139,17 @@ button:focus-visible {
   object-position: center;
 }
 
+.party-portrait--fallback {
+  display: grid;
+  place-items: end center;
+  padding-bottom: 0.65rem;
+  color: #f5f3e7;
+  background: #879087;
+  font-size: clamp(1.5rem, 7vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
 .party-card__portrait::after {
   position: absolute;
   inset: 0;

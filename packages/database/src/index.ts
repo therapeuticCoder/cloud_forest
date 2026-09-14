@@ -14,10 +14,13 @@ export {
   personProfiles,
   partyMemberships,
   curatedPersons,
+  connections,
+  connectionPairings,
   accountPeople,
   invitations,
   signupCodes,
   type AccountRole,
+  type ConnectionPairingStatus,
   type NewTimelineItemRow,
   type TimelineItemRow,
 } from "./schema.ts";
@@ -37,6 +40,11 @@ export {
   createCuratedPersonRepository,
   type CuratedPersonRepository,
 } from "./curatedPersonRepository.ts";
+export {
+  createConnectionRepository,
+  createPairingToken,
+  type ConnectionRepository,
+} from "./connectionRepository.ts";
 export {
   fictionalPartyMemberIds,
   fictionalPartyInvitationId,

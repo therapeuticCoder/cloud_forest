@@ -6,6 +6,8 @@ import { buildApi } from "../src/app.ts";
 const people = [
   {
     id: "curated-person-owner-1",
+    firstName: "Mira",
+    lastName: "River",
     nickname: "Mira",
     relationshipShape: "Friend",
     privateDescription: "A steady place.",
@@ -83,6 +85,8 @@ test("curated Person API derives the owner from the trusted session", async (t) 
     url: "/api/v1/curated-persons",
     headers: { cookie: "session=owner" },
     payload: {
+      firstName: "Someone",
+      lastName: "Dear",
       nickname: "Someone dear",
       relationshipShape: "Chosen Family",
       privateDescription: "Private meaning",
@@ -97,6 +101,8 @@ test("curated Person API derives the owner from the trusted session", async (t) 
     url: "/api/v1/curated-persons",
     headers: { cookie: "session=owner" },
     payload: {
+      firstName: "No",
+      lastName: "Owner",
       ownerUserId: "user-other",
       nickname: "No owner switch",
       relationshipShape: "Friend",
@@ -142,6 +148,8 @@ test("curated Person API maps capacity, stale, and private deletion outcomes", a
     method: "POST",
     url: "/api/v1/curated-persons",
     payload: {
+      firstName: "Full",
+      lastName: "Party",
       nickname: "Full",
       relationshipShape: "Friend",
       privateDescription: "",
@@ -155,6 +163,8 @@ test("curated Person API maps capacity, stale, and private deletion outcomes", a
     method: "POST",
     url: "/api/v1/curated-persons",
     payload: {
+      firstName: "Full",
+      lastName: "Tribe",
       nickname: "Full Tribe",
       relationshipShape: "Friend",
       privateDescription: "",
@@ -168,6 +178,8 @@ test("curated Person API maps capacity, stale, and private deletion outcomes", a
     method: "PATCH",
     url: "/api/v1/curated-persons/curated-person-owner-1",
     payload: {
+      firstName: "Updated",
+      lastName: "Person",
       nickname: "Updated",
       relationshipShape: "Friend",
       privateDescription: "",

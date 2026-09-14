@@ -17,11 +17,13 @@ import { authRoutes, type AuthHandler } from "./routes/auth.ts";
 import type { SessionResolver } from "./sessionResolver.ts";
 import type {
   CuratedPersonRepository,
+  ConnectionRepository,
   PartyRepository,
 } from "@cloud-forest/database";
 import { partyRoutes } from "./routes/party.ts";
 import { curatedPersonRoutes } from "./routes/curatedPerson.ts";
 import { signupRoutes } from "./routes/signup.ts";
+import { connectionPairingRoutes } from "./routes/connectionPairing.ts";
 
 export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   timelineItemResolver?: TimelineItemResolver;
@@ -30,6 +32,7 @@ export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   signupAuthHandler?: AuthHandler;
   partyRepository?: PartyRepository;
   curatedPersonRepository?: CuratedPersonRepository;
+  connectionRepository?: ConnectionRepository;
   identityRepository?: import("@cloud-forest/database").IdentityRepository;
 }
 
@@ -72,6 +75,16 @@ const missingCuratedPersonRepository = new Proxy(
     },
   },
 ) as CuratedPersonRepository;
+const missingConnectionRepository = new Proxy(
+  {},
+  {
+    get() {
+      return () => {
+        throw new Error("Connection repository is not configured.");
+      };
+    },
+  },
+) as ConnectionRepository;
 
 export function buildApi(
   options: BuildApiOptions = { logger: false },
@@ -115,6 +128,10 @@ export function buildApi(
   server.register(curatedPersonRoutes, {
     repository:
       options.curatedPersonRepository ?? missingCuratedPersonRepository,
+    sessionResolver: options.sessionResolver ?? missingSessionResolver,
+  });
+  server.register(connectionPairingRoutes, {
+    repository: options.connectionRepository ?? missingConnectionRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
   return server;

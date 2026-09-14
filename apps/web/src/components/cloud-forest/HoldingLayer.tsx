@@ -32,6 +32,7 @@ function HoldingCharacterRow({
           initials={person.initials}
           personId={person.id}
           portraitUrl={person.portraitUrl}
+          showInitials
           small
         />
       </span>

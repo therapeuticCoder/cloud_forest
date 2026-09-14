@@ -4,8 +4,39 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
 
+function lucideDirectImports() {
+  return {
+    name: "lucide-direct-imports",
+    enforce: "pre" as const,
+    transform(code: string, id: string) {
+      if (!/\.[jt]sx?$/.test(id) || id.includes("node_modules")) return null;
+
+      const transformed = code.replace(
+        /import\s*{\s*([^}]+)\s*}\s*from\s*["']lucide-react["'];?/g,
+        (_match, imports: string) =>
+          imports
+            .split(",")
+            .map((entry) => entry.trim())
+            .filter(Boolean)
+            .map((entry) => {
+              const [iconName, localName = iconName] = entry.split(/\s+as\s+/);
+              const iconPath = iconName
+                .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+                .replace(/([a-zA-Z])(\d+)/g, "$1-$2")
+                .toLowerCase();
+              return `import ${localName} from "lucide-react/dist/esm/icons/${iconPath}.mjs";`;
+            })
+            .join("\n"),
+      );
+
+      return transformed === code ? null : { code: transformed, map: null };
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => ({
   plugins: [
+    lucideDirectImports(),
     {
       name: "e2e-stale-service-worker",
       apply: (_config, environment) =>

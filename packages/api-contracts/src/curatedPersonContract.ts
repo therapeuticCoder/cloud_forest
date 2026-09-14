@@ -3,6 +3,9 @@ import Compile from "typebox/compile";
 
 export const curatedPersonApiVersion = "v1" as const;
 const curatedPersonId = Type.String({ minLength: 1, maxLength: 128 });
+const firstName = Type.String({ minLength: 1, maxLength: 100 });
+const lastName = Type.String({ minLength: 1, maxLength: 100 });
+const storedName = Type.String({ maxLength: 100 });
 const nickname = Type.String({ minLength: 1, maxLength: 200 });
 const relationshipShape = Type.String({ minLength: 1, maxLength: 200 });
 const privateDescription = Type.String({ maxLength: 10_000 });
@@ -20,6 +23,8 @@ export const curatedPersonPlacementSchema = Type.Union([
 export const curatedPersonSchema = Type.Object(
   {
     id: curatedPersonId,
+    firstName: storedName,
+    lastName: storedName,
     nickname,
     relationshipShape,
     privateDescription,
@@ -77,6 +82,8 @@ export const curatedPersonParamsSchema = Type.Object(
 );
 export const createCuratedPersonBodySchema = Type.Object(
   {
+    firstName,
+    lastName,
     nickname,
     relationshipShape,
     privateDescription,
@@ -87,6 +94,8 @@ export const createCuratedPersonBodySchema = Type.Object(
 );
 export const updateCuratedPersonBodySchema = Type.Object(
   {
+    firstName,
+    lastName,
     nickname,
     relationshipShape,
     privateDescription,

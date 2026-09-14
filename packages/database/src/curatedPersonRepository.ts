@@ -82,6 +82,8 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
 
     async create(input: {
       ownerUserId: string;
+      firstName: string;
+      lastName: string;
       nickname: string;
       relationshipShape: string;
       privateDescription: string;
@@ -111,6 +113,8 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
           .values({
             id: `curated-person-${randomUUID()}`,
             ownerUserId: input.ownerUserId,
+            firstName: input.firstName,
+            lastName: input.lastName,
             nickname: input.nickname,
             relationshipShape: input.relationshipShape,
             privateDescription: input.privateDescription,
@@ -130,6 +134,8 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
     async update(input: {
       ownerUserId: string;
       curatedPersonId: string;
+      firstName: string;
+      lastName: string;
       nickname: string;
       relationshipShape: string;
       privateDescription: string;
@@ -172,6 +178,8 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
         const [updated] = await transaction
           .update(curatedPersons)
           .set({
+            firstName: input.firstName,
+            lastName: input.lastName,
             nickname: input.nickname,
             relationshipShape: input.relationshipShape,
             privateDescription: input.privateDescription,

@@ -156,6 +156,8 @@ test("curated Person methods use the durable private API and preserve server IDs
       people: [
         {
           id: "curated-person-123",
+          firstName: "Mira",
+          lastName: "River",
           nickname: "Mira at home",
           relationshipShape: "Friend",
           privateDescription: "A steady place.",
@@ -184,6 +186,8 @@ test("curated Person methods use the durable private API and preserve server IDs
   });
   assert.deepEqual(
     await client.createCuratedPerson({
+      firstName: "Mira",
+      lastName: "River",
       nickname: "Mira at home",
       relationshipShape: "Friend",
       privateDescription: "A steady place.",
@@ -192,6 +196,8 @@ test("curated Person methods use the durable private API and preserve server IDs
     { ok: true, status: 200, value: body },
   );
   await client.updateCuratedPerson("person/with spaces", {
+    firstName: "Mira",
+    lastName: "River",
     nickname: "Mira",
     relationshipShape: "Friend",
     privateDescription: "",

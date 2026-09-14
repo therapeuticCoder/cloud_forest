@@ -8,6 +8,1845 @@
   },
   "openapi": "3.0.3",
   "paths": {
+    "/api/v1/connection-pairings": {
+      "post": {
+        "operationId": "createConnectionPairingV1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "curatedPersonId": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "curatedPersonId"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "expiresAt": {
+                              "format": "date-time",
+                              "type": "string"
+                            },
+                            "state": {
+                              "enum": [
+                                "pending"
+                              ],
+                              "type": "string"
+                            },
+                            "token": {
+                              "maxLength": 128,
+                              "minLength": 20,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "state",
+                            "token",
+                            "expiresAt"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "state": {
+                              "enum": [
+                                "already-connected"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "state"
+                          ],
+                          "type": "object"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Connection Pairings"
+        ]
+      }
+    },
+    "/api/v1/connection-pairings/{token}": {
+      "get": {
+        "operationId": "getConnectionPairingV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 20,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "expiresAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "initiator": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "displayName": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "displayName"
+                          ],
+                          "type": "object"
+                        },
+                        "initiatorConfirmed": {
+                          "type": "boolean"
+                        },
+                        "receiverConfirmed": {
+                          "type": "boolean"
+                        },
+                        "receiverResolved": {
+                          "type": "boolean"
+                        },
+                        "state": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "pending"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "completed"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "cancelled"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "superseded"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "expired"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "viewerPlacement": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "party"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "tribe"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "holding"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "viewerRole": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "initiator"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "receiver"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "visitor"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "expiresAt",
+                        "initiator",
+                        "receiverResolved",
+                        "viewerRole",
+                        "initiatorConfirmed",
+                        "receiverConfirmed"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Connection Pairings"
+        ]
+      }
+    },
+    "/api/v1/connection-pairings/{token}/cancel": {
+      "post": {
+        "operationId": "cancelConnectionPairingV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 20,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Connection Pairings"
+        ]
+      }
+    },
+    "/api/v1/connection-pairings/{token}/confirm": {
+      "post": {
+        "operationId": "confirmConnectionPairingV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 20,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "expiresAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "initiator": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "displayName": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "displayName"
+                          ],
+                          "type": "object"
+                        },
+                        "initiatorConfirmed": {
+                          "type": "boolean"
+                        },
+                        "receiverConfirmed": {
+                          "type": "boolean"
+                        },
+                        "receiverResolved": {
+                          "type": "boolean"
+                        },
+                        "state": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "pending"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "completed"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "cancelled"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "superseded"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "expired"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "viewerPlacement": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "party"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "tribe"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "holding"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "viewerRole": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "initiator"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "receiver"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "visitor"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "expiresAt",
+                        "initiator",
+                        "receiverResolved",
+                        "viewerRole",
+                        "initiatorConfirmed",
+                        "receiverConfirmed"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Connection Pairings"
+        ]
+      }
+    },
+    "/api/v1/connection-pairings/{token}/resolve": {
+      "post": {
+        "operationId": "resolveConnectionPairingV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 20,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "curatedPersonId": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "curatedPersonId"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "expiresAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "initiator": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "displayName": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "displayName"
+                          ],
+                          "type": "object"
+                        },
+                        "initiatorConfirmed": {
+                          "type": "boolean"
+                        },
+                        "receiverConfirmed": {
+                          "type": "boolean"
+                        },
+                        "receiverResolved": {
+                          "type": "boolean"
+                        },
+                        "state": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "pending"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "completed"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "cancelled"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "superseded"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "expired"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "viewerPlacement": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "party"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "tribe"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "holding"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "viewerRole": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "initiator"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "receiver"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "visitor"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "expiresAt",
+                        "initiator",
+                        "receiverResolved",
+                        "viewerRole",
+                        "initiatorConfirmed",
+                        "receiverConfirmed"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "INACTIVE_PAIRING"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_PAIRING_PARTICIPANT"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "RECEIVER_RESOLUTION_REQUIRED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "CHARACTER_LINKED_TO_ANOTHER_USER"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Connection Pairings"
+        ]
+      }
+    },
     "/api/v1/curated-persons": {
       "get": {
         "operationId": "getCuratedPersonsV1",
@@ -47,9 +1886,17 @@
                                 "format": "date-time",
                                 "type": "string"
                               },
+                              "firstName": {
+                                "maxLength": 100,
+                                "type": "string"
+                              },
                               "id": {
                                 "maxLength": 128,
                                 "minLength": 1,
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "maxLength": 100,
                                 "type": "string"
                               },
                               "linkedUserId": {
@@ -127,6 +1974,8 @@
                             },
                             "required": [
                               "id",
+                              "firstName",
+                              "lastName",
                               "nickname",
                               "relationshipShape",
                               "privateDescription",
@@ -255,6 +2104,16 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "firstName": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
                   "nickname": {
                     "maxLength": 200,
                     "minLength": 1,
@@ -309,6 +2168,8 @@
                   }
                 },
                 "required": [
+                  "firstName",
+                  "lastName",
                   "nickname",
                   "relationshipShape",
                   "privateDescription",
@@ -356,9 +2217,17 @@
                                 "format": "date-time",
                                 "type": "string"
                               },
+                              "firstName": {
+                                "maxLength": 100,
+                                "type": "string"
+                              },
                               "id": {
                                 "maxLength": 128,
                                 "minLength": 1,
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "maxLength": 100,
                                 "type": "string"
                               },
                               "linkedUserId": {
@@ -436,6 +2305,8 @@
                             },
                             "required": [
                               "id",
+                              "firstName",
+                              "lastName",
                               "nickname",
                               "relationshipShape",
                               "privateDescription",
@@ -880,9 +2751,17 @@
                                 "format": "date-time",
                                 "type": "string"
                               },
+                              "firstName": {
+                                "maxLength": 100,
+                                "type": "string"
+                              },
                               "id": {
                                 "maxLength": 128,
                                 "minLength": 1,
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "maxLength": 100,
                                 "type": "string"
                               },
                               "linkedUserId": {
@@ -960,6 +2839,8 @@
                             },
                             "required": [
                               "id",
+                              "firstName",
+                              "lastName",
                               "nickname",
                               "relationshipShape",
                               "privateDescription",
@@ -1356,6 +3237,16 @@
                     "minimum": 1,
                     "type": "integer"
                   },
+                  "firstName": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
                   "nickname": {
                     "maxLength": 200,
                     "minLength": 1,
@@ -1410,6 +3301,8 @@
                   }
                 },
                 "required": [
+                  "firstName",
+                  "lastName",
                   "nickname",
                   "relationshipShape",
                   "privateDescription",
@@ -1458,9 +3351,17 @@
                                 "format": "date-time",
                                 "type": "string"
                               },
+                              "firstName": {
+                                "maxLength": 100,
+                                "type": "string"
+                              },
                               "id": {
                                 "maxLength": 128,
                                 "minLength": 1,
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "maxLength": 100,
                                 "type": "string"
                               },
                               "linkedUserId": {
@@ -1538,6 +3439,8 @@
                             },
                             "required": [
                               "id",
+                              "firstName",
+                              "lastName",
                               "nickname",
                               "relationshipShape",
                               "privateDescription",

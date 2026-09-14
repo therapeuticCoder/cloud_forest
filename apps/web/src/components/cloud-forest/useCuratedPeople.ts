@@ -48,7 +48,10 @@ export function curatedPersonToCuratorPerson(
   return {
     id: person.id,
     displayName: person.nickname,
-    initials: initialsFor(person.nickname),
+    firstName: person.firstName,
+    initials: initialsFor(`${person.firstName} ${person.lastName}`),
+    lastName: person.lastName,
+    nickname: person.nickname,
     relationshipTitle: person.privateDescription || person.relationshipShape,
     relationshipNote: person.relationshipShape,
     recentStatus: "Private relationship record",
@@ -56,6 +59,7 @@ export function curatedPersonToCuratorPerson(
     privateDescription: person.privateDescription,
     portraitUrl: person.portraitUrl,
     relationshipShape: person.relationshipShape,
+    linkedUserId: person.linkedUserId,
     version: person.version,
   };
 }

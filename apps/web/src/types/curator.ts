@@ -1,7 +1,10 @@
 export type CuratorPerson = {
   id: string;
   displayName: string;
+  firstName?: string;
   initials: string;
+  lastName?: string;
+  nickname?: string;
   relationshipTitle: string;
   relationshipNote: string;
   recentStatus: string;
@@ -9,6 +12,7 @@ export type CuratorPerson = {
   portraitUrl?: string;
   privateDescription?: string;
   relationshipShape?: string;
+  linkedUserId?: string | null;
   version?: number;
 };
 

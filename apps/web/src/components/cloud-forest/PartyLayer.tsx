@@ -39,11 +39,13 @@ export function Portrait({
   initials,
   personId,
   portraitUrl,
+  showInitials = false,
   small = false,
 }: {
   initials?: string;
   personId: string;
   portraitUrl?: string;
+  showInitials?: boolean;
   small?: boolean;
 }) {
   if (portraitUrl) {
@@ -89,7 +91,7 @@ export function Portrait({
     );
   }
 
-  if (!portraitPositions[personId] && initials) {
+  if (!portraitPositions[personId]) {
     return (
       <span
         aria-hidden="true"
@@ -99,7 +101,7 @@ export function Portrait({
             : "party-portrait party-portrait--fallback"
         }
       >
-        {initials}
+        {showInitials ? initials : null}
       </span>
     );
   }
@@ -140,13 +142,9 @@ function PartyCard({
       type="button"
     >
       <span className="party-card__portrait">
-        <Portrait
-          initials={person.initials}
-          personId={person.id}
-          portraitUrl={person.portraitUrl}
-        />
+        <Portrait personId={person.id} portraitUrl={person.portraitUrl} />
         <span className="party-card__name">
-          {person.displayName.split(" ")[0]}
+          {person.nickname ?? person.displayName}
         </span>
       </span>
       <span className="party-card__nameplate">

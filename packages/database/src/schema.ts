@@ -17,6 +17,11 @@ import type {
 } from "@cloud-forest/domain";
 
 export type AccountRole = "admin" | "user";
+export type ConnectionPairingStatus =
+  | "pending"
+  | "completed"
+  | "cancelled"
+  | "superseded";
 
 export const timelineItems = pgTable(
   "timeline_items",
@@ -228,6 +233,8 @@ export const curatedPersons = pgTable(
     ownerUserId: varchar("owner_user_id", { length: 128 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    firstName: varchar("first_name", { length: 100 }).notNull().default(""),
+    lastName: varchar("last_name", { length: 100 }).notNull().default(""),
     nickname: varchar("nickname", { length: 200 }).notNull(),
     relationshipShape: varchar("relationship_shape", {
       length: 200,
@@ -269,6 +276,83 @@ export const curatedPersons = pgTable(
       sql`${table.placement} in ('party', 'tribe', 'guild', 'signal', 'holding')`,
     ),
     check("curated_persons_version_positive", sql`${table.version} >= 1`),
+  ],
+);
+
+export const connections = pgTable(
+  "connections",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    firstUserId: varchar("first_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    secondUserId: varchar("second_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("connections_users_unique").on(
+      table.firstUserId,
+      table.secondUserId,
+    ),
+    check(
+      "connections_users_ordered",
+      sql`${table.firstUserId} < ${table.secondUserId}`,
+    ),
+  ],
+);
+
+export const connectionPairings = pgTable(
+  "connection_pairings",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    tokenHash: varchar("token_hash", { length: 128 }).notNull(),
+    initiatorUserId: varchar("initiator_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    initiatorCuratedPersonId: varchar("initiator_curated_person_id", {
+      length: 128,
+    })
+      .notNull()
+      .references(() => curatedPersons.id, { onDelete: "restrict" }),
+    receiverUserId: varchar("receiver_user_id", { length: 128 }).references(
+      () => users.id,
+      { onDelete: "cascade" },
+    ),
+    receiverCuratedPersonId: varchar("receiver_curated_person_id", {
+      length: 128,
+    }).references(() => curatedPersons.id, { onDelete: "restrict" }),
+    initiatorConfirmedAt: timestamp("initiator_confirmed_at", {
+      withTimezone: true,
+    }),
+    receiverConfirmedAt: timestamp("receiver_confirmed_at", {
+      withTimezone: true,
+    }),
+    status: varchar("status", { length: 16 })
+      .$type<ConnectionPairingStatus>()
+      .notNull()
+      .default("pending"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    supersededAt: timestamp("superseded_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("connection_pairings_token_hash_unique").on(table.tokenHash),
+    index("connection_pairings_initiator_character_index").on(
+      table.initiatorCuratedPersonId,
+    ),
+    check(
+      "connection_pairings_status_allowed",
+      sql`${table.status} in ('pending', 'completed', 'cancelled', 'superseded')`,
+    ),
+    check(
+      "connection_pairings_receiver_resolution",
+      sql`(${table.receiverUserId} is null) = (${table.receiverCuratedPersonId} is null)`,
+    ),
   ],
 );
 
