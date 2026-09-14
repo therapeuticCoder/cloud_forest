@@ -13,6 +13,12 @@ Cloud Forest should feel calm, grounded, alive, deliberate, and contemporary. Fo
 - **Motion serves orientation and recovery.** It must never be required to understand state or reach a control.
 - **Mobile is designed, not merely shrunk.** Preserve hierarchy and touch usability rather than scaling desktop mechanically.
 
+## Platform direction
+
+Cloud Forest is currently implemented as a React PWA for alpha development, but the intended post-alpha direction is a React Native / Expo mobile app. Treat mobile as the canonical Cloud Forest experience; desktop support is secondary during alpha.
+
+Build alpha features so that domain logic, API access, state transitions, validation, and data models remain as independent as practical from browser-specific UI and APIs. Avoid unnecessary desktop-first assumptions and browser-only coupling. Do not introduce abstraction solely for a hypothetical migration; prefer simple boundaries that preserve portability.
+
 ## Layer language
 
 Use the established semantic palette and visual identity for Party, Tribe, Guild, and Signal content. The exact implementation may evolve, but relational layers should remain perceptible without repeated badges or explanatory text.
