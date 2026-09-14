@@ -77,6 +77,8 @@ export function curatedPersonToCuratorPerson(
     portraitUrl: person.portraitUrl,
     relationshipShape: person.relationshipShape,
     linkedUserId: person.linkedUserId,
+    relationshipState: person.relationshipState,
+    blockedUserId: person.blockedUserId,
     version: person.version,
   };
 }
@@ -219,10 +221,31 @@ export function useCuratedPeople(
     [apiClient, applyResult],
   );
 
+  const remove = useCallback(
+    async (
+      curatedPersonId: string,
+      input: Parameters<CuratedPersonApiClient["deleteCuratedPerson"]>[1],
+    ) => {
+      const result = await apiClient.deleteCuratedPerson(
+        curatedPersonId,
+        input,
+      );
+      if (result.ok) {
+        applyResult(result);
+      }
+      return result;
+    },
+    [apiClient, applyResult],
+  );
+
   const partyPeople = useMemo(
     () =>
       people.people
-        .filter((person) => person.placement === "party")
+        .filter(
+          (person) =>
+            person.placement === "party" &&
+            person.relationshipState !== "blocked",
+        )
         .map(curatedPersonToCuratorPerson),
     [people.people],
   );
@@ -230,7 +253,11 @@ export function useCuratedPeople(
   const tribePeople = useMemo(
     () =>
       people.people
-        .filter((person) => person.placement === "tribe")
+        .filter(
+          (person) =>
+            person.placement === "tribe" &&
+            person.relationshipState !== "blocked",
+        )
         .map(curatedPersonToCuratorPerson),
     [people.people],
   );
@@ -238,16 +265,30 @@ export function useCuratedPeople(
   const holdingPeople = useMemo(
     () =>
       people.people
-        .filter((person) => person.placement === "holding")
+        .filter(
+          (person) =>
+            person.placement === "holding" &&
+            person.relationshipState !== "blocked",
+        )
+        .map(curatedPersonToCuratorPerson),
+    [people.people],
+  );
+
+  const blockedPeople = useMemo(
+    () =>
+      people.people
+        .filter((person) => person.relationshipState === "blocked")
         .map(curatedPersonToCuratorPerson),
     [people.people],
   );
 
   return {
     add,
+    blockedPeople,
     holdingPeople,
     load,
     partyPeople,
+    remove,
     people,
     tribePeople,
     update,

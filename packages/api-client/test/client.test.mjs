@@ -163,6 +163,7 @@ test("curated Person methods use the durable private API and preserve server IDs
           privateDescription: "A steady place.",
           placement: "party",
           linkedUserId: null,
+          relationshipState: "character",
           version: 2,
           createdAt: "2026-09-07T12:00:00.000Z",
           updatedAt: "2026-09-07T12:01:00.000Z",

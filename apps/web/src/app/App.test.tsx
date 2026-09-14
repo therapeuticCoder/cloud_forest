@@ -15,6 +15,7 @@ function curatedPeopleResponse(
     privateDescription: string;
     placement: "party";
     linkedUserId: string | null;
+    relationshipState: "character" | "connected" | "blocked";
     version: number;
     createdAt: string;
     updatedAt: string;
@@ -39,6 +40,7 @@ function createCuratedPeopleFixture() {
       privateDescription: person.relationshipTitle,
       placement: "party" as const,
       linkedUserId: `connected-user-${index + 1}`,
+      relationshipState: "connected" as const,
       version: 1,
       createdAt: `2026-09-07T12:0${index}:00.000Z`,
       updatedAt: `2026-09-07T12:0${index}:00.000Z`,
@@ -60,6 +62,7 @@ function createCuratedPeopleFixture() {
         privateDescription: draft.privateDescription,
         placement: draft.placement,
         linkedUserId: null,
+        relationshipState: "character" as const,
         version: 1,
         createdAt: "2026-09-07T13:00:00.000Z",
         updatedAt: "2026-09-07T13:00:00.000Z",

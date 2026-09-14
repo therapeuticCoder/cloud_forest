@@ -2,7 +2,11 @@ import { Gift, HandHeart, PenLine, Sprout, UserRoundPlus } from "lucide-react";
 
 import communityPortraits from "@/assets/timeline/community-portraits.png";
 import solArdenPortrait from "@/assets/curator/sol-arden.png";
-import type { CuratorPerson, CuratorSelection } from "@/types/curator";
+import {
+  hasActiveConnection,
+  type CuratorPerson,
+  type CuratorSelection,
+} from "@/types/curator";
 
 type PartyLayerProps = {
   addDisabled: boolean;
@@ -132,8 +136,7 @@ function PartyCard({
   person: CuratorPerson;
   slotIndex: number;
 }) {
-  const isConnection =
-    person.linkedUserId !== null && person.linkedUserId !== undefined;
+  const isConnection = hasActiveConnection(person);
 
   return (
     <button

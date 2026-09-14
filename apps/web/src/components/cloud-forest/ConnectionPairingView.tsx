@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 import {
   cancelConnectionPairing,
+  blockConnectionPairing,
   confirmConnectionPairing,
   getConnectionPairing,
   type ConnectionPairing,
@@ -13,6 +14,7 @@ import {
 } from "./connectionPairingClient";
 import { layerBackgrounds, layerOuterBackgrounds } from "./curatorLayerStyles";
 import { partyRelationshipOptions } from "./partyRelationshipOptions";
+import { RelationshipConfirmationDialog } from "./RelationshipConfirmationDialog";
 import { useCuratedPeople } from "./useCuratedPeople";
 
 type ConnectionPairingViewProps = {
@@ -33,6 +35,7 @@ export function ConnectionPairingView({
   const [pairing, setPairing] = useState<ConnectionPairing>();
   const [message, setMessage] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [showBlockConfirmation, setShowBlockConfirmation] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [showCreateCharacter, setShowCreateCharacter] = useState(false);
   const [newFirstName, setNewFirstName] = useState("");
@@ -143,6 +146,23 @@ export function ConnectionPairingView({
     setPending(false);
   };
 
+  const block = async () => {
+    setPending(true);
+    setMessage(undefined);
+    const result = await blockConnectionPairing(token);
+    if (result.ok) {
+      onClose();
+      return;
+    }
+    setMessage(result.message);
+    setPending(false);
+  };
+
+  const confirmBlock = () => {
+    setShowBlockConfirmation(false);
+    void block();
+  };
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(pairingLink);
@@ -160,6 +180,10 @@ export function ConnectionPairingView({
     pairing.receiverResolved &&
     ((pairing.viewerRole === "initiator" && !pairing.initiatorConfirmed) ||
       (pairing.viewerRole === "receiver" && !pairing.receiverConfirmed));
+  const canBlock =
+    pairing?.viewerRole !== "visitor" &&
+    (pairing?.state === "completed" ||
+      (pairing?.state === "pending" && pairing.receiverResolved));
   const viewerHasConfirmed =
     (pairing?.viewerRole === "initiator" && pairing.initiatorConfirmed) ||
     (pairing?.viewerRole === "receiver" && pairing.receiverConfirmed);
@@ -458,6 +482,30 @@ export function ConnectionPairingView({
                   >
                     <X aria-hidden="true" /> Cancel this pairing
                   </Button>
+                  {canBlock ? (
+                    <Button
+                      className="text-rose-100 hover:bg-rose-100/10"
+                      disabled={pending}
+                      onClick={() => setShowBlockConfirmation(true)}
+                      type="button"
+                      variant="ghost"
+                    >
+                      Block
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+              {!active && canBlock ? (
+                <div className="flex justify-center">
+                  <Button
+                    className="text-rose-100 hover:bg-rose-100/10"
+                    disabled={pending}
+                    onClick={() => setShowBlockConfirmation(true)}
+                    type="button"
+                    variant="ghost"
+                  >
+                    Block
+                  </Button>
                 </div>
               ) : null}
               {pairing.state === "expired" ? (
@@ -476,6 +524,15 @@ export function ConnectionPairingView({
           ) : null}
         </div>
       </div>
+      <RelationshipConfirmationDialog
+        confirmLabel="Block user"
+        description="This immediately ends the Connection or relationship attempt and prevents a new Connection while the block remains."
+        onCancel={() => setShowBlockConfirmation(false)}
+        onConfirm={confirmBlock}
+        open={showBlockConfirmation}
+        pending={pending}
+        title="Block this Cloud Forest user?"
+      />
     </main>
   );
 }

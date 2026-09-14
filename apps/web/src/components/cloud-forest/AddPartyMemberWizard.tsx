@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
+import { layerBackgrounds } from "./curatorLayerStyles";
 import { partyRelationshipOptions } from "./partyRelationshipOptions";
 
 export type AddPartyMemberDraft = {
@@ -114,7 +115,8 @@ export function AddPartyMemberWizard({
   return (
     <section
       aria-label={`Add a ${destination === "Holding" ? "Character" : `${destination} member`}`}
-      className="party-wizard"
+      className={`party-wizard ${layerBackgrounds[destination]}`}
+      data-layer={destination}
     >
       <header className="party-wizard__header">
         <Button

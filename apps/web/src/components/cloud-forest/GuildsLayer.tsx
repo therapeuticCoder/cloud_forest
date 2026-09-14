@@ -1,60 +1,21 @@
-import {
-  BookOpen,
-  Hammer,
-  HandHeart,
-  Landmark,
-  UsersRound,
-} from "lucide-react";
+import { Sprout } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import type { CuratorGuild, CuratorSelection } from "@/types/curator";
-
-import { CuratorTile } from "./CuratorTile";
-
-type GuildsLayerProps = {
-  guilds: CuratorGuild[];
-  onSelect: (selection: CuratorSelection, trigger: HTMLButtonElement) => void;
-};
-
-const guildIcons = {
-  "mutual-care": HandHeart,
-  "studio-night": UsersRound,
-  "local-builders": Hammer,
-  "reading-room": BookOpen,
-  "civic-table": Landmark,
-} as const;
-
-export function GuildsLayer({ guilds, onSelect }: GuildsLayerProps) {
+export function GuildsLayer() {
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div
-        aria-label="Guilds"
-        className="grid min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-2.5 sm:gap-3 lg:grid-cols-3 lg:grid-rows-2"
-      >
-        {guilds.map((guild, index) => {
-          const GuildIcon =
-            guildIcons[guild.id as keyof typeof guildIcons] ?? UsersRound;
-
-          return (
-            <CuratorTile
-              key={guild.id}
-              className={cn(
-                index === guilds.length - 1 &&
-                  "col-span-2 w-[calc(50%_-_0.3125rem)] justify-self-center sm:w-[calc(50%_-_0.375rem)] lg:col-span-1 lg:col-start-2 lg:w-full",
-              )}
-              id={`guild-${guild.id}`}
-              labelClassName="line-clamp-2 whitespace-normal leading-tight"
-              label={guild.name}
-              onSelect={(trigger) =>
-                onSelect({ layer: "guild", item: guild }, trigger)
-              }
-              tone="guild"
-              visual={<GuildIcon strokeWidth={1.5} />}
-              visualClassName="[&_svg]:size-[clamp(3rem,10vmin,7rem)]"
-            />
-          );
-        })}
-      </div>
+    <div
+      aria-label="Guilds"
+      className="grid h-full place-items-center px-6 text-center"
+    >
+      <p className="max-w-md text-slate-200">
+        <Sprout aria-hidden="true" className="mx-auto mb-4 text-lime-200/70" />
+        <strong className="block text-2xl font-medium text-lime-100">
+          Coming soon
+        </strong>
+        <span className="mt-3 block leading-6">
+          Guilds will bring people together around shared work, interests, and
+          mutual support.
+        </span>
+      </p>
     </div>
   );
 }

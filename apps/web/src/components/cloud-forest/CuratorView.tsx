@@ -1,14 +1,17 @@
 import { Cloud, CloudOff, RadioTower, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { curatorGuilds, curatorSignals } from "@/data/cloudForest";
 import { cn } from "@/lib/utils";
 import type {
   CareLifecycleState,
   CarePersonId,
   ReceiveCareRequest,
 } from "@/types/careRequest";
-import type { CuratorPerson, CuratorSelection } from "@/types/curator";
+import {
+  hasActiveConnection,
+  type CuratorPerson,
+  type CuratorSelection,
+} from "@/types/curator";
 
 import {
   AddPartyMemberWizard,
@@ -30,7 +33,7 @@ type CuratorLayerSectionProps = {
   addDisabled: boolean;
   careActionsDisabled?: boolean;
   children: React.ReactNode;
-  count: string;
+  count?: string;
   curatedPeopleOffline: boolean;
   label: CuratorLayerLabel;
   nextLayer?: "Party" | "Tribe" | "Guilds" | "Signals";
@@ -57,10 +60,16 @@ type CuratorViewProps = {
     destination: "holding" | "party" | "tribe",
     slotIndex?: number,
   ) => void;
+  onBlockCharacter: (person: CuratorPerson) => Promise<boolean>;
   onCancelAdd: () => void;
   onCompleteAdd: (
     draft: AddPartyMemberDraft,
   ) => void | boolean | Promise<void | boolean>;
+  onDeleteCharacter: (person: CuratorPerson) => Promise<boolean>;
+  onEndConnection: (
+    person: CuratorPerson,
+    deleteCharacter: boolean,
+  ) => Promise<boolean>;
   onRetryCuratedPeople: () => void;
   onGive: (returnFocusSelector?: string) => void;
   onUpdateCharacter: (
@@ -84,12 +93,20 @@ type CuratorViewProps = {
   onReceive: () => void;
   onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
+  onUnblockCharacter: (person: CuratorPerson) => Promise<boolean>;
   onWithdraw: (requestId: string) => void;
   partyPeople: CuratorPerson[];
+  blockedPeople: CuratorPerson[];
   holdingPeople: CuratorPerson[];
   tribePeople: CuratorPerson[];
   user: CuratorPerson;
 };
+
+const curatorLayerPositions = {
+  holding: 0,
+  party: 1,
+  tribe: 2,
+} as const;
 
 function LayerContinuation({
   nextLayer,
@@ -164,7 +181,14 @@ function CuratorLayerSection({
           layerBackgrounds[label],
         )}
       >
-        <header className="grid grid-cols-[3rem_minmax(0,1fr)_auto_auto] items-center gap-2 pb-4">
+        <header
+          className={cn(
+            "grid items-center gap-2 pb-4",
+            count
+              ? "grid-cols-[3rem_minmax(0,1fr)_auto_auto]"
+              : "grid-cols-[3rem_minmax(0,1fr)_auto]",
+          )}
+        >
           <button
             aria-label={
               curatedPeopleOffline ? "Open My Care (offline)" : "Open My Care"
@@ -195,9 +219,11 @@ function CuratorLayerSection({
           <h1 className="min-w-0 truncate text-3xl font-medium tracking-tight sm:text-4xl">
             {label}
           </h1>
-          <span className="rounded-full border border-current/20 bg-black/10 px-2.5 py-1 text-xs font-medium text-current/80 sm:text-sm">
-            {count}
-          </span>
+          {count ? (
+            <span className="rounded-full border border-current/20 bg-black/10 px-2.5 py-1 text-xs font-medium text-current/80 sm:text-sm">
+              {count}
+            </span>
+          ) : null}
           <button
             aria-label="Go to Timeline"
             className="flex items-center gap-1 text-xs font-medium text-current/75 transition hover:text-current focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-current sm:text-sm"
@@ -236,8 +262,11 @@ export function CuratorView({
   curatedPeopleOffline,
   curatedPeopleStatus,
   onAddPartyMember,
+  onBlockCharacter,
   onCancelAdd,
   onCompleteAdd,
+  onDeleteCharacter,
+  onEndConnection,
   onRetryCuratedPeople,
   onGive,
   onUpdateCharacter,
@@ -250,24 +279,26 @@ export function CuratorView({
   onReceive,
   onSetRequestMinimized,
   onStartConnection,
+  onUnblockCharacter,
   onWithdraw,
   partyPeople,
+  blockedPeople,
   holdingPeople,
   tribePeople,
   user,
 }: CuratorViewProps) {
   const [selection, setSelection] = useState<CuratorSelection | null>(null);
+  const [holdingTab, setHoldingTab] = useState<"characters" | "blocks">(
+    "characters",
+  );
   const triggerIdRef = useRef<string | null>(null);
+  const restoreLayerRef = useRef<
+    keyof typeof curatorLayerPositions | undefined
+  >(undefined);
   const scrollContainerRef = useRef<HTMLElement>(null);
   const scrollPositionRef = useRef(0);
-  const partyHasConnection = partyPeople.some(
-    (person) =>
-      person.linkedUserId !== null && person.linkedUserId !== undefined,
-  );
-  const tribeHasConnection = tribePeople.some(
-    (person) =>
-      person.linkedUserId !== null && person.linkedUserId !== undefined,
-  );
+  const partyHasConnection = partyPeople.some(hasActiveConnection);
+  const tribeHasConnection = tribePeople.some(hasActiveConnection);
   const addDisabled = curatedPeopleOffline || curatedPeopleStatus !== "ready";
 
   useEffect(() => {
@@ -278,21 +309,28 @@ export function CuratorView({
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const restoreCurator = useCallback(() => {
-    setSelection(null);
+  const restoreCurator = useCallback(
+    (targetLayer?: keyof typeof curatorLayerPositions) => {
+      setSelection(null);
 
-    requestAnimationFrame(() => {
-      if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTop = scrollPositionRef.current;
-      }
-      if (triggerIdRef.current) {
-        const trigger = document.querySelector<HTMLButtonElement>(
-          `[data-curator-tile="${triggerIdRef.current}"]`,
-        );
-        trigger?.focus();
-      }
-    });
-  }, []);
+      requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop =
+            targetLayer === undefined
+              ? scrollPositionRef.current
+              : curatorLayerPositions[targetLayer] *
+                scrollContainerRef.current.clientHeight;
+        }
+        if (triggerIdRef.current) {
+          const trigger = document.querySelector<HTMLButtonElement>(
+            `[data-curator-tile="${triggerIdRef.current}"]`,
+          );
+          trigger?.focus();
+        }
+      });
+    },
+    [],
+  );
 
   const handleSelect = useCallback(
     (nextSelection: CuratorSelection, trigger: HTMLButtonElement) => {
@@ -308,9 +346,23 @@ export function CuratorView({
   );
 
   const handleBack = useCallback(() => {
+    restoreLayerRef.current = undefined;
     restoreCurator();
     window.history.back();
   }, [restoreCurator]);
+
+  const handleBackToLayer = useCallback(
+    (
+      targetLayer: keyof typeof curatorLayerPositions,
+      targetHoldingTab: "characters" | "blocks" = "characters",
+    ) => {
+      restoreLayerRef.current = targetLayer;
+      setHoldingTab(targetHoldingTab);
+      restoreCurator(targetLayer);
+      window.history.back();
+    },
+    [restoreCurator],
+  );
 
   useEffect(() => {
     if (!selection) {
@@ -319,7 +371,9 @@ export function CuratorView({
 
     const handlePopState = (event: PopStateEvent) => {
       if (event.state?.curatorSelection) return;
-      restoreCurator();
+      const targetLayer = restoreLayerRef.current;
+      restoreLayerRef.current = undefined;
+      restoreCurator(targetLayer);
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -359,7 +413,11 @@ export function CuratorView({
       <CuratorDetailView
         careLifecycle={careLifecycle}
         characterSubmission={characterSubmission}
+        onBlockCharacter={onBlockCharacter}
         onBack={handleBack}
+        onBackToLayer={handleBackToLayer}
+        onDeleteCharacter={onDeleteCharacter}
+        onEndConnection={onEndConnection}
         onOfferHelp={onOfferHelp}
         onPass={onPass}
         onRecordCompleted={onRecordCompleted}
@@ -367,6 +425,7 @@ export function CuratorView({
         onSetRequestMinimized={onSetRequestMinimized}
         isOffline={curatedPeopleOffline || curatedPeopleCached}
         onStartConnection={onStartConnection}
+        onUnblockCharacter={onUnblockCharacter}
         onUpdateCharacter={onUpdateCharacter}
         onWithdraw={onWithdraw}
         selection={selection}
@@ -395,8 +454,11 @@ export function CuratorView({
         user={user}
       >
         <HoldingLayer
+          activeTab={holdingTab}
+          blockedPeople={blockedPeople}
           onRetry={onRetryCuratedPeople}
           onSelect={handleSelect}
+          onTabChange={setHoldingTab}
           people={holdingPeople}
           peopleState={curatedPeopleStatus}
           peopleStateMessage={curatedPeopleError}
@@ -450,7 +512,6 @@ export function CuratorView({
       </CuratorLayerSection>
       <CuratorLayerSection
         addDisabled
-        count={`${curatorGuilds.length}/5`}
         label="Guilds"
         nextLayer="Signals"
         onAddPartyMember={() => undefined}
@@ -461,12 +522,11 @@ export function CuratorView({
         curatedPeopleOffline={curatedPeopleOffline}
         user={user}
       >
-        <GuildsLayer guilds={curatorGuilds} onSelect={handleSelect} />
+        <GuildsLayer />
       </CuratorLayerSection>
       <CuratorLayerSection
         addDisabled
         careActionsDisabled
-        count={`${curatorSignals.length}/10`}
         curatedPeopleOffline={curatedPeopleOffline}
         label="Signals"
         onAddPartyMember={() => undefined}
@@ -476,7 +536,7 @@ export function CuratorView({
         onReceive={onReceive}
         user={user}
       >
-        <SignalsLayer onSelect={handleSelect} signals={curatorSignals} />
+        <SignalsLayer />
       </CuratorLayerSection>
     </section>
   );

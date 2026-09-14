@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, or, sql } from "drizzle-orm";
 import type { CuratedPersonPlacement } from "@cloud-forest/domain";
 
 import type { DatabaseClient } from "./client.ts";
-import { curatedPersons } from "./schema.ts";
+import { connections, curatedPersons, relationshipBlocks } from "./schema.ts";
 
 type TransactionClient = Parameters<
   Parameters<DatabaseClient["transaction"]>[0]
@@ -15,6 +15,7 @@ const holdingCapacity = 5;
 
 export type CuratedPersonRepositoryError =
   | "curated-person-not-found"
+  | "curated-person-connected"
   | "holding-capacity-exceeded"
   | "party-capacity-exceeded"
   | "tribe-capacity-exceeded"
@@ -73,11 +74,62 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
 
   return {
     async listOwned(ownerUserId: string) {
-      return database
-        .select()
-        .from(curatedPersons)
-        .where(eq(curatedPersons.ownerUserId, ownerUserId))
-        .orderBy(asc(curatedPersons.createdAt), asc(curatedPersons.id));
+      return database.transaction(async (transaction) => {
+        const people = await transaction
+          .select()
+          .from(curatedPersons)
+          .where(eq(curatedPersons.ownerUserId, ownerUserId))
+          .orderBy(asc(curatedPersons.createdAt), asc(curatedPersons.id));
+        const activeConnections = await transaction
+          .select({
+            firstUserId: connections.firstUserId,
+            secondUserId: connections.secondUserId,
+          })
+          .from(connections)
+          .where(
+            or(
+              eq(connections.firstUserId, ownerUserId),
+              eq(connections.secondUserId, ownerUserId),
+            ),
+          );
+        const blocks = await transaction
+          .select()
+          .from(relationshipBlocks)
+          .where(eq(relationshipBlocks.blockerUserId, ownerUserId));
+        const connectedUserIds = new Set(
+          activeConnections.flatMap(({ firstUserId, secondUserId }) =>
+            firstUserId === ownerUserId ? [secondUserId] : [firstUserId],
+          ),
+        );
+
+        return people.map((person) => {
+          const block =
+            blocks.find(
+              (candidate) =>
+                candidate.blockedUserId === person.linkedUserId &&
+                candidate.contextCuratedPersonId === person.id,
+            ) ??
+            blocks.find(
+              (candidate) => candidate.blockedUserId === person.linkedUserId,
+            ) ??
+            blocks.find(
+              (candidate) =>
+                person.linkedUserId === null &&
+                candidate.contextCuratedPersonId === person.id,
+            );
+          const relationshipState: "character" | "connected" | "blocked" = block
+            ? "blocked"
+            : person.linkedUserId !== null &&
+                connectedUserIds.has(person.linkedUserId)
+              ? "connected"
+              : "character";
+          return {
+            ...person,
+            relationshipState,
+            ...(block ? { blockedUserId: block.blockedUserId } : {}),
+          };
+        });
+      });
     },
 
     async create(input: {
@@ -210,7 +262,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
       return database.transaction(async (transaction) => {
         await lockOwner(transaction, input.ownerUserId);
         const [existing] = await transaction
-          .select({ version: curatedPersons.version })
+          .select()
           .from(curatedPersons)
           .where(
             and(
@@ -222,6 +274,27 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
         if (!existing) return { ok: false, error: "curated-person-not-found" };
         if (existing.version !== input.expectedVersion)
           return { ok: false, error: "stale-write-conflict" };
+        if (existing.linkedUserId !== null) {
+          const [connection] = await transaction
+            .select({ id: connections.id })
+            .from(connections)
+            .where(
+              or(
+                and(
+                  eq(connections.firstUserId, input.ownerUserId),
+                  eq(connections.secondUserId, existing.linkedUserId),
+                ),
+                and(
+                  eq(connections.firstUserId, existing.linkedUserId),
+                  eq(connections.secondUserId, input.ownerUserId),
+                ),
+              ),
+            )
+            .limit(1);
+          if (connection) {
+            return { ok: false, error: "curated-person-connected" };
+          }
+        }
         await transaction
           .delete(curatedPersons)
           .where(
