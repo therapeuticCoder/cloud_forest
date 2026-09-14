@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -167,7 +167,7 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: /write/i })).toBeInTheDocument();
   });
 
-  it("renders durable Holding and Tribe layers without fictional Tribe people", async () => {
+  it("renders durable layers and Coming soon placeholders", async () => {
     await openCurator();
 
     const holdingLayer = screen.getByRole("article", {
@@ -193,17 +193,25 @@ describe("App", () => {
     expect(
       within(tribeLayer).getByText(/your tribe is waiting/i),
     ).toBeInTheDocument();
-    expect(guildLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(5);
-    expect(signalLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(
-      10,
-    );
+    expect(within(guildLayer).getByText("Coming soon")).toBeInTheDocument();
+    expect(
+      within(guildLayer).getByText(
+        /shared work, interests, and mutual support/i,
+      ),
+    ).toBeInTheDocument();
+    expect(within(signalLayer).getByText("Coming soon")).toBeInTheDocument();
+    expect(
+      within(signalLayer).getByText(/broader cultural and civic context/i),
+    ).toBeInTheDocument();
+    expect(guildLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(0);
+    expect(signalLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(0);
     expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /studio night/i }),
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /climate lab/i }),
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
     expect(partyLayer.className).toContain("motion-reduce:transition-none");
   });
 
@@ -989,28 +997,6 @@ describe("App", () => {
         ),
       }),
     ]);
-  });
-
-  it("closes the selected destination with Escape or browser back", async () => {
-    const user = await openCurator();
-
-    await user.click(
-      screen.getByRole("button", { name: /open mutual care circle/i }),
-    );
-    await user.keyboard("{Escape}");
-    expect(
-      screen.getByRole("region", { name: /curator view/i }),
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: /open city budget watch/i }),
-    );
-    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
-    await waitFor(() => {
-      expect(
-        screen.getByRole("region", { name: /curator view/i }),
-      ).toBeInTheDocument();
-    });
   });
 
   it.skip("reviews open, passed, demoted, and claimed care without changing state on switch", async () => {
