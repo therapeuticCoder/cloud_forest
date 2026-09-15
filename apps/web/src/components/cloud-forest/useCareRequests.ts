@@ -195,7 +195,14 @@ export function useCareRequests(
     async (careRequestId: string) => {
       const requestSequence = ++requestSequenceRef.current;
       const result = await apiClient.completeCareRequest({ careRequestId });
-      applyResult(result, requestSequence);
+      if (result.ok) {
+        applyResult(result, requestSequence);
+      } else if (result.kind === "http" && result.status === 404) {
+        const latest = await apiClient.getCareRequests();
+        applyResult(latest, requestSequence);
+      } else {
+        applyResult(result, requestSequence);
+      }
       return result;
     },
     [apiClient, applyResult],

@@ -144,7 +144,7 @@ export function useCareOffers(
     async (careOfferId: string) => {
       const requestSequence = ++requestSequenceRef.current;
       const result = await apiClient.withdrawCareOffer({ careOfferId });
-      if (result.ok) applyResult(result, requestSequence);
+      applyResult(result, requestSequence);
       return result;
     },
     [apiClient, applyResult],

@@ -367,8 +367,10 @@ export function createCareRequestRepository(database: DatabaseClient) {
           request.originatorUserId === request.requesterUserId
             ? request.claimantUserId
             : request.requesterUserId;
+        const needsCurrentOriginatorAccess =
+          isClaimant || request.originatorUserId !== request.requesterUserId;
         if (
-          isClaimant &&
+          needsCurrentOriginatorAccess &&
           !(await canAccess(
             request.originatorUserId,
             otherParticipantUserId,
