@@ -2,16 +2,19 @@ import { ArrowLeft, Check, HandHeart, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type {
-  CareAudienceSnapshot,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+
+export type ReceiveCareDraft = {
+  helpfulWhen: string;
+  foodWorks: string;
+  foodDoesNotWork: string;
+  handoffStyle: string;
+};
+
+type CompletionResult = { ok: true } | { ok: false; message: string } | void;
 
 type ReceiveCareWizardProps = {
-  audienceSnapshot: CareAudienceSnapshot;
   onCancel: () => void;
-  onComplete: (request: ReceiveCareRequest) => void;
-  viewerId: string;
+  onComplete: (draft: ReceiveCareDraft) => Promise<CompletionResult>;
 };
 
 const steps = ["Care", "Timing", "Food", "Handoff", "Review"];
@@ -31,10 +34,8 @@ const handoffOptions = [
 ];
 
 export function ReceiveCareWizard({
-  audienceSnapshot,
   onCancel,
   onComplete,
-  viewerId,
 }: ReceiveCareWizardProps) {
   const wizardRef = useRef<HTMLElement>(null);
   const [step, setStep] = useState(0);
@@ -43,6 +44,8 @@ export function ReceiveCareWizard({
   const [foodWorks, setFoodWorks] = useState("");
   const [foodDoesNotWork, setFoodDoesNotWork] = useState("");
   const [handoffStyle, setHandoffStyle] = useState("");
+  const [submissionError, setSubmissionError] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -59,33 +62,24 @@ export function ReceiveCareWizard({
     (step === 3 && handoffStyle.length > 0) ||
     step === 4;
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (submitting) return;
     if (!canContinue) return;
     if (step < steps.length - 1) {
       setStep((currentStep) => currentStep + 1);
       return;
     }
 
-    const createdAt = new Date();
-    const expiresAt = new Date(createdAt);
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    onComplete({
-      id: `care-request-${Date.now()}`,
-      kind: "meal",
-      direction: "receive",
-      need: "A meal",
+    setSubmitting(true);
+    setSubmissionError(undefined);
+    const result = await onComplete({
       helpfulWhen: helpfulWhen.trim(),
       foodWorks: foodWorks.trim(),
       foodDoesNotWork: foodDoesNotWork.trim(),
       handoffStyle,
-      audience: "Party",
-      audienceSnapshot,
-      status: "open",
-      createdAt: createdAt.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      requester: { kind: "self", id: viewerId, displayName: "You" },
     });
+    if (result && !result.ok) setSubmissionError(result.message);
+    setSubmitting(false);
   };
 
   return (
@@ -266,10 +260,15 @@ export function ReceiveCareWizard({
       </div>
 
       <footer className="party-wizard__footer">
+        {submissionError ? (
+          <p className="party-wizard__error" role="alert">
+            {submissionError}
+          </p>
+        ) : null}
         <Button
           className="party-wizard__continue"
-          disabled={!canContinue}
-          onClick={handleNext}
+          disabled={!canContinue || submitting}
+          onClick={() => void handleNext()}
           size="lg"
           type="button"
         >

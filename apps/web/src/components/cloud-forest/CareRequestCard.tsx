@@ -34,11 +34,11 @@ export function CareRequestCard({
   canPass: boolean;
   minimized: boolean;
   onOfferHelp: (request: ReceiveCareRequest) => void;
+  onPass?: (request: ReceiveCareRequest) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
-  onPass: (request: ReceiveCareRequest) => void;
-  onSetMinimized: (requestId: string, minimized: boolean) => void;
-  onWithdraw: (requestId: string) => void;
+  onSetMinimized?: (requestId: string, minimized: boolean) => void;
+  onWithdraw?: (requestId: string) => void;
   request: ReceiveCareRequest;
   viewerId: CarePersonId;
   viewerCompletion?: CareCompletionDecision;
@@ -62,6 +62,7 @@ export function CareRequestCard({
       ? "Open"
       : "Needs help";
   const setMinimized = (nextMinimized: boolean) => {
+    if (!onSetMinimized) return;
     restorePresentationFocusRef.current = true;
     onSetMinimized(request.id, nextMinimized);
   };
@@ -94,14 +95,16 @@ export function CareRequestCard({
             </time>
           </div>
           <span className="care-request-card__status">{statusLabel}</span>
-          <button
-            className="care-request-card__presentation"
-            onClick={() => setMinimized(false)}
-            ref={presentationButtonRef}
-            type="button"
-          >
-            Show details
-          </button>
+          {onSetMinimized ? (
+            <button
+              className="care-request-card__presentation"
+              onClick={() => setMinimized(false)}
+              ref={presentationButtonRef}
+              type="button"
+            >
+              Show details
+            </button>
+          ) : null}
         </div>
       </article>
     );
@@ -158,15 +161,17 @@ export function CareRequestCard({
             {formatter.format(new Date(request.createdAt))}
           </time>
         </div>
-        <button
-          className="care-request-card__presentation"
-          onClick={() => setMinimized(true)}
-          ref={presentationButtonRef}
-          type="button"
-        >
-          I’ve seen this
-        </button>
-        {isSelfAuthored && !claimed ? (
+        {onSetMinimized ? (
+          <button
+            className="care-request-card__presentation"
+            onClick={() => setMinimized(true)}
+            ref={presentationButtonRef}
+            type="button"
+          >
+            I’ve seen this
+          </button>
+        ) : null}
+        {isSelfAuthored && !claimed && onWithdraw ? (
           <button
             className="care-request-card__withdraw"
             onClick={() => onWithdraw(request.id)}
@@ -183,7 +188,9 @@ export function CareRequestCard({
             >
               {viewerIsClaimer
                 ? `You’re helping ${requesterFirstName}.`
-                : "Someone is helping with this request."}
+                : request.claimant
+                  ? `${request.claimant.displayName} is helping with this request.`
+                  : "Someone is helping with this request."}
             </p>
             {viewerCompletion === "completed" ? (
               <p
@@ -226,7 +233,7 @@ export function CareRequestCard({
               </>
             ) : null}
           </div>
-        ) : (
+        ) : !isSelfAuthored ? (
           <div className="care-request-card__actions">
             <button
               className="care-request-card__claim"
@@ -236,7 +243,7 @@ export function CareRequestCard({
             >
               I can help
             </button>
-            {canPass ? (
+            {canPass && onPass ? (
               <button
                 className="care-request-card__pass"
                 onClick={() => onPass(request)}
@@ -246,7 +253,7 @@ export function CareRequestCard({
               </button>
             ) : null}
           </div>
-        )}
+        ) : null}
       </div>
     </article>
   );

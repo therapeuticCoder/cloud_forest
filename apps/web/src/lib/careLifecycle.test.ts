@@ -716,7 +716,7 @@ describe("Receive-care lifecycle", () => {
     ]);
     expect(selectPrivateCareHistory(expired, "anya", "you")).toEqual([]);
     expect(selectNextCareRequestExpiration(expired, afterExpiry)).toBe(
-      Date.parse(laterRequest.expiresAt),
+      Date.parse(laterRequest.expiresAt!),
     );
     expect(expireDueCareRequests(expired, afterExpiry)).toBe(expired);
     expect(expireDueCareRequests(initial, "not-a-timestamp")).toBe(initial);

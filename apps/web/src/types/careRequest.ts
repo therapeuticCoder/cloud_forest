@@ -4,6 +4,11 @@ export type CareRequester =
 
 export type CarePersonId = string;
 
+export type CarePublicPerson = {
+  id: CarePersonId;
+  displayName: string;
+};
+
 export type CareAudienceSnapshot = {
   partyMemberIds: CarePersonId[];
   tribeMemberIds: CarePersonId[];
@@ -20,10 +25,12 @@ export type ReceiveCareRequest = {
   handoffStyle: string;
   audience: "Party" | "Tribe";
   audienceSnapshot: CareAudienceSnapshot;
-  status: "open";
+  status: "open" | "claimed" | "orphaned";
   createdAt: string;
-  expiresAt: string;
+  claimedAt?: string;
+  expiresAt?: string;
   requester: CareRequester;
+  claimant?: CarePublicPerson;
 };
 
 export type CareClaim = {

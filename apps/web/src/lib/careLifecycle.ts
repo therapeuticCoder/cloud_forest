@@ -112,7 +112,10 @@ function isTerminal(state: CareLifecycleState, requestId: string) {
 }
 
 export function isCareRequestExpired(request: ReceiveCareRequest, at: string) {
-  return Date.parse(at) >= Date.parse(request.expiresAt);
+  return (
+    request.expiresAt !== undefined &&
+    Date.parse(at) >= Date.parse(request.expiresAt)
+  );
 }
 
 function hasPassed(
@@ -258,6 +261,7 @@ export function selectNextCareRequestExpiration(
   const now = Date.parse(at);
   if (!Number.isFinite(now)) return undefined;
   return state.requests.reduce<number | undefined>((nextExpiry, request) => {
+    if (request.expiresAt === undefined) return nextExpiry;
     const expiresAt = Date.parse(request.expiresAt);
     if (
       getClaim(state, request.id) ||
@@ -309,8 +313,9 @@ function validateRequest(request: ReceiveCareRequest) {
     hasValidIdentity(request.id) &&
     hasValidIdentity(request.requester.id) &&
     hasValidTimestamp(request.createdAt) &&
-    hasValidTimestamp(request.expiresAt) &&
-    Date.parse(request.expiresAt) > Date.parse(request.createdAt) &&
+    (request.expiresAt === undefined ||
+      (hasValidTimestamp(request.expiresAt) &&
+        Date.parse(request.expiresAt) > Date.parse(request.createdAt))) &&
     partyIds.length > 0 &&
     partyIds.every(hasValidIdentity) &&
     tribeIds.every(hasValidIdentity) &&

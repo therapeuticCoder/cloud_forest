@@ -1,4 +1,36 @@
 export interface paths {
+    readonly "/api/v1/care-requests": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getCareRequestsV1"];
+        readonly put?: never;
+        readonly post: operations["createCareRequestV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/care-requests/{careRequestId}/claim": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["claimCareRequestV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/connection-pairings": {
         readonly parameters: {
             readonly query?: never;
@@ -365,6 +397,288 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    readonly getCareRequestsV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly requests: readonly {
+                                /** @enum {string} */
+                                readonly audience: "Party";
+                                readonly claimant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly claimedAt?: string;
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                /** @enum {string} */
+                                readonly direction: "receive";
+                                readonly foodDoesNotWork: string;
+                                readonly foodWorks: string;
+                                readonly handoffStyle: string;
+                                readonly helpfulWhen: string;
+                                readonly id: string;
+                                /** @enum {string} */
+                                readonly kind: "meal";
+                                /** @enum {string} */
+                                readonly need: "A meal";
+                                readonly requester: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                readonly status: "open" | "claimed" | "orphaned";
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly createCareRequestV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly foodDoesNotWork: string;
+                    readonly foodWorks: string;
+                    readonly handoffStyle: string;
+                    readonly helpfulWhen: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly requests: readonly {
+                                /** @enum {string} */
+                                readonly audience: "Party";
+                                readonly claimant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly claimedAt?: string;
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                /** @enum {string} */
+                                readonly direction: "receive";
+                                readonly foodDoesNotWork: string;
+                                readonly foodWorks: string;
+                                readonly handoffStyle: string;
+                                readonly helpfulWhen: string;
+                                readonly id: string;
+                                /** @enum {string} */
+                                readonly kind: "meal";
+                                /** @enum {string} */
+                                readonly need: "A meal";
+                                readonly requester: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                readonly status: "open" | "claimed" | "orphaned";
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly claimCareRequestV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careRequestId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly requests: readonly {
+                                /** @enum {string} */
+                                readonly audience: "Party";
+                                readonly claimant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly claimedAt?: string;
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                /** @enum {string} */
+                                readonly direction: "receive";
+                                readonly foodDoesNotWork: string;
+                                readonly foodWorks: string;
+                                readonly handoffStyle: string;
+                                readonly helpfulWhen: string;
+                                readonly id: string;
+                                /** @enum {string} */
+                                readonly kind: "meal";
+                                /** @enum {string} */
+                                readonly need: "A meal";
+                                readonly requester: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                readonly status: "open" | "claimed" | "orphaned";
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     readonly createConnectionPairingV1: {
         readonly parameters: {
             readonly query?: never;

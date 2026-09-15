@@ -1,20 +1,8 @@
-import {
-  ArrowLeft,
-  Check,
-  Clock3,
-  Copy,
-  HandHeart,
-  LogOut,
-  Send,
-} from "lucide-react";
+import { ArrowLeft, Check, Copy, HandHeart, LogOut, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { carePerspectiveOptions } from "@/data/careLifecycleMockData";
-import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
 import type {
-  CareGratitude,
-  CareHistoryEntry,
   CareLifecycleState,
   ReceiveCareRequest,
 } from "@/types/careRequest";
@@ -25,41 +13,25 @@ type MyCareViewProps = {
   activeRequests: ReceiveCareRequest[];
   careLifecycle: CareLifecycleState;
   claimedRequests: ReceiveCareRequest[];
-  history: CareHistoryEntry[];
-  gratitudes: CareGratitude[];
   onBack: () => void;
   isAdmin: boolean;
   onCreateSignupCode: () => Promise<
     { ok: true; link: string } | { ok: false; message: string }
   >;
   onSignOut: () => void;
-  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
-  onRecordCompleted: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
-  onWithdraw: (requestId: string) => void;
+  onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
+  onRecordCompleted?: (request: ReceiveCareRequest) => void;
+  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
+  onWithdraw?: (requestId: string) => void;
   signOutError?: string;
   signingOut: boolean;
   viewerId: string;
 };
 
-const historyLabels = {
-  completed: "Completed",
-  "not-completed": "Not completed",
-  expired: "Expired",
-  withdrawn: "Withdrawn",
-  orphaned: "Connection ended",
-} as const;
-
-const historyDateFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-});
-
 export function MyCareView({
   activeRequests,
   careLifecycle,
   claimedRequests,
-  history,
-  gratitudes,
   onBack,
   isAdmin,
   onCreateSignupCode,
@@ -230,75 +202,6 @@ export function MyCareView({
           ) : (
             <p className="my-care-view__empty">
               You’re not helping with any care requests right now.
-            </p>
-          )}
-        </section>
-
-        <section
-          aria-labelledby="history-heading"
-          className="my-care-view__section"
-        >
-          <div className="my-care-view__section-heading">
-            <Clock3 aria-hidden="true" />
-            <h2 id="history-heading">Private history</h2>
-          </div>
-
-          {history.length > 0 || gratitudes.length > 0 ? (
-            <ol className="my-care-history">
-              {gratitudes.map((gratitude) => {
-                const request = careLifecycle.requests.find(
-                  (candidate) => candidate.id === gratitude.requestId,
-                );
-                const giverName =
-                  carePerspectiveOptions.find(
-                    (person) => person.id === gratitude.giverId,
-                  )?.displayName ?? gratitude.giverId;
-                const statement = getMealGratitudeStatement(
-                  gratitude.statementId,
-                );
-                return (
-                  <li key={gratitude.id}>
-                    <div>
-                      <span>Care gratitude</span>
-                      <strong>
-                        {statement?.text ??
-                          "Thank you for showing up with care."}
-                      </strong>
-                      <small>
-                        From{" "}
-                        {request?.requester.displayName ?? gratitude.receiverId}{" "}
-                        to {gratitude.giverId === viewerId ? "you" : giverName}.
-                      </small>
-                      {gratitude.message ? <p>{gratitude.message}</p> : null}
-                    </div>
-                    <time dateTime={gratitude.createdAt}>
-                      {historyDateFormatter.format(
-                        new Date(gratitude.createdAt),
-                      )}
-                    </time>
-                  </li>
-                );
-              })}
-              {history.map((entry) => {
-                const request = careLifecycle.requests.find(
-                  (candidate) => candidate.id === entry.requestId,
-                );
-                return (
-                  <li key={entry.id}>
-                    <div>
-                      <span>{historyLabels[entry.outcome]}</span>
-                      <strong>{request?.need ?? "Care request"}</strong>
-                    </div>
-                    <time dateTime={entry.recordedAt}>
-                      {historyDateFormatter.format(new Date(entry.recordedAt))}
-                    </time>
-                  </li>
-                );
-              })}
-            </ol>
-          ) : (
-            <p className="my-care-view__empty">
-              Completed and closed care will appear here for you only.
             </p>
           )}
         </section>

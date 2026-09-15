@@ -23,6 +23,7 @@ export type ConnectionPairingStatus =
   | "completed"
   | "cancelled"
   | "superseded";
+export type CareRequestStatus = "open" | "claimed" | "orphaned";
 
 export const timelineItems = pgTable(
   "timeline_items",
@@ -300,6 +301,67 @@ export const connections = pgTable(
     check(
       "connections_users_ordered",
       sql`${table.firstUserId} < ${table.secondUserId}`,
+    ),
+  ],
+);
+
+export const careRequests = pgTable(
+  "care_requests",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    requesterUserId: varchar("requester_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: varchar("kind", { length: 16 }).notNull().default("meal"),
+    helpfulWhen: varchar("helpful_when", { length: 500 }).notNull(),
+    foodWorks: text("food_works").notNull(),
+    foodDoesNotWork: text("food_does_not_work").notNull().default(""),
+    handoffStyle: varchar("handoff_style", { length: 200 }).notNull(),
+    audience: varchar("audience", { length: 16 }).notNull().default("party"),
+    status: varchar("status", { length: 16 })
+      .$type<CareRequestStatus>()
+      .notNull()
+      .default("open"),
+    claimantUserId: varchar("claimant_user_id", { length: 128 }).references(
+      () => users.id,
+      { onDelete: "cascade" },
+    ),
+    claimedAt: timestamp("claimed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index("care_requests_requester_index").on(table.requesterUserId),
+    index("care_requests_claimant_index").on(table.claimantUserId),
+    check("care_requests_id_length", sql`char_length(${table.id}) >= 1`),
+    check("care_requests_kind_allowed", sql`${table.kind} = 'meal'`),
+    check(
+      "care_requests_helpful_when_length",
+      sql`char_length(${table.helpfulWhen}) between 1 and 500`,
+    ),
+    check(
+      "care_requests_food_works_length",
+      sql`char_length(${table.foodWorks}) between 1 and 10000`,
+    ),
+    check(
+      "care_requests_food_does_not_work_length",
+      sql`char_length(${table.foodDoesNotWork}) <= 10000`,
+    ),
+    check(
+      "care_requests_handoff_style_length",
+      sql`char_length(${table.handoffStyle}) between 1 and 200`,
+    ),
+    check("care_requests_audience_allowed", sql`${table.audience} = 'party'`),
+    check(
+      "care_requests_status_allowed",
+      sql`${table.status} in ('open', 'claimed', 'orphaned')`,
+    ),
+    check(
+      "care_requests_claim_state",
+      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null)`,
+    ),
+    check(
+      "care_requests_not_self_claimed",
+      sql`${table.claimantUserId} is null or ${table.requesterUserId} <> ${table.claimantUserId}`,
     ),
   ],
 );

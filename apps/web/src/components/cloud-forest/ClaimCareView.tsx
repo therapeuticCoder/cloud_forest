@@ -1,12 +1,12 @@
 import { ArrowLeft, Check, HandHeart } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { ReceiveCareRequest } from "@/types/careRequest";
 
 type ClaimCareViewProps = {
   onBack: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<{ ok: true } | { ok: false; message: string }>;
   request: ReceiveCareRequest;
 };
 
@@ -16,10 +16,21 @@ export function ClaimCareView({
   request,
 }: ClaimCareViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const [error, setError] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => headingRef.current?.focus());
   }, []);
+
+  const confirm = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setError(undefined);
+    const result = await onConfirm();
+    if (!result.ok) setError(result.message);
+    setSubmitting(false);
+  };
 
   return (
     <section
@@ -89,9 +100,15 @@ export function ClaimCareView({
       </div>
 
       <footer className="party-wizard__footer">
+        {error ? (
+          <p className="party-wizard__error" role="alert">
+            {error}
+          </p>
+        ) : null}
         <Button
           className="party-wizard__continue"
-          onClick={onConfirm}
+          disabled={submitting}
+          onClick={() => void confirm()}
           size="lg"
           type="button"
         >
