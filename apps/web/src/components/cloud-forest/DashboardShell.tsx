@@ -2,7 +2,7 @@ import { CloudOff, Gift, HandHeart, TreePine } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInitials, curatorUser } from "@/data/cloudForest";
 import { createCareLifecycleState } from "@/lib/careLifecycle";
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+import type { ReceiveCareRequest } from "@/types/careRequest";
 import type { CuratorPerson } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
@@ -25,11 +25,16 @@ import {
   useCareRequests,
   type CareRequestApiClient,
 } from "./useCareRequests";
+import {
+  careOfferErrorMessage,
+  useCareOffers,
+  type CareOfferApiClient,
+} from "./useCareOffers";
 import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard, type ReceiveCareDraft } from "./ReceiveCareWizard";
-import { GiveCareWizard } from "./GiveCareWizard";
+import { GiveCareWizard, type GiveCareDraft } from "./GiveCareWizard";
 import { ClaimCareView } from "./ClaimCareView";
 import { MyCareView } from "./MyCareView";
 import {
@@ -43,10 +48,12 @@ type CareDestination =
 
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
 export type { CareRequestApiClient } from "./useCareRequests";
+export type { CareOfferApiClient } from "./useCareOffers";
 
 export function DashboardShell({
   apiClient,
   careApiClient,
+  careOfferApiClient,
   currentPersonId,
   displayName,
   role,
@@ -58,6 +65,7 @@ export function DashboardShell({
 }: {
   apiClient?: CuratedPersonApiClient;
   careApiClient?: CareRequestApiClient;
+  careOfferApiClient?: CareOfferApiClient;
   currentPersonId: string;
   displayName: string;
   role: "admin" | "user";
@@ -86,12 +94,20 @@ export function DashboardShell({
     }),
     [currentPersonId, displayName],
   );
-  const [careOffers, setCareOffers] = useState<GiveCareOffer[]>([]);
   const {
     claim: claimCareRequest,
+    complete: completeCareRequest,
     create: createCareRequest,
+    load: loadCareRequests,
     state: durableCareRequestsState,
   } = useCareRequests(careApiClient, careViewerId);
+  const {
+    claim: claimCareOffer,
+    create: createCareOffer,
+    load: loadCareOffers,
+    state: careOffersState,
+    withdraw: withdrawCareOffer,
+  } = useCareOffers(careOfferApiClient);
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const {
@@ -447,10 +463,20 @@ export function DashboardShell({
     navigateToView("timeline");
     return { ok: true as const };
   };
-  const completeGive = (offer: GiveCareOffer) => {
-    setCareOffers((currentOffers) => [offer, ...currentOffers]);
+  const completeGive = async (draft: GiveCareDraft) => {
+    const result = await createCareOffer(draft);
+    if (!result.ok) {
+      return { ok: false as const, message: careOfferErrorMessage(result) };
+    }
     setGiveWizardOpen(false);
     navigateToView("timeline");
+    return { ok: true as const };
+  };
+  const claimGiveOffer = async (offerId: string) => {
+    const result = await claimCareOffer(offerId);
+    if (result.ok) {
+      await loadCareRequests();
+    }
   };
   const openReceiveWizard = () => {
     focusTargetIdRef.current = "receive";
@@ -530,6 +556,10 @@ export function DashboardShell({
     return { ok: true as const };
   };
 
+  const recordCareCompleted = async (request: ReceiveCareRequest) => {
+    await completeCareRequest(request.id);
+  };
+
   useEffect(() => {
     if (!careDestination) return;
 
@@ -594,27 +624,17 @@ export function DashboardShell({
     });
   }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 
+  useEffect(() => {
+    void loadCareRequests();
+    void loadCareOffers();
+  }, [activeView, careDestination?.kind, loadCareOffers, loadCareRequests]);
+
   const durableCareRequests = durableCareRequestsState.requests.filter(
-    (request) => request.status !== "orphaned",
+    (request) => request.status === "open" || request.status === "claimed",
   );
-  const durableCareLifecycle = useMemo(() => {
-    const lifecycle = createCareLifecycleState(durableCareRequests);
-    return {
-      ...lifecycle,
-      claims: durableCareRequests.flatMap((request) =>
-        request.claimant
-          ? [
-              {
-                id: `care-claim-${request.id}-${request.claimant.id}`,
-                requestId: request.id,
-                claimerId: request.claimant.id,
-                claimedAt: request.claimedAt ?? request.createdAt,
-              },
-            ]
-          : [],
-      ),
-    };
-  }, [durableCareRequests]);
+  const durableCompletedRequests = durableCareRequestsState.requests.filter(
+    (request) => request.status === "completed",
+  );
   const durableClaimedRequestIds = useMemo(
     () =>
       new Set(
@@ -642,12 +662,47 @@ export function DashboardShell({
     () => new Set(durableClaimedRequests.map((request) => request.id)),
     [durableClaimedRequests],
   );
+  const durableViewerCompletedRequestIds = useMemo(
+    () =>
+      new Set(
+        durableCareRequests
+          .filter((request) =>
+            request.requester.id === careViewerId
+              ? request.requesterCompletedAt !== undefined
+              : request.claimant?.id === careViewerId &&
+                request.claimantCompletedAt !== undefined,
+          )
+          .map((request) => request.id),
+      ),
+    [careViewerId, durableCareRequests],
+  );
+  const durableOtherParticipantCompletedRequestIds = useMemo(
+    () =>
+      new Set(
+        durableCareRequests
+          .filter((request) =>
+            request.requester.id === careViewerId
+              ? request.claimantCompletedAt !== undefined
+              : request.claimant?.id === careViewerId &&
+                request.requesterCompletedAt !== undefined,
+          )
+          .map((request) => request.id),
+      ),
+    [careViewerId, durableCareRequests],
+  );
+  const durableViewerCareOffers = useMemo(
+    () =>
+      careOffersState.offers.filter((offer) => offer.giver.id === careViewerId),
+    [careOffersState.offers, careViewerId],
+  );
   const durableCareStatusMessage =
     durableCareRequestsState.status === "loading"
       ? "Loading shared Care…"
       : durableCareRequestsState.status === "error"
         ? durableCareRequestsState.message
         : undefined;
+  const durableCareOfferStatusMessage =
+    careOffersState.status === "error" ? careOffersState.message : undefined;
   const emptyCareLifecycle = useMemo(() => createCareLifecycleState(), []);
 
   if (pairingToken) {
@@ -743,11 +798,12 @@ export function DashboardShell({
               <TimelineView
                 cacheOwnerId={currentPersonId}
                 onOfflineChange={setTimelineApiOffline}
-                careOffers={careOffers}
+                careOffers={careOffersState.offers}
                 careGratitudes={[]}
                 careGratitudeRequests={durableCareRequests}
                 careRequests={durableCareRequests}
                 careRequestStatusMessage={durableCareStatusMessage}
+                careOfferStatusMessage={durableCareOfferStatusMessage}
                 claimedRequestIds={durableClaimedRequestIds}
                 onOfferHelp={(request) =>
                   openCareDestination(
@@ -755,12 +811,14 @@ export function DashboardShell({
                     `[data-care-claim-action="${request.id}"]`,
                   )
                 }
-                onWithdrawOffer={(offerId) =>
-                  setCareOffers((currentOffers) =>
-                    currentOffers.filter((offer) => offer.id !== offerId),
-                  )
-                }
+                onClaimOffer={(offerId) => void claimGiveOffer(offerId)}
+                onRecordCompleted={recordCareCompleted}
+                onWithdrawOffer={(offerId) => void withdrawCareOffer(offerId)}
                 viewerClaimedRequestIds={durableViewerClaimedRequestIds}
+                viewerCompletedRequestIds={durableViewerCompletedRequestIds}
+                otherParticipantCompletedRequestIds={
+                  durableOtherParticipantCompletedRequestIds
+                }
                 viewerId={careViewerId}
               />
             ) : (
@@ -823,11 +881,16 @@ export function DashboardShell({
           ) : careDestination?.kind === "my-care" ? (
             <MyCareView
               activeRequests={durableSelfProfileRequests}
-              careLifecycle={durableCareLifecycle}
               claimedRequests={durableClaimedRequests}
+              completedRequests={durableCompletedRequests}
+              offers={durableViewerCareOffers}
+              careOfferStatusMessage={durableCareOfferStatusMessage}
+              viewerDisplayName={displayName}
               onBack={backFromCareDestination}
               isAdmin={role === "admin"}
               onCreateSignupCode={onCreateSignupCode}
+              onRecordCompleted={recordCareCompleted}
+              onWithdrawOffer={(offerId) => void withdrawCareOffer(offerId)}
               onSignOut={onSignOut}
               viewerId={careViewerId}
               signOutError={signOutError}

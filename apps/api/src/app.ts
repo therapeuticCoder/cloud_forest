@@ -25,6 +25,7 @@ import { curatedPersonRoutes } from "./routes/curatedPerson.ts";
 import { signupRoutes } from "./routes/signup.ts";
 import { connectionPairingRoutes } from "./routes/connectionPairing.ts";
 import { careRequestRoutes } from "./routes/careRequest.ts";
+import { careOfferRoutes } from "./routes/careOffer.ts";
 
 export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   timelineItemResolver?: TimelineItemResolver;
@@ -35,6 +36,7 @@ export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   curatedPersonRepository?: CuratedPersonRepository;
   connectionRepository?: ConnectionRepository;
   careRequestRepository?: import("@cloud-forest/database").CareRequestRepository;
+  careOfferRepository?: import("@cloud-forest/database").CareOfferRepository;
   identityRepository?: import("@cloud-forest/database").IdentityRepository;
 }
 
@@ -97,6 +99,16 @@ const missingCareRequestRepository = new Proxy(
     },
   },
 ) as import("@cloud-forest/database").CareRequestRepository;
+const missingCareOfferRepository = new Proxy(
+  {},
+  {
+    get() {
+      return () => {
+        throw new Error("Care offer repository is not configured.");
+      };
+    },
+  },
+) as import("@cloud-forest/database").CareOfferRepository;
 
 export function buildApi(
   options: BuildApiOptions = { logger: false },
@@ -151,6 +163,10 @@ export function buildApi(
   });
   server.register(careRequestRoutes, {
     repository: options.careRequestRepository ?? missingCareRequestRepository,
+    sessionResolver: options.sessionResolver ?? missingSessionResolver,
+  });
+  server.register(careOfferRoutes, {
+    repository: options.careOfferRepository ?? missingCareOfferRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
   return server;

@@ -3,14 +3,20 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
+  GetCareOffersResponse,
+  GetCareOffersResult,
   GetCareRequestsResponse,
   GetCareRequestsResult,
 } from "@cloud-forest/api-client";
 import { App } from "./App";
-import type { CareRequestApiClient } from "@/components/cloud-forest/DashboardShell";
+import type {
+  CareOfferApiClient,
+  CareRequestApiClient,
+} from "@/components/cloud-forest/DashboardShell";
 import { curatorPartyPeople } from "@/data/curatorMockData";
 
 type TestCareRequest = GetCareRequestsResponse["data"]["requests"][number];
+type TestCareOffer = GetCareOffersResponse["data"]["offers"][number];
 
 function careRequest(
   overrides: Partial<TestCareRequest> = {},
@@ -37,6 +43,49 @@ function careSuccess(requests: TestCareRequest[]): GetCareRequestsResult {
     ok: true,
     status: 200,
     value: { apiVersion: "v1", data: { requests } },
+  };
+}
+
+function careOffersSuccess(offers: TestCareOffer[]): GetCareOffersResult {
+  return {
+    ok: true,
+    status: 200,
+    value: { apiVersion: "v1", data: { offers } },
+  };
+}
+
+function createCareOfferApiClient(
+  initialOffers: TestCareOffer[] = [],
+): CareOfferApiClient {
+  let offers = [...initialOffers];
+
+  return {
+    getCareOffers: vi.fn(async () => careOffersSuccess(offers)),
+    createCareOffer: vi.fn(async (input) => {
+      const offer: TestCareOffer = {
+        id: `care-offer-test-${offers.length + 1}`,
+        kind: "meal",
+        direction: "give",
+        offer: "A meal",
+        mealDescription: input.mealDescription,
+        availableWhen: input.availableWhen,
+        handoffStyle: input.handoffStyle,
+        audience: "Party",
+        status: "available",
+        createdAt: "2026-09-14T13:00:00.000Z",
+        giver: { personId: "you", displayName: "River Tester" },
+      };
+      offers = [offer, ...offers];
+      return careOffersSuccess(offers);
+    }),
+    withdrawCareOffer: vi.fn(async ({ careOfferId }) => {
+      offers = offers.filter((offer) => offer.id !== careOfferId);
+      return careOffersSuccess(offers);
+    }),
+    claimCareOffer: vi.fn(async ({ careOfferId }) => {
+      offers = offers.filter((offer) => offer.id !== careOfferId);
+      return careOffersSuccess(offers);
+    }),
   };
 }
 
@@ -103,6 +152,37 @@ function createCareApiClient(
             }
           : candidate,
       );
+      return careSuccess(requests);
+    }),
+    completeCareRequest: vi.fn(async ({ careRequestId }) => {
+      const request = requests.find(
+        (candidate) => candidate.id === careRequestId,
+      );
+      if (!request || request.status !== "claimed") return notFound();
+      const completedAt = new Date().toISOString();
+      requests = requests.map((candidate) => {
+        if (candidate.id !== careRequestId) return candidate;
+        const claimantCompletedAt =
+          candidate.claimant?.personId === "you"
+            ? completedAt
+            : candidate.claimantCompletedAt;
+        const requesterCompletedAt =
+          candidate.requester.personId === "you"
+            ? completedAt
+            : candidate.requesterCompletedAt;
+        return {
+          ...candidate,
+          ...(requesterCompletedAt
+            ? { requesterCompletedAt }
+            : { requesterCompletedAt: undefined }),
+          ...(claimantCompletedAt
+            ? { claimantCompletedAt }
+            : { claimantCompletedAt: undefined }),
+          ...(requesterCompletedAt && claimantCompletedAt
+            ? { status: "completed" as const, completedAt }
+            : {}),
+        };
+      });
       return careSuccess(requests);
     }),
   };
@@ -206,6 +286,7 @@ const authenticatedSessionClient = {
 };
 
 let testCareApiClient: CareRequestApiClient;
+let testCareOfferApiClient: CareOfferApiClient;
 
 async function openCurator() {
   const user = userEvent.setup();
@@ -225,6 +306,7 @@ async function renderAuthenticatedApp(careApiClient = testCareApiClient) {
   const result = render(
     <App
       careApiClient={careApiClient}
+      careOfferApiClient={testCareOfferApiClient}
       sessionClient={authenticatedSessionClient}
     />,
   );
@@ -248,6 +330,7 @@ describe("App", () => {
     window.localStorage.clear();
     window.history.replaceState({}, "", "/");
     testCareApiClient = createCareApiClient();
+    testCareOfferApiClient = createCareOfferApiClient();
     vi.spyOn(globalThis, "fetch").mockImplementation(
       createCuratedPeopleFixture(),
     );
@@ -395,8 +478,13 @@ describe("App", () => {
       screen.getByRole("heading", { name: "My requests" }),
     ).toBeInTheDocument();
     expect(
+      screen.queryByRole("heading", { name: "I’m helping" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /give/i }));
+    expect(
       screen.getByRole("heading", { name: "I’m helping" }),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /receive/i }));
     expect(
       screen.queryByRole("heading", { name: "Private history" }),
     ).not.toBeInTheDocument();
@@ -750,6 +838,7 @@ describe("App", () => {
 
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
     expect(screen.getByRole("region", { name: "My Care" })).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /give/i }));
     expect(
       screen.getByRole("article", {
         name: "Incoming meal care request from Anya Reed",
@@ -761,6 +850,7 @@ describe("App", () => {
 
     expect(await screen.findByText("You’re helping Anya.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
+    await user.click(screen.getByRole("tab", { name: /give/i }));
     expect(
       screen.getByRole("article", {
         name: "Incoming meal care request from Anya Reed",

@@ -90,6 +90,7 @@ const noCompletedRequestIds = new Set<string>();
 function CareListings({
   claimedRequestIds,
   listings,
+  onClaimOffer,
   minimizedRequestIds,
   onOfferHelp,
   onRecordCompleted,
@@ -106,6 +107,7 @@ function CareListings({
 }: {
   claimedRequestIds: Set<string>;
   listings: CareListing[];
+  onClaimOffer?: (offerId: string) => void;
   minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
@@ -125,7 +127,9 @@ function CareListings({
       <CareOfferCard
         key={listing.item.id}
         offer={listing.item}
+        onClaim={onClaimOffer}
         onWithdraw={onWithdrawOffer}
+        viewerId={viewerId}
       />
     ) : (
       <CareRequestCard
@@ -278,10 +282,12 @@ export function TimelinePanel({
   careOffers = [],
   careRequests = [],
   careRequestStatusMessage,
+  careOfferStatusMessage,
   careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
+  onClaimOffer,
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
@@ -303,9 +309,11 @@ export function TimelinePanel({
   careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
   careRequestStatusMessage?: string;
+  careOfferStatusMessage?: string;
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
+  onClaimOffer?: (offerId: string) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass?: (request: ReceiveCareRequest) => void;
@@ -427,6 +435,11 @@ export function TimelinePanel({
           {careRequestStatusMessage}
         </div>
       ) : null}
+      {careOfferStatusMessage ? (
+        <div aria-live="polite" className="timeline-remote-state" role="status">
+          {careOfferStatusMessage}
+        </div>
+      ) : null}
       {passAnnouncement ? (
         <p aria-live="polite" className="care-pass-announcement" role="status">
           {passAnnouncement}
@@ -452,6 +465,7 @@ export function TimelinePanel({
             <CareListings
               claimedRequestIds={claimedRequestIds}
               listings={visibleCareListings}
+              onClaimOffer={onClaimOffer}
               minimizedRequestIds={minimizedRequestIds}
               onOfferHelp={onOfferHelp}
               onRecordCompleted={onRecordCompleted}
@@ -483,6 +497,7 @@ export function TimelinePanel({
               <CareListings
                 claimedRequestIds={claimedRequestIds}
                 listings={careListings}
+                onClaimOffer={onClaimOffer}
                 minimizedRequestIds={minimizedRequestIds}
                 onOfferHelp={onOfferHelp}
                 onRecordCompleted={onRecordCompleted}

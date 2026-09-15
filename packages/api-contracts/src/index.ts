@@ -40,3 +40,4 @@ export * from "./partyContract.ts";
 export * from "./curatedPersonContract.ts";
 export * from "./connectionContract.ts";
 export * from "./careContract.ts";
+export * from "./careOfferContract.ts";

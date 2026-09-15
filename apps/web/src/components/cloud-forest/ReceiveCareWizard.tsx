@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, HandHeart, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -82,11 +82,29 @@ export function ReceiveCareWizard({
     setSubmitting(false);
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (
+      event.key !== "Enter" ||
+      event.nativeEvent.isComposing ||
+      !(
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) ||
+      !canContinue ||
+      submitting
+    ) {
+      return;
+    }
+    event.preventDefault();
+    void handleNext();
+  };
+
   return (
     <section
       ref={wizardRef}
       aria-label="Ask my Party for a meal"
       className="party-wizard"
+      onKeyDown={handleKeyDown}
     >
       <header className="party-wizard__header">
         <Button

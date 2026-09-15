@@ -46,6 +46,19 @@ export function CareRequestCard({
   otherParticipantCompleted?: boolean;
 }) {
   const isSelfAuthored = request.requester.id === viewerId;
+  const durableViewerCompletion = isSelfAuthored
+    ? request.requesterCompletedAt
+    : request.claimant?.id === viewerId
+      ? request.claimantCompletedAt
+      : undefined;
+  const durableOtherParticipantCompleted = isSelfAuthored
+    ? request.claimantCompletedAt !== undefined
+    : request.requesterCompletedAt !== undefined;
+  const effectiveViewerCompletion =
+    viewerCompletion ??
+    (durableViewerCompletion !== undefined ? "completed" : undefined);
+  const effectiveOtherParticipantCompleted =
+    otherParticipantCompleted ?? durableOtherParticipantCompleted;
   const requesterFirstName = request.requester.displayName.split(" ")[0];
   const presentationButtonRef = useRef<HTMLButtonElement>(null);
   const restorePresentationFocusRef = useRef(false);
@@ -189,10 +202,10 @@ export function CareRequestCard({
               {viewerIsClaimer
                 ? `You’re helping ${requesterFirstName}.`
                 : request.claimant
-                  ? `${request.claimant.displayName} is helping with this request.`
+                  ? `${request.claimant.displayName} has offered this`
                   : "Someone is helping with this request."}
             </p>
-            {viewerCompletion === "completed" ? (
+            {effectiveViewerCompletion === "completed" ? (
               <p
                 className="care-request-card__waiting"
                 data-care-outcome-status={request.id}
@@ -201,9 +214,9 @@ export function CareRequestCard({
               >
                 You marked this completed. Waiting for the other person.
               </p>
-            ) : onRecordCompleted && onRecordNotCompleted ? (
+            ) : onRecordCompleted ? (
               <>
-                {otherParticipantCompleted ? (
+                {effectiveOtherParticipantCompleted ? (
                   <p
                     className="care-request-card__waiting"
                     data-care-outcome-status={request.id}
@@ -214,7 +227,9 @@ export function CareRequestCard({
                     you?
                   </p>
                 ) : null}
-                <div className="care-request-card__outcome-actions">
+                <div
+                  className={`care-request-card__outcome-actions${onRecordNotCompleted ? "" : " care-request-card__outcome-actions--single"}`}
+                >
                   <button
                     data-care-completed-action={request.id}
                     onClick={() => onRecordCompleted(request)}
@@ -222,13 +237,15 @@ export function CareRequestCard({
                   >
                     Completed
                   </button>
-                  <button
-                    data-care-outcome-action={request.id}
-                    onClick={() => onRecordNotCompleted(request)}
-                    type="button"
-                  >
-                    Not completed
-                  </button>
+                  {onRecordNotCompleted ? (
+                    <button
+                      data-care-outcome-action={request.id}
+                      onClick={() => onRecordNotCompleted(request)}
+                      type="button"
+                    >
+                      Not completed
+                    </button>
+                  ) : null}
                 </div>
               </>
             ) : null}

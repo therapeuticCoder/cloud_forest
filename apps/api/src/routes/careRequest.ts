@@ -1,5 +1,6 @@
 import {
   careApiVersion,
+  careRequestCompletePath,
   careRequestClaimPath,
   careRequestErrorSchema,
   careRequestParamsSchema,
@@ -50,6 +51,15 @@ function toApiRequest(
     createdAt: request.createdAt.toISOString(),
     ...(request.claimedAt
       ? { claimedAt: request.claimedAt.toISOString() }
+      : {}),
+    ...(request.requesterCompletedAt
+      ? { requesterCompletedAt: request.requesterCompletedAt.toISOString() }
+      : {}),
+    ...(request.claimantCompletedAt
+      ? { claimantCompletedAt: request.claimantCompletedAt.toISOString() }
+      : {}),
+    ...(request.completedAt
+      ? { completedAt: request.completedAt.toISOString() }
       : {}),
     requester: request.requester,
     ...(request.claimant ? { claimant: request.claimant } : {}),
@@ -162,6 +172,36 @@ export const careRequestRoutes: FastifyPluginAsyncTypebox<Options> = async (
                 : "NOT_FOUND",
             ),
           );
+      }
+      return visibleRequests(current.userId);
+    },
+  );
+
+  server.post(
+    careRequestCompletePath,
+    {
+      schema: {
+        operationId: "completeCareRequestV1",
+        tags: ["Care"],
+        params: careRequestParamsSchema,
+        response: {
+          200: careRequestsSuccessSchema,
+          400: careRequestErrorSchema,
+          401: careRequestErrorSchema,
+          404: careRequestErrorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.repository.recordCompletion({
+        careRequestId: request.params.careRequestId,
+        participantUserId: current.userId,
+        now: new Date(),
+      });
+      if (!result.ok) {
+        return reply.status(404).send(error("NOT_FOUND"));
       }
       return visibleRequests(current.userId);
     },

@@ -25,9 +25,12 @@ export type ReceiveCareRequest = {
   handoffStyle: string;
   audience: "Party" | "Tribe";
   audienceSnapshot: CareAudienceSnapshot;
-  status: "open" | "claimed" | "orphaned";
+  status: "open" | "claimed" | "orphaned" | "completed";
   createdAt: string;
   claimedAt?: string;
+  requesterCompletedAt?: string;
+  claimantCompletedAt?: string;
+  completedAt?: string;
   expiresAt?: string;
   requester: CareRequester;
   claimant?: CarePublicPerson;
@@ -133,4 +136,5 @@ export type GiveCareOffer = {
   audience: "Party";
   status: "available";
   createdAt: string;
+  giver: CarePublicPerson;
 };

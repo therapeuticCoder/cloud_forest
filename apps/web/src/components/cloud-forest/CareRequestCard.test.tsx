@@ -155,4 +155,40 @@ describe("CareRequestCard seen presentation", () => {
       screen.queryByRole("button", { name: "Withdraw request" }),
     ).not.toBeInTheDocument();
   });
+
+  it("shows the other participant's completion and keeps the Care actionable", async () => {
+    const user = userEvent.setup();
+    const onRecordCompleted = vi.fn();
+    render(
+      <CareRequestCard
+        canPass={false}
+        claimed
+        minimized={false}
+        onOfferHelp={vi.fn()}
+        onRecordCompleted={onRecordCompleted}
+        onSetMinimized={vi.fn()}
+        onWithdraw={vi.fn()}
+        request={{
+          ...request,
+          claimant: { id: "you", displayName: "River Tester" },
+          requesterCompletedAt: "2026-09-15T15:00:00.000Z",
+        }}
+        viewerId="you"
+        viewerIsClaimer
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "The other person marked this completed. What happened for you?",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Not completed" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Completed" }));
+    expect(onRecordCompleted).toHaveBeenCalledWith(
+      expect.objectContaining({ id: request.id }),
+    );
+  });
 });

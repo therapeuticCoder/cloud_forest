@@ -33,6 +33,7 @@ describe("TimelinePanel live item seam", () => {
       audience: "Party",
       status: "available",
       createdAt: "2026-09-02T18:00:00.000Z",
+      giver: { id: "you", displayName: "You" },
     };
     const request: ReceiveCareRequest = {
       id: "request-1",

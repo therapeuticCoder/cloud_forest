@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import type { DatabaseClient } from "./client.ts";
@@ -33,13 +33,13 @@ function eligiblePartyConnection(viewerUserId: string) {
   const currentConnection = sql`exists (
     select 1
     from ${connections}
-    where ${connections.firstUserId} = least(${careRequests.requesterUserId}, ${viewerUserId})
-      and ${connections.secondUserId} = greatest(${careRequests.requesterUserId}, ${viewerUserId})
+    where ${connections.firstUserId} = least(${careRequests.originatorUserId}, ${viewerUserId})
+      and ${connections.secondUserId} = greatest(${careRequests.originatorUserId}, ${viewerUserId})
   )`;
   const partyPlacement = sql`exists (
     select 1
     from ${curatedPersons}
-    where ${curatedPersons.ownerUserId} = ${careRequests.requesterUserId}
+    where ${curatedPersons.ownerUserId} = ${careRequests.originatorUserId}
       and ${curatedPersons.linkedUserId} = ${viewerUserId}
       and ${curatedPersons.placement} = 'party'
   )`;
@@ -54,9 +54,12 @@ type CareRequestRecord = {
   foodDoesNotWork: string;
   handoffStyle: string;
   audience: "party";
-  status: "open" | "claimed" | "orphaned";
+  status: "open" | "claimed" | "orphaned" | "completed";
   claimantUserId: string | null;
   claimedAt: Date | null;
+  requesterCompletedAt: Date | null;
+  claimantCompletedAt: Date | null;
+  completedAt: Date | null;
   createdAt: Date;
   requester: { personId: string; displayName: string };
   claimant: { personId: string; displayName: string } | null;
@@ -98,6 +101,9 @@ export function createCareRequestRepository(database: DatabaseClient) {
         status: careRequests.status,
         claimantUserId: careRequests.claimantUserId,
         claimedAt: careRequests.claimedAt,
+        requesterCompletedAt: careRequests.requesterCompletedAt,
+        claimantCompletedAt: careRequests.claimantCompletedAt,
+        completedAt: careRequests.completedAt,
         createdAt: careRequests.createdAt,
         requesterPersonId: requesterAccountPeople.personId,
         requesterDisplayName: requesterProfiles.displayName,
@@ -124,6 +130,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
       .where(
         or(
           eq(careRequests.requesterUserId, viewerUserId),
+          eq(careRequests.originatorUserId, viewerUserId),
           and(
             eligiblePartyConnection(viewerUserId),
             or(
@@ -135,7 +142,10 @@ export function createCareRequestRepository(database: DatabaseClient) {
             ),
           ),
           and(
-            eq(careRequests.status, "orphaned"),
+            or(
+              eq(careRequests.status, "orphaned"),
+              eq(careRequests.status, "completed"),
+            ),
             eq(careRequests.claimantUserId, viewerUserId),
           ),
         ),
@@ -154,6 +164,9 @@ export function createCareRequestRepository(database: DatabaseClient) {
         status: row.status,
         claimantUserId: row.claimantUserId,
         claimedAt: row.claimedAt,
+        requesterCompletedAt: row.requesterCompletedAt,
+        claimantCompletedAt: row.claimantCompletedAt,
+        completedAt: row.completedAt,
         createdAt: row.createdAt,
         requester: {
           personId: row.requesterPersonId,
@@ -171,13 +184,12 @@ export function createCareRequestRepository(database: DatabaseClient) {
   }
 
   async function canAccess(
-    requesterUserId: string,
+    originatorUserId: string,
     viewerUserId: string,
     transaction: TransactionClient | DatabaseClient = database,
   ) {
-    if (requesterUserId === viewerUserId) return true;
     const [firstUserId, secondUserId] = orderedUsers(
-      requesterUserId,
+      originatorUserId,
       viewerUserId,
     );
     const [connection] = await transaction
@@ -197,7 +209,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
       .from(curatedPersons)
       .where(
         and(
-          eq(curatedPersons.ownerUserId, requesterUserId),
+          eq(curatedPersons.ownerUserId, originatorUserId),
           eq(curatedPersons.linkedUserId, viewerUserId),
           eq(curatedPersons.placement, "party"),
         ),
@@ -224,6 +236,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
         .values({
           id: `care-request-${randomUUID()}`,
           requesterUserId: input.requesterUserId,
+          originatorUserId: input.requesterUserId,
           helpfulWhen: input.helpfulWhen,
           foodWorks: input.foodWorks,
           foodDoesNotWork: input.foodDoesNotWork,
@@ -245,6 +258,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
         const [request] = await transaction
           .select({
             requesterUserId: careRequests.requesterUserId,
+            originatorUserId: careRequests.originatorUserId,
             status: careRequests.status,
           })
           .from(careRequests)
@@ -260,7 +274,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
         );
         if (
           !(await canAccess(
-            request.requesterUserId,
+            request.originatorUserId,
             input.claimantUserId,
             transaction,
           )) ||
@@ -289,6 +303,130 @@ export function createCareRequestRepository(database: DatabaseClient) {
         return claimed.length === 1
           ? { ok: true, value: null }
           : { ok: false, error: "care-request-already-claimed" };
+      });
+    },
+
+    async recordCompletion(input: {
+      careRequestId: string;
+      participantUserId: string;
+      now: Date;
+    }): Promise<CareRequestRepositoryResult<null>> {
+      return database.transaction(async (transaction) => {
+        const [foundRequest] = await transaction
+          .select({
+            requesterUserId: careRequests.requesterUserId,
+            originatorUserId: careRequests.originatorUserId,
+            claimantUserId: careRequests.claimantUserId,
+            status: careRequests.status,
+            requesterCompletedAt: careRequests.requesterCompletedAt,
+            claimantCompletedAt: careRequests.claimantCompletedAt,
+          })
+          .from(careRequests)
+          .where(eq(careRequests.id, input.careRequestId))
+          .limit(1);
+        if (
+          foundRequest === undefined ||
+          foundRequest.status !== "claimed" ||
+          foundRequest.claimantUserId === null
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        await lockUsers(
+          transaction,
+          foundRequest.requesterUserId,
+          foundRequest.claimantUserId,
+        );
+
+        const [request] = await transaction
+          .select({
+            requesterUserId: careRequests.requesterUserId,
+            originatorUserId: careRequests.originatorUserId,
+            claimantUserId: careRequests.claimantUserId,
+            status: careRequests.status,
+            requesterCompletedAt: careRequests.requesterCompletedAt,
+            claimantCompletedAt: careRequests.claimantCompletedAt,
+          })
+          .from(careRequests)
+          .where(eq(careRequests.id, input.careRequestId))
+          .limit(1);
+        if (
+          request === undefined ||
+          request.status !== "claimed" ||
+          request.claimantUserId === null
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        const isRequester = request.requesterUserId === input.participantUserId;
+        const isClaimant = request.claimantUserId === input.participantUserId;
+        if (!isRequester && !isClaimant) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+        const otherParticipantUserId =
+          request.originatorUserId === request.requesterUserId
+            ? request.claimantUserId
+            : request.requesterUserId;
+        if (
+          isClaimant &&
+          !(await canAccess(
+            request.originatorUserId,
+            otherParticipantUserId,
+            transaction,
+          ))
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        if (isRequester) {
+          if (request.requesterCompletedAt !== null) {
+            return { ok: false, error: "care-request-not-found" };
+          }
+          const completed = request.claimantCompletedAt !== null;
+          const updated = await transaction
+            .update(careRequests)
+            .set({
+              requesterCompletedAt: input.now,
+              ...(completed
+                ? { status: "completed" as const, completedAt: input.now }
+                : {}),
+            })
+            .where(
+              and(
+                eq(careRequests.id, input.careRequestId),
+                eq(careRequests.status, "claimed"),
+                isNull(careRequests.requesterCompletedAt),
+              ),
+            )
+            .returning({ id: careRequests.id });
+          return updated.length === 1
+            ? { ok: true, value: null }
+            : { ok: false, error: "care-request-not-found" };
+        }
+
+        if (request.claimantCompletedAt !== null) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+        const completed = request.requesterCompletedAt !== null;
+        const updated = await transaction
+          .update(careRequests)
+          .set({
+            claimantCompletedAt: input.now,
+            ...(completed
+              ? { status: "completed" as const, completedAt: input.now }
+              : {}),
+          })
+          .where(
+            and(
+              eq(careRequests.id, input.careRequestId),
+              eq(careRequests.status, "claimed"),
+              isNull(careRequests.claimantCompletedAt),
+            ),
+          )
+          .returning({ id: careRequests.id });
+        return updated.length === 1
+          ? { ok: true, value: null }
+          : { ok: false, error: "care-request-not-found" };
       });
     },
   };
