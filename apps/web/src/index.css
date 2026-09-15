@@ -2007,6 +2007,10 @@ button:focus-visible {
   gap: 0.65rem;
 }
 
+.care-request-card__outcome-actions--single {
+  grid-template-columns: 1fr;
+}
+
 .care-request-card__outcome-actions button {
   min-height: 3rem;
   border: 1px solid rgba(8, 36, 25, 0.35);
@@ -2116,6 +2120,89 @@ button:focus-visible {
   gap: 2.25rem;
   width: min(100%, 48rem);
   margin: 2rem auto 0;
+}
+
+.my-care-view__tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  width: min(100%, 48rem);
+  margin: 1.5rem auto 0;
+  padding: 0.35rem;
+  border: 1px solid rgba(228, 236, 217, 0.18);
+  border-radius: 1rem;
+  background: rgba(8, 36, 25, 0.72);
+}
+
+.my-care-view__tabs button {
+  min-width: 0;
+  min-height: 3.25rem;
+  display: grid;
+  place-items: center;
+  gap: 0.2rem;
+  border: 0;
+  border-radius: 0.75rem;
+  padding: 0.4rem 0.25rem;
+  color: rgba(231, 232, 216, 0.68);
+  background: transparent;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.my-care-view__tabs button:hover,
+.my-care-view__tabs button[aria-selected="true"] {
+  color: #f0f1e8;
+  background: rgba(96, 125, 39, 0.38);
+}
+
+.my-care-view__tabs button:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 2px;
+}
+
+.my-care-view__tabs svg {
+  width: 1.1rem;
+}
+
+.my-care-view__tab-panel {
+  display: grid;
+  gap: 2.25rem;
+}
+
+.my-care-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(228, 236, 217, 0.18);
+  border-radius: 1.25rem;
+  background: rgba(8, 36, 25, 0.72);
+}
+
+.my-care-profile__initials {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--forest-ink);
+  background: var(--forest-party);
+  font-size: 1.1rem;
+  font-weight: 760;
+}
+
+.my-care-profile strong {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.my-care-profile p,
+.care-offer-card__giver {
+  margin: 0.25rem 0 0;
+  color: rgba(231, 232, 216, 0.72);
 }
 
 .my-care-view__section {

@@ -2,6 +2,7 @@ import {
   createApiClient,
   type ApiClient,
   type ClaimCareRequestResult,
+  type CompleteCareRequestResult,
   type CreateCareRequestInput,
   type CreateCareRequestResult,
   type GetCareRequestsResult,
@@ -13,13 +14,17 @@ import type { ReceiveCareRequest } from "@/types/careRequest";
 
 export type CareRequestApiClient = Pick<
   ApiClient,
-  "getCareRequests" | "createCareRequest" | "claimCareRequest"
+  | "getCareRequests"
+  | "createCareRequest"
+  | "claimCareRequest"
+  | "completeCareRequest"
 >;
 
 type CareRequestOperationResult =
   | GetCareRequestsResult
   | CreateCareRequestResult
-  | ClaimCareRequestResult;
+  | ClaimCareRequestResult
+  | CompleteCareRequestResult;
 type CareRequestRecord = GetCareRequestsResponse["data"]["requests"][number];
 
 export type CareRequestsState =
@@ -50,6 +55,13 @@ function toReceiveCareRequest(
     status: request.status,
     createdAt: request.createdAt,
     ...(request.claimedAt ? { claimedAt: request.claimedAt } : {}),
+    ...(request.requesterCompletedAt
+      ? { requesterCompletedAt: request.requesterCompletedAt }
+      : {}),
+    ...(request.claimantCompletedAt
+      ? { claimantCompletedAt: request.claimantCompletedAt }
+      : {}),
+    ...(request.completedAt ? { completedAt: request.completedAt } : {}),
     requester: {
       kind: request.requester.personId === viewerPersonId ? "self" : "party",
       id: request.requester.personId,
@@ -179,5 +191,22 @@ export function useCareRequests(
     [apiClient, applyResult],
   );
 
-  return { claim, create, load, state };
+  const complete = useCallback(
+    async (careRequestId: string) => {
+      const requestSequence = ++requestSequenceRef.current;
+      const result = await apiClient.completeCareRequest({ careRequestId });
+      if (result.ok) {
+        applyResult(result, requestSequence);
+      } else if (result.kind === "http" && result.status === 404) {
+        const latest = await apiClient.getCareRequests();
+        applyResult(latest, requestSequence);
+      } else {
+        applyResult(result, requestSequence);
+      }
+      return result;
+    },
+    [apiClient, applyResult],
+  );
+
+  return { claim, complete, create, load, state };
 }

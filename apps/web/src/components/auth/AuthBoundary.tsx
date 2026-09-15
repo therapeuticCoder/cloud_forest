@@ -12,6 +12,7 @@ import {
 
 import {
   DashboardShell,
+  type CareOfferApiClient,
   type CareRequestApiClient,
   type CuratedPersonApiClient,
 } from "@/components/cloud-forest/DashboardShell";
@@ -35,6 +36,7 @@ import "./auth-boundary.css";
 type AuthBoundaryProps = {
   apiClient?: CuratedPersonApiClient;
   careApiClient?: CareRequestApiClient;
+  careOfferApiClient?: CareOfferApiClient;
   sessionClient?: SessionClient;
 };
 
@@ -482,6 +484,7 @@ function sessionErrorMessage(
 export function AuthBoundary({
   apiClient,
   careApiClient,
+  careOfferApiClient,
   sessionClient = defaultSessionClient,
 }: AuthBoundaryProps) {
   const pairingToken =
@@ -695,6 +698,7 @@ export function AuthBoundary({
         key={boundary.currentPersonId}
         apiClient={apiClient}
         careApiClient={careApiClient}
+        careOfferApiClient={careOfferApiClient}
         currentPersonId={boundary.currentPersonId}
         displayName={boundary.displayName}
         role={boundary.role}

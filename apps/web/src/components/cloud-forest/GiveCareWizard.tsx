@@ -1,12 +1,19 @@
 import { ArrowLeft, Check, Gift, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { GiveCareOffer } from "@/types/careRequest";
 
 type GiveCareWizardProps = {
   onCancel: () => void;
-  onComplete: (offer: GiveCareOffer) => void;
+  onComplete: (
+    draft: GiveCareDraft,
+  ) => Promise<{ ok: true } | { ok: false; message: string }>;
+};
+
+export type GiveCareDraft = {
+  mealDescription: string;
+  availableWhen: string;
+  handoffStyle: string;
 };
 
 const steps = ["Care", "Meal", "Timing", "Handoff", "Review"];
@@ -32,6 +39,8 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
   const [mealDescription, setMealDescription] = useState("");
   const [availableWhen, setAvailableWhen] = useState("");
   const [handoffStyle, setHandoffStyle] = useState("");
+  const [submissionError, setSubmissionError] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -48,25 +57,40 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
     (step === 3 && handoffStyle.length > 0) ||
     step === 4;
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (submitting) return;
     if (!canContinue) return;
     if (step < steps.length - 1) {
       setStep((currentStep) => currentStep + 1);
       return;
     }
 
-    onComplete({
-      id: `care-offer-${Date.now()}`,
-      kind: "meal",
-      direction: "give",
-      offer: "A meal",
+    setSubmitting(true);
+    setSubmissionError(undefined);
+    const result = await onComplete({
       mealDescription: mealDescription.trim(),
       availableWhen: availableWhen.trim(),
       handoffStyle,
-      audience: "Party",
-      status: "available",
-      createdAt: new Date().toISOString(),
     });
+    if (!result.ok) setSubmissionError(result.message);
+    setSubmitting(false);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (
+      event.key !== "Enter" ||
+      event.nativeEvent.isComposing ||
+      !(
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) ||
+      !canContinue ||
+      submitting
+    ) {
+      return;
+    }
+    event.preventDefault();
+    void handleNext();
   };
 
   return (
@@ -74,6 +98,7 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
       ref={wizardRef}
       aria-label="Offer a meal to my Party"
       className="party-wizard"
+      onKeyDown={handleKeyDown}
     >
       <header className="party-wizard__header">
         <Button
@@ -234,10 +259,15 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
       </div>
 
       <footer className="party-wizard__footer">
+        {submissionError ? (
+          <p className="party-wizard__error" role="alert">
+            {submissionError}
+          </p>
+        ) : null}
         <Button
           className="party-wizard__continue"
-          disabled={!canContinue}
-          onClick={handleNext}
+          disabled={!canContinue || submitting}
+          onClick={() => void handleNext()}
           size="lg"
           type="button"
         >

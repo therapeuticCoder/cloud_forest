@@ -31,9 +31,13 @@ export const careRequestSchema = Type.Object(
       Type.Literal("open"),
       Type.Literal("claimed"),
       Type.Literal("orphaned"),
+      Type.Literal("completed"),
     ]),
     createdAt: dateTime,
     claimedAt: Type.Optional(dateTime),
+    requesterCompletedAt: Type.Optional(dateTime),
+    claimantCompletedAt: Type.Optional(dateTime),
+    completedAt: Type.Optional(dateTime),
     requester: carePersonSchema,
     claimant: Type.Optional(carePersonSchema),
   },
@@ -79,6 +83,8 @@ export const careRequestsPath = "/api/v1/care-requests";
 export const careRequestPath = "/api/v1/care-requests/:careRequestId";
 export const careRequestClaimPath =
   "/api/v1/care-requests/:careRequestId/claim";
+export const careRequestCompletePath =
+  "/api/v1/care-requests/:careRequestId/complete";
 export const careRequestParamsSchema = Type.Object(
   { careRequestId: id },
   { additionalProperties: false },

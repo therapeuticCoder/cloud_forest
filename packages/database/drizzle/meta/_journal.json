@@ -134,6 +134,27 @@
       "when": 1789430400004,
       "tag": "0018_care_request_orphaning",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789430400005,
+      "tag": "0019_care_request_completion",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789430400006,
+      "tag": "0020_care_offers",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789430400007,
+      "tag": "0021_care_request_originator",
+      "breakpoints": true
     }
   ]
 }

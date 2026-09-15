@@ -30,6 +30,9 @@ function createRepository() {
           status: "open",
           claimantUserId: null,
           claimedAt: null,
+          requesterCompletedAt: null,
+          claimantCompletedAt: null,
+          completedAt: null,
           createdAt: input.now,
           requesterUserId: input.requesterUserId,
           requester: { personId: "person-a", displayName: "River" },
@@ -58,6 +61,49 @@ function createRepository() {
       );
       return { ok: true, value: null };
     },
+    async recordCompletion({ careRequestId, participantUserId, now }) {
+      const request = requests.find(({ id }) => id === careRequestId);
+      if (
+        !request ||
+        request.status !== "claimed" ||
+        (request.requesterUserId !== participantUserId &&
+          request.claimantUserId !== participantUserId)
+      ) {
+        return { ok: false, error: "care-request-not-found" };
+      }
+      if (request.requesterUserId === participantUserId) {
+        if (request.requesterCompletedAt) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+        requests = requests.map((candidate) =>
+          candidate.id === careRequestId
+            ? {
+                ...candidate,
+                requesterCompletedAt: now,
+                ...(candidate.claimantCompletedAt
+                  ? { status: "completed", completedAt: now }
+                  : {}),
+              }
+            : candidate,
+        );
+      } else {
+        if (request.claimantCompletedAt) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+        requests = requests.map((candidate) =>
+          candidate.id === careRequestId
+            ? {
+                ...candidate,
+                claimantCompletedAt: now,
+                ...(candidate.requesterCompletedAt
+                  ? { status: "completed", completedAt: now }
+                  : {}),
+              }
+            : candidate,
+        );
+      }
+      return { ok: true, value: null };
+    },
   };
 }
 
@@ -78,6 +124,13 @@ function serverFor(repository) {
             userId: "user-b",
             personId: "person-b",
             displayName: "Nia",
+          };
+        }
+        if (request.headers.cookie === "session=user-c") {
+          return {
+            userId: "user-c",
+            personId: "person-c",
+            displayName: "Sol",
           };
         }
         return null;
@@ -136,6 +189,65 @@ test("Care API keeps create and claim responses durable and non-disclosing", asy
     personId: "person-b",
     displayName: "Nia",
   });
+
+  const requesterCompleted = await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${createdRequest.id}/complete`,
+    headers: { cookie: "session=user-a" },
+  });
+  assert.equal(requesterCompleted.statusCode, 200);
+  const requesterCompletedRequest = requesterCompleted.json().data.requests[0];
+  assert.equal(requesterCompletedRequest.status, "claimed");
+  assert.match(requesterCompletedRequest.requesterCompletedAt, /T/);
+  const requesterCompletedAt = requesterCompletedRequest.requesterCompletedAt;
+  assert.equal(requesterCompletedRequest.claimantCompletedAt, undefined);
+
+  const claimantStillActive = await server.inject({
+    method: "GET",
+    url: "/api/v1/care-requests",
+    headers: { cookie: "session=user-b" },
+  });
+  assert.equal(claimantStillActive.statusCode, 200);
+  assert.equal(claimantStillActive.json().data.requests[0].status, "claimed");
+  assert.equal(
+    claimantStillActive.json().data.requests[0].requesterCompletedAt,
+    requesterCompletedAt,
+  );
+
+  const claimantCompleted = await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${createdRequest.id}/complete`,
+    headers: { cookie: "session=user-b" },
+  });
+  assert.equal(claimantCompleted.statusCode, 200);
+  const claimantCompletedRequest = claimantCompleted.json().data.requests[0];
+  assert.equal(claimantCompletedRequest.status, "completed");
+  assert.match(claimantCompletedRequest.claimantCompletedAt, /T/);
+  assert.equal(
+    claimantCompletedRequest.completedAt,
+    claimantCompletedRequest.claimantCompletedAt,
+  );
+
+  const requesterHistory = await server.inject({
+    method: "GET",
+    url: "/api/v1/care-requests",
+    headers: { cookie: "session=user-a" },
+  });
+  assert.equal(requesterHistory.json().data.requests[0].status, "completed");
+
+  const nonparticipantHistory = await server.inject({
+    method: "GET",
+    url: "/api/v1/care-requests",
+    headers: { cookie: "session=user-c" },
+  });
+  assert.deepEqual(nonparticipantHistory.json().data.requests, []);
+
+  const nonparticipantCompletion = await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${createdRequest.id}/complete`,
+    headers: { cookie: "session=user-c" },
+  });
+  assert.equal(nonparticipantCompletion.statusCode, 404);
 
   const secondClaim = await server.inject({
     method: "POST",

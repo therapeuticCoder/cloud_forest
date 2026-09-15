@@ -151,6 +151,7 @@ describe("AuthBoundary", () => {
     await user.click(
       (await screen.findAllByRole("button", { name: "Open My Care" }))[0],
     );
+    await user.click(screen.getByRole("tab", { name: "Profile" }));
     await user.click(
       screen.getByRole("button", { name: "Sign out of Cloud Forest" }),
     );

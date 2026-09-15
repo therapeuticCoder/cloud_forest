@@ -1,6 +1,8 @@
 import {
   isCuratedPersonErrorResponse,
   isCuratedPersonsSuccessResponse,
+  isCareOfferErrorResponse,
+  isCareOffersSuccessResponse,
   isCareRequestErrorResponse,
   isCareRequestsSuccessResponse,
   isGetTimelineItemErrorResponse,
@@ -32,6 +34,11 @@ type DeleteCuratedPersonOperation = operations["deleteCuratedPersonV1"];
 type GetCareRequestsOperation = operations["getCareRequestsV1"];
 type CreateCareRequestOperation = operations["createCareRequestV1"];
 type ClaimCareRequestOperation = operations["claimCareRequestV1"];
+type CompleteCareRequestOperation = operations["completeCareRequestV1"];
+type GetCareOffersOperation = operations["getCareOffersV1"];
+type CreateCareOfferOperation = operations["createCareOfferV1"];
+type WithdrawCareOfferOperation = operations["withdrawCareOfferV1"];
+type ClaimCareOfferOperation = operations["claimCareOfferV1"];
 type CurrentSessionOperation = operations["getCurrentSessionV1"];
 type LogoutOperation = operations["logoutV1"];
 
@@ -68,6 +75,18 @@ export type CreateCareRequestInput =
   CreateCareRequestOperation["requestBody"]["content"]["application/json"];
 export type ClaimCareRequestParameters =
   ClaimCareRequestOperation["parameters"]["path"];
+export type CompleteCareRequestParameters =
+  CompleteCareRequestOperation["parameters"]["path"];
+export type GetCareOffersResponse = OperationResponseBody<
+  GetCareOffersOperation,
+  200
+>;
+export type CreateCareOfferInput =
+  CreateCareOfferOperation["requestBody"]["content"]["application/json"];
+export type WithdrawCareOfferParameters =
+  WithdrawCareOfferOperation["parameters"]["path"];
+export type ClaimCareOfferParameters =
+  ClaimCareOfferOperation["parameters"]["path"];
 export type CareRequestsErrorResponse = OperationResponseBody<
   GetCareRequestsOperation,
   401
@@ -89,6 +108,36 @@ export type ClaimCareRequestResult = ApiResult<
   GetCareRequestsResponse,
   400 | 401 | 404 | 409,
   OperationResponseBody<ClaimCareRequestOperation, 400 | 401 | 404 | 409>
+>;
+export type CompleteCareRequestResult = ApiResult<
+  200,
+  GetCareRequestsResponse,
+  400 | 401 | 404,
+  OperationResponseBody<CompleteCareRequestOperation, 400 | 401 | 404>
+>;
+export type GetCareOffersResult = ApiResult<
+  200,
+  GetCareOffersResponse,
+  401,
+  OperationResponseBody<GetCareOffersOperation, 401>
+>;
+export type CreateCareOfferResult = ApiResult<
+  200,
+  GetCareOffersResponse,
+  400 | 401,
+  OperationResponseBody<CreateCareOfferOperation, 400 | 401>
+>;
+export type WithdrawCareOfferResult = ApiResult<
+  200,
+  GetCareOffersResponse,
+  401 | 404,
+  OperationResponseBody<WithdrawCareOfferOperation, 401 | 404>
+>;
+export type ClaimCareOfferResult = ApiResult<
+  200,
+  GetCareOffersResponse,
+  401 | 404 | 409,
+  OperationResponseBody<ClaimCareOfferOperation, 401 | 404 | 409>
 >;
 export type CurrentSessionResponse = OperationResponseBody<
   CurrentSessionOperation,
@@ -186,6 +235,17 @@ export interface ApiClient {
   claimCareRequest(
     parameters: ClaimCareRequestParameters,
   ): Promise<ClaimCareRequestResult>;
+  completeCareRequest(
+    parameters: CompleteCareRequestParameters,
+  ): Promise<CompleteCareRequestResult>;
+  getCareOffers(): Promise<GetCareOffersResult>;
+  createCareOffer(input: CreateCareOfferInput): Promise<CreateCareOfferResult>;
+  withdrawCareOffer(
+    parameters: WithdrawCareOfferParameters,
+  ): Promise<WithdrawCareOfferResult>;
+  claimCareOffer(
+    parameters: ClaimCareOfferParameters,
+  ): Promise<ClaimCareOfferResult>;
 }
 
 export interface CreateApiClientOptions {
@@ -384,6 +444,50 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         [400, 401, 404, 409] as const,
       );
     },
+
+    async completeCareRequest({ careRequestId }) {
+      return parseCareRequestsResponse(
+        await request(
+          "POST",
+          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/complete`,
+        ),
+        [400, 401, 404] as const,
+      );
+    },
+
+    async getCareOffers() {
+      return parseCareOffersResponse(
+        await request("GET", "/api/v1/care-offers"),
+        [401] as const,
+      );
+    },
+
+    async createCareOffer(input) {
+      return parseCareOffersResponse(
+        await request("POST", "/api/v1/care-offers", input),
+        [400, 401] as const,
+      );
+    },
+
+    async withdrawCareOffer({ careOfferId }) {
+      return parseCareOffersResponse(
+        await request(
+          "DELETE",
+          `/api/v1/care-offers/${encodeURIComponent(careOfferId)}`,
+        ),
+        [401, 404] as const,
+      );
+    },
+
+    async claimCareOffer({ careOfferId }) {
+      return parseCareOffersResponse(
+        await request(
+          "POST",
+          `/api/v1/care-offers/${encodeURIComponent(careOfferId)}/claim`,
+        ),
+        [401, 404, 409] as const,
+      );
+    },
   };
 }
 
@@ -453,8 +557,16 @@ function parseCareRequestsResponse(
 ): ClaimCareRequestResult;
 function parseCareRequestsResponse(
   result: RawRequestResult,
+  errorStatuses: readonly [400, 401, 404],
+): CompleteCareRequestResult;
+function parseCareRequestsResponse(
+  result: RawRequestResult,
   errorStatuses: readonly number[],
-): GetCareRequestsResult | CreateCareRequestResult | ClaimCareRequestResult {
+):
+  | GetCareRequestsResult
+  | CreateCareRequestResult
+  | ClaimCareRequestResult
+  | CompleteCareRequestResult {
   if (result.kind === "network") return result;
   if (result.status === 200 && isCareRequestsSuccessResponse(result.body)) {
     return { ok: true, status: 200, value: result.body };
@@ -466,6 +578,57 @@ function parseCareRequestsResponse(
       result.status === 409) &&
     errorStatuses.includes(result.status) &&
     isCareRequestErrorResponse(result.body)
+  ) {
+    return {
+      ok: false,
+      kind: "http",
+      status: result.status,
+      error: result.body,
+    };
+  }
+  return {
+    ok: false,
+    kind: "unexpected-response",
+    status: result.status,
+    body: result.body,
+  };
+}
+
+function parseCareOffersResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [401],
+): GetCareOffersResult;
+function parseCareOffersResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [400, 401],
+): CreateCareOfferResult;
+function parseCareOffersResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [401, 404],
+): WithdrawCareOfferResult;
+function parseCareOffersResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [401, 404, 409],
+): ClaimCareOfferResult;
+function parseCareOffersResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly number[],
+):
+  | GetCareOffersResult
+  | CreateCareOfferResult
+  | WithdrawCareOfferResult
+  | ClaimCareOfferResult {
+  if (result.kind === "network") return result;
+  if (result.status === 200 && isCareOffersSuccessResponse(result.body)) {
+    return { ok: true, status: 200, value: result.body };
+  }
+  if (
+    (result.status === 400 ||
+      result.status === 401 ||
+      result.status === 404 ||
+      result.status === 409) &&
+    errorStatuses.includes(result.status) &&
+    isCareOfferErrorResponse(result.body)
   ) {
     return {
       ok: false,

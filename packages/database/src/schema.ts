@@ -23,7 +23,8 @@ export type ConnectionPairingStatus =
   | "completed"
   | "cancelled"
   | "superseded";
-export type CareRequestStatus = "open" | "claimed" | "orphaned";
+export type CareRequestStatus = "open" | "claimed" | "orphaned" | "completed";
+export type CareOfferStatus = "available";
 
 export const timelineItems = pgTable(
   "timeline_items",
@@ -312,6 +313,9 @@ export const careRequests = pgTable(
     requesterUserId: varchar("requester_user_id", { length: 128 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    originatorUserId: varchar("originator_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     kind: varchar("kind", { length: 16 }).notNull().default("meal"),
     helpfulWhen: varchar("helpful_when", { length: 500 }).notNull(),
     foodWorks: text("food_works").notNull(),
@@ -327,10 +331,18 @@ export const careRequests = pgTable(
       { onDelete: "cascade" },
     ),
     claimedAt: timestamp("claimed_at", { withTimezone: true }),
+    requesterCompletedAt: timestamp("requester_completed_at", {
+      withTimezone: true,
+    }),
+    claimantCompletedAt: timestamp("claimant_completed_at", {
+      withTimezone: true,
+    }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [
     index("care_requests_requester_index").on(table.requesterUserId),
+    index("care_requests_originator_index").on(table.originatorUserId),
     index("care_requests_claimant_index").on(table.claimantUserId),
     check("care_requests_id_length", sql`char_length(${table.id}) >= 1`),
     check("care_requests_kind_allowed", sql`${table.kind} = 'meal'`),
@@ -353,16 +365,55 @@ export const careRequests = pgTable(
     check("care_requests_audience_allowed", sql`${table.audience} = 'party'`),
     check(
       "care_requests_status_allowed",
-      sql`${table.status} in ('open', 'claimed', 'orphaned')`,
+      sql`${table.status} in ('open', 'claimed', 'orphaned', 'completed')`,
     ),
     check(
       "care_requests_claim_state",
-      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null)`,
+      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null) or (${table.status} = 'completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.requesterCompletedAt} is not null and ${table.claimantCompletedAt} is not null and ${table.completedAt} is not null)`,
     ),
     check(
       "care_requests_not_self_claimed",
       sql`${table.claimantUserId} is null or ${table.requesterUserId} <> ${table.claimantUserId}`,
     ),
+  ],
+);
+
+export const careOffers = pgTable(
+  "care_offers",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    giverUserId: varchar("giver_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: varchar("kind", { length: 16 }).notNull().default("meal"),
+    mealDescription: text("meal_description").notNull(),
+    availableWhen: varchar("available_when", { length: 500 }).notNull(),
+    handoffStyle: varchar("handoff_style", { length: 200 }).notNull(),
+    audience: varchar("audience", { length: 16 }).notNull().default("party"),
+    status: varchar("status", { length: 16 })
+      .$type<CareOfferStatus>()
+      .notNull()
+      .default("available"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index("care_offers_giver_index").on(table.giverUserId),
+    check("care_offers_id_length", sql`char_length(${table.id}) >= 1`),
+    check("care_offers_kind_allowed", sql`${table.kind} = 'meal'`),
+    check(
+      "care_offers_meal_description_length",
+      sql`char_length(${table.mealDescription}) between 1 and 10000`,
+    ),
+    check(
+      "care_offers_available_when_length",
+      sql`char_length(${table.availableWhen}) between 1 and 500`,
+    ),
+    check(
+      "care_offers_handoff_style_length",
+      sql`char_length(${table.handoffStyle}) between 1 and 200`,
+    ),
+    check("care_offers_audience_allowed", sql`${table.audience} = 'party'`),
+    check("care_offers_status_allowed", sql`${table.status} = 'available'`),
   ],
 );
 

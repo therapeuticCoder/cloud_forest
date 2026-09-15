@@ -16,10 +16,12 @@ export function TimelineView({
   careOffers = [],
   careRequests = [],
   careRequestStatusMessage,
+  careOfferStatusMessage,
   careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
+  onClaimOffer,
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
@@ -40,9 +42,11 @@ export function TimelineView({
   careGratitudeRequests?: ReceiveCareRequest[];
   careRequests?: ReceiveCareRequest[];
   careRequestStatusMessage?: string;
+  careOfferStatusMessage?: string;
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
+  onClaimOffer?: (offerId: string) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass?: (request: ReceiveCareRequest) => void;
@@ -66,9 +70,11 @@ export function TimelineView({
         careOffers={careOffers}
         careRequests={careRequests}
         careRequestStatusMessage={careRequestStatusMessage}
+        careOfferStatusMessage={careOfferStatusMessage}
         claimedRequestIds={claimedRequestIds}
         minimizedRequestIds={minimizedRequestIds}
         onOfferHelp={onOfferHelp}
+        onClaimOffer={onClaimOffer}
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
         onPass={onPass}

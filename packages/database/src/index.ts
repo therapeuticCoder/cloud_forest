@@ -18,12 +18,14 @@ export {
   relationshipBlocks,
   connectionPairings,
   careRequests,
+  careOffers,
   accountPeople,
   invitations,
   signupCodes,
   type AccountRole,
   type ConnectionPairingStatus,
   type CareRequestStatus,
+  type CareOfferStatus,
   type NewTimelineItemRow,
   type TimelineItemRow,
 } from "./schema.ts";
@@ -52,6 +54,10 @@ export {
   createCareRequestRepository,
   type CareRequestRepository,
 } from "./careRequestRepository.ts";
+export {
+  createCareOfferRepository,
+  type CareOfferRepository,
+} from "./careOfferRepository.ts";
 export {
   fictionalPartyMemberIds,
   fictionalPartyInvitationId,

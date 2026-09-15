@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, ImagePlus, X } from "lucide-react";
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -112,11 +112,29 @@ export function AddPartyMemberWizard({
     if (completed === false) return;
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (
+      event.key !== "Enter" ||
+      event.nativeEvent.isComposing ||
+      !(
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) ||
+      !canContinue ||
+      isSubmitting
+    ) {
+      return;
+    }
+    event.preventDefault();
+    void handleNext();
+  };
+
   return (
     <section
       aria-label={`Add a ${destination === "Holding" ? "Character" : `${destination} member`}`}
       className={`party-wizard ${layerBackgrounds[destination]}`}
       data-layer={destination}
+      onKeyDown={handleKeyDown}
     >
       <header className="party-wizard__header">
         <Button
