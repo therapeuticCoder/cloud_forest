@@ -7,6 +7,7 @@ import {
   type CreateCareRequestResult,
   type GetCareRequestsResult,
   type GetCareRequestsResponse,
+  type RecordCareGratitudeResult,
 } from "@cloud-forest/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -18,13 +19,15 @@ export type CareRequestApiClient = Pick<
   | "createCareRequest"
   | "claimCareRequest"
   | "completeCareRequest"
+  | "recordCareGratitude"
 >;
 
 type CareRequestOperationResult =
   | GetCareRequestsResult
   | CreateCareRequestResult
   | ClaimCareRequestResult
-  | CompleteCareRequestResult;
+  | CompleteCareRequestResult
+  | RecordCareGratitudeResult;
 type CareRequestRecord = GetCareRequestsResponse["data"]["requests"][number];
 
 export type CareRequestsState =
@@ -62,6 +65,7 @@ function toReceiveCareRequest(
       ? { claimantCompletedAt: request.claimantCompletedAt }
       : {}),
     ...(request.completedAt ? { completedAt: request.completedAt } : {}),
+    ...(request.gratitude ? { gratitude: request.gratitude } : {}),
     requester: {
       kind: request.requester.personId === viewerPersonId ? "self" : "party",
       id: request.requester.personId,
@@ -97,6 +101,15 @@ export function careRequestErrorMessage(
     return result.error.error.message;
   }
   return "Shared Care is temporarily unavailable. Try again when you’re ready.";
+}
+
+export function careGratitudeErrorMessage(
+  result: Exclude<RecordCareGratitudeResult, { ok: true }>,
+) {
+  if (result.kind === "http" && result.status === 409) {
+    return "Gratitude has already been saved for this Care.";
+  }
+  return careRequestErrorMessage(result);
 }
 
 export function useCareRequests(
@@ -208,5 +221,21 @@ export function useCareRequests(
     [apiClient, applyResult],
   );
 
-  return { claim, complete, create, load, state };
+  const recordGratitude = useCallback(
+    async (
+      careRequestId: string,
+      input: Parameters<CareRequestApiClient["recordCareGratitude"]>[1],
+    ) => {
+      const requestSequence = ++requestSequenceRef.current;
+      const result = await apiClient.recordCareGratitude(
+        { careRequestId },
+        input,
+      );
+      applyResult(result, requestSequence);
+      return result;
+    },
+    [apiClient, applyResult],
+  );
+
+  return { claim, complete, create, load, recordGratitude, state };
 }

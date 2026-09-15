@@ -58,7 +58,7 @@ export function CareOfferCard({
         </dl>
         <div className="care-request-card__footer">
           <span>
-            <UsersRound aria-hidden="true" /> Shared with: {offer.audience}
+            <UsersRound aria-hidden="true" /> Offered to: {offer.audience}
           </span>
           <time dateTime={offer.createdAt}>
             {formatter.format(new Date(offer.createdAt))}

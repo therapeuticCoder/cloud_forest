@@ -1,7 +1,6 @@
 import { CloudOff, Gift, HandHeart, TreePine } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInitials, curatorUser } from "@/data/cloudForest";
-import { createCareLifecycleState } from "@/lib/careLifecycle";
 import type { ReceiveCareRequest } from "@/types/careRequest";
 import type { CuratorPerson } from "@/types/curator";
 
@@ -21,6 +20,7 @@ import {
   type CuratedPersonApiClient,
 } from "./useCuratedPeople";
 import {
+  careGratitudeErrorMessage,
   careRequestErrorMessage,
   useCareRequests,
   type CareRequestApiClient,
@@ -36,6 +36,11 @@ import { type CloudForestView } from "./ViewSwitcher";
 import { ReceiveCareWizard, type ReceiveCareDraft } from "./ReceiveCareWizard";
 import { GiveCareWizard, type GiveCareDraft } from "./GiveCareWizard";
 import { ClaimCareView } from "./ClaimCareView";
+import {
+  CareGratitudeWizard,
+  type CareGratitudeDraft,
+  type CareGratitudeResult,
+} from "./CareGratitudeWizard";
 import { MyCareView } from "./MyCareView";
 import {
   clearPendingConnectionPairing,
@@ -99,6 +104,7 @@ export function DashboardShell({
     complete: completeCareRequest,
     create: createCareRequest,
     load: loadCareRequests,
+    recordGratitude: recordCareGratitude,
     state: durableCareRequestsState,
   } = useCareRequests(careApiClient, careViewerId);
   const {
@@ -110,6 +116,8 @@ export function DashboardShell({
   } = useCareOffers(careOfferApiClient);
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
+  const [careGratitudeRequest, setCareGratitudeRequest] =
+    useState<ReceiveCareRequest | null>(null);
   const {
     add: addCuratedPerson,
     blockedPeople,
@@ -557,7 +565,32 @@ export function DashboardShell({
   };
 
   const recordCareCompleted = async (request: ReceiveCareRequest) => {
-    await completeCareRequest(request.id);
+    const result = await completeCareRequest(request.id);
+    if (
+      result.ok &&
+      request.requester.id === careViewerId &&
+      request.gratitude === undefined
+    ) {
+      setCareGratitudeRequest(request);
+    }
+  };
+
+  const skipCareGratitude = () => {
+    setCareGratitudeRequest(null);
+  };
+
+  const saveCareGratitude = async (
+    draft: CareGratitudeDraft,
+  ): Promise<CareGratitudeResult> => {
+    if (!careGratitudeRequest) {
+      return { ok: false, message: "Care is no longer available." };
+    }
+    const result = await recordCareGratitude(careGratitudeRequest.id, draft);
+    if (!result.ok) {
+      return { ok: false, message: careGratitudeErrorMessage(result) };
+    }
+    setCareGratitudeRequest(null);
+    return { ok: true };
   };
 
   useEffect(() => {
@@ -703,8 +736,6 @@ export function DashboardShell({
         : undefined;
   const durableCareOfferStatusMessage =
     careOffersState.status === "error" ? careOffersState.message : undefined;
-  const emptyCareLifecycle = useMemo(() => createCareLifecycleState(), []);
-
   if (pairingToken) {
     return (
       <ConnectionPairingView onClose={closePairing} token={pairingToken} />
@@ -717,7 +748,9 @@ export function DashboardShell({
       data-active-view={activeView}
       data-receive-open={receiveWizardOpen}
       data-give-open={giveWizardOpen}
-      data-care-destination={careDestination?.kind}
+      data-care-destination={
+        careGratitudeRequest ? "gratitude" : careDestination?.kind
+      }
     >
       <div
         className="timeline-chrome timeline-chrome--top global-view-chrome"
@@ -791,8 +824,10 @@ export function DashboardShell({
       ) : (
         <>
           <div
-            aria-hidden={careDestination ? true : undefined}
-            inert={careDestination ? true : undefined}
+            aria-hidden={
+              careDestination || careGratitudeRequest ? true : undefined
+            }
+            inert={careDestination || careGratitudeRequest ? true : undefined}
           >
             {activeView === "timeline" ? (
               <TimelineView
@@ -826,7 +861,7 @@ export function DashboardShell({
                 addDestination={addDestination}
                 addSubmission={addSubmission}
                 addWizardOpen={addWizardOpen}
-                careLifecycle={emptyCareLifecycle}
+                activeCareRequests={durableCareRequests}
                 careViewerId={careViewerId}
                 characterSubmission={characterSubmission}
                 curatedPeopleCached={curatedPeople.source === "cache"}
@@ -872,7 +907,14 @@ export function DashboardShell({
               />
             )}
           </div>
-          {careDestination?.kind === "claim" ? (
+          {careGratitudeRequest ? (
+            <CareGratitudeWizard
+              onBack={skipCareGratitude}
+              onComplete={saveCareGratitude}
+              onSkip={skipCareGratitude}
+              request={careGratitudeRequest}
+            />
+          ) : careDestination?.kind === "claim" ? (
             <ClaimCareView
               onBack={backFromCareDestination}
               onConfirm={confirmCareClaim}
@@ -902,6 +944,7 @@ export function DashboardShell({
       {!receiveWizardOpen &&
       !giveWizardOpen &&
       !careDestination &&
+      !careGratitudeRequest &&
       activeView === "timeline" ? (
         <div
           className="timeline-chrome timeline-chrome--bottom"

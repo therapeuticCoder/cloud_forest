@@ -147,7 +147,7 @@ describe("CareRequestCard seen presentation", () => {
 
     expect(
       screen.getByRole("article", { name: "Claimed meal care request" }),
-    ).toHaveTextContent("Help coming");
+    ).toHaveTextContent("Help is on the way!");
     expect(
       screen.getByText("Someone is helping with this request."),
     ).toBeInTheDocument();
@@ -186,7 +186,7 @@ describe("CareRequestCard seen presentation", () => {
     expect(
       screen.queryByRole("button", { name: "Not completed" }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Completed" }));
+    await user.click(screen.getByRole("button", { name: "Mark done" }));
     expect(onRecordCompleted).toHaveBeenCalledWith(
       expect.objectContaining({ id: request.id }),
     );

@@ -18,6 +18,7 @@ export {
   relationshipBlocks,
   connectionPairings,
   careRequests,
+  careGratitudes,
   careOffers,
   accountPeople,
   invitations,
@@ -26,6 +27,7 @@ export {
   type ConnectionPairingStatus,
   type CareRequestStatus,
   type CareOfferStatus,
+  type CareGratitudeStatementId,
   type NewTimelineItemRow,
   type TimelineItemRow,
 } from "./schema.ts";

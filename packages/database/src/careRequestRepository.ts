@@ -5,10 +5,12 @@ import { alias } from "drizzle-orm/pg-core";
 import type { DatabaseClient } from "./client.ts";
 import {
   accountPeople,
+  careGratitudes,
   careRequests,
   connections,
   curatedPersons,
   personProfiles,
+  type CareGratitudeStatementId,
 } from "./schema.ts";
 
 type TransactionClient = Parameters<
@@ -17,7 +19,9 @@ type TransactionClient = Parameters<
 
 export type CareRequestRepositoryError =
   | "care-request-not-found"
-  | "care-request-already-claimed";
+  | "care-request-already-claimed"
+  | "care-gratitude-invalid"
+  | "care-gratitude-already-recorded";
 
 export type CareRequestRepositoryResult<T> =
   | { ok: true; value: T }
@@ -63,7 +67,18 @@ type CareRequestRecord = {
   createdAt: Date;
   requester: { personId: string; displayName: string };
   claimant: { personId: string; displayName: string } | null;
+  gratitude: {
+    statementId: CareGratitudeStatementId;
+    message: string;
+    createdAt: Date;
+  } | null;
 };
+
+const careGratitudeStatementIds = new Set<CareGratitudeStatementId>([
+  "meal-fed-when-needed",
+  "meal-care-felt-easy",
+  "meal-seen-and-supported",
+]);
 
 export function createCareRequestRepository(database: DatabaseClient) {
   async function lockUsers(
@@ -105,6 +120,9 @@ export function createCareRequestRepository(database: DatabaseClient) {
         claimantCompletedAt: careRequests.claimantCompletedAt,
         completedAt: careRequests.completedAt,
         createdAt: careRequests.createdAt,
+        gratitudeStatementId: careGratitudes.statementId,
+        gratitudeMessage: careGratitudes.message,
+        gratitudeCreatedAt: careGratitudes.createdAt,
         requesterPersonId: requesterAccountPeople.personId,
         requesterDisplayName: requesterProfiles.displayName,
         claimantPersonId: claimantAccountPeople.personId,
@@ -126,6 +144,10 @@ export function createCareRequestRepository(database: DatabaseClient) {
       .leftJoin(
         claimantProfiles,
         eq(claimantAccountPeople.personId, claimantProfiles.personId),
+      )
+      .leftJoin(
+        careGratitudes,
+        eq(careRequests.id, careGratitudes.careRequestId),
       )
       .where(
         or(
@@ -177,6 +199,16 @@ export function createCareRequestRepository(database: DatabaseClient) {
             ? {
                 personId: row.claimantPersonId,
                 displayName: row.claimantDisplayName,
+              }
+            : null,
+        gratitude:
+          row.gratitudeStatementId !== null &&
+          row.gratitudeMessage !== null &&
+          row.gratitudeCreatedAt !== null
+            ? {
+                statementId: row.gratitudeStatementId,
+                message: row.gratitudeMessage,
+                createdAt: row.gratitudeCreatedAt,
               }
             : null,
       }),
@@ -429,6 +461,91 @@ export function createCareRequestRepository(database: DatabaseClient) {
         return updated.length === 1
           ? { ok: true, value: null }
           : { ok: false, error: "care-request-not-found" };
+      });
+    },
+
+    async recordGratitude(input: {
+      careRequestId: string;
+      receiverUserId: string;
+      statementId: CareGratitudeStatementId;
+      message: string;
+      now: Date;
+    }): Promise<CareRequestRepositoryResult<null>> {
+      if (
+        !careGratitudeStatementIds.has(input.statementId) ||
+        typeof input.message !== "string" ||
+        input.message.length > 1_000
+      ) {
+        return { ok: false, error: "care-gratitude-invalid" };
+      }
+
+      return database.transaction(async (transaction) => {
+        const [request] = await transaction
+          .select({
+            requesterUserId: careRequests.requesterUserId,
+            claimantUserId: careRequests.claimantUserId,
+            status: careRequests.status,
+            requesterCompletedAt: careRequests.requesterCompletedAt,
+          })
+          .from(careRequests)
+          .where(eq(careRequests.id, input.careRequestId))
+          .limit(1);
+        if (
+          request === undefined ||
+          request.claimantUserId === null ||
+          request.requesterUserId !== input.receiverUserId ||
+          (request.status !== "claimed" && request.status !== "completed") ||
+          request.requesterCompletedAt === null
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        await lockUsers(
+          transaction,
+          request.requesterUserId,
+          request.claimantUserId,
+        );
+
+        const [currentRequest] = await transaction
+          .select({
+            requesterUserId: careRequests.requesterUserId,
+            claimantUserId: careRequests.claimantUserId,
+            status: careRequests.status,
+            requesterCompletedAt: careRequests.requesterCompletedAt,
+          })
+          .from(careRequests)
+          .where(eq(careRequests.id, input.careRequestId))
+          .limit(1);
+        if (
+          currentRequest === undefined ||
+          currentRequest.claimantUserId === null ||
+          currentRequest.requesterUserId !== input.receiverUserId ||
+          (currentRequest.status !== "claimed" &&
+            currentRequest.status !== "completed") ||
+          currentRequest.requesterCompletedAt === null
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        const [existingGratitude] = await transaction
+          .select({ id: careGratitudes.id })
+          .from(careGratitudes)
+          .where(eq(careGratitudes.careRequestId, input.careRequestId))
+          .limit(1);
+        if (existingGratitude !== undefined) {
+          return { ok: false, error: "care-gratitude-already-recorded" };
+        }
+
+        await transaction.insert(careGratitudes).values({
+          id: `care-gratitude-${randomUUID()}`,
+          careRequestId: input.careRequestId,
+          receiverUserId: currentRequest.requesterUserId,
+          giverUserId: currentRequest.claimantUserId,
+          statementId: input.statementId,
+          message: input.message,
+          createdAt: input.now,
+        });
+        return { ok: true, value: null };
       });
     },
   };

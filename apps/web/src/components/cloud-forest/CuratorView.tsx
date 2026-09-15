@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import type {
-  CareLifecycleState,
   CarePersonId,
   ReceiveCareRequest,
 } from "@/types/careRequest";
@@ -49,7 +48,7 @@ type CuratorViewProps = {
   addDestination: "holding" | "party" | "tribe";
   addSubmission: { pending: boolean; error?: string };
   addWizardOpen: boolean;
-  careLifecycle: CareLifecycleState;
+  activeCareRequests: ReceiveCareRequest[];
   careViewerId: CarePersonId;
   characterSubmission: { pending: boolean; error?: string };
   curatedPeopleStatus: "loading" | "ready" | "error";
@@ -254,7 +253,7 @@ export function CuratorView({
   addDestination,
   addSubmission,
   addWizardOpen,
-  careLifecycle,
+  activeCareRequests,
   careViewerId,
   characterSubmission,
   curatedPeopleCached,
@@ -411,7 +410,7 @@ export function CuratorView({
   if (selection) {
     return (
       <CuratorDetailView
-        careLifecycle={careLifecycle}
+        activeCareRequests={activeCareRequests}
         characterSubmission={characterSubmission}
         onBlockCharacter={onBlockCharacter}
         onBack={handleBack}

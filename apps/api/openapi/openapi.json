@@ -1223,6 +1223,47 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "gratitude": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "createdAt": {
+                                    "format": "date-time",
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "maxLength": 1000,
+                                    "type": "string"
+                                  },
+                                  "statementId": {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "meal-fed-when-needed"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-care-felt-easy"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-seen-and-supported"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "statementId",
+                                  "message",
+                                  "createdAt"
+                                ],
+                                "type": "object"
+                              },
                               "handoffStyle": {
                                 "maxLength": 200,
                                 "minLength": 1,
@@ -1376,6 +1417,12 @@
                             {
                               "enum": [
                                 "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
                               ],
                               "type": "string"
                             }
@@ -1526,6 +1573,47 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "gratitude": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "createdAt": {
+                                    "format": "date-time",
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "maxLength": 1000,
+                                    "type": "string"
+                                  },
+                                  "statementId": {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "meal-fed-when-needed"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-care-felt-easy"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-seen-and-supported"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "statementId",
+                                  "message",
+                                  "createdAt"
+                                ],
+                                "type": "object"
+                              },
                               "handoffStyle": {
                                 "maxLength": 200,
                                 "minLength": 1,
@@ -1681,6 +1769,12 @@
                                 "ALREADY_CLAIMED"
                               ],
                               "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
                             }
                           ]
                         },
@@ -1745,6 +1839,12 @@
                             {
                               "enum": [
                                 "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
                               ],
                               "type": "string"
                             }
@@ -1871,6 +1971,47 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "gratitude": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "createdAt": {
+                                    "format": "date-time",
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "maxLength": 1000,
+                                    "type": "string"
+                                  },
+                                  "statementId": {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "meal-fed-when-needed"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-care-felt-easy"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-seen-and-supported"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "statementId",
+                                  "message",
+                                  "createdAt"
+                                ],
+                                "type": "object"
+                              },
                               "handoffStyle": {
                                 "maxLength": 200,
                                 "minLength": 1,
@@ -2026,6 +2167,12 @@
                                 "ALREADY_CLAIMED"
                               ],
                               "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
                             }
                           ]
                         },
@@ -2090,6 +2237,12 @@
                             {
                               "enum": [
                                 "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
                               ],
                               "type": "string"
                             }
@@ -2158,6 +2311,12 @@
                                 "ALREADY_CLAIMED"
                               ],
                               "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
                             }
                           ]
                         },
@@ -2222,6 +2381,12 @@
                             {
                               "enum": [
                                 "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
                               ],
                               "type": "string"
                             }
@@ -2348,6 +2513,47 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "gratitude": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "createdAt": {
+                                    "format": "date-time",
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "maxLength": 1000,
+                                    "type": "string"
+                                  },
+                                  "statementId": {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "meal-fed-when-needed"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-care-felt-easy"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-seen-and-supported"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "statementId",
+                                  "message",
+                                  "createdAt"
+                                ],
+                                "type": "object"
+                              },
                               "handoffStyle": {
                                 "maxLength": 200,
                                 "minLength": 1,
@@ -2503,6 +2709,12 @@
                                 "ALREADY_CLAIMED"
                               ],
                               "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
                             }
                           ]
                         },
@@ -2569,6 +2781,12 @@
                                 "ALREADY_CLAIMED"
                               ],
                               "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
                             }
                           ]
                         },
@@ -2633,6 +2851,597 @@
                             {
                               "enum": [
                                 "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "tags": [
+          "Care"
+        ]
+      }
+    },
+    "/api/v1/care-requests/{careRequestId}/gratitude": {
+      "post": {
+        "operationId": "recordCareGratitudeV1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "careRequestId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "message": {
+                    "maxLength": 1000,
+                    "type": "string"
+                  },
+                  "statementId": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "meal-fed-when-needed"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "meal-care-felt-easy"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "meal-seen-and-supported"
+                        ],
+                        "type": "string"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "statementId",
+                  "message"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "requests": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "audience": {
+                                "enum": [
+                                  "Party"
+                                ],
+                                "type": "string"
+                              },
+                              "claimant": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "displayName": {
+                                    "maxLength": 200,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "personId": {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "personId",
+                                  "displayName"
+                                ],
+                                "type": "object"
+                              },
+                              "claimantCompletedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "claimedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "completedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "direction": {
+                                "enum": [
+                                  "receive"
+                                ],
+                                "type": "string"
+                              },
+                              "foodDoesNotWork": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "foodWorks": {
+                                "maxLength": 10000,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "gratitude": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "createdAt": {
+                                    "format": "date-time",
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "maxLength": 1000,
+                                    "type": "string"
+                                  },
+                                  "statementId": {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "meal-fed-when-needed"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-care-felt-easy"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "meal-seen-and-supported"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "statementId",
+                                  "message",
+                                  "createdAt"
+                                ],
+                                "type": "object"
+                              },
+                              "handoffStyle": {
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "helpfulWhen": {
+                                "maxLength": 500,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "kind": {
+                                "enum": [
+                                  "meal"
+                                ],
+                                "type": "string"
+                              },
+                              "need": {
+                                "enum": [
+                                  "A meal"
+                                ],
+                                "type": "string"
+                              },
+                              "requester": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "displayName": {
+                                    "maxLength": 200,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "personId": {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "personId",
+                                  "displayName"
+                                ],
+                                "type": "object"
+                              },
+                              "requesterCompletedAt": {
+                                "format": "date-time",
+                                "type": "string"
+                              },
+                              "status": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "open"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "claimed"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "orphaned"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "completed"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "kind",
+                              "direction",
+                              "need",
+                              "helpfulWhen",
+                              "foodWorks",
+                              "foodDoesNotWork",
+                              "handoffStyle",
+                              "audience",
+                              "status",
+                              "createdAt",
+                              "requester"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "requests"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
+                              ],
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "message": {
+                          "maxLength": 500,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "apiVersion",
+                    "error"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "apiVersion": {
+                      "enum": [
+                        "v1"
+                      ],
+                      "type": "string"
+                    },
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "anyOf": [
+                            {
+                              "enum": [
+                                "UNAUTHORIZED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "NOT_FOUND"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "VALIDATION_ERROR"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_CLAIMED"
+                              ],
+                              "type": "string"
+                            },
+                            {
+                              "enum": [
+                                "ALREADY_RECORDED"
                               ],
                               "type": "string"
                             }

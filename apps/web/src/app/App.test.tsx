@@ -185,6 +185,25 @@ function createCareApiClient(
       });
       return careSuccess(requests);
     }),
+    recordCareGratitude: vi.fn(async ({ careRequestId }, input) => {
+      const request = requests.find(
+        (candidate) => candidate.id === careRequestId,
+      );
+      if (!request) return notFound();
+      requests = requests.map((candidate) =>
+        candidate.id === careRequestId
+          ? {
+              ...candidate,
+              gratitude: {
+                statementId: input.statementId,
+                message: input.message,
+                createdAt: "2026-09-14T13:10:00.000Z",
+              },
+            }
+          : candidate,
+      );
+      return careSuccess(requests);
+    }),
   };
 }
 
@@ -475,14 +494,14 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
 
     expect(
-      screen.getByRole("heading", { name: "My requests" }),
+      screen.getByRole("heading", { name: "My open requests" }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: "I’m helping" }),
+      screen.queryByRole("heading", { name: "Requests I'm taking care of" }),
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: /give/i }));
     expect(
-      screen.getByRole("heading", { name: "I’m helping" }),
+      screen.getByRole("heading", { name: "Requests I'm taking care of" }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: /receive/i }));
     expect(
@@ -854,140 +873,6 @@ describe("App", () => {
     expect(
       screen.getByRole("article", {
         name: "Incoming meal care request from Anya Reed",
-      }),
-    ).toBeInTheDocument();
-  });
-
-  // Retired until multi-account session tests replace the fictional perspective switcher.
-  it.skip("keeps care active after one completion and closes it after both participants complete", async () => {
-    const user = userEvent.setup();
-    await renderAuthenticatedApp();
-    await claimIncomingRequest(user);
-
-    await user.click(screen.getByRole("button", { name: "Completed" }));
-    expect(
-      screen.getByText(
-        "You marked this completed. Waiting for the other person.",
-      ),
-    ).toBeInTheDocument();
-
-    await user.selectOptions(screen.getByLabelText("Reviewing as"), "anya");
-    expect(
-      screen.getByText(
-        "The other person marked this completed. What happened for you?",
-      ),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Completed" }));
-    await user.click(
-      screen.getByRole("radio", {
-        name: "Thank you for feeding me when I needed it.",
-      }),
-    );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(screen.getByRole("button", { name: "Save to history" }));
-    expect(
-      screen.queryByRole("article", { name: "Claimed meal care request" }),
-    ).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Open My Care" }));
-    expect(
-      within(screen.getByRole("region", { name: "Private history" })).getByText(
-        "Completed",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("You’re not helping with any care requests right now."),
-    ).toBeInTheDocument();
-
-    const stored = JSON.parse(
-      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
-    );
-    expect(stored.completions).toHaveLength(2);
-    expect(stored.history).toHaveLength(2);
-    expect(stored.gratitudes).toHaveLength(1);
-  });
-
-  it.skip("publishes receiver gratitude immediately while care awaits the giver", async () => {
-    const user = userEvent.setup();
-    await renderAuthenticatedApp();
-    await claimIncomingRequest(user);
-    await user.selectOptions(screen.getByLabelText("Reviewing as"), "anya");
-
-    await user.click(screen.getByRole("button", { name: "Completed" }));
-    const gratitude = screen.getByRole("region", {
-      name: "Thank Anya Reed's helper",
-    });
-    await user.click(
-      within(gratitude).getByRole("radio", {
-        name: "Thank you for making care feel easy.",
-      }),
-    );
-    await user.type(
-      within(gratitude).getByLabelText(/add your own words/i),
-      "The soup made tonight possible.",
-    );
-    await user.click(
-      within(gratitude).getByRole("button", { name: "Continue" }),
-    );
-    expect(gratitude).toHaveTextContent("Save to history");
-    expect(gratitude).toHaveTextContent("Post to Tribe and save to history");
-    await user.click(
-      within(gratitude).getByRole("checkbox", {
-        name: "Post to Tribe as “A neighbor”",
-      }),
-    );
-    await user.click(
-      within(gratitude).getByRole("button", {
-        name: "Post to Tribe and save to history",
-      }),
-    );
-
-    await waitFor(() =>
-      expect(
-        screen.getByText(
-          "You marked this completed. Waiting for the other person.",
-        ),
-      ).toHaveFocus(),
-    );
-    const tribePost = screen.getByRole("article", {
-      name: "Tribe gratitude from A neighbor",
-    });
-    expect(tribePost).toHaveTextContent("Thank you for making care feel easy.");
-    expect(tribePost).toHaveTextContent("The soup made tonight possible.");
-    expect(tribePost).not.toHaveTextContent("Anya Reed");
-
-    const stored = JSON.parse(
-      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
-    );
-    expect(stored.gratitudes).toEqual([
-      expect.objectContaining({
-        receiverId: "anya",
-        giverId: "you",
-        postToTimeline: true,
-        anonymized: true,
-      }),
-    ]);
-    expect(stored.history).toEqual([]);
-
-    await user.selectOptions(screen.getByLabelText("Reviewing as"), "you");
-    await user.click(screen.getByRole("button", { name: "Open My Care" }));
-    const privateHistory = screen.getByRole("region", {
-      name: "Private history",
-    });
-    expect(privateHistory).toHaveTextContent("From Anya Reed to you.");
-    expect(privateHistory).toHaveTextContent("The soup made tonight possible.");
-
-    await user.click(
-      within(
-        screen.getByRole("article", {
-          name: "Incoming meal care request from Anya Reed",
-        }),
-      ).getByRole("button", { name: "Completed" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Back" }));
-    expect(
-      screen.getByRole("article", {
-        name: "Tribe gratitude from A neighbor",
       }),
     ).toBeInTheDocument();
   });
