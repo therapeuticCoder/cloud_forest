@@ -892,10 +892,9 @@ export function DashboardShell({
                   )
                 }
                 onPass={() => undefined}
-                onRecordCompleted={() => undefined}
+                onRecordCompleted={recordCareCompleted}
                 onRecordNotCompleted={() => undefined}
                 onReceive={openReceiveWizard}
-                onSetRequestMinimized={() => undefined}
                 onStartConnection={startConnection}
                 onUnblockCharacter={unblockCharacter}
                 onWithdraw={() => undefined}

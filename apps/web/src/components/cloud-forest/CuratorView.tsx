@@ -2,10 +2,7 @@ import { Cloud, CloudOff, RadioTower, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import type {
-  CarePersonId,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
 import {
   hasActiveConnection,
   type CuratorPerson,
@@ -90,7 +87,6 @@ type CuratorViewProps = {
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onReceive: () => void;
-  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
   onUnblockCharacter: (person: CuratorPerson) => Promise<boolean>;
   onWithdraw: (requestId: string) => void;
@@ -276,7 +272,6 @@ export function CuratorView({
   onRecordCompleted,
   onRecordNotCompleted,
   onReceive,
-  onSetRequestMinimized,
   onStartConnection,
   onUnblockCharacter,
   onWithdraw,
@@ -421,7 +416,6 @@ export function CuratorView({
         onPass={onPass}
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
-        onSetRequestMinimized={onSetRequestMinimized}
         isOffline={curatedPeopleOffline || curatedPeopleCached}
         onStartConnection={onStartConnection}
         onUnblockCharacter={onUnblockCharacter}

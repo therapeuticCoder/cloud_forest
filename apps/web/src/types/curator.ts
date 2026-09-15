@@ -15,6 +15,7 @@ export type CuratorPerson = {
   relationshipState?: "character" | "connected" | "blocked";
   blockedUserId?: string;
   linkedUserId?: string | null;
+  linkedPersonId?: string | null;
   version?: number;
 };
 

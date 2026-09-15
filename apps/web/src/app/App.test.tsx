@@ -217,6 +217,7 @@ function curatedPeopleResponse(
     privateDescription: string;
     placement: "party";
     linkedUserId: string | null;
+    linkedPersonId: string | null;
     relationshipState: "character" | "connected" | "blocked";
     version: number;
     createdAt: string;
@@ -242,6 +243,7 @@ function createCuratedPeopleFixture() {
       privateDescription: person.relationshipTitle,
       placement: "party" as const,
       linkedUserId: `connected-user-${index + 1}`,
+      linkedPersonId: person.id,
       relationshipState: "connected" as const,
       version: 1,
       createdAt: `2026-09-07T12:0${index}:00.000Z`,
@@ -264,6 +266,7 @@ function createCuratedPeopleFixture() {
         privateDescription: draft.privateDescription,
         placement: draft.placement,
         linkedUserId: null,
+        linkedPersonId: null,
         relationshipState: "character" as const,
         version: 1,
         createdAt: "2026-09-07T13:00:00.000Z",
@@ -307,10 +310,10 @@ const authenticatedSessionClient = {
 let testCareApiClient: CareRequestApiClient;
 let testCareOfferApiClient: CareOfferApiClient;
 
-async function openCurator() {
+async function openCurator(careApiClient = testCareApiClient) {
   const user = userEvent.setup();
 
-  await renderAuthenticatedApp();
+  await renderAuthenticatedApp(careApiClient);
   await user.click(screen.getAllByRole("button", { name: /curator/i })[0]);
   await waitFor(() =>
     expect(
@@ -459,7 +462,7 @@ describe("App", () => {
     });
   });
 
-  it("keeps shared Care on Timeline rather than exposing it on a profile", async () => {
+  it("shows shared Care in the connected Character detail", async () => {
     const user = await openCurator();
     const anyaTile = screen.getByRole("button", { name: /open anya reed/i });
 
@@ -468,10 +471,12 @@ describe("App", () => {
     expect(
       screen.getByRole("heading", { name: "Care with Anya Reed" }),
     ).toBeInTheDocument();
+    const careCard = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+    expect(careCard).toHaveTextContent("Anya is asking for a meal");
     expect(
-      screen.queryByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
-      }),
+      within(careCard).queryByRole("button", { name: "I’ve seen this" }),
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Back to Curator" }));
@@ -480,6 +485,36 @@ describe("App", () => {
         screen.getByRole("button", { name: /open anya reed/i }),
       ).toHaveFocus(),
     );
+  });
+
+  it("records completion from connected Character detail", async () => {
+    const careApiClient = createCareApiClient([
+      careRequest({
+        status: "claimed",
+        claimedAt: "2026-09-14T13:05:00.000Z",
+        claimant: { personId: "you", displayName: "River Tester" },
+      }),
+    ]);
+    const user = await openCurator(careApiClient);
+    await user.click(screen.getByRole("button", { name: /open anya reed/i }));
+
+    const careCard = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+    await user.click(
+      within(careCard).getByRole("button", { name: "Mark done" }),
+    );
+
+    await waitFor(() =>
+      expect(careApiClient.completeCareRequest).toHaveBeenCalledWith({
+        careRequestId: "care-request-anya-meal-001",
+      }),
+    );
+    expect(
+      await within(careCard).findByText(
+        "You marked this completed. Waiting for the other person.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("shows durable requests in My Care without browser history", async () => {
@@ -730,7 +765,7 @@ describe("App", () => {
     expect(offer).toHaveTextContent("A pot of soup");
     expect(offer).toHaveTextContent("Saturday afternoon");
     expect(offer).toHaveTextContent("Open");
-    expect(offer).toHaveTextContent("Shared with: Party");
+    expect(offer).toHaveTextContent("Offered to: Party");
 
     await user.click(
       screen.getByRole("button", { name: "Filter to Give offers" }),

@@ -9,10 +9,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type {
-  CarePersonId,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
 import {
   hasActiveConnection,
   type CuratorPerson,
@@ -45,7 +42,6 @@ type CuratorDetailViewProps = {
   onPass: (request: ReceiveCareRequest) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
-  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
   onUpdateCharacter: (
     person: CuratorPerson,
@@ -190,7 +186,6 @@ export function CuratorDetailView({
   onPass,
   onRecordCompleted,
   onRecordNotCompleted,
-  onSetRequestMinimized,
   onStartConnection,
   onUpdateCharacter,
   onWithdraw,
@@ -230,7 +225,9 @@ export function CuratorDetailView({
   const layerDescription = character
     ? `${layerLabels[activeLayer]} ${isBlocked ? "Blocked" : isConnected ? "Connection" : "Character"}`
     : layerLabels[activeLayer];
-  const profileOwnerId = isPerson ? selection.item.id : undefined;
+  const profileOwnerId = isPerson
+    ? (selection.item.linkedPersonId ?? undefined)
+    : undefined;
   const careRequests = useMemo(
     () =>
       profileOwnerId
@@ -658,7 +655,6 @@ export function CuratorDetailView({
                       onPass={onPass}
                       onRecordCompleted={onRecordCompleted}
                       onRecordNotCompleted={onRecordNotCompleted}
-                      onSetMinimized={onSetRequestMinimized}
                       onWithdraw={onWithdraw}
                       request={request}
                       viewerId={viewerId}

@@ -1896,6 +1896,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -1968,6 +1969,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2084,6 +2086,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2207,6 +2210,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2317,6 +2321,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2433,6 +2438,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2549,6 +2555,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";

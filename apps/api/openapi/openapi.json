@@ -5738,6 +5738,18 @@
                                 "maxLength": 100,
                                 "type": "string"
                               },
+                              "linkedPersonId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "linkedUserId": {
                                 "anyOf": [
                                   {
@@ -5842,6 +5854,7 @@
                               "privateDescription",
                               "placement",
                               "linkedUserId",
+                              "linkedPersonId",
                               "relationshipState",
                               "version",
                               "createdAt",
@@ -6103,6 +6116,18 @@
                                 "maxLength": 100,
                                 "type": "string"
                               },
+                              "linkedPersonId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "linkedUserId": {
                                 "anyOf": [
                                   {
@@ -6207,6 +6232,7 @@
                               "privateDescription",
                               "placement",
                               "linkedUserId",
+                              "linkedPersonId",
                               "relationshipState",
                               "version",
                               "createdAt",
@@ -6689,6 +6715,18 @@
                                 "maxLength": 100,
                                 "type": "string"
                               },
+                              "linkedPersonId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "linkedUserId": {
                                 "anyOf": [
                                   {
@@ -6793,6 +6831,7 @@
                               "privateDescription",
                               "placement",
                               "linkedUserId",
+                              "linkedPersonId",
                               "relationshipState",
                               "version",
                               "createdAt",
@@ -7341,6 +7380,18 @@
                                 "maxLength": 100,
                                 "type": "string"
                               },
+                              "linkedPersonId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "linkedUserId": {
                                 "anyOf": [
                                   {
@@ -7445,6 +7496,7 @@
                               "privateDescription",
                               "placement",
                               "linkedUserId",
+                              "linkedPersonId",
                               "relationshipState",
                               "version",
                               "createdAt",
@@ -7907,6 +7959,18 @@
                                 "maxLength": 100,
                                 "type": "string"
                               },
+                              "linkedPersonId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "linkedUserId": {
                                 "anyOf": [
                                   {
@@ -8011,6 +8075,7 @@
                               "privateDescription",
                               "placement",
                               "linkedUserId",
+                              "linkedPersonId",
                               "relationshipState",
                               "version",
                               "createdAt",
@@ -8492,6 +8557,18 @@
                                 "maxLength": 100,
                                 "type": "string"
                               },
+                              "linkedPersonId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "linkedUserId": {
                                 "anyOf": [
                                   {
@@ -8596,6 +8673,7 @@
                               "privateDescription",
                               "placement",
                               "linkedUserId",
+                              "linkedPersonId",
                               "relationshipState",
                               "version",
                               "createdAt",
@@ -9079,6 +9157,18 @@
                                 "maxLength": 100,
                                 "type": "string"
                               },
+                              "linkedPersonId": {
+                                "anyOf": [
+                                  {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "linkedUserId": {
                                 "anyOf": [
                                   {
@@ -9183,6 +9273,7 @@
                               "privateDescription",
                               "placement",
                               "linkedUserId",
+                              "linkedPersonId",
                               "relationshipState",
                               "version",
                               "createdAt",

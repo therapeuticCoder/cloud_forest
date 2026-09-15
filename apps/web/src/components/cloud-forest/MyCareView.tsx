@@ -276,7 +276,7 @@ export function MyCareView({
           >
             <div className="my-care-view__section-heading">
               <Send aria-hidden="true" />
-                <h2 id="receive-heading">My open requests</h2>
+              <h2 id="receive-heading">My open requests</h2>
             </div>
 
             {activeRequests.length > 0 ? (
