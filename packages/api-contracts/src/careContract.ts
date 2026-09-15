@@ -27,7 +27,11 @@ export const careRequestSchema = Type.Object(
     foodDoesNotWork,
     handoffStyle,
     audience: Type.Literal("Party"),
-    status: Type.Union([Type.Literal("open"), Type.Literal("claimed")]),
+    status: Type.Union([
+      Type.Literal("open"),
+      Type.Literal("claimed"),
+      Type.Literal("orphaned"),
+    ]),
     createdAt: dateTime,
     claimedAt: Type.Optional(dateTime),
     requester: carePersonSchema,

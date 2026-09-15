@@ -25,7 +25,7 @@ export type ReceiveCareRequest = {
   handoffStyle: string;
   audience: "Party" | "Tribe";
   audienceSnapshot: CareAudienceSnapshot;
-  status: "open" | "claimed";
+  status: "open" | "claimed" | "orphaned";
   createdAt: string;
   claimedAt?: string;
   expiresAt?: string;

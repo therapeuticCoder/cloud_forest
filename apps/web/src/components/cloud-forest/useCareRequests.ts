@@ -7,7 +7,7 @@ import {
   type GetCareRequestsResult,
   type GetCareRequestsResponse,
 } from "@cloud-forest/api-client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ReceiveCareRequest } from "@/types/careRequest";
 
@@ -95,9 +95,11 @@ export function useCareRequests(
     status: "loading",
     requests: [],
   });
+  const requestSequenceRef = useRef(0);
 
   const applyResult = useCallback(
-    (result: CareRequestOperationResult) => {
+    (result: CareRequestOperationResult, requestSequence: number) => {
+      if (requestSequence !== requestSequenceRef.current) return;
       if (result.ok) {
         setState({
           status: "ready",
@@ -117,21 +119,23 @@ export function useCareRequests(
   );
 
   const load = useCallback(async () => {
+    const requestSequence = ++requestSequenceRef.current;
     setState((current) => ({
       status: current.requests.length > 0 ? "ready" : "loading",
       requests: current.requests,
       ...(current.message ? { message: current.message } : {}),
     }));
     const result = await apiClient.getCareRequests();
-    applyResult(result);
+    applyResult(result, requestSequence);
     return result;
   }, [apiClient, applyResult]);
 
   useEffect(() => {
     let active = true;
     const refresh = () => {
+      const requestSequence = ++requestSequenceRef.current;
       void apiClient.getCareRequests().then((result) => {
-        if (active) applyResult(result);
+        if (active) applyResult(result, requestSequence);
       });
     };
     refresh();
@@ -150,8 +154,9 @@ export function useCareRequests(
 
   const create = useCallback(
     async (input: CreateCareRequestInput) => {
+      const requestSequence = ++requestSequenceRef.current;
       const result = await apiClient.createCareRequest(input);
-      if (result.ok) applyResult(result);
+      if (result.ok) applyResult(result, requestSequence);
       return result;
     },
     [apiClient, applyResult],
@@ -159,14 +164,15 @@ export function useCareRequests(
 
   const claim = useCallback(
     async (careRequestId: string) => {
+      const requestSequence = ++requestSequenceRef.current;
       const result = await apiClient.claimCareRequest({ careRequestId });
-      if (result.ok) applyResult(result);
+      if (result.ok) applyResult(result, requestSequence);
       else if (
         result.kind === "http" &&
         (result.status === 404 || result.status === 409)
       ) {
         const latest = await apiClient.getCareRequests();
-        applyResult(latest);
+        applyResult(latest, requestSequence);
       }
       return result;
     },

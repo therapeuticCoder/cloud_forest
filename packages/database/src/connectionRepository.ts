@@ -5,6 +5,7 @@ import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { DatabaseClient } from "./client.ts";
 import {
   connectionPairings,
+  careRequests,
   connections,
   curatedPersons,
   relationshipBlocks,
@@ -153,6 +154,31 @@ export function createConnectionRepository(database: DatabaseClient) {
           inArray(signupCodes.connectionPairingId, pairingIds),
           isNull(signupCodes.usedAt),
           isNull(signupCodes.revokedAt),
+        ),
+      );
+  }
+
+  async function orphanClaimedCare(
+    transaction: TransactionClient,
+    firstUserId: string,
+    secondUserId: string,
+  ) {
+    await transaction
+      .update(careRequests)
+      .set({ status: "orphaned" })
+      .where(
+        and(
+          eq(careRequests.status, "claimed"),
+          or(
+            and(
+              eq(careRequests.requesterUserId, firstUserId),
+              eq(careRequests.claimantUserId, secondUserId),
+            ),
+            and(
+              eq(careRequests.requesterUserId, secondUserId),
+              eq(careRequests.claimantUserId, firstUserId),
+            ),
+          ),
         ),
       );
   }
@@ -648,6 +674,11 @@ export function createConnectionRepository(database: DatabaseClient) {
         if (connection === null) {
           return { ok: false, error: "relationship-not-found" };
         }
+        await orphanClaimedCare(
+          transaction,
+          input.userId,
+          character.linkedUserId,
+        );
         const [firstUserId, secondUserId] = orderedUsers(
           input.userId,
           character.linkedUserId,
@@ -692,6 +723,11 @@ export function createConnectionRepository(database: DatabaseClient) {
           return { ok: false, error: "relationship-not-found" };
         }
         await lockUsers(transaction, input.userId, character.linkedUserId);
+        await orphanClaimedCare(
+          transaction,
+          input.userId,
+          character.linkedUserId,
+        );
         await transaction
           .insert(relationshipBlocks)
           .values({
@@ -777,6 +813,7 @@ export function createConnectionRepository(database: DatabaseClient) {
           return { ok: false, error: "not-pairing-participant" };
         }
         await lockUsers(transaction, input.userId, targetUserId);
+        await orphanClaimedCare(transaction, input.userId, targetUserId);
         await transaction
           .insert(relationshipBlocks)
           .values({

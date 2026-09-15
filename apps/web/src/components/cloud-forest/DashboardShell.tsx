@@ -594,7 +594,9 @@ export function DashboardShell({
     });
   }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 
-  const durableCareRequests = durableCareRequestsState.requests;
+  const durableCareRequests = durableCareRequestsState.requests.filter(
+    (request) => request.status !== "orphaned",
+  );
   const durableCareLifecycle = useMemo(() => {
     const lifecycle = createCareLifecycleState(durableCareRequests);
     return {

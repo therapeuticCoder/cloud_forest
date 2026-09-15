@@ -54,7 +54,7 @@ type CareRequestRecord = {
   foodDoesNotWork: string;
   handoffStyle: string;
   audience: "party";
-  status: "open" | "claimed";
+  status: "open" | "claimed" | "orphaned";
   claimantUserId: string | null;
   claimedAt: Date | null;
   createdAt: Date;
@@ -63,6 +63,17 @@ type CareRequestRecord = {
 };
 
 export function createCareRequestRepository(database: DatabaseClient) {
+  async function lockUsers(
+    transaction: TransactionClient,
+    firstUserId: string,
+    secondUserId: string,
+  ) {
+    const [first, second] = orderedUsers(firstUserId, secondUserId);
+    await transaction.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${`${first}:${second}`}))`,
+    );
+  }
+
   async function listVisible(viewerUserId: string) {
     const requesterAccountPeople = alias(
       accountPeople,
@@ -117,8 +128,15 @@ export function createCareRequestRepository(database: DatabaseClient) {
             eligiblePartyConnection(viewerUserId),
             or(
               eq(careRequests.status, "open"),
-              eq(careRequests.claimantUserId, viewerUserId),
+              and(
+                eq(careRequests.status, "claimed"),
+                eq(careRequests.claimantUserId, viewerUserId),
+              ),
             ),
+          ),
+          and(
+            eq(careRequests.status, "orphaned"),
+            eq(careRequests.claimantUserId, viewerUserId),
           ),
         ),
       )
@@ -235,6 +253,11 @@ export function createCareRequestRepository(database: DatabaseClient) {
         if (request === undefined) {
           return { ok: false, error: "care-request-not-found" };
         }
+        await lockUsers(
+          transaction,
+          request.requesterUserId,
+          input.claimantUserId,
+        );
         if (
           !(await canAccess(
             request.requesterUserId,

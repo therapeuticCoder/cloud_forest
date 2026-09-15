@@ -23,7 +23,7 @@ export type ConnectionPairingStatus =
   | "completed"
   | "cancelled"
   | "superseded";
-export type CareRequestStatus = "open" | "claimed";
+export type CareRequestStatus = "open" | "claimed" | "orphaned";
 
 export const timelineItems = pgTable(
   "timeline_items",
@@ -353,11 +353,11 @@ export const careRequests = pgTable(
     check("care_requests_audience_allowed", sql`${table.audience} = 'party'`),
     check(
       "care_requests_status_allowed",
-      sql`${table.status} in ('open', 'claimed')`,
+      sql`${table.status} in ('open', 'claimed', 'orphaned')`,
     ),
     check(
       "care_requests_claim_state",
-      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null) or (${table.status} = 'claimed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null)`,
+      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null)`,
     ),
     check(
       "care_requests_not_self_claimed",

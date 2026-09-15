@@ -442,7 +442,7 @@ export interface operations {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
-                                readonly status: "open" | "claimed";
+                                readonly status: "open" | "claimed" | "orphaned";
                             }[];
                         };
                     };
@@ -520,7 +520,7 @@ export interface operations {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
-                                readonly status: "open" | "claimed";
+                                readonly status: "open" | "claimed" | "orphaned";
                             }[];
                         };
                     };
@@ -607,7 +607,7 @@ export interface operations {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
-                                readonly status: "open" | "claimed";
+                                readonly status: "open" | "claimed" | "orphaned";
                             }[];
                         };
                     };
