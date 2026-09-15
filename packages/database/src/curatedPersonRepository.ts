@@ -4,7 +4,12 @@ import { and, asc, eq, notExists, or, sql } from "drizzle-orm";
 import type { CuratedPersonPlacement } from "@cloud-forest/domain";
 
 import type { DatabaseClient } from "./client.ts";
-import { connections, curatedPersons, relationshipBlocks } from "./schema.ts";
+import {
+  accountPeople,
+  connections,
+  curatedPersons,
+  relationshipBlocks,
+} from "./schema.ts";
 
 type TransactionClient = Parameters<
   Parameters<DatabaseClient["transaction"]>[0]
@@ -96,8 +101,15 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
     async listOwned(ownerUserId: string) {
       return database.transaction(async (transaction) => {
         const people = await transaction
-          .select()
+          .select({
+            person: curatedPersons,
+            linkedPersonId: accountPeople.personId,
+          })
           .from(curatedPersons)
+          .leftJoin(
+            accountPeople,
+            eq(curatedPersons.linkedUserId, accountPeople.accountId),
+          )
           .where(eq(curatedPersons.ownerUserId, ownerUserId))
           .orderBy(asc(curatedPersons.createdAt), asc(curatedPersons.id));
         const activeConnections = await transaction
@@ -122,7 +134,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
           ),
         );
 
-        return people.map((person) => {
+        return people.map(({ person, linkedPersonId }) => {
           const block =
             blocks.find(
               (candidate) =>
@@ -145,6 +157,7 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
               : "character";
           return {
             ...person,
+            linkedPersonId,
             relationshipState,
             ...(block ? { blockedUserId: block.blockedUserId } : {}),
           };

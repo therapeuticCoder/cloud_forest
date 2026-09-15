@@ -13,6 +13,7 @@ const people = [
     privateDescription: "A steady place.",
     placement: "party",
     linkedUserId: null,
+    linkedPersonId: null,
     relationshipState: "character",
     version: 1,
     createdAt: new Date("2026-09-07T12:00:00.000Z"),

@@ -159,6 +159,24 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   assert.equal(helperViewBeforeCompletion[0].claimantCompletedAt, null);
   assert.deepEqual(await repository.listVisible(ids.stranger), []);
 
+  const gratitudeAt = new Date(now.getTime() + 1_500);
+  assert.deepEqual(
+    await repository.recordGratitude({
+      careRequestId: requestId,
+      receiverUserId: ids.owner,
+      statementId: "meal-care-felt-easy",
+      message: "The soup made tonight possible.",
+      now: gratitudeAt,
+    }),
+    { ok: true, value: null },
+  );
+  const helperViewWithGratitude = await repository.listVisible(ids.helper);
+  assert.deepEqual(helperViewWithGratitude[0].gratitude, {
+    statementId: "meal-care-felt-easy",
+    message: "The soup made tonight possible.",
+    createdAt: gratitudeAt,
+  });
+
   const completedAt = new Date(now.getTime() + 2_000);
   assert.deepEqual(
     await repository.recordCompletion({
@@ -176,5 +194,22 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   assert.equal(helperHistory[0].completedAt, completedAt);
   assert.equal(ownerHistory[0].requesterCompletedAt, ownerCompletedAt);
   assert.equal(helperHistory[0].claimantCompletedAt, completedAt);
+  assert.deepEqual(ownerHistory[0].gratitude, {
+    statementId: "meal-care-felt-easy",
+    message: "The soup made tonight possible.",
+    createdAt: gratitudeAt,
+  });
+  assert.deepEqual(helperHistory[0].gratitude, ownerHistory[0].gratitude);
   assert.deepEqual(await repository.listVisible(ids.stranger), []);
+
+  assert.deepEqual(
+    await repository.recordGratitude({
+      careRequestId: requestId,
+      receiverUserId: ids.owner,
+      statementId: "meal-fed-when-needed",
+      message: "Another note",
+      now: completedAt,
+    }),
+    { ok: false, error: "care-gratitude-already-recorded" },
+  );
 });

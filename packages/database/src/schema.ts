@@ -25,6 +25,10 @@ export type ConnectionPairingStatus =
   | "superseded";
 export type CareRequestStatus = "open" | "claimed" | "orphaned" | "completed";
 export type CareOfferStatus = "available";
+export type CareGratitudeStatementId =
+  | "meal-fed-when-needed"
+  | "meal-care-felt-easy"
+  | "meal-seen-and-supported";
 
 export const timelineItems = pgTable(
   "timeline_items",
@@ -374,6 +378,48 @@ export const careRequests = pgTable(
     check(
       "care_requests_not_self_claimed",
       sql`${table.claimantUserId} is null or ${table.requesterUserId} <> ${table.claimantUserId}`,
+    ),
+  ],
+);
+
+export const careGratitudes = pgTable(
+  "care_gratitudes",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    careRequestId: varchar("care_request_id", { length: 128 })
+      .notNull()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    receiverUserId: varchar("receiver_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    giverUserId: varchar("giver_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    statementId: varchar("statement_id", { length: 64 })
+      .$type<CareGratitudeStatementId>()
+      .notNull(),
+    message: text("message").notNull().default(""),
+    createdAt: timestamp("created_at", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("care_gratitudes_request_unique").on(table.careRequestId),
+    index("care_gratitudes_receiver_index").on(table.receiverUserId),
+    index("care_gratitudes_giver_index").on(table.giverUserId),
+    check("care_gratitudes_id_length", sql`char_length(${table.id}) >= 1`),
+    check(
+      "care_gratitudes_statement_allowed",
+      sql`${table.statementId} in ('meal-fed-when-needed', 'meal-care-felt-easy', 'meal-seen-and-supported')`,
+    ),
+    check(
+      "care_gratitudes_message_length",
+      sql`char_length(${table.message}) <= 1000`,
+    ),
+    check(
+      "care_gratitudes_participants_distinct",
+      sql`${table.receiverUserId} <> ${table.giverUserId}`,
     ),
   ],
 );

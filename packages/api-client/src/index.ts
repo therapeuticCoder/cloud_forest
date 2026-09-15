@@ -35,6 +35,7 @@ type GetCareRequestsOperation = operations["getCareRequestsV1"];
 type CreateCareRequestOperation = operations["createCareRequestV1"];
 type ClaimCareRequestOperation = operations["claimCareRequestV1"];
 type CompleteCareRequestOperation = operations["completeCareRequestV1"];
+type RecordCareGratitudeOperation = operations["recordCareGratitudeV1"];
 type GetCareOffersOperation = operations["getCareOffersV1"];
 type CreateCareOfferOperation = operations["createCareOfferV1"];
 type WithdrawCareOfferOperation = operations["withdrawCareOfferV1"];
@@ -77,6 +78,10 @@ export type ClaimCareRequestParameters =
   ClaimCareRequestOperation["parameters"]["path"];
 export type CompleteCareRequestParameters =
   CompleteCareRequestOperation["parameters"]["path"];
+export type RecordCareGratitudeInput =
+  RecordCareGratitudeOperation["requestBody"]["content"]["application/json"];
+export type RecordCareGratitudeParameters =
+  RecordCareGratitudeOperation["parameters"]["path"];
 export type GetCareOffersResponse = OperationResponseBody<
   GetCareOffersOperation,
   200
@@ -114,6 +119,12 @@ export type CompleteCareRequestResult = ApiResult<
   GetCareRequestsResponse,
   400 | 401 | 404,
   OperationResponseBody<CompleteCareRequestOperation, 400 | 401 | 404>
+>;
+export type RecordCareGratitudeResult = ApiResult<
+  200,
+  GetCareRequestsResponse,
+  400 | 401 | 404 | 409,
+  OperationResponseBody<RecordCareGratitudeOperation, 400 | 401 | 404 | 409>
 >;
 export type GetCareOffersResult = ApiResult<
   200,
@@ -238,6 +249,10 @@ export interface ApiClient {
   completeCareRequest(
     parameters: CompleteCareRequestParameters,
   ): Promise<CompleteCareRequestResult>;
+  recordCareGratitude(
+    parameters: RecordCareGratitudeParameters,
+    input: RecordCareGratitudeInput,
+  ): Promise<RecordCareGratitudeResult>;
   getCareOffers(): Promise<GetCareOffersResult>;
   createCareOffer(input: CreateCareOfferInput): Promise<CreateCareOfferResult>;
   withdrawCareOffer(
@@ -453,6 +468,17 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         ),
         [400, 401, 404] as const,
       );
+    },
+
+    async recordCareGratitude({ careRequestId }, input) {
+      return parseCareRequestsResponse(
+        await request(
+          "POST",
+          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/gratitude`,
+          input,
+        ),
+        [400, 401, 404, 409] as const,
+      ) as RecordCareGratitudeResult;
     },
 
     async getCareOffers() {

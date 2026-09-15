@@ -63,6 +63,7 @@ function toApiPerson(
     portraitUrl: person.portraitUrl || undefined,
     placement: person.placement,
     linkedUserId: person.linkedUserId,
+    linkedPersonId: person.linkedPersonId,
     relationshipState: person.relationshipState,
     ...(person.blockedUserId ? { blockedUserId: person.blockedUserId } : {}),
     version: person.version,

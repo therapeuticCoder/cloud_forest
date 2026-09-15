@@ -2,11 +2,7 @@ import { Cloud, CloudOff, RadioTower, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import type {
-  CareLifecycleState,
-  CarePersonId,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
 import {
   hasActiveConnection,
   type CuratorPerson,
@@ -49,7 +45,7 @@ type CuratorViewProps = {
   addDestination: "holding" | "party" | "tribe";
   addSubmission: { pending: boolean; error?: string };
   addWizardOpen: boolean;
-  careLifecycle: CareLifecycleState;
+  activeCareRequests: ReceiveCareRequest[];
   careViewerId: CarePersonId;
   characterSubmission: { pending: boolean; error?: string };
   curatedPeopleStatus: "loading" | "ready" | "error";
@@ -91,7 +87,6 @@ type CuratorViewProps = {
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onReceive: () => void;
-  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
   onUnblockCharacter: (person: CuratorPerson) => Promise<boolean>;
   onWithdraw: (requestId: string) => void;
@@ -254,7 +249,7 @@ export function CuratorView({
   addDestination,
   addSubmission,
   addWizardOpen,
-  careLifecycle,
+  activeCareRequests,
   careViewerId,
   characterSubmission,
   curatedPeopleCached,
@@ -277,7 +272,6 @@ export function CuratorView({
   onRecordCompleted,
   onRecordNotCompleted,
   onReceive,
-  onSetRequestMinimized,
   onStartConnection,
   onUnblockCharacter,
   onWithdraw,
@@ -411,7 +405,7 @@ export function CuratorView({
   if (selection) {
     return (
       <CuratorDetailView
-        careLifecycle={careLifecycle}
+        activeCareRequests={activeCareRequests}
         characterSubmission={characterSubmission}
         onBlockCharacter={onBlockCharacter}
         onBack={handleBack}
@@ -422,7 +416,6 @@ export function CuratorView({
         onPass={onPass}
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
-        onSetRequestMinimized={onSetRequestMinimized}
         isOffline={curatedPeopleOffline || curatedPeopleCached}
         onStartConnection={onStartConnection}
         onUnblockCharacter={onUnblockCharacter}

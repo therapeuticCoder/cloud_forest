@@ -1,11 +1,13 @@
 import {
   careApiVersion,
   careRequestCompletePath,
+  careRequestGratitudePath,
   careRequestClaimPath,
   careRequestErrorSchema,
   careRequestParamsSchema,
   careRequestsPath,
   careRequestsSuccessSchema,
+  createCareGratitudeBodySchema,
   createCareRequestBodySchema,
 } from "@cloud-forest/api-contracts";
 import type { CareRequestRepository } from "@cloud-forest/database";
@@ -23,6 +25,7 @@ const messages = {
   NOT_FOUND: "The requested Care request was not found.",
   VALIDATION_ERROR: "Invalid Care request.",
   ALREADY_CLAIMED: "This Care request is no longer available.",
+  ALREADY_RECORDED: "Gratitude has already been saved for this Care.",
 } as const;
 
 type ErrorCode = keyof typeof messages;
@@ -60,6 +63,15 @@ function toApiRequest(
       : {}),
     ...(request.completedAt
       ? { completedAt: request.completedAt.toISOString() }
+      : {}),
+    ...(request.gratitude
+      ? {
+          gratitude: {
+            statementId: request.gratitude.statementId,
+            message: request.gratitude.message,
+            createdAt: request.gratitude.createdAt.toISOString(),
+          },
+        }
       : {}),
     requester: request.requester,
     ...(request.claimant ? { claimant: request.claimant } : {}),
@@ -201,6 +213,45 @@ export const careRequestRoutes: FastifyPluginAsyncTypebox<Options> = async (
         now: new Date(),
       });
       if (!result.ok) {
+        return reply.status(404).send(error("NOT_FOUND"));
+      }
+      return visibleRequests(current.userId);
+    },
+  );
+
+  server.post(
+    careRequestGratitudePath,
+    {
+      schema: {
+        operationId: "recordCareGratitudeV1",
+        tags: ["Care"],
+        params: careRequestParamsSchema,
+        body: createCareGratitudeBodySchema,
+        response: {
+          200: careRequestsSuccessSchema,
+          400: careRequestErrorSchema,
+          401: careRequestErrorSchema,
+          404: careRequestErrorSchema,
+          409: careRequestErrorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.repository.recordGratitude({
+        careRequestId: request.params.careRequestId,
+        receiverUserId: current.userId,
+        ...request.body,
+        now: new Date(),
+      });
+      if (!result.ok) {
+        if (result.error === "care-gratitude-already-recorded") {
+          return reply.status(409).send(error("ALREADY_RECORDED"));
+        }
+        if (result.error === "care-gratitude-invalid") {
+          return reply.status(400).send(error("VALIDATION_ERROR"));
+        }
         return reply.status(404).send(error("NOT_FOUND"));
       }
       return visibleRequests(current.userId);

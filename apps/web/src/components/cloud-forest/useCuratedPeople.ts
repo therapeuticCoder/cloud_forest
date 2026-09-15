@@ -77,6 +77,7 @@ export function curatedPersonToCuratorPerson(
     portraitUrl: person.portraitUrl,
     relationshipShape: person.relationshipShape,
     linkedUserId: person.linkedUserId,
+    linkedPersonId: person.linkedPersonId,
     relationshipState: person.relationshipState,
     blockedUserId: person.blockedUserId,
     version: person.version,

@@ -36,6 +36,7 @@ export const curatedPersonSchema = Type.Object(
     portraitUrl: Type.Optional(portraitUrl),
     placement: curatedPersonPlacementSchema,
     linkedUserId: Type.Union([curatedPersonId, Type.Null()]),
+    linkedPersonId: Type.Union([curatedPersonId, Type.Null()]),
     relationshipState: curatedPersonRelationshipStateSchema,
     blockedUserId: Type.Optional(curatedPersonId),
     version,

@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
 import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 
 import { CareOfferCard } from "./CareOfferCard";
@@ -275,7 +276,7 @@ export function MyCareView({
           >
             <div className="my-care-view__section-heading">
               <Send aria-hidden="true" />
-              <h2 id="receive-heading">My requests</h2>
+              <h2 id="receive-heading">My open requests</h2>
             </div>
 
             {activeRequests.length > 0 ? (
@@ -325,7 +326,7 @@ export function MyCareView({
             >
               <div className="my-care-view__section-heading">
                 <Gift aria-hidden="true" />
-                <h2 id="give-heading">My offers</h2>
+                <h2 id="give-heading">My open offers</h2>
               </div>
               {offers.length > 0 ? (
                 offers.map((offer) => (
@@ -349,7 +350,7 @@ export function MyCareView({
             >
               <div className="my-care-view__section-heading">
                 <HandHeart aria-hidden="true" />
-                <h2 id="helping-heading">I’m helping</h2>
+                <h2 id="helping-heading">Requests I'm taking care of</h2>
               </div>
 
               {claimedRequests.length > 0 ? (
@@ -412,6 +413,21 @@ export function MyCareView({
                         <p>
                           {request.need} · {request.helpfulWhen}
                         </p>
+                        {request.gratitude ? (
+                          <div className="my-care-history__gratitude">
+                            <span>Private gratitude</span>
+                            <p>
+                              {getMealGratitudeStatement(
+                                request.gratitude.statementId,
+                              )?.text ?? "Thank you for showing up with care."}
+                            </p>
+                            {request.gratitude.message ? (
+                              <blockquote>
+                                {request.gratitude.message}
+                              </blockquote>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                       <time dateTime={completedAt}>
                         {formatter.format(new Date(completedAt))}

@@ -6,6 +6,7 @@ import type {
   CarePersonId,
   ReceiveCareRequest,
 } from "@/types/careRequest";
+import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -70,7 +71,7 @@ export function CareRequestCard({
   const statusLabel = claimed
     ? viewerIsClaimer
       ? "Committed"
-      : "Help coming"
+      : "Help is on the way!"
     : isSelfAuthored
       ? "Open"
       : "Needs help";
@@ -235,7 +236,7 @@ export function CareRequestCard({
                     onClick={() => onRecordCompleted(request)}
                     type="button"
                   >
-                    Completed
+                    Mark done
                   </button>
                   {onRecordNotCompleted ? (
                     <button
@@ -248,6 +249,18 @@ export function CareRequestCard({
                   ) : null}
                 </div>
               </>
+            ) : null}
+            {request.gratitude ? (
+              <div className="care-request-card__gratitude">
+                <span>Private gratitude</span>
+                <p>
+                  {getMealGratitudeStatement(request.gratitude.statementId)
+                    ?.text ?? "Thank you for showing up with care."}
+                </p>
+                {request.gratitude.message ? (
+                  <blockquote>{request.gratitude.message}</blockquote>
+                ) : null}
+              </div>
             ) : null}
           </div>
         ) : !isSelfAuthored ? (

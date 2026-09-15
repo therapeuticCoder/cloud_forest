@@ -9,16 +9,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  canPassCareRequest,
-  selectCareRequestPresentation,
-  selectProfileCareRequests,
-} from "@/lib/careLifecycle";
-import type {
-  CareLifecycleState,
-  CarePersonId,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
 import {
   hasActiveConnection,
   type CuratorPerson,
@@ -32,7 +23,7 @@ import { Portrait } from "./PartyLayer";
 import { RelationshipConfirmationDialog } from "./RelationshipConfirmationDialog";
 
 type CuratorDetailViewProps = {
-  careLifecycle: CareLifecycleState;
+  activeCareRequests: ReceiveCareRequest[];
   characterSubmission: { pending: boolean; error?: string };
   isOffline: boolean;
   onBack: () => void;
@@ -51,7 +42,6 @@ type CuratorDetailViewProps = {
   onPass: (request: ReceiveCareRequest) => void;
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
-  onSetRequestMinimized: (requestId: string, minimized: boolean) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
   onUpdateCharacter: (
     person: CuratorPerson,
@@ -183,7 +173,7 @@ function isCharacterSelection(
 }
 
 export function CuratorDetailView({
-  careLifecycle,
+  activeCareRequests,
   characterSubmission,
   onBackToLayer,
   onBlockCharacter,
@@ -196,7 +186,6 @@ export function CuratorDetailView({
   onPass,
   onRecordCompleted,
   onRecordNotCompleted,
-  onSetRequestMinimized,
   onStartConnection,
   onUpdateCharacter,
   onWithdraw,
@@ -236,19 +225,19 @@ export function CuratorDetailView({
   const layerDescription = character
     ? `${layerLabels[activeLayer]} ${isBlocked ? "Blocked" : isConnected ? "Connection" : "Character"}`
     : layerLabels[activeLayer];
-  const profileOwnerId = isPerson ? selection.item.id : undefined;
-  const now = new Date().toISOString();
+  const profileOwnerId = isPerson
+    ? (selection.item.linkedPersonId ?? undefined)
+    : undefined;
   const careRequests = useMemo(
     () =>
       profileOwnerId
-        ? selectProfileCareRequests(
-            careLifecycle,
-            profileOwnerId,
-            viewerId,
-            now,
+        ? activeCareRequests.filter(
+            (request) =>
+              request.requester.id === profileOwnerId ||
+              request.claimant?.id === profileOwnerId,
           )
         : [],
-    [careLifecycle, now, profileOwnerId, viewerId],
+    [activeCareRequests, profileOwnerId],
   );
 
   useEffect(() => {
@@ -656,49 +645,20 @@ export function CuratorDetailView({
 
               {careRequests.length > 0 ? (
                 careRequests.map((request) => {
-                  const claim = careLifecycle.claims.find(
-                    (candidate) => candidate.requestId === request.id,
-                  );
-                  const viewerCompletion = careLifecycle.completions.find(
-                    (completion) =>
-                      completion.requestId === request.id &&
-                      completion.participantId === viewerId,
-                  );
-                  const otherParticipantCompleted =
-                    careLifecycle.completions.some(
-                      (completion) =>
-                        completion.requestId === request.id &&
-                        completion.participantId !== viewerId &&
-                        completion.decision === "completed",
-                    );
                   return (
                     <CareRequestCard
-                      canPass={canPassCareRequest(
-                        careLifecycle,
-                        request.id,
-                        viewerId,
-                        now,
-                      )}
-                      claimed={Boolean(claim)}
+                      canPass={false}
+                      claimed={request.status === "claimed"}
                       key={request.id}
-                      minimized={
-                        selectCareRequestPresentation(
-                          careLifecycle,
-                          request.id,
-                          viewerId,
-                        ).minimized
-                      }
+                      minimized={false}
                       onOfferHelp={onOfferHelp}
                       onPass={onPass}
                       onRecordCompleted={onRecordCompleted}
                       onRecordNotCompleted={onRecordNotCompleted}
-                      onSetMinimized={onSetRequestMinimized}
                       onWithdraw={onWithdraw}
                       request={request}
                       viewerId={viewerId}
-                      viewerCompletion={viewerCompletion?.decision}
-                      viewerIsClaimer={claim?.claimerId === viewerId}
-                      otherParticipantCompleted={otherParticipantCompleted}
+                      viewerIsClaimer={request.claimant?.id === viewerId}
                     />
                   );
                 })

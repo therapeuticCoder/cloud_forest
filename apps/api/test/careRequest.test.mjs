@@ -104,6 +104,34 @@ function createRepository() {
       }
       return { ok: true, value: null };
     },
+    async recordGratitude({
+      careRequestId,
+      receiverUserId,
+      statementId,
+      message,
+      now,
+    }) {
+      const request = requests.find(({ id }) => id === careRequestId);
+      if (
+        !request ||
+        request.requesterUserId !== receiverUserId ||
+        request.requesterCompletedAt === undefined
+      ) {
+        return { ok: false, error: "care-request-not-found" };
+      }
+      if (request.gratitude) {
+        return { ok: false, error: "care-gratitude-already-recorded" };
+      }
+      requests = requests.map((candidate) =>
+        candidate.id === careRequestId
+          ? {
+              ...candidate,
+              gratitude: { statementId, message, createdAt: now },
+            }
+          : candidate,
+      );
+      return { ok: true, value: null };
+    },
   };
 }
 
@@ -214,6 +242,54 @@ test("Care API keeps create and claim responses durable and non-disclosing", asy
     requesterCompletedAt,
   );
 
+  const gratitude = await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${createdRequest.id}/gratitude`,
+    headers: { cookie: "session=user-a" },
+    payload: {
+      statementId: "meal-care-felt-easy",
+      message: "The soup made tonight possible.",
+    },
+  });
+  assert.equal(gratitude.statusCode, 200);
+  assert.deepEqual(gratitude.json().data.requests[0].gratitude, {
+    statementId: "meal-care-felt-easy",
+    message: "The soup made tonight possible.",
+    createdAt: gratitude.json().data.requests[0].gratitude.createdAt,
+  });
+
+  const helperGratitude = await server.inject({
+    method: "GET",
+    url: "/api/v1/care-requests",
+    headers: { cookie: "session=user-b" },
+  });
+  assert.equal(
+    helperGratitude.json().data.requests[0].gratitude.message,
+    "The soup made tonight possible.",
+  );
+
+  const giverGratitude = await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${createdRequest.id}/gratitude`,
+    headers: { cookie: "session=user-b" },
+    payload: {
+      statementId: "meal-fed-when-needed",
+      message: "This should not be accepted from the giver.",
+    },
+  });
+  assert.equal(giverGratitude.statusCode, 404);
+
+  const duplicateGratitude = await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${createdRequest.id}/gratitude`,
+    headers: { cookie: "session=user-a" },
+    payload: {
+      statementId: "meal-fed-when-needed",
+      message: "Another note.",
+    },
+  });
+  assert.equal(duplicateGratitude.statusCode, 409);
+
   const claimantCompleted = await server.inject({
     method: "POST",
     url: `/api/v1/care-requests/${createdRequest.id}/complete`,
@@ -234,6 +310,10 @@ test("Care API keeps create and claim responses durable and non-disclosing", asy
     headers: { cookie: "session=user-a" },
   });
   assert.equal(requesterHistory.json().data.requests[0].status, "completed");
+  assert.equal(
+    requesterHistory.json().data.requests[0].gratitude.message,
+    "The soup made tonight possible.",
+  );
 
   const nonparticipantHistory = await server.inject({
     method: "GET",

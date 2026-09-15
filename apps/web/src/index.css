@@ -2001,6 +2001,37 @@ button:focus-visible {
   font-weight: 650;
 }
 
+.care-request-card__gratitude,
+.my-care-history__gratitude {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-left: 3px solid var(--forest-amber);
+  color: rgba(10, 42, 29, 0.78);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.care-request-card__gratitude span,
+.my-care-history__gratitude span {
+  color: var(--forest-party);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.care-request-card__gratitude p,
+.my-care-history__gratitude p {
+  margin: 0.25rem 0 0;
+  line-height: 1.45;
+}
+
+.care-request-card__gratitude blockquote,
+.my-care-history__gratitude blockquote {
+  margin: 0.45rem 0 0;
+  padding-left: 0.65rem;
+  border-left: 2px solid rgba(10, 42, 29, 0.3);
+}
+
 .care-request-card__outcome-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2674,14 +2705,25 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.care-gratitude-view__form > button,
-.care-gratitude-view__confirm-actions button:last-child {
+.care-gratitude-view__form > button:first-of-type,
+.care-gratitude-view__confirm-actions button:first-child {
   border-color: var(--forest-amber);
   color: var(--forest-pine);
   background: var(--forest-amber);
 }
 
+.care-gratitude-view__form > button:last-child,
+.care-gratitude-view__confirm-actions button:last-child {
+  color: #f0f1e8;
+  background: transparent;
+}
+
 .care-gratitude-view__form > button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.care-gratitude-view__confirm-actions button:disabled {
   opacity: 0.42;
   cursor: not-allowed;
 }

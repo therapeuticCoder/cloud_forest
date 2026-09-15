@@ -1,30 +1,38 @@
-import { ArrowLeft, LockKeyhole, Sprout } from "lucide-react";
+import { ArrowLeft, LockKeyhole } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { mealGratitudeStatements } from "@/data/careGratitudeStatements";
-import type { ReceiveCareRequest } from "@/types/careRequest";
+import type {
+  CareHistoryGratitude,
+  ReceiveCareRequest,
+} from "@/types/careRequest";
 
 export type CareGratitudeDraft = {
-  anonymized: boolean;
   message: string;
-  postToTimeline: boolean;
-  statementId: string;
+  statementId: CareHistoryGratitude["statementId"];
 };
+
+export type CareGratitudeResult = { ok: true } | { ok: false; message: string };
 
 export function CareGratitudeWizard({
   onBack,
   onComplete,
+  onSkip,
   request,
 }: {
   onBack: () => void;
-  onComplete: (draft: CareGratitudeDraft) => void;
+  onComplete: (draft: CareGratitudeDraft) => Promise<CareGratitudeResult>;
+  onSkip: () => void;
   request: ReceiveCareRequest;
 }) {
   const [step, setStep] = useState<"compose" | "confirm">("compose");
-  const [statementId, setStatementId] = useState("");
+  const [statementId, setStatementId] = useState<
+    CareHistoryGratitude["statementId"] | ""
+  >("");
   const [message, setMessage] = useState("");
-  const [anonymized, setAnonymized] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>();
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -33,7 +41,7 @@ export function CareGratitudeWizard({
 
   return (
     <section
-      aria-label={`Thank ${request.requester.displayName}'s helper`}
+      aria-label={`Thank ${request.claimant?.displayName ?? "your helper"}`}
       className="care-gratitude-view care-destination"
     >
       <header className="my-care-view__header">
@@ -50,7 +58,7 @@ export function CareGratitudeWizard({
         <div>
           <span>Care gratitude</span>
           <h1 ref={headingRef} tabIndex={-1}>
-            {step === "compose" ? "Say thank you" : "Keep it private or share"}
+            {step === "compose" ? "Say thank you" : "Keep it private"}
           </h1>
         </div>
       </header>
@@ -85,6 +93,7 @@ export function CareGratitudeWizard({
           </label>
           <textarea
             id="care-gratitude-message"
+            maxLength={1_000}
             onChange={(event) => setMessage(event.target.value)}
             placeholder="A short note, if you want"
             rows={3}
@@ -93,52 +102,50 @@ export function CareGratitudeWizard({
           <button disabled={!statementId} type="submit">
             Continue
           </button>
+          <button onClick={onSkip} type="button">
+            Skip gratitude
+          </button>
         </form>
       ) : (
         <div className="care-gratitude-view__confirm">
           <div className="care-gratitude-view__privacy-note">
             <LockKeyhole aria-hidden="true" />
             <div>
-              <h2>Your private history keeps who gave and received care.</h2>
-              <p>A Tribe post is optional and can hide your name.</p>
+              <h2>
+                Your gratitude stays private between you and your care partner.
+              </h2>
+              <p>Both participants will see it in private Care history.</p>
             </div>
           </div>
-          <label className="care-gratitude-view__anonymous">
-            <input
-              checked={anonymized}
-              onChange={(event) => setAnonymized(event.target.checked)}
-              type="checkbox"
-            />
-            Post to Tribe as “A neighbor”
-          </label>
+          {error ? (
+            <p className="my-care-view__session-error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className="care-gratitude-view__confirm-actions">
             <button
-              onClick={() =>
-                onComplete({
-                  anonymized: false,
+              disabled={saving}
+              onClick={() => {
+                if (!statementId) return;
+                setSaving(true);
+                setError(undefined);
+                void onComplete({
                   message: message.trim(),
-                  postToTimeline: false,
                   statementId,
-                })
-              }
+                }).then((result) => {
+                  if (!result.ok) {
+                    setError(result.message);
+                    setSaving(false);
+                  }
+                });
+              }}
               type="button"
             >
               <LockKeyhole aria-hidden="true" />
-              Save to history
+              {saving ? "Saving…" : "Save to private history"}
             </button>
-            <button
-              onClick={() =>
-                onComplete({
-                  anonymized,
-                  message: message.trim(),
-                  postToTimeline: true,
-                  statementId,
-                })
-              }
-              type="button"
-            >
-              <Sprout aria-hidden="true" />
-              Post to Tribe and save to history
+            <button disabled={saving} onClick={onSkip} type="button">
+              Skip gratitude
             </button>
           </div>
         </div>

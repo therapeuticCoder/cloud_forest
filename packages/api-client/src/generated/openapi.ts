@@ -95,6 +95,22 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/care-requests/{careRequestId}/gratitude": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["recordCareGratitudeV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/connection-pairings": {
         readonly parameters: {
             readonly query?: never;
@@ -827,6 +843,12 @@ export interface operations {
                                 readonly direction: "receive";
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
+                                readonly gratitude?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                                };
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
@@ -856,7 +878,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -911,6 +933,12 @@ export interface operations {
                                 readonly direction: "receive";
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
+                                readonly gratitude?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                                };
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
@@ -940,7 +968,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -956,7 +984,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1004,6 +1032,12 @@ export interface operations {
                                 readonly direction: "receive";
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
+                                readonly gratitude?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                                };
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
@@ -1033,7 +1067,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1049,7 +1083,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1065,7 +1099,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1081,7 +1115,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1129,6 +1163,12 @@ export interface operations {
                                 readonly direction: "receive";
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
+                                readonly gratitude?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                                };
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
@@ -1158,7 +1198,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1174,7 +1214,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1190,7 +1230,145 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly recordCareGratitudeV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careRequestId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly message: string;
+                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly requests: readonly {
+                                /** @enum {string} */
+                                readonly audience: "Party";
+                                readonly claimant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly claimantCompletedAt?: string;
+                                /** Format: date-time */
+                                readonly claimedAt?: string;
+                                /** Format: date-time */
+                                readonly completedAt?: string;
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                /** @enum {string} */
+                                readonly direction: "receive";
+                                readonly foodDoesNotWork: string;
+                                readonly foodWorks: string;
+                                readonly gratitude?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                                };
+                                readonly handoffStyle: string;
+                                readonly helpfulWhen: string;
+                                readonly id: string;
+                                /** @enum {string} */
+                                readonly kind: "meal";
+                                /** @enum {string} */
+                                readonly need: "A meal";
+                                readonly requester: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly requesterCompletedAt?: string;
+                                readonly status: "open" | "claimed" | "orphaned" | "completed";
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
                         };
                     };
@@ -1718,6 +1896,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -1790,6 +1969,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -1906,6 +2086,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2029,6 +2210,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2139,6 +2321,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2255,6 +2438,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
@@ -2371,6 +2555,7 @@ export interface operations {
                                 readonly firstName: string;
                                 readonly id: string;
                                 readonly lastName: string;
+                                readonly linkedPersonId: string | null;
                                 readonly linkedUserId: string | null;
                                 readonly nickname: string;
                                 readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";

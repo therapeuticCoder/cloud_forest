@@ -49,6 +49,8 @@ Requester and giver record their own outcomes independently.
 
 Care remains active until both participants complete it, unless either participant closes it as not completed or another terminal condition applies.
 
+When both participants complete Care, it becomes terminally completed and remains available as a private history entry for each participant. A partial completion does not create the terminal history state.
+
 A not-completed outcome may include a private reason and may offer an allowed close, postpone, or linked retry path. Private reasons never appear in shared Timeline activity.
 
 Claimed Care may also expire after its completion window. The exact duration is not yet durable product truth.
@@ -57,9 +59,7 @@ Claimed Care may also expire after its completion window. The exact duration is 
 
 When the receiver records completion, they may choose a Care-specific gratitude statement and add their own words.
 
-That gratitude is saved immediately to both participants' private histories. If the receiver chooses to publish gratitude to Tribe, the shared activity may identify the receiver normally or as “A neighbor.”
-
-An anonymized Tribe presentation does not erase participant provenance from the two private histories.
+That gratitude is saved immediately to both participants' private histories. In the current alpha, gratitude remains private between those two participants; it is not published to Tribe.
 
 ## Relationship changes during Care
 

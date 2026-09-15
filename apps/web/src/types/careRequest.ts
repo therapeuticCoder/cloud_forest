@@ -31,9 +31,19 @@ export type ReceiveCareRequest = {
   requesterCompletedAt?: string;
   claimantCompletedAt?: string;
   completedAt?: string;
+  gratitude?: CareHistoryGratitude;
   expiresAt?: string;
   requester: CareRequester;
   claimant?: CarePublicPerson;
+};
+
+export type CareHistoryGratitude = {
+  statementId:
+    | "meal-fed-when-needed"
+    | "meal-care-felt-easy"
+    | "meal-seen-and-supported";
+  message: string;
+  createdAt: string;
 };
 
 export type CareClaim = {
