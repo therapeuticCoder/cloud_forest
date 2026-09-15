@@ -231,7 +231,26 @@ export function useCareRequests(
         { careRequestId },
         input,
       );
-      applyResult(result, requestSequence);
+      if (result.ok) {
+        applyResult(result, requestSequence);
+      } else if (result.kind === "http" && result.status === 409) {
+        const latest = await apiClient.getCareRequests();
+        if (latest.ok) {
+          applyResult(latest, requestSequence);
+        } else if (requestSequence === requestSequenceRef.current) {
+          setState((current) => ({
+            status: "error",
+            requests: current.requests,
+            message: careGratitudeErrorMessage(result),
+          }));
+        }
+      } else if (requestSequence === requestSequenceRef.current) {
+        setState((current) => ({
+          status: "error",
+          requests: current.requests,
+          message: careGratitudeErrorMessage(result),
+        }));
+      }
       return result;
     },
     [apiClient, applyResult],
