@@ -468,6 +468,25 @@ describe("App", () => {
     });
   });
 
+  it("restores Curator detail after switching to Timeline and going back", async () => {
+    const user = await openCurator();
+
+    await user.click(screen.getByRole("button", { name: /open mira vale/i }));
+    await user.click(screen.getByRole("button", { name: "Go to Timeline" }));
+
+    expect(
+      screen.getByRole("region", { name: /timeline view/i }),
+    ).toBeInTheDocument();
+
+    window.history.back();
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("region", { name: /mira vale details/i }),
+      ).toBeInTheDocument(),
+    );
+  });
+
   it("shows shared Care in the connected Character detail", async () => {
     const user = await openCurator();
     const anyaTile = screen.getByRole("button", { name: /open anya reed/i });

@@ -48,6 +48,7 @@ type CuratorViewProps = {
   curatedPeopleError?: string;
   curatedPeopleCached: boolean;
   curatedPeopleOffline: boolean;
+  initialSelection?: CuratorSelection | null;
   onAddPartyMember: (
     destination: "holding" | "party" | "tribe",
     slotIndex?: number,
@@ -82,6 +83,7 @@ type CuratorViewProps = {
   onRecordCompleted: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted: (request: ReceiveCareRequest) => void;
   onReceive: () => void;
+  onSelectionChange?: (selection: CuratorSelection | null) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
   onUnblockCharacter: (person: CuratorPerson) => Promise<boolean>;
   onWithdraw: (requestId: string) => void;
@@ -197,6 +199,7 @@ export function CuratorView({
   curatedPeopleError,
   curatedPeopleOffline,
   curatedPeopleStatus,
+  initialSelection,
   onAddPartyMember,
   onActiveLayerChange,
   onBlockCharacter,
@@ -212,6 +215,7 @@ export function CuratorView({
   onRecordCompleted,
   onRecordNotCompleted,
   onReceive,
+  onSelectionChange,
   onStartConnection,
   onUnblockCharacter,
   onWithdraw,
@@ -220,7 +224,9 @@ export function CuratorView({
   holdingPeople,
   tribePeople,
 }: CuratorViewProps) {
-  const [selection, setSelection] = useState<CuratorSelection | null>(null);
+  const [selection, setSelection] = useState<CuratorSelection | null>(
+    initialSelection ?? null,
+  );
   const [holdingTab, setHoldingTab] = useState<"characters" | "blocks">(
     "characters",
   );
@@ -234,6 +240,14 @@ export function CuratorView({
   const tribeHasConnection = tribePeople.some(hasActiveConnection);
   const addDisabled = curatedPeopleOffline || curatedPeopleStatus !== "ready";
 
+  const updateSelection = useCallback(
+    (nextSelection: CuratorSelection | null) => {
+      setSelection(nextSelection);
+      onSelectionChange?.(nextSelection);
+    },
+    [onSelectionChange],
+  );
+
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const container = scrollContainerRef.current;
@@ -244,7 +258,7 @@ export function CuratorView({
 
   const restoreCurator = useCallback(
     (targetLayer?: keyof typeof curatorLayerPositions) => {
-      setSelection(null);
+      updateSelection(null);
 
       requestAnimationFrame(() => {
         if (scrollContainerRef.current) {
@@ -262,7 +276,7 @@ export function CuratorView({
         }
       });
     },
-    [],
+    [updateSelection],
   );
 
   const handleSelect = useCallback(
@@ -273,9 +287,9 @@ export function CuratorView({
         { ...window.history.state, curatorSelection: true },
         "",
       );
-      setSelection(nextSelection);
+      updateSelection(nextSelection);
     },
-    [],
+    [updateSelection],
   );
 
   const handleBack = useCallback(() => {

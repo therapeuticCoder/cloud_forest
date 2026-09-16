@@ -1923,6 +1923,13 @@ button:focus-visible {
   grid-template-columns: 3.25rem minmax(0, 1fr) auto auto;
 }
 
+.global-view-chrome .timeline-header h1 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .global-view-chrome .timeline-view-switcher {
   width: auto;
 }
