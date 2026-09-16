@@ -1,9 +1,5 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
-const miraContent =
-  "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?";
-const miraEndpoint = "/api/v1/timeline-items/timeline-item-mira-soup-001";
-
 async function signInAsFictionalPartyOwner(page: Page) {
   const signIn = await page.request.post("/api/auth/sign-in/email", {
     data: {
@@ -173,9 +169,9 @@ test("database-backed Timeline and normal app path", async ({
     );
     expect(movedToHolding.ok()).toBe(true);
   }
-  const miraResponsePromise = page.waitForResponse(
+  const timelineResponsePromise = page.waitForResponse(
     (response) =>
-      response.url().endsWith(miraEndpoint) &&
+      response.url().endsWith("/api/v1/timeline-items") &&
       response.request().method() === "GET",
   );
 
@@ -193,29 +189,13 @@ test("database-backed Timeline and normal app path", async ({
     page.getByRole("heading", { name: "Timeline", exact: true }),
   ).toBeVisible();
 
-  const miraResponse = await miraResponsePromise;
-  expect(miraResponse.status()).toBe(200);
-  expect(await miraResponse.json()).toEqual({
+  const timelineResponse = await timelineResponsePromise;
+  expect(timelineResponse.status()).toBe(200);
+  expect(await timelineResponse.json()).toEqual({
     apiVersion: "v1",
-    data: {
-      timelineItem: {
-        id: "timeline-item-mira-soup-001",
-        actor: {
-          id: "mira",
-          displayName: "Mira",
-          layer: "party",
-          initials: "M",
-        },
-        content: miraContent,
-        publishedAt: "2026-05-30T17:00:00.000Z",
-      },
-    },
+    data: { timelineItems: [] },
   });
 
-  const miraCard = page.locator("article").filter({ hasText: miraContent });
-  await expect(miraCard).toContainText("Mira");
-  await expect(miraCard).toContainText(miraContent);
-  await expect(page.getByText("Yesterday", { exact: true })).toBeVisible();
   await expect(
     page
       .getByRole("button", { name: "Receive", exact: true })

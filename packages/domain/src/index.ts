@@ -23,7 +23,9 @@ export {
   type RelationshipLayer,
 } from "./relationships.js";
 export {
+  timelineAudiences,
   timelineItemLayers,
+  type TimelineAudience,
   type TimelineItem,
   type TimelineItemActor,
   type TimelineItemLayer,

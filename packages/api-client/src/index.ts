@@ -5,8 +5,11 @@ import {
   isCareOffersSuccessResponse,
   isCareRequestErrorResponse,
   isCareRequestsSuccessResponse,
+  isCreateTimelinePostSuccessResponse,
+  isGetTimelineItemsSuccessResponse,
   isGetTimelineItemErrorResponse,
   isGetTimelineItemSuccessResponse,
+  isTimelinePostErrorResponse,
   isHealthResponse,
   isCurrentSessionResponse,
   isUnauthorizedResponse,
@@ -26,6 +29,8 @@ type OperationResponseBody<
 > = JsonResponseBody<Operation["responses"][Status]>;
 
 type HealthOperation = operations["getHealthV1"];
+type TimelineItemsOperation = operations["getTimelineItemsV1"];
+type CreateTimelinePostOperation = operations["createTimelinePostV1"];
 type TimelineItemOperation = operations["getTimelineItemV1"];
 type CuratedPersonsOperation = operations["getCuratedPersonsV1"];
 type CreateCuratedPersonOperation = operations["createCuratedPersonV1"];
@@ -53,6 +58,24 @@ export type GetTimelineItemResponse = OperationResponseBody<
 export type GetTimelineItemErrorResponse = OperationResponseBody<
   TimelineItemOperation,
   400 | 404
+>;
+export type GetTimelineItemsResponse = OperationResponseBody<
+  TimelineItemsOperation,
+  200
+>;
+export type GetTimelineItemsErrorResponse = OperationResponseBody<
+  TimelineItemsOperation,
+  401
+>;
+export type CreateTimelinePostInput =
+  CreateTimelinePostOperation["requestBody"]["content"]["application/json"];
+export type CreateTimelinePostResponse = OperationResponseBody<
+  CreateTimelinePostOperation,
+  200
+>;
+export type CreateTimelinePostErrorResponse = OperationResponseBody<
+  CreateTimelinePostOperation,
+  400 | 401 | 404
 >;
 export type GetCuratedPersonsResponse = OperationResponseBody<
   CuratedPersonsOperation,
@@ -213,6 +236,18 @@ export type GetTimelineItemResult = ApiResult<
   400 | 404,
   GetTimelineItemErrorResponse
 >;
+export type GetTimelineItemsResult = ApiResult<
+  200,
+  GetTimelineItemsResponse,
+  401,
+  GetTimelineItemsErrorResponse
+>;
+export type CreateTimelinePostResult = ApiResult<
+  200,
+  CreateTimelinePostResponse,
+  400 | 401 | 404,
+  CreateTimelinePostErrorResponse
+>;
 export type GetCuratedPersonsResult = ApiResult<
   200,
   GetCuratedPersonsResponse,
@@ -224,6 +259,10 @@ export interface ApiClient {
   getHealth(): Promise<HealthResult>;
   getCurrentSession(): Promise<CurrentSessionResult>;
   logout(): Promise<LogoutResult>;
+  getTimelineItems(): Promise<GetTimelineItemsResult>;
+  createTimelinePost(
+    input: CreateTimelinePostInput,
+  ): Promise<CreateTimelinePostResult>;
   getTimelineItem(
     parameters: GetTimelineItemParameters,
   ): Promise<GetTimelineItemResult>;
@@ -353,6 +392,75 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
           ok: false,
           kind: "http",
           status: 401,
+          error: result.body,
+        };
+      }
+
+      return {
+        ok: false,
+        kind: "unexpected-response",
+        status: result.status,
+        body: result.body,
+      };
+    },
+
+    async getTimelineItems() {
+      const result = await request("GET", "/api/v1/timeline-items");
+      if (result.kind === "network") return result;
+
+      if (
+        result.status === 200 &&
+        isGetTimelineItemsSuccessResponse(result.body)
+      ) {
+        return {
+          ok: true,
+          status: 200,
+          value: result.body,
+        };
+      }
+
+      if (result.status === 401 && isTimelinePostErrorResponse(result.body)) {
+        return {
+          ok: false,
+          kind: "http",
+          status: 401,
+          error: result.body,
+        };
+      }
+
+      return {
+        ok: false,
+        kind: "unexpected-response",
+        status: result.status,
+        body: result.body,
+      };
+    },
+
+    async createTimelinePost(input) {
+      const result = await request("POST", "/api/v1/timeline-items", input);
+      if (result.kind === "network") return result;
+
+      if (
+        result.status === 200 &&
+        isCreateTimelinePostSuccessResponse(result.body)
+      ) {
+        return {
+          ok: true,
+          status: 200,
+          value: result.body,
+        };
+      }
+
+      if (
+        (result.status === 400 ||
+          result.status === 401 ||
+          result.status === 404) &&
+        isTimelinePostErrorResponse(result.body)
+      ) {
+        return {
+          ok: false,
+          kind: "http",
+          status: result.status,
           error: result.body,
         };
       }

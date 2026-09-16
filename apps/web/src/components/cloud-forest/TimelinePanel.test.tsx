@@ -1,22 +1,21 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { GetTimelineItemResult } from "@cloud-forest/api-client";
+import type { GetTimelineItemsResult } from "@cloud-forest/api-client";
 
 import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 
 import { TimelinePanel } from "./TimelinePanel";
 
 const timelineItem = {
-  id: "timeline-item-mira-soup-001",
+  id: "timeline-post-panel-test",
   actor: {
-    id: "mira",
-    displayName: "Mira",
+    id: "timeline-panel-author",
+    displayName: "Timeline author",
     layer: "party" as const,
-    initials: "M",
+    initials: "TA",
   },
-  content:
-    "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?",
+  content: "A calm update from today.",
   publishedAt: "2026-05-30T17:00:00.000Z",
 };
 
@@ -58,8 +57,8 @@ describe("TimelinePanel live item seam", () => {
     render(
       <TimelinePanel
         apiClient={{
-          getTimelineItem: vi.fn(
-            () => new Promise<GetTimelineItemResult>(() => undefined),
+          getTimelineItems: vi.fn(
+            () => new Promise<GetTimelineItemsResult>(() => undefined),
           ),
         }}
         careOffers={[offer]}
@@ -76,11 +75,11 @@ describe("TimelinePanel live item seam", () => {
   });
 
   it("shows loading and then renders the API-backed item", async () => {
-    let resolveRequest: ((value: GetTimelineItemResult) => void) | undefined;
+    let resolveRequest: ((value: GetTimelineItemsResult) => void) | undefined;
     const apiClient = {
-      getTimelineItem: vi.fn(
+      getTimelineItems: vi.fn(
         () =>
-          new Promise<GetTimelineItemResult>((resolve) => {
+          new Promise<GetTimelineItemsResult>((resolve) => {
             resolveRequest = resolve;
           }),
       ),
@@ -88,51 +87,40 @@ describe("TimelinePanel live item seam", () => {
 
     render(<TimelinePanel apiClient={apiClient} />);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Loading one live Timeline item",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("Loading Timeline");
     resolveRequest?.({
       ok: true,
       status: 200,
-      value: { apiVersion: "v1", data: { timelineItem } },
+      value: { apiVersion: "v1", data: { timelineItems: [timelineItem] } },
     });
 
     expect(await screen.findByText(timelineItem.content)).toBeInTheDocument();
-    expect(apiClient.getTimelineItem).toHaveBeenCalledWith({
-      timelineItemId: timelineItem.id,
-    });
+    expect(apiClient.getTimelineItems).toHaveBeenCalledWith();
   });
 
-  it("shows an accessible empty state when the API item is unavailable", async () => {
+  it("shows an accessible empty state when no posts are available", async () => {
     const apiClient = {
-      getTimelineItem: vi.fn().mockResolvedValue({
-        ok: false,
-        kind: "http",
-        status: 404,
-        error: {
-          apiVersion: "v1",
-          error: {
-            code: "TIMELINE_ITEM_NOT_FOUND",
-            message: "Timeline item not found.",
-          },
-        },
+      getTimelineItems: vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        value: { apiVersion: "v1", data: { timelineItems: [] } },
       }),
     };
 
     render(<TimelinePanel apiClient={apiClient} />);
 
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "No live Timeline item is available",
+      "No Timeline posts yet",
     );
   });
 
   it("filters the API-backed item by relationship layer", async () => {
     const user = userEvent.setup();
     const apiClient = {
-      getTimelineItem: vi.fn().mockResolvedValue({
+      getTimelineItems: vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
-        value: { apiVersion: "v1", data: { timelineItem } },
+        value: { apiVersion: "v1", data: { timelineItems: [timelineItem] } },
       }),
     };
 
@@ -141,9 +129,7 @@ describe("TimelinePanel live item seam", () => {
 
     await user.click(screen.getByRole("button", { name: "Filter to Tribe" }));
     expect(
-      await screen.findByText(
-        "No live Timeline item is available in this layer.",
-      ),
+      await screen.findByText("No Timeline posts are available in this layer."),
     ).toBeInTheDocument();
     expect(screen.queryByText(timelineItem.content)).not.toBeInTheDocument();
 
@@ -154,17 +140,20 @@ describe("TimelinePanel live item seam", () => {
   it("offers a keyboard-accessible retry after a recoverable error", async () => {
     const user = userEvent.setup();
     const apiClient = {
-      getTimelineItem: vi
+      getTimelineItems: vi
         .fn()
         .mockResolvedValueOnce({
           ok: false,
           kind: "network",
-          cause: new Error("fictional API outage"),
+          cause: new Error("API unavailable"),
         })
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
-          value: { apiVersion: "v1", data: { timelineItem } },
+          value: {
+            apiVersion: "v1",
+            data: { timelineItems: [timelineItem] },
+          },
         }),
     };
 
@@ -177,7 +166,7 @@ describe("TimelinePanel live item seam", () => {
     await user.keyboard("{Enter}");
 
     await waitFor(() =>
-      expect(apiClient.getTimelineItem).toHaveBeenCalledTimes(2),
+      expect(apiClient.getTimelineItems).toHaveBeenCalledTimes(2),
     );
     expect(await screen.findByText(timelineItem.content)).toBeInTheDocument();
   });

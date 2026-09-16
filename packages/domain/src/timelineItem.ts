@@ -1,5 +1,8 @@
 import type { RelationshipLayer } from "./relationships.js";
 
+export const timelineAudiences = ["party", "tribe"] as const;
+export type TimelineAudience = (typeof timelineAudiences)[number];
+
 export const timelineItemLayers = [
   "party",
   "tribe",

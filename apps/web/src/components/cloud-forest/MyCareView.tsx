@@ -19,7 +19,7 @@ import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 import { CareOfferCard } from "./CareOfferCard";
 import { CareRequestCard } from "./CareRequestCard";
 
-type MyCareTab = "profile" | "receive" | "give" | "history";
+export type MyCareTab = "profile" | "receive" | "give" | "history";
 
 const tabs: { id: MyCareTab; label: string; Icon: LucideIcon }[] = [
   { id: "profile", label: "Profile", Icon: UserRound },
@@ -37,6 +37,7 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 });
 
 type MyCareViewProps = {
+  initialTab?: MyCareTab;
   activeRequests: ReceiveCareRequest[];
   claimedRequests: ReceiveCareRequest[];
   completedRequests: ReceiveCareRequest[];
@@ -60,6 +61,7 @@ type MyCareViewProps = {
 };
 
 export function MyCareView({
+  initialTab = "receive",
   activeRequests,
   claimedRequests,
   completedRequests,
@@ -84,7 +86,7 @@ export function MyCareView({
   const [signupCodeError, setSignupCodeError] = useState<string>();
   const [creatingSignupCode, setCreatingSignupCode] = useState(false);
   const [signupLinkCopied, setSignupLinkCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<MyCareTab>("receive");
+  const [activeTab, setActiveTab] = useState<MyCareTab>(initialTab);
 
   useEffect(() => {
     requestAnimationFrame(() => headingRef.current?.focus());

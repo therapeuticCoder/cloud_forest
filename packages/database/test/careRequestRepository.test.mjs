@@ -152,7 +152,7 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   );
   const helperViewBeforeCompletion = await repository.listVisible(ids.helper);
   assert.equal(helperViewBeforeCompletion[0].status, "claimed");
-  assert.equal(
+  assert.deepEqual(
     helperViewBeforeCompletion[0].requesterCompletedAt,
     ownerCompletedAt,
   );
@@ -190,10 +190,10 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   const helperHistory = await repository.listVisible(ids.helper);
   assert.equal(ownerHistory[0].status, "completed");
   assert.equal(helperHistory[0].status, "completed");
-  assert.equal(ownerHistory[0].completedAt, completedAt);
-  assert.equal(helperHistory[0].completedAt, completedAt);
-  assert.equal(ownerHistory[0].requesterCompletedAt, ownerCompletedAt);
-  assert.equal(helperHistory[0].claimantCompletedAt, completedAt);
+  assert.deepEqual(ownerHistory[0].completedAt, completedAt);
+  assert.deepEqual(helperHistory[0].completedAt, completedAt);
+  assert.deepEqual(ownerHistory[0].requesterCompletedAt, ownerCompletedAt);
+  assert.deepEqual(helperHistory[0].claimantCompletedAt, completedAt);
   assert.deepEqual(ownerHistory[0].gratitude, {
     statementId: "meal-care-felt-easy",
     message: "The soup made tonight possible.",

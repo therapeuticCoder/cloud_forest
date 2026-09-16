@@ -183,6 +183,129 @@ button:focus-visible {
   margin-inline: auto;
 }
 
+.timeline-post-composer-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(3, 16, 11, 0.68);
+}
+
+.timeline-post-composer {
+  display: grid;
+  width: min(100%, 36rem);
+  max-height: min(90svh, 42rem);
+  gap: 10px;
+  margin: 0;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid rgba(228, 236, 217, 0.28);
+  border-radius: 16px;
+  background: rgba(10, 42, 29, 0.78);
+  color: #f0f2e7;
+}
+
+.timeline-post-composer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.timeline-post-composer__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.timeline-post-composer > label,
+.timeline-post-composer__controls > label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.timeline-post-composer textarea,
+.timeline-post-composer select {
+  border: 1px solid rgba(228, 236, 217, 0.35);
+  border-radius: 10px;
+  color: var(--forest-ink);
+  background: var(--forest-card);
+  font: inherit;
+}
+
+.timeline-post-composer textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  resize: vertical;
+  padding: 11px 12px;
+}
+
+.timeline-post-composer textarea:focus-visible,
+.timeline-post-composer select:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 2px;
+}
+
+.timeline-post-composer__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeline-post-composer select {
+  min-height: 2.5rem;
+  padding: 5px 30px 5px 9px;
+}
+
+.timeline-post-composer__controls button {
+  min-height: 2.5rem;
+  margin-left: auto;
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--forest-pine);
+  background: var(--forest-amber);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.timeline-post-composer__close {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  border: 1px solid rgba(228, 236, 217, 0.35);
+  border-radius: 999px;
+  color: #f0f2e7;
+  background: transparent;
+  cursor: pointer;
+}
+
+.timeline-post-composer__close svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.timeline-post-composer__controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.timeline-post-composer__controls button:focus-visible,
+.timeline-post-composer__close:focus-visible {
+  outline: 3px solid #f0f2e7;
+  outline-offset: 2px;
+}
+
+.timeline-post-composer p {
+  margin: 0;
+  color: rgba(240, 242, 231, 0.75);
+  font-size: 0.82rem;
+}
+
 .care-perspective-switcher {
   display: flex;
   width: min(80vw, 980px);
@@ -650,6 +773,20 @@ button:focus-visible {
   }
   .timeline-feed {
     width: calc(100% - 32px);
+  }
+  .timeline-post-composer {
+    padding: 13px;
+  }
+  .timeline-post-composer-overlay {
+    align-items: end;
+    padding: 0.75rem;
+  }
+  .timeline-post-composer__controls {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .timeline-post-composer__controls button {
+    margin-left: 0;
   }
   .care-perspective-switcher {
     width: calc(100% - 32px);

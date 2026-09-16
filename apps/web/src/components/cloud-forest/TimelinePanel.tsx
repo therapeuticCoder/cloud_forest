@@ -1,7 +1,9 @@
 import {
   createApiClient,
   type ApiClient,
+  type CreateTimelinePostResult,
   type GetTimelineItemResponse,
+  type GetTimelineItemsResult,
 } from "@cloud-forest/api-client";
 import {
   Building2,
@@ -10,8 +12,9 @@ import {
   RadioTower,
   Sprout,
   UsersRound,
+  X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 
 import type { CloudForestLayer } from "@/types/cloudForest";
 import type {
@@ -22,8 +25,8 @@ import type {
 } from "@/types/careRequest";
 import {
   clearTimelineItemSnapshot,
-  loadTimelineItemSnapshot,
-  saveTimelineItemSnapshot,
+  loadTimelineItemsSnapshot,
+  saveTimelineItemsSnapshot,
 } from "@/lib/timelineItemStorage";
 
 import { CareOfferCard } from "./CareOfferCard";
@@ -31,21 +34,26 @@ import { CareGratitudeCard } from "./CareGratitudeCard";
 import { CareRequestCard } from "./CareRequestCard";
 import { TimelineCard, type TimelineCardItem } from "./TimelineCard";
 
-const selectedTimelineItemId = "timeline-item-mira-soup-001";
 const timelineApiClient = createApiClient({
   baseUrl: "",
   fetch: (input, init) => globalThis.fetch(input, init),
 });
 
 type RemoteTimelineItem = GetTimelineItemResponse["data"]["timelineItem"];
+type TimelineItemsFailure = Extract<GetTimelineItemsResult, { ok: false }>;
 type TimelineLayerFilter = Exclude<CloudForestLayer, "self">;
+
+export type TimelineApiClient = Partial<
+  Pick<ApiClient, "createTimelinePost" | "getTimelineItems">
+>;
 
 type TimelineItemState =
   | { status: "loading" }
   | {
       status: "success";
-      item: RemoteTimelineItem;
+      items: readonly RemoteTimelineItem[];
       source: "cache" | "live";
+      offline: boolean;
     }
   | { status: "empty" }
   | { status: "error"; recoverable: boolean };
@@ -159,60 +167,82 @@ function CareListings({
   );
 }
 
-function initialTimelineItemState(cacheOwnerId?: string): TimelineItemState {
-  const cachedItem = cacheOwnerId
-    ? loadTimelineItemSnapshot(cacheOwnerId)
+function initialTimelineItemsState(cacheOwnerId?: string): TimelineItemState {
+  const cachedItems = cacheOwnerId
+    ? loadTimelineItemsSnapshot(cacheOwnerId)
     : undefined;
-  return cachedItem
-    ? { status: "success", item: cachedItem, source: "cache" }
+  return cachedItems
+    ? {
+        status: "success",
+        items: cachedItems,
+        source: "cache",
+        offline: false,
+      }
     : { status: "loading" };
 }
 
-function useRemoteTimelineItem(
-  apiClient: Pick<ApiClient, "getTimelineItem">,
+function useRemoteTimelineItems(
+  apiClient: TimelineApiClient,
   cacheOwnerId?: string,
 ) {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<TimelineItemState>(() =>
-    initialTimelineItemState(cacheOwnerId),
+    initialTimelineItemsState(cacheOwnerId),
   );
-
   useEffect(() => {
     let active = true;
 
-    void apiClient
-      .getTimelineItem({ timelineItemId: selectedTimelineItemId })
-      .then((result) => {
+    const applyFailure = (result: TimelineItemsFailure) => {
+      if (!active) return;
+
+      if (result.kind === "unexpected-response" && result.status === 404) {
+        clearTimelineItemSnapshot(cacheOwnerId ?? "");
+        setState({ status: "empty" });
+        return;
+      }
+
+      if (result.kind === "http" && result.status === 401) {
+        clearTimelineItemSnapshot(cacheOwnerId ?? "");
+      }
+
+      const recoverable =
+        result.kind === "network" ||
+        (result.kind === "unexpected-response" && result.status >= 500);
+      if (recoverable) {
+        const cachedItems = cacheOwnerId
+          ? loadTimelineItemsSnapshot(cacheOwnerId)
+          : undefined;
+        if (cachedItems) {
+          setState({
+            status: "success",
+            items: cachedItems,
+            source: "cache",
+            offline: true,
+          });
+          return;
+        }
+      }
+
+      setState({ status: "error", recoverable });
+    };
+
+    if (apiClient.getTimelineItems) {
+      void apiClient.getTimelineItems().then((result) => {
         if (!active) return;
-
         if (result.ok) {
-          const item = result.value.data.timelineItem;
-          saveTimelineItemSnapshot(cacheOwnerId ?? "", item);
-          setState({ status: "success", item, source: "live" });
+          const items = result.value.data.timelineItems;
+          saveTimelineItemsSnapshot(cacheOwnerId ?? "", [...items]);
+          setState({
+            status: "success",
+            items,
+            source: "live",
+            offline: false,
+          });
           return;
         }
-
-        if (result.kind === "http" && result.status === 404) {
-          clearTimelineItemSnapshot(cacheOwnerId ?? "");
-          setState({ status: "empty" });
-          return;
-        }
-
-        const recoverable =
-          result.kind === "network" ||
-          (result.kind === "unexpected-response" && result.status >= 500);
-        if (recoverable) {
-          const cachedItem = cacheOwnerId
-            ? loadTimelineItemSnapshot(cacheOwnerId)
-            : undefined;
-          if (cachedItem) {
-            setState({ status: "success", item: cachedItem, source: "cache" });
-            return;
-          }
-        }
-
-        setState({ status: "error", recoverable });
+        applyFailure(result);
       });
+    }
 
     return () => {
       active = false;
@@ -224,7 +254,26 @@ function useRemoteTimelineItem(
     setAttempt((value) => value + 1);
   };
 
-  return { retry, state };
+  const addPublishedItem = (item: RemoteTimelineItem) => {
+    setState((current) => {
+      const items =
+        current.status === "success"
+          ? [
+              item,
+              ...current.items.filter((candidate) => candidate.id !== item.id),
+            ]
+          : [item];
+      items.sort(
+        (first, second) =>
+          new Date(second.publishedAt).getTime() -
+          new Date(first.publishedAt).getTime(),
+      );
+      saveTimelineItemsSnapshot(cacheOwnerId ?? "", items);
+      return { status: "success", items, source: "live", offline: false };
+    });
+  };
+
+  return { addPublishedItem, retry, state };
 }
 
 function TimelineItemSlot({
@@ -237,23 +286,38 @@ function TimelineItemSlot({
   state: TimelineItemState;
 }) {
   if (state.status === "success") {
-    const item = remoteTimelineItemToCardItem(state.item);
-    if (layerFilter !== null && item.actor.layer !== layerFilter) {
+    const items = state.items.filter(
+      (item) => layerFilter === null || item.actor.layer === layerFilter,
+    );
+    if (items.length === 0) {
       return (
         <div aria-live="polite" className="timeline-remote-state" role="status">
-          No live Timeline item is available in this layer.
+          {layerFilter === null
+            ? "No Timeline posts yet."
+            : "No Timeline posts are available in this layer."}
         </div>
       );
     }
     return (
-      <TimelineCard item={item} time={formatActivityTime(item.publishedAt)} />
+      <>
+        {items.map((remoteItem) => {
+          const item = remoteTimelineItemToCardItem(remoteItem);
+          return (
+            <TimelineCard
+              item={item}
+              key={item.id}
+              time={formatActivityTime(item.publishedAt)}
+            />
+          );
+        })}
+      </>
     );
   }
 
   if (state.status === "empty") {
     return (
       <div aria-live="polite" className="timeline-remote-state" role="status">
-        No live Timeline item is available.
+        No Timeline posts yet.
       </div>
     );
   }
@@ -261,7 +325,7 @@ function TimelineItemSlot({
   if (state.status === "error") {
     return (
       <div className="timeline-remote-state" role="alert">
-        <span>One live Timeline item could not be loaded.</span>
+        <span>Live Timeline posts could not be loaded.</span>
         <button type="button" onClick={onRetry}>
           Try again
         </button>
@@ -271,7 +335,125 @@ function TimelineItemSlot({
 
   return (
     <div aria-live="polite" className="timeline-remote-state" role="status">
-      Loading one live Timeline item…
+      Loading Timeline…
+    </div>
+  );
+}
+
+function TimelinePostComposer({
+  apiClient,
+  disabled,
+  onClose,
+  onPublished,
+}: {
+  apiClient: TimelineApiClient;
+  disabled: boolean;
+  onClose: () => void;
+  onPublished: (item: RemoteTimelineItem) => void;
+}) {
+  const bodyId = useId();
+  const audienceId = useId();
+  const [content, setContent] = useState("");
+  const [audience, setAudience] = useState<"party" | "tribe">("party");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string>();
+  const createTimelinePost = apiClient.createTimelinePost;
+
+  if (createTimelinePost === undefined) return null;
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedContent = content.trim();
+    if (!trimmedContent || disabled || pending) return;
+
+    setPending(true);
+    setError(undefined);
+    const result: CreateTimelinePostResult = await createTimelinePost({
+      content: trimmedContent,
+      audience,
+    });
+    if (result.ok) {
+      onPublished(result.value.data.timelineItem);
+      setContent("");
+    } else if (result.kind === "http") {
+      setError(result.error.error.message);
+    } else if (result.kind === "network") {
+      setError(
+        "Cloud Forest could not publish this post. Reconnect and try again.",
+      );
+    } else {
+      setError("Cloud Forest could not publish this post. Try again.");
+    }
+    setPending(false);
+  };
+
+  return (
+    <div
+      className="timeline-post-composer-overlay"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <form
+        aria-labelledby={`${bodyId}-title`}
+        aria-modal="true"
+        className="timeline-post-composer"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") onClose();
+        }}
+        onSubmit={submit}
+        role="dialog"
+      >
+        <div className="timeline-post-composer__header">
+          <h2 id={`${bodyId}-title`}>Write a post</h2>
+          <button
+            aria-label="Close post composer"
+            className="timeline-post-composer__close"
+            onClick={onClose}
+            type="button"
+          >
+            <X aria-hidden="true" />
+          </button>
+        </div>
+        <label htmlFor={bodyId}>Post</label>
+        <textarea
+          aria-describedby={disabled ? `${bodyId}-offline` : undefined}
+          autoFocus
+          disabled={disabled || pending}
+          id={bodyId}
+          maxLength={10_000}
+          onChange={(event) => setContent(event.target.value)}
+          placeholder="Share something with your people"
+          rows={3}
+          value={content}
+        />
+        <div className="timeline-post-composer__controls">
+          <label htmlFor={audienceId}>Audience</label>
+          <select
+            disabled={disabled || pending}
+            id={audienceId}
+            onChange={(event) =>
+              setAudience(event.target.value as "party" | "tribe")
+            }
+            value={audience}
+          >
+            <option value="party">Party</option>
+            <option value="tribe">Tribe</option>
+          </select>
+          <button
+            disabled={disabled || pending || !content.trim()}
+            type="submit"
+          >
+            {pending ? "Publishing…" : "Publish"}
+          </button>
+        </div>
+        {disabled ? (
+          <p id={`${bodyId}-offline`} role="status">
+            Publishing is unavailable offline. Reconnect to share a post.
+          </p>
+        ) : null}
+        {error ? <p role="alert">{error}</p> : null}
+      </form>
     </div>
   );
 }
@@ -302,8 +484,11 @@ export function TimelinePanel({
   viewerCompletedRequestIds = noCompletedRequestIds,
   otherParticipantCompletedRequestIds = noCompletedRequestIds,
   viewerId = "you",
+  offline = false,
+  postComposerOpen = false,
+  onClosePostComposer = () => undefined,
 }: {
-  apiClient?: Pick<ApiClient, "getTimelineItem">;
+  apiClient?: TimelineApiClient;
   careGratitudes?: CareGratitude[];
   careGratitudeRequests?: ReceiveCareRequest[];
   careOffers?: GiveCareOffer[];
@@ -328,15 +513,18 @@ export function TimelinePanel({
   viewerCompletedRequestIds?: Set<string>;
   otherParticipantCompletedRequestIds?: Set<string>;
   viewerId?: CarePersonId;
+  offline?: boolean;
+  postComposerOpen?: boolean;
+  onClosePostComposer?: () => void;
 }) {
-  const timelineItem = useRemoteTimelineItem(apiClient, cacheOwnerId);
+  const timelineItems = useRemoteTimelineItems(apiClient, cacheOwnerId);
+  const timelineIsOffline =
+    offline ||
+    (timelineItems.state.status === "success" && timelineItems.state.offline) ||
+    (timelineItems.state.status === "error" && timelineItems.state.recoverable);
   useEffect(() => {
-    const timelineIsOffline =
-      (timelineItem.state.status === "success" &&
-        timelineItem.state.source === "cache") ||
-      (timelineItem.state.status === "error" && timelineItem.state.recoverable);
     onOfflineChange?.(timelineIsOffline);
-  }, [onOfflineChange, timelineItem.state]);
+  }, [onOfflineChange, timelineIsOffline]);
   const [careFilter, setCareFilter] = useState<"all" | "give" | "receive">(
     "all",
   );
@@ -365,6 +553,17 @@ export function TimelinePanel({
 
   return (
     <div className="timeline-feed">
+      {postComposerOpen ? (
+        <TimelinePostComposer
+          apiClient={apiClient}
+          disabled={timelineIsOffline}
+          onClose={onClosePostComposer}
+          onPublished={(item) => {
+            timelineItems.addPublishedItem(item);
+            onClosePostComposer();
+          }}
+        />
+      ) : null}
       <div aria-label="Relationship layers" className="timeline-layer-key">
         <button
           aria-label="Filter to Party"
@@ -517,8 +716,8 @@ export function TimelinePanel({
             ) : null}
             <TimelineItemSlot
               layerFilter={layerFilter}
-              onRetry={timelineItem.retry}
-              state={timelineItem.state}
+              onRetry={timelineItems.retry}
+              state={timelineItems.state}
             />
           </>
         )}

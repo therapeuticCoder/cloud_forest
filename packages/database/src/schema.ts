@@ -14,6 +14,7 @@ import {
 
 import type {
   CuratedPersonPlacement,
+  TimelineAudience,
   TimelineItemLayer,
 } from "@cloud-forest/domain";
 
@@ -38,6 +39,11 @@ export const timelineItems = pgTable(
       () => users.id,
       { onDelete: "cascade" },
     ),
+    authorUserId: varchar("author_user_id", { length: 128 }).references(
+      () => users.id,
+      { onDelete: "cascade" },
+    ),
+    audience: varchar("audience", { length: 16 }).$type<TimelineAudience>(),
     actorId: varchar("actor_id", { length: 128 }).notNull(),
     actorDisplayName: varchar("actor_display_name", { length: 200 }).notNull(),
     actorLayer: varchar("actor_layer", { length: 16 })
@@ -53,6 +59,10 @@ export const timelineItems = pgTable(
   },
   (table) => [
     index("timeline_items_owner_index").on(table.ownerUserId),
+    index("timeline_items_author_published_index").on(
+      table.authorUserId,
+      table.publishedAt,
+    ),
     check("timeline_items_id_length", sql`char_length(${table.id}) >= 1`),
     check(
       "timeline_items_actor_id_length",
@@ -77,6 +87,10 @@ export const timelineItems = pgTable(
     check(
       "timeline_items_content_length",
       sql`char_length(${table.content}) between 1 and 10000`,
+    ),
+    check(
+      "timeline_items_post_fields_together",
+      sql`(${table.authorUserId} is null and ${table.audience} is null) or (${table.authorUserId} is not null and ${table.audience} in ('party', 'tribe'))`,
     ),
   ],
 );
