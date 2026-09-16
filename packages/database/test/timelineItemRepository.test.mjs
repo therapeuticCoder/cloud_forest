@@ -151,6 +151,14 @@ test("user-backed posts follow relational audience and block state", async (t) =
     tribePost,
   ]);
   assert.deepEqual(await repository.listForViewer(unconnectedViewerUserId), []);
+  assert.deepEqual(
+    await repository.findByIdForViewer(partyPost.id, partyViewerUserId),
+    partyPost,
+  );
+  assert.equal(
+    await repository.findByIdForViewer(tribePost.id, partyViewerUserId),
+    null,
+  );
 
   await database.insert(relationshipBlocks).values({
     blockerUserId: partyViewerUserId,
@@ -158,6 +166,10 @@ test("user-backed posts follow relational audience and block state", async (t) =
     createdAt: new Date(now.getTime() + 2_000),
   });
   assert.deepEqual(await repository.listForViewer(partyViewerUserId), []);
+  assert.equal(
+    await repository.findByIdForViewer(partyPost.id, partyViewerUserId),
+    null,
+  );
 });
 
 test("a Timeline post is private to its author when no audience connection exists", async (t) => {

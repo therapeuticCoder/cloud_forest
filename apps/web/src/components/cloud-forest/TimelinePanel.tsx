@@ -104,31 +104,8 @@ type CareListing =
   | { kind: "give"; item: GiveCareOffer }
   | { kind: "receive"; item: ReceiveCareRequest };
 
-const noClaimedRequestIds = new Set<string>();
-const noMinimizedRequestIds = new Set<string>();
-const noPassableRequestIds = new Set<string>();
-const noCompletedRequestIds = new Set<string>();
-
-function CareListings({
-  claimedRequestIds,
-  listings,
-  onClaimOffer,
-  minimizedRequestIds,
-  onOfferHelp,
-  onRecordCompleted,
-  onRecordNotCompleted,
-  onPass,
-  onSetRequestMinimized,
-  onWithdraw,
-  onWithdrawOffer,
-  passableRequestIds,
-  viewerClaimedRequestIds,
-  viewerCompletedRequestIds,
-  otherParticipantCompletedRequestIds,
-  viewerId,
-}: {
+type CareListingCardProps = {
   claimedRequestIds: Set<string>;
-  listings: CareListing[];
   onClaimOffer?: (offerId: string) => void;
   minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
@@ -143,42 +120,61 @@ function CareListings({
   viewerCompletedRequestIds: Set<string>;
   otherParticipantCompletedRequestIds: Set<string>;
   viewerId: CarePersonId;
-}) {
-  return listings.map((listing) =>
-    listing.kind === "give" ? (
+};
+
+const noClaimedRequestIds = new Set<string>();
+const noMinimizedRequestIds = new Set<string>();
+const noPassableRequestIds = new Set<string>();
+const noCompletedRequestIds = new Set<string>();
+
+function CareListingCard({
+  listing,
+  ...props
+}: CareListingCardProps & { listing: CareListing }) {
+  if (listing.kind === "give") {
+    return (
       <CareOfferCard
-        key={listing.item.id}
         offer={listing.item}
-        onClaim={onClaimOffer}
-        onWithdraw={onWithdrawOffer}
-        viewerId={viewerId}
+        onClaim={props.onClaimOffer}
+        onWithdraw={props.onWithdrawOffer}
+        viewerId={props.viewerId}
       />
-    ) : (
-      <CareRequestCard
-        canPass={passableRequestIds.has(listing.item.id)}
-        claimed={claimedRequestIds.has(listing.item.id)}
-        key={listing.item.id}
-        minimized={minimizedRequestIds.has(listing.item.id)}
-        onOfferHelp={onOfferHelp}
-        onRecordCompleted={onRecordCompleted}
-        onRecordNotCompleted={onRecordNotCompleted}
-        onPass={onPass}
-        onSetMinimized={onSetRequestMinimized}
-        onWithdraw={onWithdraw}
-        request={listing.item}
-        viewerId={viewerId}
-        viewerCompletion={
-          viewerCompletedRequestIds.has(listing.item.id)
-            ? "completed"
-            : undefined
-        }
-        viewerIsClaimer={viewerClaimedRequestIds.has(listing.item.id)}
-        otherParticipantCompleted={otherParticipantCompletedRequestIds.has(
-          listing.item.id,
-        )}
-      />
-    ),
+    );
+  }
+
+  return (
+    <CareRequestCard
+      canPass={props.passableRequestIds.has(listing.item.id)}
+      claimed={props.claimedRequestIds.has(listing.item.id)}
+      minimized={props.minimizedRequestIds.has(listing.item.id)}
+      onOfferHelp={props.onOfferHelp}
+      onRecordCompleted={props.onRecordCompleted}
+      onRecordNotCompleted={props.onRecordNotCompleted}
+      onPass={props.onPass}
+      onSetMinimized={props.onSetRequestMinimized}
+      onWithdraw={props.onWithdraw}
+      request={listing.item}
+      viewerId={props.viewerId}
+      viewerCompletion={
+        props.viewerCompletedRequestIds.has(listing.item.id)
+          ? "completed"
+          : undefined
+      }
+      viewerIsClaimer={props.viewerClaimedRequestIds.has(listing.item.id)}
+      otherParticipantCompleted={props.otherParticipantCompletedRequestIds.has(
+        listing.item.id,
+      )}
+    />
   );
+}
+
+function CareListings({
+  listings,
+  ...props
+}: CareListingCardProps & { listings: CareListing[] }) {
+  return listings.map((listing) => (
+    <CareListingCard key={listing.item.id} listing={listing} {...props} />
+  ));
 }
 
 function initialTimelineItemsState(cacheOwnerId?: string): TimelineItemState {
@@ -354,6 +350,136 @@ function TimelineItemSlot({
   );
 }
 
+type TimelineActivity =
+  | { kind: "post"; item: RemoteTimelineItem }
+  | { kind: "care-listing"; listing: CareListing }
+  | {
+      kind: "care-gratitude";
+      gratitude: CareGratitude;
+      request: ReceiveCareRequest;
+    };
+
+function timelineActivityTime(activity: TimelineActivity) {
+  if (activity.kind === "post") {
+    return new Date(activity.item.publishedAt).getTime();
+  }
+  if (activity.kind === "care-listing") {
+    return new Date(activity.listing.item.createdAt).getTime();
+  }
+  return new Date(activity.gratitude.createdAt).getTime();
+}
+
+function timelineActivityKey(activity: TimelineActivity) {
+  if (activity.kind === "post") return `post-${activity.item.id}`;
+  if (activity.kind === "care-listing") {
+    return `care-listing-${activity.listing.item.id}`;
+  }
+  return `care-gratitude-${activity.gratitude.id}`;
+}
+
+function TimelineActivityCard({
+  activity,
+  careListingCardProps,
+}: {
+  activity: TimelineActivity;
+  careListingCardProps: CareListingCardProps;
+}) {
+  if (activity.kind === "post") {
+    const item = remoteTimelineItemToCardItem(activity.item);
+    return (
+      <TimelineCard item={item} time={formatActivityTime(item.publishedAt)} />
+    );
+  }
+  if (activity.kind === "care-listing") {
+    return (
+      <CareListingCard listing={activity.listing} {...careListingCardProps} />
+    );
+  }
+  return (
+    <CareGratitudeCard
+      gratitude={activity.gratitude}
+      request={activity.request}
+    />
+  );
+}
+
+function TimelineActivitySlot({
+  careGratitudes,
+  careGratitudeRequests,
+  careListingCardProps,
+  careListings,
+  onRetry,
+  state,
+}: {
+  careGratitudes: CareGratitude[];
+  careGratitudeRequests: ReceiveCareRequest[];
+  careListingCardProps: CareListingCardProps;
+  careListings: CareListing[];
+  onRetry: () => void;
+  state: TimelineItemState;
+}) {
+  const activities: TimelineActivity[] = [
+    ...careListings.map((listing) => ({
+      kind: "care-listing" as const,
+      listing,
+    })),
+    ...careGratitudes.flatMap((gratitude) => {
+      const request = careGratitudeRequests.find(
+        (candidate) => candidate.id === gratitude.requestId,
+      );
+      return request
+        ? [{ kind: "care-gratitude" as const, gratitude, request }]
+        : [];
+    }),
+    ...(state.status === "success"
+      ? state.items.map((item) => ({ kind: "post" as const, item }))
+      : []),
+  ].sort(
+    (first, second) =>
+      timelineActivityTime(second) - timelineActivityTime(first),
+  );
+
+  const activityCards = activities.map((activity) => (
+    <TimelineActivityCard
+      activity={activity}
+      careListingCardProps={careListingCardProps}
+      key={timelineActivityKey(activity)}
+    />
+  ));
+
+  if (state.status === "success" || state.status === "empty") {
+    if (activities.length > 0) return <>{activityCards}</>;
+    return (
+      <div aria-live="polite" className="timeline-remote-state" role="status">
+        No Timeline posts yet.
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <>
+        {activityCards}
+        <div className="timeline-remote-state" role="alert">
+          <span>Live Timeline posts could not be loaded.</span>
+          <button type="button" onClick={onRetry}>
+            Try again
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {activityCards}
+      <div aria-live="polite" className="timeline-remote-state" role="status">
+        Loading Timeline…
+      </div>
+    </>
+  );
+}
+
 function TimelinePostComposer({
   apiClient,
   disabled,
@@ -484,6 +610,7 @@ function TimelinePostComposer({
                     setAudienceMenuOpen(true);
                   } else if (event.key === "Escape" && audienceMenuOpen) {
                     event.preventDefault();
+                    event.stopPropagation();
                     setAudienceMenuOpen(false);
                   }
                 }}
@@ -526,6 +653,7 @@ function TimelinePostComposer({
                           ]?.focus();
                         } else if (event.key === "Escape") {
                           event.preventDefault();
+                          event.stopPropagation();
                           setAudienceMenuOpen(false);
                           audienceTriggerRef.current?.focus();
                         } else if (event.key === "Tab") {
@@ -655,6 +783,23 @@ export function TimelinePanel({
     setLayerFilter((current) => (current === nextLayer ? null : nextLayer));
     setCareFilter("all");
   };
+  const careListingCardProps: CareListingCardProps = {
+    claimedRequestIds,
+    minimizedRequestIds,
+    onOfferHelp,
+    onClaimOffer,
+    onRecordCompleted,
+    onRecordNotCompleted,
+    onPass,
+    onSetRequestMinimized,
+    onWithdraw,
+    onWithdrawOffer,
+    passableRequestIds,
+    viewerClaimedRequestIds,
+    viewerCompletedRequestIds,
+    otherParticipantCompletedRequestIds,
+    viewerId,
+  };
 
   return (
     <div className="timeline-feed">
@@ -750,41 +895,11 @@ export function TimelinePanel({
         </p>
       ) : null}
       <div className="timeline-list">
-        {!showCareListingsOnly
-          ? careGratitudes.map((gratitude) => {
-              const request = careGratitudeRequests.find(
-                (candidate) => candidate.id === gratitude.requestId,
-              );
-              return request ? (
-                <CareGratitudeCard
-                  gratitude={gratitude}
-                  key={gratitude.id}
-                  request={request}
-                />
-              ) : null;
-            })
-          : null}
         {showCareListingsOnly ? (
           visibleCareListings.length > 0 ? (
             <CareListings
-              claimedRequestIds={claimedRequestIds}
+              {...careListingCardProps}
               listings={visibleCareListings}
-              onClaimOffer={onClaimOffer}
-              minimizedRequestIds={minimizedRequestIds}
-              onOfferHelp={onOfferHelp}
-              onRecordCompleted={onRecordCompleted}
-              onRecordNotCompleted={onRecordNotCompleted}
-              onPass={onPass}
-              onSetRequestMinimized={onSetRequestMinimized}
-              onWithdraw={onWithdraw}
-              onWithdrawOffer={onWithdrawOffer}
-              passableRequestIds={passableRequestIds}
-              viewerClaimedRequestIds={viewerClaimedRequestIds}
-              viewerCompletedRequestIds={viewerCompletedRequestIds}
-              otherParticipantCompletedRequestIds={
-                otherParticipantCompletedRequestIds
-              }
-              viewerId={viewerId}
             />
           ) : (
             <div
@@ -795,36 +910,21 @@ export function TimelinePanel({
               No care listings yet.
             </div>
           )
+        ) : layerFilter === null ? (
+          <TimelineActivitySlot
+            careGratitudes={careGratitudes}
+            careGratitudeRequests={careGratitudeRequests}
+            careListingCardProps={careListingCardProps}
+            careListings={careListings}
+            onRetry={timelineItems.retry}
+            state={timelineItems.state}
+          />
         ) : (
-          <>
-            {layerFilter === null ? (
-              <CareListings
-                claimedRequestIds={claimedRequestIds}
-                listings={careListings}
-                onClaimOffer={onClaimOffer}
-                minimizedRequestIds={minimizedRequestIds}
-                onOfferHelp={onOfferHelp}
-                onRecordCompleted={onRecordCompleted}
-                onRecordNotCompleted={onRecordNotCompleted}
-                onPass={onPass}
-                onSetRequestMinimized={onSetRequestMinimized}
-                onWithdraw={onWithdraw}
-                onWithdrawOffer={onWithdrawOffer}
-                passableRequestIds={passableRequestIds}
-                viewerClaimedRequestIds={viewerClaimedRequestIds}
-                viewerCompletedRequestIds={viewerCompletedRequestIds}
-                otherParticipantCompletedRequestIds={
-                  otherParticipantCompletedRequestIds
-                }
-                viewerId={viewerId}
-              />
-            ) : null}
-            <TimelineItemSlot
-              layerFilter={layerFilter}
-              onRetry={timelineItems.retry}
-              state={timelineItems.state}
-            />
-          </>
+          <TimelineItemSlot
+            layerFilter={layerFilter}
+            onRetry={timelineItems.retry}
+            state={timelineItems.state}
+          />
         )}
       </div>
     </div>

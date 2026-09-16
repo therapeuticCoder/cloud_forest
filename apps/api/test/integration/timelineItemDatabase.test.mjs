@@ -117,6 +117,16 @@ test("the API publishes and lists a user-backed Timeline post", async (t) => {
   assert.equal(publishResponse.statusCode, 200);
   const published = publishResponse.json().data.timelineItem;
 
+  const authorItemResponse = await server.inject({
+    method: "GET",
+    url: `/api/v1/timeline-items/${published.id}`,
+  });
+  assert.equal(authorItemResponse.statusCode, 200);
+  assert.deepEqual(authorItemResponse.json(), {
+    apiVersion: "v1",
+    data: { timelineItem: published },
+  });
+
   currentUserId = viewerUserId;
   const listResponse = await server.inject({
     method: "GET",
@@ -126,5 +136,15 @@ test("the API publishes and lists a user-backed Timeline post", async (t) => {
   assert.deepEqual(listResponse.json(), {
     apiVersion: "v1",
     data: { timelineItems: [published] },
+  });
+
+  const itemResponse = await server.inject({
+    method: "GET",
+    url: `/api/v1/timeline-items/${published.id}`,
+  });
+  assert.equal(itemResponse.statusCode, 200);
+  assert.deepEqual(itemResponse.json(), {
+    apiVersion: "v1",
+    data: { timelineItem: published },
   });
 });

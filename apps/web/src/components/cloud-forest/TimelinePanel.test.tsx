@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { GetTimelineItemsResult } from "@cloud-forest/api-client";
@@ -74,6 +74,89 @@ describe("TimelinePanel live item seam", () => {
     expect(cards[1]).toHaveTextContent("Meal offer");
   });
 
+  it("interleaves Timeline posts and Care records chronologically", async () => {
+    const offer: GiveCareOffer = {
+      id: "offer-chronology",
+      kind: "meal",
+      direction: "give",
+      offer: "A meal",
+      mealDescription: "Soup",
+      availableWhen: "Tonight",
+      handoffStyle: "I can deliver it",
+      audience: "Party",
+      status: "available",
+      createdAt: "2026-09-02T18:00:00.000Z",
+      giver: { id: "you", displayName: "You" },
+    };
+    const request: ReceiveCareRequest = {
+      id: "request-chronology",
+      kind: "meal",
+      direction: "receive",
+      need: "A meal",
+      helpfulWhen: "Tomorrow",
+      foodWorks: "Rice",
+      foodDoesNotWork: "None",
+      handoffStyle: "Leave it at my door",
+      audience: "Party",
+      audienceSnapshot: {
+        partyMemberIds: ["mira"],
+        tribeMemberIds: ["neighbors-1"],
+      },
+      status: "open",
+      createdAt: "2026-09-02T19:00:00.000Z",
+      expiresAt: "2030-09-02T19:00:00.000Z",
+      requester: { kind: "self", id: "you", displayName: "You" },
+    };
+    const post = {
+      ...timelineItem,
+      publishedAt: "2026-09-02T20:00:00.000Z",
+    };
+
+    render(
+      <TimelinePanel
+        apiClient={{
+          getTimelineItems: vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            value: { apiVersion: "v1", data: { timelineItems: [post] } },
+          }),
+        }}
+        careOffers={[offer]}
+        careRequests={[request]}
+      />,
+    );
+
+    expect(await screen.findByText(post.content)).toBeInTheDocument();
+    const cards = screen.getAllByRole("article");
+    expect(cards[0]).toHaveTextContent(post.content);
+    expect(cards[1]).toHaveTextContent("Meal request");
+    expect(cards[2]).toHaveTextContent("Meal offer");
+  });
+
+  it("keeps the composer open when Escape closes the audience menu", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TimelinePanel
+        apiClient={{ createTimelinePost: vi.fn() }}
+        postComposerOpen
+      />,
+    );
+
+    const dialog = screen.getByRole("dialog");
+    const audienceTrigger = within(dialog).getByRole("button", {
+      name: "Audience",
+    });
+    await user.click(audienceTrigger);
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(audienceTrigger).toHaveFocus();
+  });
+
   it("shows loading and then renders the API-backed item", async () => {
     let resolveRequest: ((value: GetTimelineItemsResult) => void) | undefined;
     const apiClient = {
@@ -109,9 +192,9 @@ describe("TimelinePanel live item seam", () => {
 
     render(<TimelinePanel apiClient={apiClient} />);
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "No Timeline posts yet",
-    );
+    expect(
+      await screen.findByText("No Timeline posts yet."),
+    ).toBeInTheDocument();
   });
 
   it("filters the API-backed item by relationship layer", async () => {

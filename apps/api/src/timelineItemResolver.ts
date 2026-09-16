@@ -13,10 +13,10 @@ import type {
 export function createTimelineItemResolver(
   repository: TimelineItemRepository,
 ): TimelineItemResolver {
-  return async ({ timelineItemId }, ownerUserId) => {
-    const timelineItem = await repository.findByIdForOwner(
+  return async ({ timelineItemId }, viewerUserId) => {
+    const timelineItem = await repository.findByIdForViewer(
       timelineItemId,
-      ownerUserId,
+      viewerUserId,
     );
 
     if (timelineItem === null) {

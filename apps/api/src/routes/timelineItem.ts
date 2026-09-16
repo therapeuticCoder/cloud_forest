@@ -37,7 +37,7 @@ export type TimelineItemResolverResult =
 
 export type TimelineItemResolver = (
   request: GetTimelineItemRequest,
-  ownerUserId: string,
+  viewerUserId: string,
 ) => Promise<TimelineItemResolverResult> | TimelineItemResolverResult;
 
 type TimelineItemsSuccessResult = {

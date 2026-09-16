@@ -40,76 +40,75 @@ function mapTimelineItemRow(row: TimelineItemRow): TimelineItem {
   };
 }
 
+function visibleTimelineItemForViewer(
+  database: DatabaseClient,
+  viewerUserId: string,
+) {
+  const connectionWithAuthor = exists(
+    database
+      .select({ id: connections.id })
+      .from(connections)
+      .where(
+        or(
+          and(
+            eq(connections.firstUserId, viewerUserId),
+            eq(connections.secondUserId, timelineItems.authorUserId),
+          ),
+          and(
+            eq(connections.firstUserId, timelineItems.authorUserId),
+            eq(connections.secondUserId, viewerUserId),
+          ),
+        ),
+      ),
+  );
+  const authorPlacementMatches = exists(
+    database
+      .select({ id: curatedPersons.id })
+      .from(curatedPersons)
+      .where(
+        and(
+          eq(curatedPersons.ownerUserId, timelineItems.authorUserId),
+          eq(curatedPersons.linkedUserId, viewerUserId),
+          sql`${curatedPersons.placement} = ${timelineItems.audience}`,
+        ),
+      ),
+  );
+  const relationshipIsNotBlocked = notExists(
+    database
+      .select({ blockerUserId: relationshipBlocks.blockerUserId })
+      .from(relationshipBlocks)
+      .where(
+        or(
+          and(
+            eq(relationshipBlocks.blockerUserId, viewerUserId),
+            eq(relationshipBlocks.blockedUserId, timelineItems.authorUserId),
+          ),
+          and(
+            eq(relationshipBlocks.blockerUserId, timelineItems.authorUserId),
+            eq(relationshipBlocks.blockedUserId, viewerUserId),
+          ),
+        ),
+      ),
+  );
+
+  return and(
+    isNotNull(timelineItems.authorUserId),
+    isNotNull(timelineItems.audience),
+    relationshipIsNotBlocked,
+    or(
+      eq(timelineItems.authorUserId, viewerUserId),
+      and(connectionWithAuthor, authorPlacementMatches),
+    ),
+  );
+}
+
 export function createTimelineItemRepository(database: DatabaseClient) {
   return {
     async listForViewer(viewerUserId: string): Promise<TimelineItem[]> {
-      const connectionWithAuthor = exists(
-        database
-          .select({ id: connections.id })
-          .from(connections)
-          .where(
-            or(
-              and(
-                eq(connections.firstUserId, viewerUserId),
-                eq(connections.secondUserId, timelineItems.authorUserId),
-              ),
-              and(
-                eq(connections.firstUserId, timelineItems.authorUserId),
-                eq(connections.secondUserId, viewerUserId),
-              ),
-            ),
-          ),
-      );
-      const authorPlacementMatches = exists(
-        database
-          .select({ id: curatedPersons.id })
-          .from(curatedPersons)
-          .where(
-            and(
-              eq(curatedPersons.ownerUserId, timelineItems.authorUserId),
-              eq(curatedPersons.linkedUserId, viewerUserId),
-              sql`${curatedPersons.placement} = ${timelineItems.audience}`,
-            ),
-          ),
-      );
-      const relationshipIsNotBlocked = notExists(
-        database
-          .select({ blockerUserId: relationshipBlocks.blockerUserId })
-          .from(relationshipBlocks)
-          .where(
-            or(
-              and(
-                eq(relationshipBlocks.blockerUserId, viewerUserId),
-                eq(
-                  relationshipBlocks.blockedUserId,
-                  timelineItems.authorUserId,
-                ),
-              ),
-              and(
-                eq(
-                  relationshipBlocks.blockerUserId,
-                  timelineItems.authorUserId,
-                ),
-                eq(relationshipBlocks.blockedUserId, viewerUserId),
-              ),
-            ),
-          ),
-      );
-
       const rows = await database
         .select()
         .from(timelineItems)
-        .where(
-          and(
-            isNotNull(timelineItems.authorUserId),
-            isNotNull(timelineItems.audience),
-            relationshipIsNotBlocked,
-            or(
-              eq(timelineItems.authorUserId, viewerUserId),
-              and(connectionWithAuthor, authorPlacementMatches),
-            ),
-          ),
-        )
+        .where(visibleTimelineItemForViewer(database, viewerUserId))
         .orderBy(desc(timelineItems.publishedAt), desc(timelineItems.id));
 
       return rows.map(mapTimelineItemRow);
@@ -162,9 +161,9 @@ export function createTimelineItemRepository(database: DatabaseClient) {
       return created === undefined ? null : mapTimelineItemRow(created);
     },
 
-    async findByIdForOwner(
+    async findByIdForViewer(
       timelineItemId: string,
-      ownerUserId: string,
+      viewerUserId: string,
     ): Promise<TimelineItem | null> {
       const [row] = await database
         .select()
@@ -172,7 +171,7 @@ export function createTimelineItemRepository(database: DatabaseClient) {
         .where(
           and(
             eq(timelineItems.id, timelineItemId),
-            eq(timelineItems.ownerUserId, ownerUserId),
+            visibleTimelineItemForViewer(database, viewerUserId),
           ),
         )
         .limit(1);
