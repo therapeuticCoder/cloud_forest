@@ -25,11 +25,13 @@ export function TimelineView({
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
+  onPassOffer,
   onSetRequestMinimized,
   onWithdraw,
   onWithdrawOffer = () => undefined,
   onOfflineChange,
   passableRequestIds = noPassableRequestIds,
+  passableOfferIds = noPassableRequestIds,
   passAnnouncement,
   viewerId = "you",
   viewerClaimedRequestIds = noClaimedRequestIds,
@@ -52,6 +54,7 @@ export function TimelineView({
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
   onClaimOffer?: (offerId: string) => void;
+  onPassOffer?: (offer: GiveCareOffer) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass?: (request: ReceiveCareRequest) => void;
@@ -60,6 +63,7 @@ export function TimelineView({
   onWithdrawOffer?: (offerId: string) => void;
   onOfflineChange?: (offline: boolean) => void;
   passableRequestIds?: Set<string>;
+  passableOfferIds?: Set<string>;
   passAnnouncement?: string;
   cacheOwnerId?: string;
   viewerId?: CarePersonId;
@@ -86,6 +90,7 @@ export function TimelineView({
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
         onPass={onPass}
+        onPassOffer={onPassOffer}
         onSetRequestMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         onWithdrawOffer={onWithdrawOffer}
@@ -93,6 +98,7 @@ export function TimelineView({
         offline={offline}
         apiClient={apiClient}
         passableRequestIds={passableRequestIds}
+        passableOfferIds={passableOfferIds}
         passAnnouncement={passAnnouncement}
         cacheOwnerId={cacheOwnerId}
         postComposerOpen={postComposerOpen}

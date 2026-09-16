@@ -86,6 +86,10 @@ function createCareOfferApiClient(
       offers = offers.filter((offer) => offer.id !== careOfferId);
       return careOffersSuccess(offers);
     }),
+    passCareOffer: vi.fn(async ({ careOfferId }) => {
+      offers = offers.filter((offer) => offer.id !== careOfferId);
+      return careOffersSuccess(offers);
+    }),
   };
 }
 
@@ -152,6 +156,10 @@ function createCareApiClient(
             }
           : candidate,
       );
+      return careSuccess(requests);
+    }),
+    passCareRequest: vi.fn(async ({ careRequestId }) => {
+      requests = requests.filter((request) => request.id !== careRequestId);
       return careSuccess(requests);
     }),
     completeCareRequest: vi.fn(async ({ careRequestId }) => {
@@ -706,18 +714,37 @@ describe("App", () => {
     ).toHaveTextContent("Nothing spicy");
   });
 
-  it("does not offer a client-side pass for durable requests", async () => {
-    const firstRender = await renderAuthenticatedApp();
+  it("passes a durable request and keeps it hidden after remount", async () => {
+    const careApiClient = createCareApiClient();
+    const user = userEvent.setup();
+    const firstRender = await renderAuthenticatedApp(careApiClient);
     const incomingRequest = await screen.findByRole("article", {
       name: "Incoming meal care request from Anya Reed",
     });
 
-    expect(
-      within(incomingRequest).queryByRole("button", {
+    await user.click(
+      within(incomingRequest).getByRole("button", {
         name: "Pass this time",
       }),
+    );
+    await waitFor(() =>
+      expect(careApiClient.passCareRequest).toHaveBeenCalledWith({
+        careRequestId: "care-request-anya-meal-001",
+      }),
+    );
+    expect(
+      screen.queryByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
     ).not.toBeInTheDocument();
+
     firstRender.unmount();
+    await renderAuthenticatedApp(careApiClient);
+    expect(
+      screen.queryByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not expire durable requests in the browser", async () => {

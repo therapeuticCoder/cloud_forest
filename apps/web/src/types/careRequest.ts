@@ -3,6 +3,7 @@ export type CareRequester =
   | { kind: "party"; id: string; displayName: string };
 
 export type CarePersonId = string;
+export type CareAudience = "Party" | "Tribe";
 
 export type CarePublicPerson = {
   id: CarePersonId;
@@ -23,9 +24,9 @@ export type ReceiveCareRequest = {
   foodWorks: string;
   foodDoesNotWork: string;
   handoffStyle: string;
-  audience: "Party" | "Tribe";
+  audience: CareAudience;
   audienceSnapshot: CareAudienceSnapshot;
-  status: "open" | "claimed" | "orphaned" | "completed";
+  status: "open" | "claimed" | "orphaned" | "completed" | "expired";
   createdAt: string;
   claimedAt?: string;
   requesterCompletedAt?: string;
@@ -33,6 +34,7 @@ export type ReceiveCareRequest = {
   completedAt?: string;
   gratitude?: CareHistoryGratitude;
   expiresAt?: string;
+  expiredAt?: string;
   requester: CareRequester;
   claimant?: CarePublicPerson;
 };
@@ -143,8 +145,9 @@ export type GiveCareOffer = {
   mealDescription: string;
   availableWhen: string;
   handoffStyle: string;
-  audience: "Party";
-  status: "available";
+  audience: CareAudience;
+  status: "available" | "expired";
   createdAt: string;
+  expiredAt?: string;
   giver: CarePublicPerson;
 };

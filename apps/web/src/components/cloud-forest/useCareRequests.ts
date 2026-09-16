@@ -7,6 +7,7 @@ import {
   type CreateCareRequestResult,
   type GetCareRequestsResult,
   type GetCareRequestsResponse,
+  type PassCareRequestResult,
   type RecordCareGratitudeResult,
 } from "@cloud-forest/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,6 +19,7 @@ export type CareRequestApiClient = Pick<
   | "getCareRequests"
   | "createCareRequest"
   | "claimCareRequest"
+  | "passCareRequest"
   | "completeCareRequest"
   | "recordCareGratitude"
 >;
@@ -26,6 +28,7 @@ type CareRequestOperationResult =
   | GetCareRequestsResult
   | CreateCareRequestResult
   | ClaimCareRequestResult
+  | PassCareRequestResult
   | CompleteCareRequestResult
   | RecordCareGratitudeResult;
 type CareRequestRecord = GetCareRequestsResponse["data"]["requests"][number];
@@ -53,7 +56,7 @@ function toReceiveCareRequest(
     foodWorks: request.foodWorks,
     foodDoesNotWork: request.foodDoesNotWork,
     handoffStyle: request.handoffStyle,
-    audience: "Party",
+    audience: request.audience,
     audienceSnapshot: { partyMemberIds: [], tribeMemberIds: [] },
     status: request.status,
     createdAt: request.createdAt,
@@ -65,6 +68,7 @@ function toReceiveCareRequest(
       ? { claimantCompletedAt: request.claimantCompletedAt }
       : {}),
     ...(request.completedAt ? { completedAt: request.completedAt } : {}),
+    ...(request.expiredAt ? { expiredAt: request.expiredAt } : {}),
     ...(request.gratitude ? { gratitude: request.gratitude } : {}),
     requester: {
       kind: request.requester.personId === viewerPersonId ? "self" : "party",
@@ -204,6 +208,26 @@ export function useCareRequests(
     [apiClient, applyResult],
   );
 
+  const pass = useCallback(
+    async (careRequestId: string) => {
+      const requestSequence = ++requestSequenceRef.current;
+      const result = await apiClient.passCareRequest({ careRequestId });
+      if (result.ok) {
+        applyResult(result, requestSequence);
+      } else if (
+        result.kind === "http" &&
+        (result.status === 404 || result.status === 409)
+      ) {
+        const latest = await apiClient.getCareRequests();
+        applyResult(latest, requestSequence);
+      } else {
+        applyResult(result, requestSequence);
+      }
+      return result;
+    },
+    [apiClient, applyResult],
+  );
+
   const complete = useCallback(
     async (careRequestId: string) => {
       const requestSequence = ++requestSequenceRef.current;
@@ -256,5 +280,5 @@ export function useCareRequests(
     [apiClient, applyResult],
   );
 
-  return { claim, complete, create, load, recordGratitude, state };
+  return { claim, complete, create, load, pass, recordGratitude, state };
 }

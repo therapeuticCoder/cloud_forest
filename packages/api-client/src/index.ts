@@ -39,12 +39,14 @@ type DeleteCuratedPersonOperation = operations["deleteCuratedPersonV1"];
 type GetCareRequestsOperation = operations["getCareRequestsV1"];
 type CreateCareRequestOperation = operations["createCareRequestV1"];
 type ClaimCareRequestOperation = operations["claimCareRequestV1"];
+type PassCareRequestOperation = operations["passCareRequestV1"];
 type CompleteCareRequestOperation = operations["completeCareRequestV1"];
 type RecordCareGratitudeOperation = operations["recordCareGratitudeV1"];
 type GetCareOffersOperation = operations["getCareOffersV1"];
 type CreateCareOfferOperation = operations["createCareOfferV1"];
 type WithdrawCareOfferOperation = operations["withdrawCareOfferV1"];
 type ClaimCareOfferOperation = operations["claimCareOfferV1"];
+type PassCareOfferOperation = operations["passCareOfferV1"];
 type CurrentSessionOperation = operations["getCurrentSessionV1"];
 type LogoutOperation = operations["logoutV1"];
 
@@ -99,6 +101,8 @@ export type CreateCareRequestInput =
   CreateCareRequestOperation["requestBody"]["content"]["application/json"];
 export type ClaimCareRequestParameters =
   ClaimCareRequestOperation["parameters"]["path"];
+export type PassCareRequestParameters =
+  PassCareRequestOperation["parameters"]["path"];
 export type CompleteCareRequestParameters =
   CompleteCareRequestOperation["parameters"]["path"];
 export type RecordCareGratitudeInput =
@@ -115,6 +119,8 @@ export type WithdrawCareOfferParameters =
   WithdrawCareOfferOperation["parameters"]["path"];
 export type ClaimCareOfferParameters =
   ClaimCareOfferOperation["parameters"]["path"];
+export type PassCareOfferParameters =
+  PassCareOfferOperation["parameters"]["path"];
 export type CareRequestsErrorResponse = OperationResponseBody<
   GetCareRequestsOperation,
   401
@@ -136,6 +142,12 @@ export type ClaimCareRequestResult = ApiResult<
   GetCareRequestsResponse,
   400 | 401 | 404 | 409,
   OperationResponseBody<ClaimCareRequestOperation, 400 | 401 | 404 | 409>
+>;
+export type PassCareRequestResult = ApiResult<
+  200,
+  GetCareRequestsResponse,
+  401 | 404 | 409,
+  OperationResponseBody<PassCareRequestOperation, 401 | 404 | 409>
 >;
 export type CompleteCareRequestResult = ApiResult<
   200,
@@ -172,6 +184,12 @@ export type ClaimCareOfferResult = ApiResult<
   GetCareOffersResponse,
   401 | 404 | 409,
   OperationResponseBody<ClaimCareOfferOperation, 401 | 404 | 409>
+>;
+export type PassCareOfferResult = ApiResult<
+  200,
+  GetCareOffersResponse,
+  401 | 404 | 409,
+  OperationResponseBody<PassCareOfferOperation, 401 | 404 | 409>
 >;
 export type CurrentSessionResponse = OperationResponseBody<
   CurrentSessionOperation,
@@ -285,6 +303,9 @@ export interface ApiClient {
   claimCareRequest(
     parameters: ClaimCareRequestParameters,
   ): Promise<ClaimCareRequestResult>;
+  passCareRequest(
+    parameters: PassCareRequestParameters,
+  ): Promise<PassCareRequestResult>;
   completeCareRequest(
     parameters: CompleteCareRequestParameters,
   ): Promise<CompleteCareRequestResult>;
@@ -300,6 +321,9 @@ export interface ApiClient {
   claimCareOffer(
     parameters: ClaimCareOfferParameters,
   ): Promise<ClaimCareOfferResult>;
+  passCareOffer(
+    parameters: PassCareOfferParameters,
+  ): Promise<PassCareOfferResult>;
 }
 
 export interface CreateApiClientOptions {
@@ -568,6 +592,16 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
       );
     },
 
+    async passCareRequest({ careRequestId }) {
+      return parseCareRequestsResponse(
+        await request(
+          "POST",
+          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/pass`,
+        ),
+        [401, 404, 409] as const,
+      );
+    },
+
     async completeCareRequest({ careRequestId }) {
       return parseCareRequestsResponse(
         await request(
@@ -618,6 +652,16 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         await request(
           "POST",
           `/api/v1/care-offers/${encodeURIComponent(careOfferId)}/claim`,
+        ),
+        [401, 404, 409] as const,
+      );
+    },
+
+    async passCareOffer({ careOfferId }) {
+      return parseCareOffersResponse(
+        await request(
+          "POST",
+          `/api/v1/care-offers/${encodeURIComponent(careOfferId)}/pass`,
         ),
         [401, 404, 409] as const,
       );
@@ -691,6 +735,10 @@ function parseCareRequestsResponse(
 ): ClaimCareRequestResult;
 function parseCareRequestsResponse(
   result: RawRequestResult,
+  errorStatuses: readonly [401, 404, 409],
+): PassCareRequestResult;
+function parseCareRequestsResponse(
+  result: RawRequestResult,
   errorStatuses: readonly [400, 401, 404],
 ): CompleteCareRequestResult;
 function parseCareRequestsResponse(
@@ -700,6 +748,7 @@ function parseCareRequestsResponse(
   | GetCareRequestsResult
   | CreateCareRequestResult
   | ClaimCareRequestResult
+  | PassCareRequestResult
   | CompleteCareRequestResult {
   if (result.kind === "network") return result;
   if (result.status === 200 && isCareRequestsSuccessResponse(result.body)) {

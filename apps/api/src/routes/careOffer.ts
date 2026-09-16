@@ -1,6 +1,7 @@
 import {
   careApiVersion,
   careOfferClaimPath,
+  careOfferPassPath,
   careOfferErrorSchema,
   careOfferParamsSchema,
   careOfferPath,
@@ -45,9 +46,11 @@ function toApiOffer(
     mealDescription: offer.mealDescription,
     availableWhen: offer.availableWhen,
     handoffStyle: offer.handoffStyle,
-    audience: "Party" as const,
+    audience:
+      offer.audience === "party" ? ("Party" as const) : ("Tribe" as const),
     status: offer.status,
     createdAt: offer.createdAt.toISOString(),
+    ...(offer.expiredAt ? { expiredAt: offer.expiredAt.toISOString() } : {}),
     giver: offer.giver,
   };
 }
@@ -146,6 +149,44 @@ export const careOfferRoutes: FastifyPluginAsyncTypebox<Options> = async (
         giverUserId: current.userId,
       });
       if (!result.ok) return reply.status(404).send(error("NOT_FOUND"));
+      return visibleOffers(current.userId);
+    },
+  );
+
+  server.post(
+    careOfferPassPath,
+    {
+      schema: {
+        operationId: "passCareOfferV1",
+        tags: ["Care"],
+        params: careOfferParamsSchema,
+        response: {
+          200: careOffersSuccessSchema,
+          401: careOfferErrorSchema,
+          404: careOfferErrorSchema,
+          409: careOfferErrorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.repository.pass({
+        careOfferId: request.params.careOfferId,
+        viewerUserId: current.userId,
+        now: new Date(),
+      });
+      if (!result.ok) {
+        return reply
+          .status(result.error === "care-offer-already-claimed" ? 409 : 404)
+          .send(
+            error(
+              result.error === "care-offer-already-claimed"
+                ? "ALREADY_CLAIMED"
+                : "NOT_FOUND",
+            ),
+          );
+      }
       return visibleOffers(current.userId);
     },
   );

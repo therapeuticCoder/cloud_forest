@@ -107,6 +107,7 @@ type CareListing =
 type CareListingCardProps = {
   claimedRequestIds: Set<string>;
   onClaimOffer?: (offerId: string) => void;
+  onPassOffer?: (offer: GiveCareOffer) => void;
   minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
@@ -116,6 +117,7 @@ type CareListingCardProps = {
   onWithdraw?: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
   passableRequestIds: Set<string>;
+  passableOfferIds: Set<string>;
   viewerClaimedRequestIds: Set<string>;
   viewerCompletedRequestIds: Set<string>;
   otherParticipantCompletedRequestIds: Set<string>;
@@ -135,7 +137,9 @@ function CareListingCard({
     return (
       <CareOfferCard
         offer={listing.item}
+        canPass={props.passableOfferIds.has(listing.item.id)}
         onClaim={props.onClaimOffer}
+        onPass={props.onPassOffer}
         onWithdraw={props.onWithdrawOffer}
         viewerId={props.viewerId}
       />
@@ -703,6 +707,7 @@ export function TimelinePanel({
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
   onClaimOffer,
+  onPassOffer,
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
@@ -711,6 +716,7 @@ export function TimelinePanel({
   onWithdrawOffer = () => undefined,
   onOfflineChange,
   passableRequestIds = noPassableRequestIds,
+  passableOfferIds = noPassableRequestIds,
   passAnnouncement,
   cacheOwnerId,
   viewerClaimedRequestIds = noClaimedRequestIds,
@@ -732,6 +738,7 @@ export function TimelinePanel({
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
   onClaimOffer?: (offerId: string) => void;
+  onPassOffer?: (offer: GiveCareOffer) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass?: (request: ReceiveCareRequest) => void;
@@ -740,6 +747,7 @@ export function TimelinePanel({
   onWithdrawOffer?: (offerId: string) => void;
   onOfflineChange?: (offline: boolean) => void;
   passableRequestIds?: Set<string>;
+  passableOfferIds?: Set<string>;
   passAnnouncement?: string;
   cacheOwnerId?: string;
   viewerClaimedRequestIds?: Set<string>;
@@ -788,6 +796,7 @@ export function TimelinePanel({
     minimizedRequestIds,
     onOfferHelp,
     onClaimOffer,
+    onPassOffer,
     onRecordCompleted,
     onRecordNotCompleted,
     onPass,
@@ -795,6 +804,7 @@ export function TimelinePanel({
     onWithdraw,
     onWithdrawOffer,
     passableRequestIds,
+    passableOfferIds,
     viewerClaimedRequestIds,
     viewerCompletedRequestIds,
     otherParticipantCompletedRequestIds,

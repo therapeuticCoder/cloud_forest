@@ -6,6 +6,8 @@ import type { CuratedPersonPlacement } from "@cloud-forest/domain";
 import type { DatabaseClient } from "./client.ts";
 import {
   accountPeople,
+  careOfferPasses,
+  careRequestPasses,
   connections,
   curatedPersons,
   relationshipBlocks,
@@ -281,6 +283,30 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
             ),
           )
           .returning();
+        if (
+          updated &&
+          existing.linkedUserId !== null &&
+          existing.placement !== input.placement &&
+          (existing.placement === "party" || existing.placement === "tribe") &&
+          (input.placement === "party" || input.placement === "tribe")
+        ) {
+          await transaction
+            .delete(careRequestPasses)
+            .where(
+              and(
+                eq(careRequestPasses.originatorUserId, input.ownerUserId),
+                eq(careRequestPasses.viewerUserId, existing.linkedUserId),
+              ),
+            );
+          await transaction
+            .delete(careOfferPasses)
+            .where(
+              and(
+                eq(careOfferPasses.originatorUserId, input.ownerUserId),
+                eq(careOfferPasses.viewerUserId, existing.linkedUserId),
+              ),
+            );
+        }
         return updated
           ? { ok: true, value: updated }
           : { ok: false, error: "stale-write-conflict" };

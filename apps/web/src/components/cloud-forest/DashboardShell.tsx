@@ -1,7 +1,7 @@
 import { CloudOff, Gift, HandHeart } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInitials, curatorUser } from "@/data/cloudForest";
-import type { ReceiveCareRequest } from "@/types/careRequest";
+import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
@@ -125,6 +125,7 @@ export function DashboardShell({
     complete: completeCareRequest,
     create: createCareRequest,
     load: loadCareRequests,
+    pass: passCareRequest,
     recordGratitude: recordCareGratitude,
     state: durableCareRequestsState,
   } = useCareRequests(careApiClient, careViewerId);
@@ -132,6 +133,7 @@ export function DashboardShell({
     claim: claimCareOffer,
     create: createCareOffer,
     load: loadCareOffers,
+    pass: passCareOffer,
     state: careOffersState,
     withdraw: withdrawCareOffer,
   } = useCareOffers(careOfferApiClient);
@@ -139,6 +141,7 @@ export function DashboardShell({
     useState<CareDestination | null>(null);
   const [careGratitudeRequest, setCareGratitudeRequest] =
     useState<ReceiveCareRequest | null>(null);
+  const [carePassAnnouncement, setCarePassAnnouncement] = useState<string>();
   const {
     add: addCuratedPerson,
     blockedPeople,
@@ -521,6 +524,22 @@ export function DashboardShell({
       await loadCareRequests();
     }
   };
+  const handlePassCareRequest = async (request: ReceiveCareRequest) => {
+    const result = await passCareRequest(request.id);
+    if (result.ok) {
+      setCarePassAnnouncement(
+        "Passed privately. This Care won’t appear again unless your relationship layer changes.",
+      );
+    }
+  };
+  const handlePassCareOffer = async (offer: GiveCareOffer) => {
+    const result = await passCareOffer(offer.id);
+    if (result.ok) {
+      setCarePassAnnouncement(
+        "Passed privately. This Care won’t appear again unless your relationship layer changes.",
+      );
+    }
+  };
   const openReceiveWizard = () => {
     focusTargetIdRef.current = "receive";
     setReceiveWizardOpen(true);
@@ -703,11 +722,15 @@ export function DashboardShell({
     void loadCareOffers();
   }, [activeView, careDestination?.kind, loadCareOffers, loadCareRequests]);
 
-  const durableCareRequests = durableCareRequestsState.requests.filter(
+  const durableCareRequestRecords = durableCareRequestsState.requests;
+  const durableCareRequests = durableCareRequestRecords.filter(
     (request) => request.status === "open" || request.status === "claimed",
   );
-  const durableCompletedRequests = durableCareRequestsState.requests.filter(
+  const durableCompletedRequests = durableCareRequestRecords.filter(
     (request) => request.status === "completed",
+  );
+  const durableExpiredRequests = durableCareRequestRecords.filter(
+    (request) => request.status === "expired",
   );
   const durableClaimedRequestIds = useMemo(
     () =>
@@ -766,7 +789,43 @@ export function DashboardShell({
   );
   const durableViewerCareOffers = useMemo(
     () =>
-      careOffersState.offers.filter((offer) => offer.giver.id === careViewerId),
+      careOffersState.offers.filter(
+        (offer) =>
+          offer.giver.id === careViewerId && offer.status === "available",
+      ),
+    [careOffersState.offers, careViewerId],
+  );
+  const durableExpiredCareOffers = useMemo(
+    () =>
+      careOffersState.offers.filter(
+        (offer) =>
+          offer.giver.id === careViewerId && offer.status === "expired",
+      ),
+    [careOffersState.offers, careViewerId],
+  );
+  const passableRequestIds = useMemo(
+    () =>
+      new Set(
+        durableCareRequests
+          .filter(
+            (request) =>
+              request.status === "open" &&
+              request.requester.id !== careViewerId,
+          )
+          .map((request) => request.id),
+      ),
+    [careViewerId, durableCareRequests],
+  );
+  const passableOfferIds = useMemo(
+    () =>
+      new Set(
+        careOffersState.offers
+          .filter(
+            (offer) =>
+              offer.status === "available" && offer.giver.id !== careViewerId,
+          )
+          .map((offer) => offer.id),
+      ),
     [careOffersState.offers, careViewerId],
   );
   const durableCareStatusMessage =
@@ -888,7 +947,9 @@ export function DashboardShell({
               <TimelineView
                 cacheOwnerId={currentPersonId}
                 onOfflineChange={setTimelineApiOffline}
-                careOffers={careOffersState.offers}
+                careOffers={careOffersState.offers.filter(
+                  (offer) => offer.status === "available",
+                )}
                 careGratitudes={[]}
                 careGratitudeRequests={durableCareRequests}
                 careRequests={durableCareRequests}
@@ -905,7 +966,9 @@ export function DashboardShell({
                   )
                 }
                 onClaimOffer={(offerId) => void claimGiveOffer(offerId)}
+                onPassOffer={(offer) => void handlePassCareOffer(offer)}
                 onRecordCompleted={recordCareCompleted}
+                onPass={handlePassCareRequest}
                 onWithdrawOffer={(offerId) => void withdrawCareOffer(offerId)}
                 viewerClaimedRequestIds={durableViewerClaimedRequestIds}
                 viewerCompletedRequestIds={durableViewerCompletedRequestIds}
@@ -913,6 +976,9 @@ export function DashboardShell({
                   durableOtherParticipantCompletedRequestIds
                 }
                 viewerId={careViewerId}
+                passableRequestIds={passableRequestIds}
+                passableOfferIds={passableOfferIds}
+                passAnnouncement={carePassAnnouncement}
               />
             ) : (
               <CuratorView
@@ -948,7 +1014,7 @@ export function DashboardShell({
                     `[data-care-claim-action="${request.id}"]`,
                   )
                 }
-                onPass={() => undefined}
+                onPass={handlePassCareRequest}
                 onRecordCompleted={recordCareCompleted}
                 onRecordNotCompleted={() => undefined}
                 onReceive={openReceiveWizard}
@@ -981,7 +1047,9 @@ export function DashboardShell({
               activeRequests={durableSelfProfileRequests}
               claimedRequests={durableClaimedRequests}
               completedRequests={durableCompletedRequests}
+              expiredRequests={durableExpiredRequests}
               offers={durableViewerCareOffers}
+              expiredOffers={durableExpiredCareOffers}
               careOfferStatusMessage={durableCareOfferStatusMessage}
               viewerDisplayName={displayName}
               onBack={backFromCareDestination}

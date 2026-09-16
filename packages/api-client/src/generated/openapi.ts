@@ -47,6 +47,22 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/care-offers/{careOfferId}/pass": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["passCareOfferV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/care-requests": {
         readonly parameters: {
             readonly query?: never;
@@ -105,6 +121,22 @@ export interface paths {
         readonly get?: never;
         readonly put?: never;
         readonly post: operations["recordCareGratitudeV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/care-requests/{careRequestId}/pass": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["passCareRequestV1"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -515,13 +547,14 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly offers: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "give";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -533,8 +566,7 @@ export interface operations {
                                 readonly mealDescription: string;
                                 /** @enum {string} */
                                 readonly offer: "A meal";
-                                /** @enum {string} */
-                                readonly status: "available";
+                                readonly status: "available" | "expired";
                             }[];
                         };
                     };
@@ -586,13 +618,14 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly offers: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "give";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -604,8 +637,7 @@ export interface operations {
                                 readonly mealDescription: string;
                                 /** @enum {string} */
                                 readonly offer: "A meal";
-                                /** @enum {string} */
-                                readonly status: "available";
+                                readonly status: "available" | "expired";
                             }[];
                         };
                     };
@@ -667,13 +699,14 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly offers: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "give";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -685,8 +718,7 @@ export interface operations {
                                 readonly mealDescription: string;
                                 /** @enum {string} */
                                 readonly offer: "A meal";
-                                /** @enum {string} */
-                                readonly status: "available";
+                                readonly status: "available" | "expired";
                             }[];
                         };
                     };
@@ -748,13 +780,14 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly offers: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "give";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -766,8 +799,104 @@ export interface operations {
                                 readonly mealDescription: string;
                                 /** @enum {string} */
                                 readonly offer: "A meal";
+                                readonly status: "available" | "expired";
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly passCareOfferV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careOfferId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly offers: readonly {
+                                readonly audience: "Party" | "Tribe";
+                                readonly availableWhen: string;
+                                /** Format: date-time */
+                                readonly createdAt: string;
                                 /** @enum {string} */
-                                readonly status: "available";
+                                readonly direction: "give";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
+                                readonly giver: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                readonly handoffStyle: string;
+                                readonly id: string;
+                                /** @enum {string} */
+                                readonly kind: "meal";
+                                readonly mealDescription: string;
+                                /** @enum {string} */
+                                readonly offer: "A meal";
+                                readonly status: "available" | "expired";
                             }[];
                         };
                     };
@@ -843,8 +972,7 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -859,6 +987,8 @@ export interface operations {
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "receive";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -880,7 +1010,7 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
                             }[];
                         };
                     };
@@ -933,8 +1063,7 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -949,6 +1078,8 @@ export interface operations {
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "receive";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -970,7 +1101,7 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
                             }[];
                         };
                     };
@@ -1032,8 +1163,7 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1048,6 +1178,8 @@ export interface operations {
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "receive";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1069,7 +1201,7 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
                             }[];
                         };
                     };
@@ -1163,8 +1295,7 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1179,6 +1310,8 @@ export interface operations {
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "receive";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1200,7 +1333,7 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
                             }[];
                         };
                     };
@@ -1285,8 +1418,7 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
-                                /** @enum {string} */
-                                readonly audience: "Party";
+                                readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1301,6 +1433,8 @@ export interface operations {
                                 readonly createdAt: string;
                                 /** @enum {string} */
                                 readonly direction: "receive";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1322,7 +1456,7 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
                             }[];
                         };
                     };
@@ -1340,6 +1474,122 @@ export interface operations {
                         readonly error: {
                             readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
                             readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly passCareRequestV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careRequestId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly requests: readonly {
+                                readonly audience: "Party" | "Tribe";
+                                readonly claimant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly claimantCompletedAt?: string;
+                                /** Format: date-time */
+                                readonly claimedAt?: string;
+                                /** Format: date-time */
+                                readonly completedAt?: string;
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                /** @enum {string} */
+                                readonly direction: "receive";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
+                                readonly foodDoesNotWork: string;
+                                readonly foodWorks: string;
+                                readonly gratitude?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                                };
+                                readonly handoffStyle: string;
+                                readonly helpfulWhen: string;
+                                readonly id: string;
+                                /** @enum {string} */
+                                readonly kind: "meal";
+                                /** @enum {string} */
+                                readonly need: "A meal";
+                                readonly requester: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly requesterCompletedAt?: string;
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+                            }[];
                         };
                     };
                 };
