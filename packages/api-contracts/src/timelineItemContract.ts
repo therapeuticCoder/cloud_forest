@@ -73,7 +73,7 @@ export const getTimelineItemsSuccessResponseSchema = Type.Object(
 
 export const createTimelinePostBodySchema = Type.Object(
   {
-    content: Type.String({ minLength: 1, maxLength: 10_000 }),
+    content: Type.String({ minLength: 1, maxLength: 280 }),
     audience: timelineAudienceSchema,
   },
   { additionalProperties: false, $id: "CreateTimelinePostBodyV1" },

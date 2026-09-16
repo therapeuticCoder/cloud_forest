@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  createTimelinePostBodyExample,
   getTimelineItemErrorResponseExample,
   getTimelineItemRequestExample,
   getTimelineItemSuccessResponseExample,
+  isCreateTimelinePostBody,
   isGetTimelineItemErrorResponse,
   isGetTimelineItemRequest,
   isGetTimelineItemSuccessResponse,
@@ -28,6 +30,17 @@ test("an invalid request fails runtime validation", () => {
     isGetTimelineItemRequest({
       timelineItemId: "timeline-item-001",
       includeReplies: true,
+    }),
+    false,
+  );
+});
+
+test("ordinary post requests enforce the 280-character limit", () => {
+  assert.equal(isCreateTimelinePostBody(createTimelinePostBodyExample), true);
+  assert.equal(
+    isCreateTimelinePostBody({
+      ...createTimelinePostBodyExample,
+      content: "a".repeat(281),
     }),
     false,
   );

@@ -13243,7 +13243,7 @@
                     ]
                   },
                   "content": {
-                    "maxLength": 10000,
+                    "maxLength": 280,
                     "minLength": 1,
                     "type": "string"
                   }
