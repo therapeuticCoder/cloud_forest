@@ -118,15 +118,14 @@ test("getTimelineItem encodes its path parameter and returns typed errors", asyn
 
 test("getTimelineItem returns the validated typed success result", async () => {
   const timelineItem = {
-    id: "timeline-item-mira-soup-001",
+    id: "timeline-item-client-test",
     actor: {
-      id: "mira",
-      displayName: "Mira",
+      id: "timeline-client-author",
+      displayName: "Timeline author",
       layer: "party",
-      initials: "M",
+      initials: "TA",
     },
-    content:
-      "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?",
+    content: "A calm update from today.",
     publishedAt: "2026-05-30T17:00:00.000Z",
   };
   const client = createApiClient({

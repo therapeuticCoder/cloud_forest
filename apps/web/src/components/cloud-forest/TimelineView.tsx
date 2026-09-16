@@ -1,4 +1,4 @@
-import { TimelinePanel } from "./TimelinePanel";
+import { TimelinePanel, type TimelineApiClient } from "./TimelinePanel";
 import type {
   CareGratitude,
   CarePersonId,
@@ -36,7 +36,12 @@ export function TimelineView({
   viewerCompletedRequestIds = noCompletedRequestIds,
   otherParticipantCompletedRequestIds = noCompletedRequestIds,
   cacheOwnerId,
+  apiClient,
+  postComposerOpen = false,
+  onClosePostComposer,
+  offline = false,
 }: {
+  apiClient?: TimelineApiClient;
   careOffers?: GiveCareOffer[];
   careGratitudes?: CareGratitude[];
   careGratitudeRequests?: ReceiveCareRequest[];
@@ -61,6 +66,9 @@ export function TimelineView({
   viewerClaimedRequestIds?: Set<string>;
   viewerCompletedRequestIds?: Set<string>;
   otherParticipantCompletedRequestIds?: Set<string>;
+  offline?: boolean;
+  postComposerOpen?: boolean;
+  onClosePostComposer?: () => void;
 } = {}) {
   return (
     <section aria-label="Timeline view" className="timeline-view">
@@ -82,9 +90,13 @@ export function TimelineView({
         onWithdraw={onWithdraw}
         onWithdrawOffer={onWithdrawOffer}
         onOfflineChange={onOfflineChange}
+        offline={offline}
+        apiClient={apiClient}
         passableRequestIds={passableRequestIds}
         passAnnouncement={passAnnouncement}
         cacheOwnerId={cacheOwnerId}
+        postComposerOpen={postComposerOpen}
+        onClosePostComposer={onClosePostComposer}
         viewerClaimedRequestIds={viewerClaimedRequestIds}
         viewerCompletedRequestIds={viewerCompletedRequestIds}
         otherParticipantCompletedRequestIds={

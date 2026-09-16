@@ -14,7 +14,11 @@ import type { FastifyInstance } from "fastify";
 import { startApi, stopApi } from "./lifecycle.ts";
 import { createInvitedAuth } from "./auth.ts";
 import { createSessionResolver } from "./sessionResolver.ts";
-import { createTimelineItemResolver } from "./timelineItemResolver.ts";
+import {
+  createTimelinePostResolver,
+  createTimelineItemResolver,
+  createTimelineItemsResolver,
+} from "./timelineItemResolver.ts";
 
 const { database, pool } = createDatabaseClient(getDatabaseUrl());
 const timelineItemRepository = createTimelineItemRepository(database);
@@ -43,6 +47,12 @@ try {
     serverOptions: {
       logger: true,
       timelineItemResolver: createTimelineItemResolver(timelineItemRepository),
+      timelineItemsResolver: createTimelineItemsResolver(
+        timelineItemRepository,
+      ),
+      createTimelinePostResolver: createTimelinePostResolver(
+        timelineItemRepository,
+      ),
       sessionResolver,
       partyRepository: createPartyRepository(database),
       curatedPersonRepository: createCuratedPersonRepository(database),

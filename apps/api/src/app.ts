@@ -8,8 +8,12 @@ import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
 import { healthRoutes } from "./routes/health.ts";
 import {
+  defaultCreateTimelinePostResolver,
+  defaultTimelineItemsResolver,
   defaultTimelineItemResolver,
   timelineItemRoutes,
+  type CreateTimelinePostResolver,
+  type TimelineItemsResolver,
   type TimelineItemResolver,
 } from "./routes/timelineItem.ts";
 import { sessionRoutes } from "./routes/session.ts";
@@ -29,6 +33,8 @@ import { careOfferRoutes } from "./routes/careOffer.ts";
 
 export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   timelineItemResolver?: TimelineItemResolver;
+  timelineItemsResolver?: TimelineItemsResolver;
+  createTimelinePostResolver?: CreateTimelinePostResolver;
   sessionResolver?: SessionResolver;
   authHandler?: AuthHandler;
   signupAuthHandler?: AuthHandler;
@@ -131,6 +137,9 @@ export function buildApi(
   });
   server.register(healthRoutes);
   server.register(timelineItemRoutes, {
+    createResolver:
+      options.createTimelinePostResolver ?? defaultCreateTimelinePostResolver,
+    listResolver: options.timelineItemsResolver ?? defaultTimelineItemsResolver,
     resolver: options.timelineItemResolver ?? defaultTimelineItemResolver,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });

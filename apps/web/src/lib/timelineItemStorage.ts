@@ -3,6 +3,7 @@ import type { GetTimelineItemResponse } from "@cloud-forest/api-client";
 type TimelineItemRecord = GetTimelineItemResponse["data"]["timelineItem"];
 
 export const TIMELINE_ITEM_STORAGE_KEY = "cloud-forest:timeline-item:v1";
+export const TIMELINE_ITEMS_STORAGE_KEY = "cloud-forest:timeline-items:v1";
 
 type StoredTimelineItemV1 = {
   item: TimelineItemRecord;
@@ -10,8 +11,18 @@ type StoredTimelineItemV1 = {
   version: 1;
 };
 
+type StoredTimelineItemsV1 = {
+  items: TimelineItemRecord[];
+  ownerId: string;
+  version: 1;
+};
+
 function storageKey(ownerId: string) {
   return `${TIMELINE_ITEM_STORAGE_KEY}:${encodeURIComponent(ownerId)}`;
+}
+
+function itemsStorageKey(ownerId: string) {
+  return `${TIMELINE_ITEMS_STORAGE_KEY}:${encodeURIComponent(ownerId)}`;
 }
 
 function getBrowserStorage() {
@@ -67,6 +78,59 @@ function isStoredTimelineItemV1(
   );
 }
 
+function isStoredTimelineItemsV1(
+  value: unknown,
+  ownerId: string,
+): value is StoredTimelineItemsV1 {
+  return (
+    isRecord(value) &&
+    value.version === 1 &&
+    value.ownerId === ownerId &&
+    Array.isArray(value.items) &&
+    value.items.every(isTimelineItemRecord)
+  );
+}
+
+export function loadTimelineItemsSnapshot(
+  ownerId: string,
+): TimelineItemRecord[] | undefined {
+  if (!ownerId) return undefined;
+
+  try {
+    const storedValue = getBrowserStorage()?.getItem(itemsStorageKey(ownerId));
+    if (storedValue) {
+      const parsed: unknown = JSON.parse(storedValue);
+      if (isStoredTimelineItemsV1(parsed, ownerId)) return parsed.items;
+    }
+  } catch {
+    // Fall through to the previous single-item cache when it is available.
+  }
+
+  const legacyItem = loadTimelineItemSnapshot(ownerId);
+  return legacyItem ? [legacyItem] : undefined;
+}
+
+export function saveTimelineItemsSnapshot(
+  ownerId: string,
+  items: TimelineItemRecord[],
+) {
+  if (!ownerId) return;
+
+  try {
+    const stored: StoredTimelineItemsV1 = {
+      items,
+      ownerId,
+      version: 1,
+    };
+    getBrowserStorage()?.setItem(
+      itemsStorageKey(ownerId),
+      JSON.stringify(stored),
+    );
+  } catch {
+    // The live response remains usable when browser storage is unavailable.
+  }
+}
+
 export function loadTimelineItemSnapshot(
   ownerId: string,
 ): TimelineItemRecord | undefined {
@@ -106,6 +170,7 @@ export function clearTimelineItemSnapshot(ownerId: string) {
 
   try {
     getBrowserStorage()?.removeItem(storageKey(ownerId));
+    getBrowserStorage()?.removeItem(itemsStorageKey(ownerId));
   } catch {
     // There is no local fallback to clear when browser storage is unavailable.
   }

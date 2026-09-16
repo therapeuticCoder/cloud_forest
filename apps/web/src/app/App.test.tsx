@@ -529,6 +529,10 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "Open My Care" }));
 
     expect(
+      screen.getByRole("heading", { name: "Profile" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /receive/i }));
+    expect(
       screen.getByRole("heading", { name: "My open requests" }),
     ).toBeInTheDocument();
     expect(

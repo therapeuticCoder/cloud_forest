@@ -8,9 +8,9 @@ import { createTimelineItemResolver } from "../src/timelineItemResolver.ts";
 test("the database resolver returns the typed Timeline success response", async () => {
   const timelineItem = getTimelineItemSuccessResponseExample.data.timelineItem;
   const resolver = createTimelineItemResolver({
-    findByIdForOwner: async (timelineItemId, ownerUserId) => {
+    findByIdForViewer: async (timelineItemId, viewerUserId) => {
       assert.equal(timelineItemId, timelineItem.id);
-      assert.equal(ownerUserId, "user-owner");
+      assert.equal(viewerUserId, "user-owner");
       return timelineItem;
     },
   });
@@ -26,7 +26,7 @@ test("the database resolver returns the typed Timeline success response", async 
 
 test("the database resolver returns the typed not-found response", async () => {
   const resolver = createTimelineItemResolver({
-    findByIdForOwner: async () => null,
+    findByIdForViewer: async () => null,
   });
 
   assert.deepEqual(

@@ -83,8 +83,8 @@ export function TimelineCard({ item, time }: TimelineCardProps) {
       <TimelineIdentity actor={actor} />
       <div className="timeline-card__body">
         <h3>{actor.displayName}</h3>
-        <p>{item.content}</p>
         <time dateTime={item.publishedAt}>{time}</time>
+        <p>{item.content}</p>
       </div>
       <span aria-hidden="true" className="timeline-layer-mark">
         <LayerIcon />

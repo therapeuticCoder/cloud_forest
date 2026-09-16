@@ -75,6 +75,9 @@ export async function seedFictionalPartyFixture(
       ]),
     );
   await database
+    .delete(timelineItems)
+    .where(eq(timelineItems.ownerUserId, fictionalPartyOwnerUserId));
+  await database
     .delete(users)
     .where(
       inArray(users.id, [fictionalPartyOwnerUserId, fictionalEmptyUserId]),
@@ -104,24 +107,6 @@ export async function seedFictionalPartyFixture(
     createdAt: now,
     updatedAt: now,
   });
-  await database
-    .insert(timelineItems)
-    .values({
-      id: "timeline-item-mira-soup-001",
-      ownerUserId: fictionalPartyOwnerUserId,
-      actorId: "mira",
-      actorDisplayName: "Mira",
-      actorLayer: "party",
-      actorInitials: "M",
-      actorAvatarUrl: null,
-      content:
-        "hey, saw your face on the call. want me to drop soup off and not make it a whole thing?",
-      publishedAt: new Date("2026-05-30T17:00:00.000Z"),
-    })
-    .onConflictDoUpdate({
-      target: timelineItems.id,
-      set: { ownerUserId: fictionalPartyOwnerUserId },
-    });
   await database.insert(accounts).values({
     id: "credential-account-fictional-owner",
     accountId: fictionalPartyOwnerUserId,

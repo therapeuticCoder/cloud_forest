@@ -1,9 +1,29 @@
-import { and, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 
-import type { TimelineItem } from "@cloud-forest/domain";
+import {
+  and,
+  desc,
+  eq,
+  exists,
+  isNotNull,
+  notExists,
+  or,
+  sql,
+} from "drizzle-orm";
+
+import type { TimelineAudience, TimelineItem } from "@cloud-forest/domain";
 
 import type { DatabaseClient } from "./client.ts";
-import { timelineItems, type TimelineItemRow } from "./schema.ts";
+import {
+  accountPeople,
+  connections,
+  curatedPersons,
+  personProfiles,
+  relationshipBlocks,
+  timelineItems,
+  users,
+  type TimelineItemRow,
+} from "./schema.ts";
 
 function mapTimelineItemRow(row: TimelineItemRow): TimelineItem {
   return {
@@ -20,11 +40,130 @@ function mapTimelineItemRow(row: TimelineItemRow): TimelineItem {
   };
 }
 
+function visibleTimelineItemForViewer(
+  database: DatabaseClient,
+  viewerUserId: string,
+) {
+  const connectionWithAuthor = exists(
+    database
+      .select({ id: connections.id })
+      .from(connections)
+      .where(
+        or(
+          and(
+            eq(connections.firstUserId, viewerUserId),
+            eq(connections.secondUserId, timelineItems.authorUserId),
+          ),
+          and(
+            eq(connections.firstUserId, timelineItems.authorUserId),
+            eq(connections.secondUserId, viewerUserId),
+          ),
+        ),
+      ),
+  );
+  const authorPlacementMatches = exists(
+    database
+      .select({ id: curatedPersons.id })
+      .from(curatedPersons)
+      .where(
+        and(
+          eq(curatedPersons.ownerUserId, timelineItems.authorUserId),
+          eq(curatedPersons.linkedUserId, viewerUserId),
+          sql`${curatedPersons.placement} = ${timelineItems.audience}`,
+        ),
+      ),
+  );
+  const relationshipIsNotBlocked = notExists(
+    database
+      .select({ blockerUserId: relationshipBlocks.blockerUserId })
+      .from(relationshipBlocks)
+      .where(
+        or(
+          and(
+            eq(relationshipBlocks.blockerUserId, viewerUserId),
+            eq(relationshipBlocks.blockedUserId, timelineItems.authorUserId),
+          ),
+          and(
+            eq(relationshipBlocks.blockerUserId, timelineItems.authorUserId),
+            eq(relationshipBlocks.blockedUserId, viewerUserId),
+          ),
+        ),
+      ),
+  );
+
+  return and(
+    isNotNull(timelineItems.authorUserId),
+    isNotNull(timelineItems.audience),
+    relationshipIsNotBlocked,
+    or(
+      eq(timelineItems.authorUserId, viewerUserId),
+      and(connectionWithAuthor, authorPlacementMatches),
+    ),
+  );
+}
+
 export function createTimelineItemRepository(database: DatabaseClient) {
   return {
-    async findByIdForOwner(
+    async listForViewer(viewerUserId: string): Promise<TimelineItem[]> {
+      const rows = await database
+        .select()
+        .from(timelineItems)
+        .where(visibleTimelineItemForViewer(database, viewerUserId))
+        .orderBy(desc(timelineItems.publishedAt), desc(timelineItems.id));
+
+      return rows.map(mapTimelineItemRow);
+    },
+
+    async createPost(input: {
+      authorUserId: string;
+      content: string;
+      audience: TimelineAudience;
+      now: Date;
+    }): Promise<TimelineItem | null> {
+      const [author] = await database
+        .select({
+          displayName: sql<string>`coalesce(${personProfiles.displayName}, ${users.name})`,
+        })
+        .from(users)
+        .leftJoin(accountPeople, eq(accountPeople.accountId, users.id))
+        .leftJoin(
+          personProfiles,
+          eq(personProfiles.personId, accountPeople.personId),
+        )
+        .where(eq(users.id, input.authorUserId))
+        .limit(1);
+
+      if (author === undefined) return null;
+
+      const [created] = await database
+        .insert(timelineItems)
+        .values({
+          id: `timeline-post-${randomUUID()}`,
+          ownerUserId: null,
+          authorUserId: input.authorUserId,
+          audience: input.audience,
+          actorId: input.authorUserId,
+          actorDisplayName: author.displayName,
+          actorLayer: input.audience,
+          actorInitials: author.displayName
+            .trim()
+            .split(/\s+/)
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 3)
+            .toUpperCase(),
+          actorAvatarUrl: null,
+          content: input.content,
+          publishedAt: input.now,
+        })
+        .returning();
+
+      return created === undefined ? null : mapTimelineItemRow(created);
+    },
+
+    async findByIdForViewer(
       timelineItemId: string,
-      ownerUserId: string,
+      viewerUserId: string,
     ): Promise<TimelineItem | null> {
       const [row] = await database
         .select()
@@ -32,7 +171,7 @@ export function createTimelineItemRepository(database: DatabaseClient) {
         .where(
           and(
             eq(timelineItems.id, timelineItemId),
-            eq(timelineItems.ownerUserId, ownerUserId),
+            visibleTimelineItemForViewer(database, viewerUserId),
           ),
         )
         .limit(1);

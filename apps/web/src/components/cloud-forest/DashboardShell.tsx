@@ -41,7 +41,7 @@ import {
   type CareGratitudeDraft,
   type CareGratitudeResult,
 } from "./CareGratitudeWizard";
-import { MyCareView } from "./MyCareView";
+import { MyCareView, type MyCareTab } from "./MyCareView";
 import {
   clearPendingConnectionPairing,
   rememberPendingConnectionPairing,
@@ -49,7 +49,10 @@ import {
 
 type CareDestination =
   | { kind: "claim"; request: ReceiveCareRequest }
-  | { kind: "my-care" };
+  | {
+      kind: "my-care";
+      initialTab?: MyCareTab;
+    };
 
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
 export type { CareRequestApiClient } from "./useCareRequests";
@@ -89,6 +92,8 @@ export function DashboardShell({
   const [addWizardOpen, setAddWizardOpen] = useState(false);
   const [receiveWizardOpen, setReceiveWizardOpen] = useState(false);
   const [giveWizardOpen, setGiveWizardOpen] = useState(false);
+  const [timelinePostComposerOpen, setTimelinePostComposerOpen] =
+    useState(false);
   const careViewerId = currentPersonId;
   const currentUser = useMemo(
     () => ({
@@ -133,10 +138,9 @@ export function DashboardShell({
     () => typeof navigator === "undefined" || navigator.onLine,
   );
   const [timelineApiOffline, setTimelineApiOffline] = useState(false);
+  const deviceIsOffline = sessionOffline || !isOnline;
   const appIsOffline =
-    sessionOffline ||
-    !isOnline ||
-    (activeView === "timeline" && timelineApiOffline);
+    deviceIsOffline || (activeView === "timeline" && timelineApiOffline);
   const wasOnlineRef = useRef(isOnline);
   const [addSubmission, setAddSubmission] = useState<{
     pending: boolean;
@@ -490,6 +494,12 @@ export function DashboardShell({
     focusTargetIdRef.current = "receive";
     setReceiveWizardOpen(true);
   };
+  const openTimelinePostComposer = () => {
+    setTimelinePostComposerOpen(true);
+  };
+  const closeTimelinePostComposer = () => {
+    setTimelinePostComposerOpen(false);
+  };
   const openGiveWizard = (returnFocusSelector?: string) => {
     focusTargetIdRef.current =
       typeof returnFocusSelector === "string" ? returnFocusSelector : "give";
@@ -748,6 +758,7 @@ export function DashboardShell({
       data-active-view={activeView}
       data-receive-open={receiveWizardOpen}
       data-give-open={giveWizardOpen}
+      data-timeline-post-open={timelinePostComposerOpen}
       data-care-destination={
         careGratitudeRequest ? "gratitude" : careDestination?.kind
       }
@@ -767,7 +778,7 @@ export function DashboardShell({
             title={appIsOffline ? "Offline — showing cached data" : undefined}
             onClick={() =>
               openCareDestination(
-                { kind: "my-care" },
+                { kind: "my-care", initialTab: "profile" },
                 '[data-my-care-trigger="timeline"]',
               )
             }
@@ -839,6 +850,9 @@ export function DashboardShell({
                 careRequests={durableCareRequests}
                 careRequestStatusMessage={durableCareStatusMessage}
                 careOfferStatusMessage={durableCareOfferStatusMessage}
+                offline={deviceIsOffline}
+                postComposerOpen={timelinePostComposerOpen}
+                onClosePostComposer={closeTimelinePostComposer}
                 claimedRequestIds={durableClaimedRequestIds}
                 onOfferHelp={(request) =>
                   openCareDestination(
@@ -921,6 +935,7 @@ export function DashboardShell({
             />
           ) : careDestination?.kind === "my-care" ? (
             <MyCareView
+              initialTab={careDestination.initialTab}
               activeRequests={durableSelfProfileRequests}
               claimedRequests={durableClaimedRequests}
               completedRequests={durableCompletedRequests}
@@ -955,6 +970,7 @@ export function DashboardShell({
             onAdd={() => openAddWizard("party")}
             onGive={openGiveWizard}
             onReceive={openReceiveWizard}
+            onWrite={openTimelinePostComposer}
           />
         </div>
       ) : null}

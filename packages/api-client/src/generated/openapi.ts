@@ -448,6 +448,24 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/timeline-items": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /** List visible Timeline items */
+        readonly get: operations["getTimelineItemsV1"];
+        readonly put?: never;
+        /** Create an ordinary Timeline post */
+        readonly post: operations["createTimelinePostV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/timeline-items/{timelineItemId}": {
         readonly parameters: {
             readonly query?: never;
@@ -3559,6 +3577,153 @@ export interface operations {
             };
         };
     };
+    readonly getTimelineItemsV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly timelineItems: readonly {
+                                readonly actor: {
+                                    readonly avatarUrl?: string;
+                                    readonly displayName: string;
+                                    readonly id: string;
+                                    readonly initials?: string;
+                                    readonly layer: "party" | "tribe" | "guild" | "signal";
+                                };
+                                readonly content: string;
+                                readonly id: string;
+                                /** Format: date-time */
+                                readonly publishedAt: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "INVALID_REQUEST" | "UNAUTHORIZED" | "TIMELINE_POST_NOT_FOUND";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly createTimelinePostV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly audience: "party" | "tribe";
+                    readonly content: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly timelineItem: {
+                                readonly actor: {
+                                    readonly avatarUrl?: string;
+                                    readonly displayName: string;
+                                    readonly id: string;
+                                    readonly initials?: string;
+                                    readonly layer: "party" | "tribe" | "guild" | "signal";
+                                };
+                                readonly content: string;
+                                readonly id: string;
+                                /** Format: date-time */
+                                readonly publishedAt: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "INVALID_REQUEST" | "UNAUTHORIZED" | "TIMELINE_POST_NOT_FOUND";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "INVALID_REQUEST" | "UNAUTHORIZED" | "TIMELINE_POST_NOT_FOUND";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "INVALID_REQUEST" | "UNAUTHORIZED" | "TIMELINE_POST_NOT_FOUND";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     readonly getTimelineItemV1: {
         readonly parameters: {
             readonly query?: never;
@@ -3580,7 +3745,6 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            /** TimelineItem */
                             readonly timelineItem: {
                                 readonly actor: {
                                     readonly avatarUrl?: string;
