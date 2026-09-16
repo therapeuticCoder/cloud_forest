@@ -956,7 +956,6 @@ export function DashboardShell({
       )}
       {!receiveWizardOpen &&
       !giveWizardOpen &&
-      !timelinePostComposerOpen &&
       !careDestination &&
       !careGratitudeRequest &&
       activeView === "timeline" ? (

@@ -199,7 +199,8 @@ button:focus-visible {
   max-height: min(90svh, 42rem);
   gap: 10px;
   margin: 0;
-  overflow: auto;
+  min-height: 17rem;
+  overflow: visible;
   padding: 16px;
   border: 1px solid rgba(228, 236, 217, 0.28);
   border-radius: 16px;
@@ -219,14 +220,18 @@ button:focus-visible {
   font-size: 1.25rem;
 }
 
-.timeline-post-composer > label,
-.timeline-post-composer__controls > label {
+.timeline-post-composer__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.timeline-post-composer__audience > label {
   font-size: 0.85rem;
   font-weight: 700;
 }
 
-.timeline-post-composer textarea,
-.timeline-post-composer select {
+.timeline-post-composer textarea {
   border: 1px solid rgba(228, 236, 217, 0.35);
   border-radius: 10px;
   color: var(--forest-ink);
@@ -242,7 +247,8 @@ button:focus-visible {
 }
 
 .timeline-post-composer textarea:focus-visible,
-.timeline-post-composer select:focus-visible {
+.timeline-post-composer__audience-trigger:focus-visible,
+.timeline-post-composer__audience-option:focus-visible {
   outline: 3px solid var(--forest-amber);
   outline-offset: 2px;
 }
@@ -253,12 +259,69 @@ button:focus-visible {
   gap: 10px;
 }
 
-.timeline-post-composer select {
-  min-height: 2.5rem;
-  padding: 5px 30px 5px 9px;
+.timeline-post-composer__audience {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
-.timeline-post-composer__controls button {
+.timeline-post-composer__audience-control {
+  position: relative;
+}
+
+.timeline-post-composer__audience-trigger {
+  display: inline-flex;
+  min-width: 7rem;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 5px 9px;
+  border: 1px solid rgba(228, 236, 217, 0.35);
+  border-radius: 10px;
+  color: var(--forest-ink);
+  background: var(--forest-card);
+  font: inherit;
+  cursor: pointer;
+}
+
+.timeline-post-composer__audience-trigger svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.timeline-post-composer__audience-menu {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  min-width: 100%;
+  padding: 0.3rem;
+  border: 1px solid rgba(228, 236, 217, 0.35);
+  border-radius: 10px;
+  background: rgba(10, 42, 29, 0.98);
+  box-shadow: 0 8px 20px rgba(3, 16, 11, 0.35);
+}
+
+.timeline-post-composer__audience-option {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: 7px;
+  color: #f0f2e7;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.timeline-post-composer__audience-option:hover,
+.timeline-post-composer__audience-option[aria-selected="true"] {
+  background: rgba(111, 140, 46, 0.7);
+}
+
+.timeline-post-composer__controls > button {
   min-height: 2.5rem;
   margin-left: auto;
   padding: 7px 16px;
@@ -289,12 +352,12 @@ button:focus-visible {
   height: 1.15rem;
 }
 
-.timeline-post-composer__controls button:disabled {
+.timeline-post-composer__controls > button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
 }
 
-.timeline-post-composer__controls button:focus-visible,
+.timeline-post-composer__controls > button:focus-visible,
 .timeline-post-composer__close:focus-visible {
   outline: 3px solid #f0f2e7;
   outline-offset: 2px;
@@ -304,6 +367,13 @@ button:focus-visible {
   margin: 0;
   color: rgba(240, 242, 231, 0.75);
   font-size: 0.82rem;
+}
+
+.timeline-post-composer p.timeline-post-composer__character-count {
+  margin: 0;
+  color: rgba(240, 242, 231, 0.62);
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .care-perspective-switcher {
@@ -541,11 +611,9 @@ button:focus-visible {
 
 .timeline-card__body p {
   margin: 4px 0 5px;
-  overflow: hidden;
   font-size: 1.05rem;
   line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .timeline-card__body time {
@@ -775,18 +843,21 @@ button:focus-visible {
     width: calc(100% - 32px);
   }
   .timeline-post-composer {
-    padding: 13px;
+    padding: 16px;
+  }
+  .timeline-post-composer textarea {
+    min-height: 15rem;
   }
   .timeline-post-composer-overlay {
-    align-items: end;
-    padding: 0.75rem;
+    align-items: start;
+    padding: 5rem 0.75rem 0.75rem;
   }
   .timeline-post-composer__controls {
     align-items: stretch;
     flex-wrap: wrap;
   }
-  .timeline-post-composer__controls button {
-    margin-left: 0;
+  .timeline-post-composer__controls > button {
+    margin-left: auto;
   }
   .care-perspective-switcher {
     width: calc(100% - 32px);
@@ -900,14 +971,9 @@ button:focus-visible {
     font-size: 1.15rem;
   }
   .timeline-card__body p {
-    display: -webkit-box;
     margin-block: 4px;
-    overflow: hidden;
     font-size: 1rem;
     line-height: 1.2;
-    white-space: normal;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
   }
   .timeline-card__body time {
     font-size: 0.82rem;
