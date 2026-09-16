@@ -43,6 +43,19 @@ The first eligible claim wins. After a claim, the active Care is shared only by 
 
 A claimant may release a claim. The Care returns to the same layer with prior passes intact.
 
+## Expiration
+
+Expiration is a neutral terminal outcome. It means the Care was valid and available, but the opportunity passed without successful completion or fault.
+
+An unclaimed Care expires when either:
+
+- its currently available audience is exhausted and there is no broader eligible audience remaining; or
+- a meaningful deadline attached to the Care passes before it is claimed.
+
+For Party Care, audience exhaustion first demotes the Care to Tribe. If the Tribe audience is then exhausted, the Care expires.
+
+Expiration removes the Care from Timeline and Active Care. It leaves a small private history entry for the originator, but does not imply failure, apology, gratitude, retry, or prejudice toward anyone who passed or could not help.
+
 ## Completion and retry
 
 Requester and giver record their own outcomes independently.
