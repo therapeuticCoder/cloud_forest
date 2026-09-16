@@ -9,32 +9,28 @@ Build a coherent trusted-tester alpha for fewer than 100 people. Alpha succeeds 
 - React PWA, Fastify API, PostgreSQL/Drizzle, Better Auth, signup codes, sessions, and account-to-person mapping exist.
 - Username/password login, logout, invited signup, and multiple real users work.
 - Private Character curation across Holding, Party, and Tribe is durable and user-backed.
-- Users can create Characters in Holding, Party, or Tribe and move them durably among those placements subject to capacity rules.
-- Holding is a real private curation workspace; Tribe is real and no longer depends on mocked people.
-- Character portraits are durable.
-- Mutual Connection establishment is durable: an initiator can start from a Character, create a short-lived pairing, the receiver can resolve the initiator to a private Character, and independent confirmation establishes the Connection only after both participants consent.
+- Mutual Connection establishment, relationship exit, blocking, and unblocking are durable.
 - Pairing intent survives login and invited signup, so a pairing link can bring a new tester into Cloud Forest and return them to the pending Connection flow.
-- The installed PWA has a bounded offline read path: after a successful online load, the current user's session, Curator relationship data, and existing ordinary Timeline item can reopen from local cache. App-shell updates do not clear that product data; confirmed authentication failures and local sign-out do.
-- Server-dependent mutations are currently unavailable offline. A future, separately scoped increment may make Curator more usable offline without turning alpha into a general offline-first synchronization project.
-- Relationship exit and safety behavior (delete/remove, break, block, unblock) is the final Relationships increment and is currently in flight on a separate workstream. Care should rely on its resulting durable Connection/block truth rather than reinventing relationship validity.
-- The existing ordinary Timeline item is user-backed, but much Timeline content remains fixture-driven.
-- Care has a rich device-local interaction prototype, not a real multi-user shared lifecycle.
-- Guilds and Signals are currently fixture-backed.
-- The app has no public alpha landing page.
+- The installed PWA has a bounded offline read path for session, Curator relationship data, and existing Timeline state. Server-dependent mutations remain unavailable offline.
+- Give and Receive Care are durable between real users. Eligible Connections can see Care, the first eligible claimant wins, both participants share claimed state, each records completion independently, completed Care moves to private history, and private gratitude is durable.
+- Care expiration is now durable product truth conceptually: an unclaimed Care may fall away neutrally when its audience is exhausted or its meaningful deadline passes. Party Care exhausts into Tribe before final expiration.
+- Ordinary Timeline posting is currently in PR: real users can create durable Party/Tribe posts for eligible real Connections.
+- A public alpha front door is being built separately from the application repository.
+- Guilds remain a visible alpha promise rather than implemented collaboration functionality.
+- Signals remain fixture-backed; no real ActivityPub/federated Signal exists yet.
 
 ## Now
 
-**Care.** Make one complete, understandable Care path genuinely shared between real users. Start with a Receive request published to Party: the originator creates the request, currently eligible Party Connections can see it, the first eligible Connection can claim it, and both participants then see the same claimed Care state.
+**Care continued.** Finish the remaining alpha Care lifecycle semantics that make the system feel humane rather than transactional: allow committed-but-unfinished Care to be withdrawn with an apology, support passing, Party-to-Tribe demotion, and neutral expiration, then define and implement the small alpha catalog of Care types and their tailored wizards/language.
 
-Keep the first Care increment narrow. Do not carry forward browser-storage authority, fictional perspective switching, fixture-specific audience snapshots, or the full prototype lifecycle. Build the smallest durable shared path that proves a real person can ask their people for help and another real person can show up.
+In parallel, improve product legibility where work can stay isolated from Care lifecycle code, including clearer navigation/view switching and eventually stronger visual distinction between Posts and different Care types.
 
 ## Next
 
-1. **Care continued** — extend the real shared Care lifecycle only after using the first request/claim path and seeing what it exposes.
-2. **Posting** — let users write ordinary posts into Timeline with an appropriate audience/layer model.
-3. **Signals** — follow at least one external federated source and bring real outside activity into Timeline, quiet and collapsed by default.
-4. **Alpha coherence** — use the whole product end to end; remove remaining prototype fixtures; decompose oversized coordinators into single-responsibility components; separate global styling from component/feature styling; repair confusing seams. This is not a general hardening sprint.
-5. **Front Door** — create a small landing page that explains Cloud Forest and provides the alpha entry path.
+1. **Care types and presentation** — define the alpha Care catalog with Scott, implement the corresponding Give/Receive wizards and language, then make Care visually distinct by type and from ordinary Posts.
+2. **Signals** — follow at least one real external federated account and bring real public ActivityPub content into Timeline as a quiet, collapsed Signal.
+3. **Alpha coherence** — use the whole product end to end; remove remaining prototype fixtures; decompose oversized coordinators; reduce giant files; clarify feature ownership; separate global styling from feature styling; repair confusing seams.
+4. **React Native preparation** — as part of coherence, leave domain, API, state, and feature boundaries cleaner and less web-entangled so a post-alpha React Native client refactor is easier. Do not begin the React Native migration during alpha.
 
 ## Known temporary debt
 
@@ -42,7 +38,8 @@ Keep the first Care increment narrow. Do not carry forward browser-storage autho
 - `apps/web/src/index.css` is oversized and mixes global and localized styling.
 - Large app-level tests have accumulated around prototype behavior.
 - Disconnected review prototypes remain in source until their accepted behavior is safely represented in product code or durable product docs.
-- Care and much of Timeline/Guild/Signal presentation still depend on fictional fixture/browser state.
+- Care presentation still needs type-specific language and visual identity.
+- Guild/Signal presentation still depends on fictional fixture state.
 
 ## Definition of done for an alpha increment
 
