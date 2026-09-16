@@ -366,10 +366,12 @@ describe("App", () => {
   it("renders Timeline as a standalone default view", async () => {
     await renderAuthenticatedApp();
 
-    expect(screen.queryAllByRole("button", { name: /timeline/i })).toHaveLength(
-      0,
-    );
-    expect(screen.getAllByRole("button", { name: /curator/i })).toHaveLength(1);
+    expect(
+      screen.getByRole("button", { name: "Current view: Timeline" }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      screen.getByRole("button", { name: "Go to Curator" }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /galaxy/i }),
     ).not.toBeInTheDocument();
@@ -422,6 +424,10 @@ describe("App", () => {
     expect(guildLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(0);
     expect(signalLayer.querySelectorAll("[data-curator-tile]")).toHaveLength(0);
     expect(screen.getByRole("heading", { name: "Party" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Party count")).toHaveTextContent("4/5");
+    expect(
+      within(partyLayer).queryByRole("heading", { name: "Party" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /studio night/i }),
     ).not.toBeInTheDocument();

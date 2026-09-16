@@ -1,4 +1,4 @@
-import { List, Sprout } from "lucide-react";
+import { Newspaper, UsersRound } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,13 +10,13 @@ type ViewSwitcherProps = {
 };
 
 const viewOptions = [
-  { icon: List, label: "Timeline", value: "timeline" as const },
-  { icon: Sprout, label: "Curator", value: "curator" as const },
+  { icon: Newspaper, label: "Timeline", value: "timeline" as const },
+  { icon: UsersRound, label: "Curator", value: "curator" as const },
 ];
 
 export function ViewSwitcher({ activeView, onViewChange }: ViewSwitcherProps) {
   return (
-    <nav aria-label="Cloud Forest view" className="timeline-view-switcher">
+    <nav aria-label="Cloud Forest views" className="timeline-view-switcher">
       {viewOptions.map((option) => {
         const isActive = option.value === activeView;
         const Icon = option.icon;
@@ -24,13 +24,18 @@ export function ViewSwitcher({ activeView, onViewChange }: ViewSwitcherProps) {
           <button
             key={option.value}
             aria-current={isActive ? "page" : undefined}
-            aria-label={option.label}
+            aria-label={
+              isActive
+                ? `Current view: ${option.label}`
+                : `Go to ${option.label}`
+            }
             className={cn(isActive && "is-active")}
+            data-primary-view={option.value}
             onClick={() => onViewChange(option.value)}
             type="button"
           >
             <Icon aria-hidden="true" />
-            <span>{option.label}</span>
+            <span className="sr-only">{option.label}</span>
           </button>
         );
       })}

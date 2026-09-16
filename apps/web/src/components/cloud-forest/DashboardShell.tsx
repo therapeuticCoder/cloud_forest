@@ -1,4 +1,4 @@
-import { CloudOff, Gift, HandHeart, TreePine } from "lucide-react";
+import { CloudOff, Gift, HandHeart } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInitials, curatorUser } from "@/data/cloudForest";
 import type { ReceiveCareRequest } from "@/types/careRequest";
@@ -32,7 +32,8 @@ import {
 } from "./useCareOffers";
 import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
-import { type CloudForestView } from "./ViewSwitcher";
+import { type CloudForestView, ViewSwitcher } from "./ViewSwitcher";
+import type { CuratorLayerLabel } from "./curatorLayerStyles";
 import { ReceiveCareWizard, type ReceiveCareDraft } from "./ReceiveCareWizard";
 import { GiveCareWizard, type GiveCareDraft } from "./GiveCareWizard";
 import { ClaimCareView } from "./ClaimCareView";
@@ -86,6 +87,8 @@ export function DashboardShell({
   signingOut: boolean;
 }) {
   const [activeView, setActiveView] = useState<CloudForestView>("timeline");
+  const [activeCuratorLayer, setActiveCuratorLayer] =
+    useState<CuratorLayerLabel>("Party");
   const [pairingToken, setPairingToken] = useState(() =>
     new URL(window.location.href).searchParams.get("pairing"),
   );
@@ -165,6 +168,14 @@ export function DashboardShell({
     !curatorIsOffline &&
     curatedPeople.status === "ready" &&
     curatedPeople.source === "live";
+  const activeCuratorLayerCount =
+    activeCuratorLayer === "Holding"
+      ? `${holdingPeople.length}/5`
+      : activeCuratorLayer === "Party"
+        ? `${partyPeople.length}/5`
+        : activeCuratorLayer === "Tribe"
+          ? `${tribePeople.length}/100`
+          : undefined;
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -197,6 +208,7 @@ export function DashboardShell({
         "",
         `${url.pathname}${url.search}${url.hash}`,
       );
+      if (view === "curator") setActiveCuratorLayer("Party");
       setActiveView(view);
     },
     [activeView],
@@ -204,11 +216,12 @@ export function DashboardShell({
 
   useEffect(() => {
     const handleViewPopState = () => {
-      setActiveView(
+      const nextView: CloudForestView =
         window.history.state?.cloudForestView === "curator"
           ? "curator"
-          : "timeline",
-      );
+          : "timeline";
+      if (nextView === "curator") setActiveCuratorLayer("Party");
+      setActiveView(nextView);
       setPairingToken(
         new URL(window.location.href).searchParams.get("pairing"),
       );
@@ -756,6 +769,9 @@ export function DashboardShell({
     <main
       className="cloud-forest-app"
       data-active-view={activeView}
+      data-curator-layer={
+        activeView === "curator" ? activeCuratorLayer : undefined
+      }
       data-receive-open={receiveWizardOpen}
       data-give-open={giveWizardOpen}
       data-timeline-post-open={timelinePostComposerOpen}
@@ -795,15 +811,21 @@ export function DashboardShell({
               />
             )}
           </button>
-          <h1>Timeline</h1>
-          <button
-            aria-label="Go to Curator"
-            className="party-wordmark"
-            onClick={() => navigateToView("curator")}
-            type="button"
-          >
-            <TreePine aria-hidden="true" strokeWidth={1.5} />
-          </button>
+          <h1>{activeView === "timeline" ? "Timeline" : activeCuratorLayer}</h1>
+          <div className="global-view-tools">
+            {activeView === "curator" && activeCuratorLayerCount ? (
+              <span
+                aria-label={`${activeCuratorLayer} count`}
+                className="global-view-layer-count"
+              >
+                {activeCuratorLayerCount}
+              </span>
+            ) : null}
+            <ViewSwitcher
+              activeView={activeView}
+              onViewChange={navigateToView}
+            />
+          </div>
           {!receiveWizardOpen &&
           !giveWizardOpen &&
           activeView === "timeline" ? (
@@ -895,10 +917,7 @@ export function DashboardShell({
                 onRetryCuratedPeople={() => void loadCuratedPeople()}
                 onGive={openGiveWizard}
                 onUpdateCharacter={updateCharacter}
-                onNavigateToTimeline={() => navigateToView("timeline")}
-                onOpenMyCare={(returnFocusSelector) =>
-                  openCareDestination({ kind: "my-care" }, returnFocusSelector)
-                }
+                onActiveLayerChange={setActiveCuratorLayer}
                 onOfferHelp={(request) =>
                   openCareDestination(
                     { kind: "claim", request },
@@ -916,7 +935,6 @@ export function DashboardShell({
                 partyPeople={partyPeople}
                 holdingPeople={holdingPeople}
                 tribePeople={tribePeople}
-                user={currentUser}
               />
             )}
           </div>
