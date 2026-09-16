@@ -48,10 +48,11 @@ import {
 } from "@/lib/pendingConnectionPairing";
 
 type CareDestination =
-  { kind: "claim"; request: ReceiveCareRequest } | {
-    kind: "my-care";
-    initialTab?: MyCareTab;
-  };
+  | { kind: "claim"; request: ReceiveCareRequest }
+  | {
+      kind: "my-care";
+      initialTab?: MyCareTab;
+    };
 
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
 export type { CareRequestApiClient } from "./useCareRequests";
