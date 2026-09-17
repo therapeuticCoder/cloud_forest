@@ -2,12 +2,17 @@ import { ArrowLeft, Check, HandHeart, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  careExpirationOptions,
+  type CareExpiration,
+} from "@/types/careRequest";
 
 export type ReceiveCareDraft = {
   helpfulWhen: string;
   foodWorks: string;
   foodDoesNotWork: string;
   handoffStyle: string;
+  expiresIn: CareExpiration;
 };
 
 type CompletionResult = { ok: true } | { ok: false; message: string } | void;
@@ -17,7 +22,7 @@ type ReceiveCareWizardProps = {
   onComplete: (draft: ReceiveCareDraft) => Promise<CompletionResult>;
 };
 
-const steps = ["Care", "Timing", "Food", "Handoff", "Review"];
+const steps = ["Care", "Timing", "Food", "Expiration", "Handoff", "Review"];
 const careOptions = [
   { label: "Meal", value: "meal", enabled: true },
   { label: "Transportation", value: "transportation", enabled: false },
@@ -43,6 +48,7 @@ export function ReceiveCareWizard({
   const [helpfulWhen, setHelpfulWhen] = useState("");
   const [foodWorks, setFoodWorks] = useState("");
   const [foodDoesNotWork, setFoodDoesNotWork] = useState("");
+  const [expiresIn, setExpiresIn] = useState<CareExpiration | "">("");
   const [handoffStyle, setHandoffStyle] = useState("");
   const [submissionError, setSubmissionError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
@@ -59,8 +65,9 @@ export function ReceiveCareWizard({
     (step === 0 && careType.length > 0) ||
     (step === 1 && helpfulWhen.trim().length > 0) ||
     (step === 2 && foodWorks.trim().length > 0) ||
-    (step === 3 && handoffStyle.length > 0) ||
-    step === 4;
+    (step === 3 && expiresIn.length > 0) ||
+    (step === 4 && handoffStyle.length > 0) ||
+    step === 5;
 
   const handleNext = async () => {
     if (submitting) return;
@@ -77,6 +84,7 @@ export function ReceiveCareWizard({
       foodWorks: foodWorks.trim(),
       foodDoesNotWork: foodDoesNotWork.trim(),
       handoffStyle,
+      expiresIn: expiresIn as CareExpiration,
     });
     if (result && !result.ok) setSubmissionError(result.message);
     setSubmitting(false);
@@ -224,6 +232,34 @@ export function ReceiveCareWizard({
         {step === 3 ? (
           <div className="party-wizard__question">
             <h1 className="party-wizard__title">
+              When should this request expire?
+            </h1>
+            <span className="party-wizard__hint">
+              Choose how long this opportunity should stay open if nobody claims
+              it.
+            </span>
+            <div aria-label="Care expiration" className="party-wizard__options">
+              {careExpirationOptions.map((option, index) => (
+                <Button
+                  aria-pressed={expiresIn === option.value}
+                  className="party-wizard__option"
+                  data-wizard-focus={index === 0 ? "true" : undefined}
+                  key={option.value}
+                  onClick={() => setExpiresIn(option.value)}
+                  size="lg"
+                  type="button"
+                  variant="outline"
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {step === 4 ? (
+          <div className="party-wizard__question">
+            <h1 className="party-wizard__title">
               How would you like to receive it?
             </h1>
             <span className="party-wizard__hint">
@@ -250,7 +286,7 @@ export function ReceiveCareWizard({
           </div>
         ) : null}
 
-        {step === 4 ? (
+        {step === 5 ? (
           <div className="party-wizard__question party-wizard__preview-wrap">
             <HandHeart aria-hidden="true" className="receive-care-icon" />
             <h1 className="party-wizard__title">Ready to ask your Party?</h1>
@@ -266,6 +302,14 @@ export function ReceiveCareWizard({
                   <strong>Please avoid:</strong> {foodDoesNotWork}
                 </p>
               ) : null}
+              <p>
+                <strong>Expires:</strong>{" "}
+                {
+                  careExpirationOptions.find(
+                    (option) => option.value === expiresIn,
+                  )?.label
+                }
+              </p>
               <p>
                 <strong>Handoff:</strong> {handoffStyle}
               </p>
@@ -290,8 +334,8 @@ export function ReceiveCareWizard({
           size="lg"
           type="button"
         >
-          {step === 4 ? <Check aria-hidden="true" /> : null}
-          {step === 4 ? "Ask my Party" : "Continue"}
+          {step === 5 ? <Check aria-hidden="true" /> : null}
+          {step === 5 ? "Ask my Party" : "Continue"}
         </Button>
       </footer>
     </section>

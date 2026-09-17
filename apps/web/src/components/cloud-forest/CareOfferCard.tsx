@@ -1,4 +1,4 @@
-import { Gift, UsersRound } from "lucide-react";
+import { Gift, HeartHandshake, Network } from "lucide-react";
 
 import type { GiveCareOffer } from "@/types/careRequest";
 
@@ -64,7 +64,12 @@ export function CareOfferCard({
         </dl>
         <div className="care-request-card__footer">
           <span>
-            <UsersRound aria-hidden="true" /> Offered to: {offer.audience}
+            {offer.audience === "Party" ? (
+              <HeartHandshake aria-hidden="true" />
+            ) : (
+              <Network aria-hidden="true" />
+            )}{" "}
+            Offered to: {offer.audience}
           </span>
           <time dateTime={offer.createdAt}>
             {formatter.format(new Date(offer.createdAt))}

@@ -32,6 +32,7 @@ import {
 } from "./useCareOffers";
 import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
+import type { TimelineError } from "./TimelinePanel";
 import { type CloudForestView, ViewSwitcher } from "./ViewSwitcher";
 import type { CuratorLayerLabel } from "./curatorLayerStyles";
 import { ReceiveCareWizard, type ReceiveCareDraft } from "./ReceiveCareWizard";
@@ -142,6 +143,7 @@ export function DashboardShell({
   const [careGratitudeRequest, setCareGratitudeRequest] =
     useState<ReceiveCareRequest | null>(null);
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<string>();
+  const carePassAnnouncementTimeoutRef = useRef<number | undefined>(undefined);
   const {
     add: addCuratedPerson,
     blockedPeople,
@@ -161,6 +163,14 @@ export function DashboardShell({
   const appIsOffline =
     deviceIsOffline || (activeView === "timeline" && timelineApiOffline);
   const wasOnlineRef = useRef(isOnline);
+  useEffect(
+    () => () => {
+      if (carePassAnnouncementTimeoutRef.current !== undefined) {
+        window.clearTimeout(carePassAnnouncementTimeoutRef.current);
+      }
+    },
+    [],
+  );
   const [addSubmission, setAddSubmission] = useState<{
     pending: boolean;
     error?: string;
@@ -518,6 +528,18 @@ export function DashboardShell({
     navigateToView("timeline");
     return { ok: true as const };
   };
+  const announceCarePass = () => {
+    setCarePassAnnouncement(
+      "Passed privately. This Care won’t appear again unless your relationship layer changes.",
+    );
+    if (carePassAnnouncementTimeoutRef.current !== undefined) {
+      window.clearTimeout(carePassAnnouncementTimeoutRef.current);
+    }
+    carePassAnnouncementTimeoutRef.current = window.setTimeout(() => {
+      setCarePassAnnouncement(undefined);
+      carePassAnnouncementTimeoutRef.current = undefined;
+    }, 5_000);
+  };
   const claimGiveOffer = async (offerId: string) => {
     const result = await claimCareOffer(offerId);
     if (result.ok) {
@@ -527,17 +549,13 @@ export function DashboardShell({
   const handlePassCareRequest = async (request: ReceiveCareRequest) => {
     const result = await passCareRequest(request.id);
     if (result.ok) {
-      setCarePassAnnouncement(
-        "Passed privately. This Care won’t appear again unless your relationship layer changes.",
-      );
+      announceCarePass();
     }
   };
   const handlePassCareOffer = async (offer: GiveCareOffer) => {
     const result = await passCareOffer(offer.id);
     if (result.ok) {
-      setCarePassAnnouncement(
-        "Passed privately. This Care won’t appear again unless your relationship layer changes.",
-      );
+      announceCarePass();
     }
   };
   const openReceiveWizard = () => {
@@ -828,11 +846,17 @@ export function DashboardShell({
       ),
     [careOffersState.offers, careViewerId],
   );
-  const durableCareStatusMessage =
-    durableCareRequestsState.status === "loading"
-      ? "Loading shared Care…"
-      : durableCareRequestsState.status === "error"
-        ? durableCareRequestsState.message
+  const durableCareError: TimelineError | undefined =
+    durableCareRequestsState.status === "error"
+      ? {
+          code: durableCareRequestsState.errorCode,
+          message: durableCareRequestsState.message,
+        }
+      : careOffersState.status === "error"
+        ? {
+            code: careOffersState.errorCode,
+            message: careOffersState.message,
+          }
         : undefined;
   const durableCareOfferStatusMessage =
     careOffersState.status === "error" ? careOffersState.message : undefined;
@@ -953,8 +977,7 @@ export function DashboardShell({
                 careGratitudes={[]}
                 careGratitudeRequests={durableCareRequests}
                 careRequests={durableCareRequests}
-                careRequestStatusMessage={durableCareStatusMessage}
-                careOfferStatusMessage={durableCareOfferStatusMessage}
+                careError={durableCareError}
                 offline={deviceIsOffline}
                 postComposerOpen={timelinePostComposerOpen}
                 onClosePostComposer={closeTimelinePostComposer}

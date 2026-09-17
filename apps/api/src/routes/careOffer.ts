@@ -50,6 +50,7 @@ function toApiOffer(
       offer.audience === "party" ? ("Party" as const) : ("Tribe" as const),
     status: offer.status,
     createdAt: offer.createdAt.toISOString(),
+    ...(offer.expiresAt ? { expiresAt: offer.expiresAt.toISOString() } : {}),
     ...(offer.expiredAt ? { expiredAt: offer.expiredAt.toISOString() } : {}),
     giver: offer.giver,
   };

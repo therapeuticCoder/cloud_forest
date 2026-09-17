@@ -130,6 +130,7 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
     foodWorks: "Soup",
     foodDoesNotWork: "Nothing spicy",
     handoffStyle: "Leave it at my door",
+    expiresIn: "1w",
     now,
   });
   assert.deepEqual(

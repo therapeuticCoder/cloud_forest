@@ -30,6 +30,7 @@ export {
   type CareRequestStatus,
   type CareOfferStatus,
   type CareAudience,
+  type CareExpiration,
   type CareGratitudeStatementId,
   type NewTimelineItemRow,
   type TimelineItemRow,

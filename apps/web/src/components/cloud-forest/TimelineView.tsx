@@ -1,4 +1,8 @@
-import { TimelinePanel, type TimelineApiClient } from "./TimelinePanel";
+import {
+  TimelinePanel,
+  type TimelineApiClient,
+  type TimelineError,
+} from "./TimelinePanel";
 import type {
   CareGratitude,
   CarePersonId,
@@ -15,8 +19,7 @@ export function TimelineView({
   careGratitudes = [],
   careOffers = [],
   careRequests = [],
-  careRequestStatusMessage,
-  careOfferStatusMessage,
+  careError,
   careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
@@ -48,8 +51,7 @@ export function TimelineView({
   careGratitudes?: CareGratitude[];
   careGratitudeRequests?: ReceiveCareRequest[];
   careRequests?: ReceiveCareRequest[];
-  careRequestStatusMessage?: string;
-  careOfferStatusMessage?: string;
+  careError?: TimelineError;
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
@@ -81,8 +83,7 @@ export function TimelineView({
         careGratitudeRequests={careGratitudeRequests}
         careOffers={careOffers}
         careRequests={careRequests}
-        careRequestStatusMessage={careRequestStatusMessage}
-        careOfferStatusMessage={careOfferStatusMessage}
+        careError={careError}
         claimedRequestIds={claimedRequestIds}
         minimizedRequestIds={minimizedRequestIds}
         onOfferHelp={onOfferHelp}

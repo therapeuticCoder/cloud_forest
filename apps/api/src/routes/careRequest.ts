@@ -44,7 +44,12 @@ function toApiRequest(
   return {
     id: request.id,
     kind: "meal" as const,
-    direction: "receive" as const,
+    direction:
+      request.originatorUserId !== undefined &&
+      request.requesterUserId !== undefined &&
+      request.originatorUserId !== request.requesterUserId
+        ? ("give" as const)
+        : ("receive" as const),
     need: "A meal" as const,
     helpfulWhen: request.helpfulWhen,
     foodWorks: request.foodWorks,
@@ -65,6 +70,9 @@ function toApiRequest(
       : {}),
     ...(request.completedAt
       ? { completedAt: request.completedAt.toISOString() }
+      : {}),
+    ...(request.expiresAt
+      ? { expiresAt: request.expiresAt.toISOString() }
       : {}),
     ...(request.expiredAt
       ? { expiredAt: request.expiredAt.toISOString() }

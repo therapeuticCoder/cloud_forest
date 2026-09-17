@@ -2,6 +2,10 @@ import { ArrowLeft, Check, Gift, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  careExpirationOptions,
+  type CareExpiration,
+} from "@/types/careRequest";
 
 type GiveCareWizardProps = {
   onCancel: () => void;
@@ -14,9 +18,10 @@ export type GiveCareDraft = {
   mealDescription: string;
   availableWhen: string;
   handoffStyle: string;
+  expiresIn: CareExpiration;
 };
 
-const steps = ["Care", "Meal", "Timing", "Handoff", "Review"];
+const steps = ["Care", "Meal", "Timing", "Expiration", "Handoff", "Review"];
 const careOptions = [
   { label: "Meal", value: "meal", enabled: true },
   { label: "Transportation", value: "transportation", enabled: false },
@@ -38,6 +43,7 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
   const [careType, setCareType] = useState("");
   const [mealDescription, setMealDescription] = useState("");
   const [availableWhen, setAvailableWhen] = useState("");
+  const [expiresIn, setExpiresIn] = useState<CareExpiration | "">("");
   const [handoffStyle, setHandoffStyle] = useState("");
   const [submissionError, setSubmissionError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
@@ -54,8 +60,9 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
     (step === 0 && careType.length > 0) ||
     (step === 1 && mealDescription.trim().length > 0) ||
     (step === 2 && availableWhen.trim().length > 0) ||
-    (step === 3 && handoffStyle.length > 0) ||
-    step === 4;
+    (step === 3 && expiresIn.length > 0) ||
+    (step === 4 && handoffStyle.length > 0) ||
+    step === 5;
 
   const handleNext = async () => {
     if (submitting) return;
@@ -71,6 +78,7 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
       mealDescription: mealDescription.trim(),
       availableWhen: availableWhen.trim(),
       handoffStyle,
+      expiresIn: expiresIn as CareExpiration,
     });
     if (!result.ok) setSubmissionError(result.message);
     setSubmitting(false);
@@ -209,6 +217,34 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
 
         {step === 3 ? (
           <div className="party-wizard__question">
+            <h1 className="party-wizard__title">
+              When should this offer expire?
+            </h1>
+            <span className="party-wizard__hint">
+              Choose how long this opportunity should stay open if it is not
+              claimed.
+            </span>
+            <div aria-label="Care expiration" className="party-wizard__options">
+              {careExpirationOptions.map((option, index) => (
+                <Button
+                  aria-pressed={expiresIn === option.value}
+                  className="party-wizard__option"
+                  data-wizard-focus={index === 0 ? "true" : undefined}
+                  key={option.value}
+                  onClick={() => setExpiresIn(option.value)}
+                  size="lg"
+                  type="button"
+                  variant="outline"
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {step === 4 ? (
+          <div className="party-wizard__question">
             <h1 className="party-wizard__title">How could you share it?</h1>
             <span className="party-wizard__hint">
               Choose the handoff that feels right for you.
@@ -234,7 +270,7 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
           </div>
         ) : null}
 
-        {step === 4 ? (
+        {step === 5 ? (
           <div className="party-wizard__question party-wizard__preview-wrap">
             <Gift aria-hidden="true" className="give-care-icon" />
             <h1 className="party-wizard__title">
@@ -246,6 +282,14 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
               </p>
               <p>
                 <strong>Available:</strong> {availableWhen}
+              </p>
+              <p>
+                <strong>Expires:</strong>{" "}
+                {
+                  careExpirationOptions.find(
+                    (option) => option.value === expiresIn,
+                  )?.label
+                }
               </p>
               <p>
                 <strong>Handoff:</strong> {handoffStyle}
@@ -271,8 +315,8 @@ export function GiveCareWizard({ onCancel, onComplete }: GiveCareWizardProps) {
           size="lg"
           type="button"
         >
-          {step === 4 ? <Check aria-hidden="true" /> : null}
-          {step === 4 ? "Offer to my Party" : "Continue"}
+          {step === 5 ? <Check aria-hidden="true" /> : null}
+          {step === 5 ? "Offer to my Party" : "Continue"}
         </Button>
       </footer>
     </section>

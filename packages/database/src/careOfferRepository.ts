@@ -12,6 +12,7 @@ import {
   curatedPersons,
   personProfiles,
   relationshipBlocks,
+  type CareExpiration,
 } from "./schema.ts";
 
 type TransactionClient = Parameters<
@@ -27,9 +28,21 @@ type CareOfferRecord = {
   audience: "party" | "tribe";
   status: "available" | "expired";
   createdAt: Date;
+  expiresAt: Date | null;
   expiredAt: Date | null;
   giver: { personId: string; displayName: string };
 };
+
+const careExpirationMs: Record<CareExpiration, number> = {
+  "1h": 60 * 60 * 1_000,
+  "4h": 4 * 60 * 60 * 1_000,
+  "1d": 24 * 60 * 60 * 1_000,
+  "1w": 7 * 24 * 60 * 60 * 1_000,
+};
+
+function expiresAtFor(now: Date, expiresIn: CareExpiration) {
+  return new Date(now.getTime() + careExpirationMs[expiresIn]);
+}
 
 function currentCareConnection(viewerUserId: string) {
   const currentConnection = sql`exists (
@@ -230,11 +243,21 @@ async function reconcileOffer(
       giverUserId: careOffers.giverUserId,
       audience: careOffers.audience,
       status: careOffers.status,
+      expiresAt: careOffers.expiresAt,
     })
     .from(careOffers)
     .where(eq(careOffers.id, careOfferId))
     .limit(1);
   if (offer === undefined || offer.status !== "available") return;
+  if (offer.expiresAt !== null && offer.expiresAt <= now) {
+    await transaction
+      .update(careOffers)
+      .set({ status: "expired", expiredAt: now })
+      .where(
+        and(eq(careOffers.id, careOfferId), eq(careOffers.status, "available")),
+      );
+    return;
+  }
   if (
     await hasUnresolvedAudience(transaction, {
       careOfferId,
@@ -309,6 +332,7 @@ export function createCareOfferRepository(database: DatabaseClient) {
           handoffStyle: careOffers.handoffStyle,
           audience: careOffers.audience,
           status: careOffers.status,
+          expiresAt: careOffers.expiresAt,
           expiredAt: careOffers.expiredAt,
           createdAt: careOffers.createdAt,
           giverPersonId: giverAccountPeople.personId,
@@ -343,6 +367,7 @@ export function createCareOfferRepository(database: DatabaseClient) {
           handoffStyle: row.handoffStyle,
           audience: row.audience,
           status: row.status,
+          expiresAt: row.expiresAt,
           expiredAt: row.expiredAt,
           createdAt: row.createdAt,
           giver: {
@@ -364,6 +389,7 @@ export function createCareOfferRepository(database: DatabaseClient) {
       mealDescription: string;
       availableWhen: string;
       handoffStyle: string;
+      expiresIn: CareExpiration;
       audience?: "party" | "tribe";
       now: Date;
     }) {
@@ -378,6 +404,7 @@ export function createCareOfferRepository(database: DatabaseClient) {
             availableWhen: input.availableWhen,
             handoffStyle: input.handoffStyle,
             audience: input.audience ?? "party",
+            expiresAt: expiresAtFor(input.now, input.expiresIn),
             createdAt: input.now,
           })
           .returning({ id: careOffers.id });

@@ -555,6 +555,8 @@ export interface operations {
                                 readonly direction: "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -601,6 +603,7 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly availableWhen: string;
+                    readonly expiresIn: "1h" | "4h" | "1d" | "1w";
                     readonly handoffStyle: string;
                     readonly mealDescription: string;
                 };
@@ -626,6 +629,8 @@ export interface operations {
                                 readonly direction: "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -707,6 +712,8 @@ export interface operations {
                                 readonly direction: "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -788,6 +795,8 @@ export interface operations {
                                 readonly direction: "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -885,6 +894,8 @@ export interface operations {
                                 readonly direction: "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly giver: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -985,10 +996,11 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                /** @enum {string} */
-                                readonly direction: "receive";
+                                readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1044,6 +1056,7 @@ export interface operations {
         readonly requestBody: {
             readonly content: {
                 readonly "application/json": {
+                    readonly expiresIn: "1h" | "4h" | "1d" | "1w";
                     readonly foodDoesNotWork: string;
                     readonly foodWorks: string;
                     readonly handoffStyle: string;
@@ -1076,10 +1089,11 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                /** @enum {string} */
-                                readonly direction: "receive";
+                                readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1176,10 +1190,11 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                /** @enum {string} */
-                                readonly direction: "receive";
+                                readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1308,10 +1323,11 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                /** @enum {string} */
-                                readonly direction: "receive";
+                                readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1431,10 +1447,11 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                /** @enum {string} */
-                                readonly direction: "receive";
+                                readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {
@@ -1563,10 +1580,11 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                /** @enum {string} */
-                                readonly direction: "receive";
+                                readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
                                 readonly foodDoesNotWork: string;
                                 readonly foodWorks: string;
                                 readonly gratitude?: {

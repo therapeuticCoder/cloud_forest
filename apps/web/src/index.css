@@ -503,6 +503,50 @@ button:focus-visible {
   gap: 7px;
 }
 
+.timeline-error-banner {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.75rem;
+  border: 1px solid #7f1d1d;
+  border-radius: 0.7rem;
+  background: #b42318;
+  color: #fff;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.timeline-error-banner strong {
+  flex: none;
+  font-weight: 800;
+}
+
+.timeline-error-banner__message {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-error-banner button {
+  flex: none;
+  margin-inline-start: auto;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+}
+
+.timeline-error-banner button:focus-visible {
+  outline: 3px solid var(--forest-amber);
+  outline-offset: 2px;
+}
+
 .timeline-remote-state {
   display: flex;
   min-height: 96px;

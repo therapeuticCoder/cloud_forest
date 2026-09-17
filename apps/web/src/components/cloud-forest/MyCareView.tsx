@@ -469,8 +469,7 @@ export function MyCareView({
                       key={`${item.kind}-${item.kind === "expired-request" ? item.request.id : item.offer.id}`}
                     >
                       <div>
-                        <span>Opportunity passed</span>
-                        <strong>This opportunity passed.</strong>
+                        <span>Care opportunity passed</span>
                         <p>
                           {item.kind === "expired-request"
                             ? `${item.request.need} · ${item.request.helpfulWhen}`

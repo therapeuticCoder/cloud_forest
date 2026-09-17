@@ -10,6 +10,12 @@ const foodWorks = Type.String({ minLength: 1, maxLength: 10_000 });
 const foodDoesNotWork = Type.String({ maxLength: 10_000 });
 const handoffStyle = Type.String({ minLength: 1, maxLength: 200 });
 const dateTime = Type.String({ format: "date-time" });
+export const careExpiration = Type.Union([
+  Type.Literal("1h"),
+  Type.Literal("4h"),
+  Type.Literal("1d"),
+  Type.Literal("1w"),
+]);
 const careAudience = Type.Union([Type.Literal("Party"), Type.Literal("Tribe")]);
 const careGratitudeStatementId = Type.Union([
   Type.Literal("meal-fed-when-needed"),
@@ -34,7 +40,7 @@ export const careRequestSchema = Type.Object(
   {
     id,
     kind: Type.Literal("meal"),
-    direction: Type.Literal("receive"),
+    direction: Type.Union([Type.Literal("receive"), Type.Literal("give")]),
     need: Type.Literal("A meal"),
     helpfulWhen,
     foodWorks,
@@ -53,6 +59,7 @@ export const careRequestSchema = Type.Object(
     requesterCompletedAt: Type.Optional(dateTime),
     claimantCompletedAt: Type.Optional(dateTime),
     completedAt: Type.Optional(dateTime),
+    expiresAt: Type.Optional(dateTime),
     expiredAt: Type.Optional(dateTime),
     gratitude: Type.Optional(careGratitude),
     requester: carePersonSchema,
@@ -62,7 +69,13 @@ export const careRequestSchema = Type.Object(
 );
 
 export const createCareRequestBodySchema = Type.Object(
-  { helpfulWhen, foodWorks, foodDoesNotWork, handoffStyle },
+  {
+    helpfulWhen,
+    foodWorks,
+    foodDoesNotWork,
+    handoffStyle,
+    expiresIn: careExpiration,
+  },
   { additionalProperties: false },
 );
 

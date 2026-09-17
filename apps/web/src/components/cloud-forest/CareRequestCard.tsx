@@ -1,4 +1,4 @@
-import { HandHeart, UsersRound } from "lucide-react";
+import { HandHeart, HeartHandshake, Network } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import type {
@@ -166,7 +166,11 @@ export function CareRequestCard({
         </dl>
         <div className="care-request-card__footer">
           <span>
-            <UsersRound aria-hidden="true" />
+            {request.audience === "Party" ? (
+              <HeartHandshake aria-hidden="true" />
+            ) : (
+              <Network aria-hidden="true" />
+            )}
             {isSelfAuthored
               ? `Shared with: ${request.audience}`
               : `From your ${request.audience}`}

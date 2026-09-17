@@ -25,6 +25,7 @@ export type ConnectionPairingStatus =
   | "cancelled"
   | "superseded";
 export type CareAudience = "party" | "tribe";
+export type CareExpiration = "1h" | "4h" | "1d" | "1w";
 export type CareRequestStatus =
   | "open"
   | "claimed"
@@ -353,6 +354,7 @@ export const careRequests = pgTable(
       .$type<CareRequestStatus>()
       .notNull()
       .default("open"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
     claimantUserId: varchar("claimant_user_id", { length: 128 }).references(
       () => users.id,
       { onDelete: "cascade" },
@@ -470,6 +472,7 @@ export const careOffers = pgTable(
       .$type<CareOfferStatus>()
       .notNull()
       .default("available"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
     expiredAt: timestamp("expired_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },

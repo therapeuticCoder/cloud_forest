@@ -672,6 +672,8 @@ describe("App", () => {
       "Soup or rice",
     );
     await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "1 day" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.click(
       screen.getByRole("button", { name: "Leave it at my door" }),
     );
@@ -802,6 +804,8 @@ describe("App", () => {
       screen.getByPlaceholderText("Saturday afternoon"),
       "Saturday afternoon",
     );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "1 day" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.click(screen.getByRole("button", { name: "I’m flexible" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));

@@ -36,7 +36,12 @@ type CareRequestRecord = GetCareRequestsResponse["data"]["requests"][number];
 export type CareRequestsState =
   | { status: "loading"; requests: ReceiveCareRequest[]; message?: string }
   | { status: "ready"; requests: ReceiveCareRequest[]; message?: string }
-  | { status: "error"; requests: ReceiveCareRequest[]; message: string };
+  | {
+      status: "error";
+      requests: ReceiveCareRequest[];
+      errorCode: number | "NETWORK";
+      message: string;
+    };
 
 const defaultApiClient: CareRequestApiClient = createApiClient({
   baseUrl: "",
@@ -50,7 +55,7 @@ function toReceiveCareRequest(
   return {
     id: request.id,
     kind: "meal",
-    direction: "receive",
+    direction: request.direction,
     need: "A meal",
     helpfulWhen: request.helpfulWhen,
     foodWorks: request.foodWorks,
@@ -68,6 +73,7 @@ function toReceiveCareRequest(
       ? { claimantCompletedAt: request.claimantCompletedAt }
       : {}),
     ...(request.completedAt ? { completedAt: request.completedAt } : {}),
+    ...(request.expiresAt ? { expiresAt: request.expiresAt } : {}),
     ...(request.expiredAt ? { expiredAt: request.expiredAt } : {}),
     ...(request.gratitude ? { gratitude: request.gratitude } : {}),
     requester: {
@@ -107,6 +113,12 @@ export function careRequestErrorMessage(
   return "Shared Care is temporarily unavailable. Try again when you’re ready.";
 }
 
+function careRequestErrorCode(
+  result: Exclude<CareRequestOperationResult, { ok: true }>,
+) {
+  return result.kind === "network" ? ("NETWORK" as const) : result.status;
+}
+
 export function careGratitudeErrorMessage(
   result: Exclude<RecordCareGratitudeResult, { ok: true }>,
 ) {
@@ -141,6 +153,7 @@ export function useCareRequests(
       setState((current) => ({
         status: "error",
         requests: current.requests,
+        errorCode: careRequestErrorCode(result),
         message: careRequestErrorMessage(result),
       }));
     },
@@ -234,9 +247,6 @@ export function useCareRequests(
       const result = await apiClient.completeCareRequest({ careRequestId });
       if (result.ok) {
         applyResult(result, requestSequence);
-      } else if (result.kind === "http" && result.status === 404) {
-        const latest = await apiClient.getCareRequests();
-        applyResult(latest, requestSequence);
       } else {
         applyResult(result, requestSequence);
       }
@@ -265,6 +275,7 @@ export function useCareRequests(
           setState((current) => ({
             status: "error",
             requests: current.requests,
+            errorCode: careRequestErrorCode(result),
             message: careGratitudeErrorMessage(result),
           }));
         }
@@ -272,6 +283,7 @@ export function useCareRequests(
         setState((current) => ({
           status: "error",
           requests: current.requests,
+          errorCode: careRequestErrorCode(result),
           message: careGratitudeErrorMessage(result),
         }));
       }

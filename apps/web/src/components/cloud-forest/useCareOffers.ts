@@ -33,7 +33,12 @@ type CareOfferRecord = GetCareOffersResponse["data"]["offers"][number];
 export type CareOffersState =
   | { status: "loading"; offers: GiveCareOffer[]; message?: string }
   | { status: "ready"; offers: GiveCareOffer[]; message?: string }
-  | { status: "error"; offers: GiveCareOffer[]; message: string };
+  | {
+      status: "error";
+      offers: GiveCareOffer[];
+      errorCode: number | "NETWORK";
+      message: string;
+    };
 
 const defaultApiClient: CareOfferApiClient = createApiClient({
   baseUrl: "",
@@ -52,6 +57,7 @@ function toGiveCareOffer(offer: CareOfferRecord): GiveCareOffer {
     audience: offer.audience,
     status: offer.status,
     createdAt: offer.createdAt,
+    ...(offer.expiresAt ? { expiresAt: offer.expiresAt } : {}),
     ...(offer.expiredAt ? { expiredAt: offer.expiredAt } : {}),
     giver: {
       id: offer.giver.personId,
@@ -73,6 +79,12 @@ export function careOfferErrorMessage(
     return result.error.error.message;
   }
   return "Shared Give is temporarily unavailable. Try again when you’re ready.";
+}
+
+function careOfferErrorCode(
+  result: Exclude<CareOfferOperationResult, { ok: true }>,
+) {
+  return result.kind === "network" ? ("NETWORK" as const) : result.status;
 }
 
 export function useCareOffers(
@@ -97,6 +109,7 @@ export function useCareOffers(
       setState((current) => ({
         status: "error",
         offers: current.offers,
+        errorCode: careOfferErrorCode(result),
         message: careOfferErrorMessage(result),
       }));
     },

@@ -12,6 +12,7 @@ import {
   curatedPersons,
   personProfiles,
   relationshipBlocks,
+  type CareExpiration,
   type CareGratitudeStatementId,
 } from "./schema.ts";
 
@@ -79,6 +80,8 @@ function eligibleCareConnection(viewerUserId: string) {
 
 type CareRequestRecord = {
   id: string;
+  originatorUserId?: string;
+  requesterUserId?: string;
   kind: "meal";
   helpfulWhen: string;
   foodWorks: string;
@@ -91,6 +94,7 @@ type CareRequestRecord = {
   requesterCompletedAt: Date | null;
   claimantCompletedAt: Date | null;
   completedAt: Date | null;
+  expiresAt: Date | null;
   expiredAt: Date | null;
   createdAt: Date;
   requester: { personId: string; displayName: string };
@@ -101,6 +105,17 @@ type CareRequestRecord = {
     createdAt: Date;
   } | null;
 };
+
+const careExpirationMs: Record<CareExpiration, number> = {
+  "1h": 60 * 60 * 1_000,
+  "4h": 4 * 60 * 60 * 1_000,
+  "1d": 24 * 60 * 60 * 1_000,
+  "1w": 7 * 24 * 60 * 60 * 1_000,
+};
+
+function expiresAtFor(now: Date, expiresIn: CareExpiration) {
+  return new Date(now.getTime() + careExpirationMs[expiresIn]);
+}
 
 const careGratitudeStatementIds = new Set<CareGratitudeStatementId>([
   "meal-fed-when-needed",
@@ -198,11 +213,24 @@ export function createCareRequestRepository(database: DatabaseClient) {
         originatorUserId: careRequests.originatorUserId,
         audience: careRequests.audience,
         status: careRequests.status,
+        expiresAt: careRequests.expiresAt,
       })
       .from(careRequests)
       .where(eq(careRequests.id, careRequestId))
       .limit(1);
     if (request === undefined || request.status !== "open") return;
+    if (request.expiresAt !== null && request.expiresAt <= now) {
+      await transaction
+        .update(careRequests)
+        .set({ status: "expired", expiredAt: now })
+        .where(
+          and(
+            eq(careRequests.id, careRequestId),
+            eq(careRequests.status, "open"),
+          ),
+        );
+      return;
+    }
     if (
       await hasUnresolvedAudience(transaction, {
         careRequestId,
@@ -276,6 +304,8 @@ export function createCareRequestRepository(database: DatabaseClient) {
       const rows = await transaction
         .select({
           id: careRequests.id,
+          originatorUserId: careRequests.originatorUserId,
+          requesterUserId: careRequests.requesterUserId,
           kind: careRequests.kind,
           helpfulWhen: careRequests.helpfulWhen,
           foodWorks: careRequests.foodWorks,
@@ -288,6 +318,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
           requesterCompletedAt: careRequests.requesterCompletedAt,
           claimantCompletedAt: careRequests.claimantCompletedAt,
           completedAt: careRequests.completedAt,
+          expiresAt: careRequests.expiresAt,
           expiredAt: careRequests.expiredAt,
           createdAt: careRequests.createdAt,
           gratitudeStatementId: careGratitudes.statementId,
@@ -346,6 +377,8 @@ export function createCareRequestRepository(database: DatabaseClient) {
       return rows.map(
         (row): CareRequestRecord => ({
           id: row.id,
+          originatorUserId: row.originatorUserId,
+          requesterUserId: row.requesterUserId,
           kind: "meal",
           helpfulWhen: row.helpfulWhen,
           foodWorks: row.foodWorks,
@@ -358,6 +391,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
           requesterCompletedAt: row.requesterCompletedAt,
           claimantCompletedAt: row.claimantCompletedAt,
           completedAt: row.completedAt,
+          expiresAt: row.expiresAt,
           expiredAt: row.expiredAt,
           createdAt: row.createdAt,
           requester: {
@@ -467,6 +501,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
       foodWorks: string;
       foodDoesNotWork: string;
       handoffStyle: string;
+      expiresIn: CareExpiration;
       audience?: "party" | "tribe";
       now: Date;
     }) {
@@ -483,6 +518,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
             foodDoesNotWork: input.foodDoesNotWork,
             handoffStyle: input.handoffStyle,
             audience: input.audience ?? "party",
+            expiresAt: expiresAtFor(input.now, input.expiresIn),
             createdAt: input.now,
           })
           .returning({ id: careRequests.id });
