@@ -41,7 +41,9 @@ type MyCareViewProps = {
   activeRequests: ReceiveCareRequest[];
   claimedRequests: ReceiveCareRequest[];
   completedRequests: ReceiveCareRequest[];
+  expiredRequests: ReceiveCareRequest[];
   offers: GiveCareOffer[];
+  expiredOffers: GiveCareOffer[];
   careOfferStatusMessage?: string;
   viewerDisplayName: string;
   onBack: () => void;
@@ -65,7 +67,9 @@ export function MyCareView({
   activeRequests,
   claimedRequests,
   completedRequests,
+  expiredRequests,
   offers,
+  expiredOffers,
   careOfferStatusMessage,
   viewerDisplayName,
   onBack,
@@ -130,6 +134,28 @@ export function MyCareView({
     }
     setCreatingSignupCode(false);
   };
+
+  const historyItems = [
+    ...completedRequests.map((request) => ({
+      kind: "completed" as const,
+      request,
+      recordedAt: request.completedAt ?? request.claimedAt ?? request.createdAt,
+    })),
+    ...expiredRequests.map((request) => ({
+      kind: "expired-request" as const,
+      request,
+      recordedAt: request.expiredAt ?? request.createdAt,
+    })),
+    ...expiredOffers.map((offer) => ({
+      kind: "expired-offer" as const,
+      offer,
+      recordedAt: offer.expiredAt ?? offer.createdAt,
+    })),
+  ].sort(
+    (first, second) =>
+      new Date(second.recordedAt).getTime() -
+      new Date(first.recordedAt).getTime(),
+  );
 
   return (
     <section aria-label="My Care" className="my-care-view care-destination">
@@ -392,47 +418,66 @@ export function MyCareView({
           >
             <div className="my-care-view__section-heading">
               <CheckCircle2 aria-hidden="true" />
-              <h2 id="history-heading">Completed Care</h2>
+              <h2 id="history-heading">Care history</h2>
             </div>
 
-            {completedRequests.length > 0 ? (
+            {historyItems.length > 0 ? (
               <ul className="my-care-history">
-                {completedRequests.map((request) => {
-                  const isRequester = request.requester.id === viewerId;
-                  const completedAt =
-                    request.completedAt ??
-                    request.claimedAt ??
-                    request.createdAt;
+                {historyItems.map((item) => {
+                  if (item.kind === "completed") {
+                    const { request } = item;
+                    const isRequester = request.requester.id === viewerId;
+                    return (
+                      <li key={`completed-${request.id}`}>
+                        <div>
+                          <span>Completed</span>
+                          <strong>
+                            {isRequester
+                              ? `You received help from ${request.claimant?.displayName ?? "your helper"}`
+                              : `You helped ${request.requester.displayName}`}
+                          </strong>
+                          <p>
+                            {request.need} · {request.helpfulWhen}
+                          </p>
+                          {request.gratitude ? (
+                            <div className="my-care-history__gratitude">
+                              <span>Private gratitude</span>
+                              <p>
+                                {getMealGratitudeStatement(
+                                  request.gratitude.statementId,
+                                )?.text ??
+                                  "Thank you for showing up with care."}
+                              </p>
+                              {request.gratitude.message ? (
+                                <blockquote>
+                                  {request.gratitude.message}
+                                </blockquote>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                        <time dateTime={item.recordedAt}>
+                          {formatter.format(new Date(item.recordedAt))}
+                        </time>
+                      </li>
+                    );
+                  }
+
+                  const recordedAt = item.recordedAt;
                   return (
-                    <li key={request.id}>
+                    <li
+                      key={`${item.kind}-${item.kind === "expired-request" ? item.request.id : item.offer.id}`}
+                    >
                       <div>
-                        <span>Completed</span>
-                        <strong>
-                          {isRequester
-                            ? `You received help from ${request.claimant?.displayName ?? "your helper"}`
-                            : `You helped ${request.requester.displayName}`}
-                        </strong>
+                        <span>Care opportunity passed</span>
                         <p>
-                          {request.need} · {request.helpfulWhen}
+                          {item.kind === "expired-request"
+                            ? `${item.request.need} · ${item.request.helpfulWhen}`
+                            : `A meal · ${item.offer.availableWhen}`}
                         </p>
-                        {request.gratitude ? (
-                          <div className="my-care-history__gratitude">
-                            <span>Private gratitude</span>
-                            <p>
-                              {getMealGratitudeStatement(
-                                request.gratitude.statementId,
-                              )?.text ?? "Thank you for showing up with care."}
-                            </p>
-                            {request.gratitude.message ? (
-                              <blockquote>
-                                {request.gratitude.message}
-                              </blockquote>
-                            ) : null}
-                          </div>
-                        ) : null}
                       </div>
-                      <time dateTime={completedAt}>
-                        {formatter.format(new Date(completedAt))}
+                      <time dateTime={recordedAt}>
+                        {formatter.format(new Date(recordedAt))}
                       </time>
                     </li>
                   );
@@ -440,7 +485,7 @@ export function MyCareView({
               </ul>
             ) : (
               <p className="my-care-view__empty">
-                No completed Care to remember yet.
+                No Care history to remember yet.
               </p>
             )}
           </section>

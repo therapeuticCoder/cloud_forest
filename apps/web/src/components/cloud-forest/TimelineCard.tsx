@@ -1,4 +1,4 @@
-import { Building2, RadioTower, Sprout, UsersRound } from "lucide-react";
+import { Building2, HeartHandshake, Network, RadioTower } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { CloudForestActor, CloudForestLayer } from "@/types/cloudForest";
@@ -27,9 +27,9 @@ const layerStyles: Record<TimelineLayer, string> = {
   signal: "timeline-card--signal",
 };
 
-const layerIcons: Record<TimelineLayer, typeof UsersRound> = {
-  party: UsersRound,
-  tribe: Sprout,
+const layerIcons: Record<TimelineLayer, typeof HeartHandshake> = {
+  party: HeartHandshake,
+  tribe: Network,
   guild: Building2,
   signal: RadioTower,
 };

@@ -47,6 +47,8 @@ A claimant may release a claim. The Care returns to the same layer with prior pa
 
 Expiration is a neutral terminal outcome. It means the Care was valid and available, but the opportunity passed without successful completion or fault.
 
+In the alpha, an originator chooses an unclaimed Care deadline from four canned options: 1 hour, 4 hours, 1 day, or 1 week. This is a Care-specific deadline, not a generalized scheduling system.
+
 An unclaimed Care expires when either:
 
 - its currently available audience is exhausted and there is no broader eligible audience remaining; or

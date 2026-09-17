@@ -3,6 +3,18 @@ export type CareRequester =
   | { kind: "party"; id: string; displayName: string };
 
 export type CarePersonId = string;
+export type CareAudience = "Party" | "Tribe";
+export type CareExpiration = "1h" | "4h" | "1d" | "1w";
+
+export const careExpirationOptions: Array<{
+  label: string;
+  value: CareExpiration;
+}> = [
+  { label: "1 hour", value: "1h" },
+  { label: "4 hours", value: "4h" },
+  { label: "1 day", value: "1d" },
+  { label: "1 week", value: "1w" },
+];
 
 export type CarePublicPerson = {
   id: CarePersonId;
@@ -17,22 +29,23 @@ export type CareAudienceSnapshot = {
 export type ReceiveCareRequest = {
   id: string;
   kind: "meal";
-  direction: "receive";
+  direction: "receive" | "give";
   need: "A meal";
   helpfulWhen: string;
   foodWorks: string;
   foodDoesNotWork: string;
   handoffStyle: string;
-  audience: "Party" | "Tribe";
+  audience: CareAudience;
   audienceSnapshot: CareAudienceSnapshot;
-  status: "open" | "claimed" | "orphaned" | "completed";
+  status: "open" | "claimed" | "orphaned" | "completed" | "expired";
   createdAt: string;
   claimedAt?: string;
   requesterCompletedAt?: string;
   claimantCompletedAt?: string;
   completedAt?: string;
-  gratitude?: CareHistoryGratitude;
   expiresAt?: string;
+  gratitude?: CareHistoryGratitude;
+  expiredAt?: string;
   requester: CareRequester;
   claimant?: CarePublicPerson;
 };
@@ -143,8 +156,10 @@ export type GiveCareOffer = {
   mealDescription: string;
   availableWhen: string;
   handoffStyle: string;
-  audience: "Party";
-  status: "available";
+  audience: CareAudience;
+  status: "available" | "expired";
   createdAt: string;
+  expiresAt?: string;
+  expiredAt?: string;
   giver: CarePublicPerson;
 };

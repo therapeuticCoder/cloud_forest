@@ -1,4 +1,4 @@
-import { Gift, UsersRound } from "lucide-react";
+import { Gift, HeartHandshake, Network } from "lucide-react";
 
 import type { GiveCareOffer } from "@/types/careRequest";
 
@@ -10,12 +10,16 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 });
 
 export function CareOfferCard({
+  canPass = false,
   onClaim,
+  onPass,
   offer,
   onWithdraw,
   viewerId,
 }: {
+  canPass?: boolean;
   onClaim?: (offerId: string) => void;
+  onPass?: (offer: GiveCareOffer) => void;
   offer: GiveCareOffer;
   onWithdraw: (offerId: string) => void;
   viewerId: string;
@@ -40,7 +44,9 @@ export function CareOfferCard({
                 : `${offer.giver.displayName} can provide this care.`}
             </p>
           </div>
-          <span className="care-request-card__status">Open</span>
+          <span className="care-request-card__status">
+            {offer.status === "expired" ? "Opportunity passed" : "Open"}
+          </span>
         </div>
         <dl>
           <div>
@@ -58,7 +64,12 @@ export function CareOfferCard({
         </dl>
         <div className="care-request-card__footer">
           <span>
-            <UsersRound aria-hidden="true" /> Offered to: {offer.audience}
+            {offer.audience === "Party" ? (
+              <HeartHandshake aria-hidden="true" />
+            ) : (
+              <Network aria-hidden="true" />
+            )}{" "}
+            Offered to: {offer.audience}
           </span>
           <time dateTime={offer.createdAt}>
             {formatter.format(new Date(offer.createdAt))}
@@ -73,13 +84,24 @@ export function CareOfferCard({
             Withdraw offer
           </button>
         ) : onClaim ? (
-          <button
-            className="care-request-card__claim"
-            onClick={() => onClaim(offer.id)}
-            type="button"
-          >
-            I will receive this
-          </button>
+          <div className="care-request-card__actions">
+            <button
+              className="care-request-card__claim"
+              onClick={() => onClaim(offer.id)}
+              type="button"
+            >
+              I will receive this
+            </button>
+            {canPass && onPass ? (
+              <button
+                className="care-request-card__pass"
+                onClick={() => onPass(offer)}
+                type="button"
+              >
+                Pass this time
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </article>

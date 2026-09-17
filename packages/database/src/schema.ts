@@ -24,8 +24,15 @@ export type ConnectionPairingStatus =
   | "completed"
   | "cancelled"
   | "superseded";
-export type CareRequestStatus = "open" | "claimed" | "orphaned" | "completed";
-export type CareOfferStatus = "available";
+export type CareAudience = "party" | "tribe";
+export type CareExpiration = "1h" | "4h" | "1d" | "1w";
+export type CareRequestStatus =
+  | "open"
+  | "claimed"
+  | "orphaned"
+  | "completed"
+  | "expired";
+export type CareOfferStatus = "available" | "expired";
 export type CareGratitudeStatementId =
   | "meal-fed-when-needed"
   | "meal-care-felt-easy"
@@ -339,11 +346,15 @@ export const careRequests = pgTable(
     foodWorks: text("food_works").notNull(),
     foodDoesNotWork: text("food_does_not_work").notNull().default(""),
     handoffStyle: varchar("handoff_style", { length: 200 }).notNull(),
-    audience: varchar("audience", { length: 16 }).notNull().default("party"),
+    audience: varchar("audience", { length: 16 })
+      .$type<CareAudience>()
+      .notNull()
+      .default("party"),
     status: varchar("status", { length: 16 })
       .$type<CareRequestStatus>()
       .notNull()
       .default("open"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
     claimantUserId: varchar("claimant_user_id", { length: 128 }).references(
       () => users.id,
       { onDelete: "cascade" },
@@ -356,6 +367,7 @@ export const careRequests = pgTable(
       withTimezone: true,
     }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    expiredAt: timestamp("expired_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [
@@ -380,14 +392,17 @@ export const careRequests = pgTable(
       "care_requests_handoff_style_length",
       sql`char_length(${table.handoffStyle}) between 1 and 200`,
     ),
-    check("care_requests_audience_allowed", sql`${table.audience} = 'party'`),
+    check(
+      "care_requests_audience_allowed",
+      sql`${table.audience} in ('party', 'tribe')`,
+    ),
     check(
       "care_requests_status_allowed",
-      sql`${table.status} in ('open', 'claimed', 'orphaned', 'completed')`,
+      sql`${table.status} in ('open', 'claimed', 'orphaned', 'completed', 'expired')`,
     ),
     check(
       "care_requests_claim_state",
-      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null) or (${table.status} = 'completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.requesterCompletedAt} is not null and ${table.claimantCompletedAt} is not null and ${table.completedAt} is not null)`,
+      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and (${table.requesterCompletedAt} is null or ${table.claimantCompletedAt} is null) and ${table.expiredAt} is null) or (${table.status} = 'completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.requesterCompletedAt} is not null and ${table.claimantCompletedAt} is not null and ${table.completedAt} is not null and ${table.expiredAt} is null) or (${table.status} = 'expired' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is not null)`,
     ),
     check(
       "care_requests_not_self_claimed",
@@ -449,11 +464,16 @@ export const careOffers = pgTable(
     mealDescription: text("meal_description").notNull(),
     availableWhen: varchar("available_when", { length: 500 }).notNull(),
     handoffStyle: varchar("handoff_style", { length: 200 }).notNull(),
-    audience: varchar("audience", { length: 16 }).notNull().default("party"),
+    audience: varchar("audience", { length: 16 })
+      .$type<CareAudience>()
+      .notNull()
+      .default("party"),
     status: varchar("status", { length: 16 })
       .$type<CareOfferStatus>()
       .notNull()
       .default("available"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    expiredAt: timestamp("expired_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [
@@ -472,8 +492,96 @@ export const careOffers = pgTable(
       "care_offers_handoff_style_length",
       sql`char_length(${table.handoffStyle}) between 1 and 200`,
     ),
-    check("care_offers_audience_allowed", sql`${table.audience} = 'party'`),
-    check("care_offers_status_allowed", sql`${table.status} = 'available'`),
+    check(
+      "care_offers_audience_allowed",
+      sql`${table.audience} in ('party', 'tribe')`,
+    ),
+    check(
+      "care_offers_status_allowed",
+      sql`${table.status} in ('available', 'expired')`,
+    ),
+    check(
+      "care_offers_expiry_state",
+      sql`(${table.status} = 'available' and ${table.expiredAt} is null) or (${table.status} = 'expired' and ${table.expiredAt} is not null)`,
+    ),
+  ],
+);
+
+export const careRequestPasses = pgTable(
+  "care_request_passes",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    careRequestId: varchar("care_request_id", { length: 128 })
+      .notNull()
+      .references(() => careRequests.id, { onDelete: "cascade" }),
+    originatorUserId: varchar("originator_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    viewerUserId: varchar("viewer_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    audience: varchar("audience", { length: 16 })
+      .$type<CareAudience>()
+      .notNull(),
+    passedAt: timestamp("passed_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("care_request_passes_viewer_unique").on(
+      table.careRequestId,
+      table.viewerUserId,
+      table.audience,
+    ),
+    index("care_request_passes_originator_viewer_index").on(
+      table.originatorUserId,
+      table.viewerUserId,
+    ),
+    check(
+      "care_request_passes_audience_allowed",
+      sql`${table.audience} in ('party', 'tribe')`,
+    ),
+    check(
+      "care_request_passes_viewer_distinct",
+      sql`${table.originatorUserId} <> ${table.viewerUserId}`,
+    ),
+  ],
+);
+
+export const careOfferPasses = pgTable(
+  "care_offer_passes",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    careOfferId: varchar("care_offer_id", { length: 128 })
+      .notNull()
+      .references(() => careOffers.id, { onDelete: "cascade" }),
+    originatorUserId: varchar("originator_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    viewerUserId: varchar("viewer_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    audience: varchar("audience", { length: 16 })
+      .$type<CareAudience>()
+      .notNull(),
+    passedAt: timestamp("passed_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("care_offer_passes_viewer_unique").on(
+      table.careOfferId,
+      table.viewerUserId,
+      table.audience,
+    ),
+    index("care_offer_passes_originator_viewer_index").on(
+      table.originatorUserId,
+      table.viewerUserId,
+    ),
+    check(
+      "care_offer_passes_audience_allowed",
+      sql`${table.audience} in ('party', 'tribe')`,
+    ),
+    check(
+      "care_offer_passes_viewer_distinct",
+      sql`${table.originatorUserId} <> ${table.viewerUserId}`,
+    ),
   ],
 );
 

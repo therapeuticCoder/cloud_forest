@@ -10,9 +10,9 @@ import {
   ChevronDown,
   Gift,
   HandHeart,
+  HeartHandshake,
+  Network,
   RadioTower,
-  Sprout,
-  UsersRound,
   X,
 } from "lucide-react";
 import {
@@ -51,6 +51,11 @@ type RemoteTimelineItem = GetTimelineItemResponse["data"]["timelineItem"];
 type TimelineItemsFailure = Extract<GetTimelineItemsResult, { ok: false }>;
 type TimelineLayerFilter = Exclude<CloudForestLayer, "self">;
 
+export type TimelineError = {
+  code: number | "NETWORK";
+  message: string;
+};
+
 const timelineAudienceOptions = [
   { value: "party", label: "Party" },
   { value: "tribe", label: "Tribe" },
@@ -68,9 +73,10 @@ type TimelineItemState =
       items: readonly RemoteTimelineItem[];
       source: "cache" | "live";
       offline: boolean;
+      error?: TimelineError;
     }
   | { status: "empty" }
-  | { status: "error"; recoverable: boolean };
+  | { status: "error"; recoverable: boolean; error: TimelineError };
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -81,6 +87,27 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 
 function formatActivityTime(publishedAt: string) {
   return formatter.format(new Date(publishedAt)).replace(",", " ·");
+}
+
+function timelineErrorCode(
+  result: TimelineItemsFailure,
+): TimelineError["code"] {
+  return result.kind === "network" ? "NETWORK" : result.status;
+}
+
+function timelineErrorMessage(result: TimelineItemsFailure) {
+  if (result.kind === "http") return result.error.error.message;
+  if (result.kind === "network") {
+    return "Cloud Forest couldn’t reach Timeline. Try again when you’re ready.";
+  }
+  return "Timeline posts couldn’t be loaded. Try again when you’re ready.";
+}
+
+function timelineError(result: TimelineItemsFailure): TimelineError {
+  return {
+    code: timelineErrorCode(result),
+    message: timelineErrorMessage(result),
+  };
 }
 
 function remoteTimelineItemToCardItem(
@@ -101,12 +128,13 @@ function remoteTimelineItemToCardItem(
 }
 
 type CareListing =
-  | { kind: "give"; item: GiveCareOffer }
+  | { kind: "give"; item: GiveCareOffer | ReceiveCareRequest }
   | { kind: "receive"; item: ReceiveCareRequest };
 
 type CareListingCardProps = {
   claimedRequestIds: Set<string>;
   onClaimOffer?: (offerId: string) => void;
+  onPassOffer?: (offer: GiveCareOffer) => void;
   minimizedRequestIds: Set<string>;
   onOfferHelp: (request: ReceiveCareRequest) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
@@ -116,6 +144,7 @@ type CareListingCardProps = {
   onWithdraw?: (requestId: string) => void;
   onWithdrawOffer: (offerId: string) => void;
   passableRequestIds: Set<string>;
+  passableOfferIds: Set<string>;
   viewerClaimedRequestIds: Set<string>;
   viewerCompletedRequestIds: Set<string>;
   otherParticipantCompletedRequestIds: Set<string>;
@@ -132,12 +161,40 @@ function CareListingCard({
   ...props
 }: CareListingCardProps & { listing: CareListing }) {
   if (listing.kind === "give") {
+    if ("offer" in listing.item) {
+      return (
+        <CareOfferCard
+          offer={listing.item}
+          canPass={props.passableOfferIds.has(listing.item.id)}
+          onClaim={props.onClaimOffer}
+          onPass={props.onPassOffer}
+          onWithdraw={props.onWithdrawOffer}
+          viewerId={props.viewerId}
+        />
+      );
+    }
+
     return (
-      <CareOfferCard
-        offer={listing.item}
-        onClaim={props.onClaimOffer}
-        onWithdraw={props.onWithdrawOffer}
+      <CareRequestCard
+        canPass={false}
+        claimed
+        minimized={false}
+        onOfferHelp={props.onOfferHelp}
+        onRecordCompleted={props.onRecordCompleted}
+        onRecordNotCompleted={props.onRecordNotCompleted}
+        onSetMinimized={undefined}
+        onWithdraw={undefined}
+        request={listing.item}
         viewerId={props.viewerId}
+        viewerCompletion={
+          props.viewerCompletedRequestIds.has(listing.item.id)
+            ? "completed"
+            : undefined
+        }
+        viewerIsClaimer={props.viewerClaimedRequestIds.has(listing.item.id)}
+        otherParticipantCompleted={props.otherParticipantCompletedRequestIds.has(
+          listing.item.id,
+        )}
       />
     );
   }
@@ -228,12 +285,17 @@ function useRemoteTimelineItems(
             items: cachedItems,
             source: "cache",
             offline: true,
+            error: timelineError(result),
           });
           return;
         }
       }
 
-      setState({ status: "error", recoverable });
+      setState({
+        status: "error",
+        recoverable,
+        error: timelineError(result),
+      });
     };
 
     if (apiClient.getTimelineItems) {
@@ -286,13 +348,38 @@ function useRemoteTimelineItems(
   return { addPublishedItem, retry, state };
 }
 
+function TimelineErrorBanner({
+  errors,
+  onRetry,
+}: {
+  errors: TimelineError[];
+  onRetry?: () => void;
+}) {
+  if (errors.length === 0) return null;
+
+  const codes = [...new Set(errors.map((error) => String(error.code)))].join(
+    ", ",
+  );
+  const messages = [...new Set(errors.map((error) => error.message))].join(" ");
+
+  return (
+    <div aria-live="assertive" className="timeline-error-banner" role="alert">
+      <strong>Error {codes}</strong>
+      <span className="timeline-error-banner__message">{messages}</span>
+      {onRetry ? (
+        <button type="button" onClick={onRetry}>
+          Try again
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function TimelineItemSlot({
   layerFilter,
-  onRetry,
   state,
 }: {
   layerFilter: TimelineLayerFilter | null;
-  onRetry: () => void;
   state: TimelineItemState;
 }) {
   if (state.status === "success") {
@@ -333,14 +420,7 @@ function TimelineItemSlot({
   }
 
   if (state.status === "error") {
-    return (
-      <div className="timeline-remote-state" role="alert">
-        <span>Live Timeline posts could not be loaded.</span>
-        <button type="button" onClick={onRetry}>
-          Try again
-        </button>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -408,14 +488,12 @@ function TimelineActivitySlot({
   careGratitudeRequests,
   careListingCardProps,
   careListings,
-  onRetry,
   state,
 }: {
   careGratitudes: CareGratitude[];
   careGratitudeRequests: ReceiveCareRequest[];
   careListingCardProps: CareListingCardProps;
   careListings: CareListing[];
-  onRetry: () => void;
   state: TimelineItemState;
 }) {
   const activities: TimelineActivity[] = [
@@ -457,17 +535,7 @@ function TimelineActivitySlot({
   }
 
   if (state.status === "error") {
-    return (
-      <>
-        {activityCards}
-        <div className="timeline-remote-state" role="alert">
-          <span>Live Timeline posts could not be loaded.</span>
-          <button type="button" onClick={onRetry}>
-            Try again
-          </button>
-        </div>
-      </>
-    );
+    return <>{activityCards}</>;
   }
 
   return (
@@ -696,13 +764,13 @@ export function TimelinePanel({
   careGratitudes = [],
   careOffers = [],
   careRequests = [],
-  careRequestStatusMessage,
-  careOfferStatusMessage,
+  careError,
   careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
   onOfferHelp = () => undefined,
   onClaimOffer,
+  onPassOffer,
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
@@ -711,6 +779,7 @@ export function TimelinePanel({
   onWithdrawOffer = () => undefined,
   onOfflineChange,
   passableRequestIds = noPassableRequestIds,
+  passableOfferIds = noPassableRequestIds,
   passAnnouncement,
   cacheOwnerId,
   viewerClaimedRequestIds = noClaimedRequestIds,
@@ -726,12 +795,12 @@ export function TimelinePanel({
   careGratitudeRequests?: ReceiveCareRequest[];
   careOffers?: GiveCareOffer[];
   careRequests?: ReceiveCareRequest[];
-  careRequestStatusMessage?: string;
-  careOfferStatusMessage?: string;
+  careError?: TimelineError;
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
   onClaimOffer?: (offerId: string) => void;
+  onPassOffer?: (offer: GiveCareOffer) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass?: (request: ReceiveCareRequest) => void;
@@ -740,6 +809,7 @@ export function TimelinePanel({
   onWithdrawOffer?: (offerId: string) => void;
   onOfflineChange?: (offline: boolean) => void;
   passableRequestIds?: Set<string>;
+  passableOfferIds?: Set<string>;
   passAnnouncement?: string;
   cacheOwnerId?: string;
   viewerClaimedRequestIds?: Set<string>;
@@ -755,6 +825,11 @@ export function TimelinePanel({
     offline ||
     (timelineItems.state.status === "success" && timelineItems.state.offline) ||
     (timelineItems.state.status === "error" && timelineItems.state.recoverable);
+  const timelineStateError =
+    timelineItems.state.status === "error" ||
+    timelineItems.state.status === "success"
+      ? timelineItems.state.error
+      : undefined;
   useEffect(() => {
     onOfflineChange?.(timelineIsOffline);
   }, [onOfflineChange, timelineIsOffline]);
@@ -764,9 +839,19 @@ export function TimelinePanel({
   const [layerFilter, setLayerFilter] = useState<TimelineLayerFilter | null>(
     null,
   );
+  const giveCareRequests = careRequests.filter(
+    (request) => request.direction === "give",
+  );
+  const receiveRequests = careRequests.filter(
+    (request) => request.direction !== "give",
+  );
   const careListings = [
     ...careOffers.map((offer) => ({ kind: "give" as const, item: offer })),
-    ...careRequests.map((request) => ({
+    ...giveCareRequests.map((request) => ({
+      kind: "give" as const,
+      item: request,
+    })),
+    ...receiveRequests.map((request) => ({
       kind: "receive" as const,
       item: request,
     })),
@@ -788,6 +873,7 @@ export function TimelinePanel({
     minimizedRequestIds,
     onOfferHelp,
     onClaimOffer,
+    onPassOffer,
     onRecordCompleted,
     onRecordNotCompleted,
     onPass,
@@ -795,6 +881,7 @@ export function TimelinePanel({
     onWithdraw,
     onWithdrawOffer,
     passableRequestIds,
+    passableOfferIds,
     viewerClaimedRequestIds,
     viewerCompletedRequestIds,
     otherParticipantCompletedRequestIds,
@@ -814,6 +901,13 @@ export function TimelinePanel({
           }}
         />
       ) : null}
+      <TimelineErrorBanner
+        errors={[
+          ...(careError ? [careError] : []),
+          ...(timelineStateError ? [timelineStateError] : []),
+        ]}
+        onRetry={timelineStateError ? timelineItems.retry : undefined}
+      />
       <div aria-label="Relationship layers" className="timeline-layer-key">
         <button
           aria-label="Filter to Party"
@@ -822,7 +916,7 @@ export function TimelinePanel({
           onClick={() => toggleLayerFilter("party")}
           type="button"
         >
-          <UsersRound aria-hidden="true" />
+          <HeartHandshake aria-hidden="true" />
         </button>
         <button
           aria-label="Filter to Tribe"
@@ -831,7 +925,7 @@ export function TimelinePanel({
           onClick={() => toggleLayerFilter("tribe")}
           type="button"
         >
-          <Sprout aria-hidden="true" />
+          <Network aria-hidden="true" />
         </button>
         <button
           aria-label="Filter to Guild"
@@ -879,16 +973,6 @@ export function TimelinePanel({
           <HandHeart aria-hidden="true" />
         </button>
       </div>
-      {careRequestStatusMessage ? (
-        <div aria-live="polite" className="timeline-remote-state" role="status">
-          {careRequestStatusMessage}
-        </div>
-      ) : null}
-      {careOfferStatusMessage ? (
-        <div aria-live="polite" className="timeline-remote-state" role="status">
-          {careOfferStatusMessage}
-        </div>
-      ) : null}
       {passAnnouncement ? (
         <p aria-live="polite" className="care-pass-announcement" role="status">
           {passAnnouncement}
@@ -916,13 +1000,11 @@ export function TimelinePanel({
             careGratitudeRequests={careGratitudeRequests}
             careListingCardProps={careListingCardProps}
             careListings={careListings}
-            onRetry={timelineItems.retry}
             state={timelineItems.state}
           />
         ) : (
           <TimelineItemSlot
             layerFilter={layerFilter}
-            onRetry={timelineItems.retry}
             state={timelineItems.state}
           />
         )}

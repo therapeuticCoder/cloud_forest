@@ -1,4 +1,8 @@
-import { TimelinePanel, type TimelineApiClient } from "./TimelinePanel";
+import {
+  TimelinePanel,
+  type TimelineApiClient,
+  type TimelineError,
+} from "./TimelinePanel";
 import type {
   CareGratitude,
   CarePersonId,
@@ -15,8 +19,7 @@ export function TimelineView({
   careGratitudes = [],
   careOffers = [],
   careRequests = [],
-  careRequestStatusMessage,
-  careOfferStatusMessage,
+  careError,
   careGratitudeRequests = careRequests,
   claimedRequestIds = noClaimedRequestIds,
   minimizedRequestIds = noMinimizedRequestIds,
@@ -25,11 +28,13 @@ export function TimelineView({
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
+  onPassOffer,
   onSetRequestMinimized,
   onWithdraw,
   onWithdrawOffer = () => undefined,
   onOfflineChange,
   passableRequestIds = noPassableRequestIds,
+  passableOfferIds = noPassableRequestIds,
   passAnnouncement,
   viewerId = "you",
   viewerClaimedRequestIds = noClaimedRequestIds,
@@ -46,12 +51,12 @@ export function TimelineView({
   careGratitudes?: CareGratitude[];
   careGratitudeRequests?: ReceiveCareRequest[];
   careRequests?: ReceiveCareRequest[];
-  careRequestStatusMessage?: string;
-  careOfferStatusMessage?: string;
+  careError?: TimelineError;
   claimedRequestIds?: Set<string>;
   minimizedRequestIds?: Set<string>;
   onOfferHelp?: (request: ReceiveCareRequest) => void;
   onClaimOffer?: (offerId: string) => void;
+  onPassOffer?: (offer: GiveCareOffer) => void;
   onRecordCompleted?: (request: ReceiveCareRequest) => void;
   onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
   onPass?: (request: ReceiveCareRequest) => void;
@@ -60,6 +65,7 @@ export function TimelineView({
   onWithdrawOffer?: (offerId: string) => void;
   onOfflineChange?: (offline: boolean) => void;
   passableRequestIds?: Set<string>;
+  passableOfferIds?: Set<string>;
   passAnnouncement?: string;
   cacheOwnerId?: string;
   viewerId?: CarePersonId;
@@ -77,8 +83,7 @@ export function TimelineView({
         careGratitudeRequests={careGratitudeRequests}
         careOffers={careOffers}
         careRequests={careRequests}
-        careRequestStatusMessage={careRequestStatusMessage}
-        careOfferStatusMessage={careOfferStatusMessage}
+        careError={careError}
         claimedRequestIds={claimedRequestIds}
         minimizedRequestIds={minimizedRequestIds}
         onOfferHelp={onOfferHelp}
@@ -86,6 +91,7 @@ export function TimelineView({
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
         onPass={onPass}
+        onPassOffer={onPassOffer}
         onSetRequestMinimized={onSetRequestMinimized}
         onWithdraw={onWithdraw}
         onWithdrawOffer={onWithdrawOffer}
@@ -93,6 +99,7 @@ export function TimelineView({
         offline={offline}
         apiClient={apiClient}
         passableRequestIds={passableRequestIds}
+        passableOfferIds={passableOfferIds}
         passAnnouncement={passAnnouncement}
         cacheOwnerId={cacheOwnerId}
         postComposerOpen={postComposerOpen}

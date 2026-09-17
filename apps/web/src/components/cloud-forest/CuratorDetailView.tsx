@@ -647,7 +647,10 @@ export function CuratorDetailView({
                 careRequests.map((request) => {
                   return (
                     <CareRequestCard
-                      canPass={false}
+                      canPass={
+                        request.status === "open" &&
+                        request.requester.id !== viewerId
+                      }
                       claimed={request.status === "claimed"}
                       key={request.id}
                       minimized={false}

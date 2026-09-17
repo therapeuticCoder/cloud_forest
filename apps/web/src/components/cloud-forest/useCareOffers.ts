@@ -6,6 +6,7 @@ import {
   type CreateCareOfferResult,
   type GetCareOffersResponse,
   type GetCareOffersResult,
+  type PassCareOfferResult,
   type WithdrawCareOfferResult,
 } from "@cloud-forest/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -14,20 +15,30 @@ import type { GiveCareOffer } from "@/types/careRequest";
 
 export type CareOfferApiClient = Pick<
   ApiClient,
-  "getCareOffers" | "createCareOffer" | "withdrawCareOffer" | "claimCareOffer"
+  | "getCareOffers"
+  | "createCareOffer"
+  | "withdrawCareOffer"
+  | "claimCareOffer"
+  | "passCareOffer"
 >;
 
 type CareOfferOperationResult =
   | GetCareOffersResult
   | CreateCareOfferResult
   | WithdrawCareOfferResult
-  | ClaimCareOfferResult;
+  | ClaimCareOfferResult
+  | PassCareOfferResult;
 type CareOfferRecord = GetCareOffersResponse["data"]["offers"][number];
 
 export type CareOffersState =
   | { status: "loading"; offers: GiveCareOffer[]; message?: string }
   | { status: "ready"; offers: GiveCareOffer[]; message?: string }
-  | { status: "error"; offers: GiveCareOffer[]; message: string };
+  | {
+      status: "error";
+      offers: GiveCareOffer[];
+      errorCode: number | "NETWORK";
+      message: string;
+    };
 
 const defaultApiClient: CareOfferApiClient = createApiClient({
   baseUrl: "",
@@ -43,9 +54,11 @@ function toGiveCareOffer(offer: CareOfferRecord): GiveCareOffer {
     mealDescription: offer.mealDescription,
     availableWhen: offer.availableWhen,
     handoffStyle: offer.handoffStyle,
-    audience: "Party",
-    status: "available",
+    audience: offer.audience,
+    status: offer.status,
     createdAt: offer.createdAt,
+    ...(offer.expiresAt ? { expiresAt: offer.expiresAt } : {}),
+    ...(offer.expiredAt ? { expiredAt: offer.expiredAt } : {}),
     giver: {
       id: offer.giver.personId,
       displayName: offer.giver.displayName,
@@ -66,6 +79,12 @@ export function careOfferErrorMessage(
     return result.error.error.message;
   }
   return "Shared Give is temporarily unavailable. Try again when you’re ready.";
+}
+
+function careOfferErrorCode(
+  result: Exclude<CareOfferOperationResult, { ok: true }>,
+) {
+  return result.kind === "network" ? ("NETWORK" as const) : result.status;
 }
 
 export function useCareOffers(
@@ -90,6 +109,7 @@ export function useCareOffers(
       setState((current) => ({
         status: "error",
         offers: current.offers,
+        errorCode: careOfferErrorCode(result),
         message: careOfferErrorMessage(result),
       }));
     },
@@ -170,5 +190,25 @@ export function useCareOffers(
     [apiClient, applyResult],
   );
 
-  return { claim, create, load, state, withdraw };
+  const pass = useCallback(
+    async (careOfferId: string) => {
+      const requestSequence = ++requestSequenceRef.current;
+      const result = await apiClient.passCareOffer({ careOfferId });
+      if (result.ok) {
+        applyResult(result, requestSequence);
+      } else if (
+        result.kind === "http" &&
+        (result.status === 404 || result.status === 409)
+      ) {
+        const latest = await apiClient.getCareOffers();
+        applyResult(latest, requestSequence);
+      } else {
+        applyResult(result, requestSequence);
+      }
+      return result;
+    },
+    [apiClient, applyResult],
+  );
+
+  return { claim, create, load, pass, state, withdraw };
 }

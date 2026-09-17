@@ -34,6 +34,7 @@ function createRepository() {
           claimantCompletedAt: null,
           completedAt: null,
           createdAt: input.now,
+          originatorUserId: input.requesterUserId,
           requesterUserId: input.requesterUserId,
           requester: { personId: "person-a", displayName: "River" },
           claimant: null,
@@ -198,6 +199,7 @@ test("Care API keeps create and claim responses durable and non-disclosing", asy
       foodWorks: "Soup",
       foodDoesNotWork: "Nothing spicy",
       handoffStyle: "Leave it at my door",
+      expiresIn: "1w",
     },
   });
   assert.equal(created.statusCode, 200);

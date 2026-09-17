@@ -1,7 +1,11 @@
 import Type, { type Static } from "typebox";
 import Compile from "typebox/compile";
 
-import { careApiVersion, carePersonSchema } from "./careContract.ts";
+import {
+  careApiVersion,
+  careExpiration,
+  carePersonSchema,
+} from "./careContract.ts";
 
 const id = Type.String({ minLength: 1, maxLength: 128 });
 const mealDescription = Type.String({ minLength: 1, maxLength: 10_000 });
@@ -18,16 +22,18 @@ export const careOfferSchema = Type.Object(
     mealDescription,
     availableWhen,
     handoffStyle,
-    audience: Type.Literal("Party"),
-    status: Type.Literal("available"),
+    audience: Type.Union([Type.Literal("Party"), Type.Literal("Tribe")]),
+    status: Type.Union([Type.Literal("available"), Type.Literal("expired")]),
     createdAt: dateTime,
+    expiresAt: Type.Optional(dateTime),
+    expiredAt: Type.Optional(dateTime),
     giver: carePersonSchema,
   },
   { additionalProperties: false },
 );
 
 export const createCareOfferBodySchema = Type.Object(
-  { mealDescription, availableWhen, handoffStyle },
+  { mealDescription, availableWhen, handoffStyle, expiresIn: careExpiration },
   { additionalProperties: false },
 );
 
@@ -64,6 +70,7 @@ export const careOfferErrorSchema = Type.Object(
 export const careOffersPath = "/api/v1/care-offers";
 export const careOfferPath = "/api/v1/care-offers/:careOfferId";
 export const careOfferClaimPath = "/api/v1/care-offers/:careOfferId/claim";
+export const careOfferPassPath = "/api/v1/care-offers/:careOfferId/pass";
 export const careOfferParamsSchema = Type.Object(
   { careOfferId: id },
   { additionalProperties: false },

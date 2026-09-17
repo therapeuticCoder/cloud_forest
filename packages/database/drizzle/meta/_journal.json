@@ -176,6 +176,20 @@
       "when": 1789430400010,
       "tag": "0024_remove_timeline_fixture",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1789516800000,
+      "tag": "0025_care_audience_lifecycle",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1789516800001,
+      "tag": "0026_care_deadlines",
+      "breakpoints": true
     }
   ]
 }

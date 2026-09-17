@@ -10,6 +10,13 @@ const foodWorks = Type.String({ minLength: 1, maxLength: 10_000 });
 const foodDoesNotWork = Type.String({ maxLength: 10_000 });
 const handoffStyle = Type.String({ minLength: 1, maxLength: 200 });
 const dateTime = Type.String({ format: "date-time" });
+export const careExpiration = Type.Union([
+  Type.Literal("1h"),
+  Type.Literal("4h"),
+  Type.Literal("1d"),
+  Type.Literal("1w"),
+]);
+const careAudience = Type.Union([Type.Literal("Party"), Type.Literal("Tribe")]);
 const careGratitudeStatementId = Type.Union([
   Type.Literal("meal-fed-when-needed"),
   Type.Literal("meal-care-felt-easy"),
@@ -33,24 +40,27 @@ export const careRequestSchema = Type.Object(
   {
     id,
     kind: Type.Literal("meal"),
-    direction: Type.Literal("receive"),
+    direction: Type.Union([Type.Literal("receive"), Type.Literal("give")]),
     need: Type.Literal("A meal"),
     helpfulWhen,
     foodWorks,
     foodDoesNotWork,
     handoffStyle,
-    audience: Type.Literal("Party"),
+    audience: careAudience,
     status: Type.Union([
       Type.Literal("open"),
       Type.Literal("claimed"),
       Type.Literal("orphaned"),
       Type.Literal("completed"),
+      Type.Literal("expired"),
     ]),
     createdAt: dateTime,
     claimedAt: Type.Optional(dateTime),
     requesterCompletedAt: Type.Optional(dateTime),
     claimantCompletedAt: Type.Optional(dateTime),
     completedAt: Type.Optional(dateTime),
+    expiresAt: Type.Optional(dateTime),
+    expiredAt: Type.Optional(dateTime),
     gratitude: Type.Optional(careGratitude),
     requester: carePersonSchema,
     claimant: Type.Optional(carePersonSchema),
@@ -59,7 +69,13 @@ export const careRequestSchema = Type.Object(
 );
 
 export const createCareRequestBodySchema = Type.Object(
-  { helpfulWhen, foodWorks, foodDoesNotWork, handoffStyle },
+  {
+    helpfulWhen,
+    foodWorks,
+    foodDoesNotWork,
+    handoffStyle,
+    expiresIn: careExpiration,
+  },
   { additionalProperties: false },
 );
 
@@ -98,6 +114,7 @@ export const careRequestsPath = "/api/v1/care-requests";
 export const careRequestPath = "/api/v1/care-requests/:careRequestId";
 export const careRequestClaimPath =
   "/api/v1/care-requests/:careRequestId/claim";
+export const careRequestPassPath = "/api/v1/care-requests/:careRequestId/pass";
 export const careRequestCompletePath =
   "/api/v1/care-requests/:careRequestId/complete";
 export const careRequestGratitudePath =

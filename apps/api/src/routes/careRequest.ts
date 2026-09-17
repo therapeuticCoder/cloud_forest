@@ -3,6 +3,7 @@ import {
   careRequestCompletePath,
   careRequestGratitudePath,
   careRequestClaimPath,
+  careRequestPassPath,
   careRequestErrorSchema,
   careRequestParamsSchema,
   careRequestsPath,
@@ -43,13 +44,19 @@ function toApiRequest(
   return {
     id: request.id,
     kind: "meal" as const,
-    direction: "receive" as const,
+    direction:
+      request.originatorUserId !== undefined &&
+      request.requesterUserId !== undefined &&
+      request.originatorUserId !== request.requesterUserId
+        ? ("give" as const)
+        : ("receive" as const),
     need: "A meal" as const,
     helpfulWhen: request.helpfulWhen,
     foodWorks: request.foodWorks,
     foodDoesNotWork: request.foodDoesNotWork,
     handoffStyle: request.handoffStyle,
-    audience: "Party" as const,
+    audience:
+      request.audience === "party" ? ("Party" as const) : ("Tribe" as const),
     status: request.status,
     createdAt: request.createdAt.toISOString(),
     ...(request.claimedAt
@@ -63,6 +70,12 @@ function toApiRequest(
       : {}),
     ...(request.completedAt
       ? { completedAt: request.completedAt.toISOString() }
+      : {}),
+    ...(request.expiresAt
+      ? { expiresAt: request.expiresAt.toISOString() }
+      : {}),
+    ...(request.expiredAt
+      ? { expiredAt: request.expiredAt.toISOString() }
       : {}),
     ...(request.gratitude
       ? {
@@ -146,6 +159,44 @@ export const careRequestRoutes: FastifyPluginAsyncTypebox<Options> = async (
         ...request.body,
         now: new Date(),
       });
+      return visibleRequests(current.userId);
+    },
+  );
+
+  server.post(
+    careRequestPassPath,
+    {
+      schema: {
+        operationId: "passCareRequestV1",
+        tags: ["Care"],
+        params: careRequestParamsSchema,
+        response: {
+          200: careRequestsSuccessSchema,
+          401: careRequestErrorSchema,
+          404: careRequestErrorSchema,
+          409: careRequestErrorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.repository.pass({
+        careRequestId: request.params.careRequestId,
+        viewerUserId: current.userId,
+        now: new Date(),
+      });
+      if (!result.ok) {
+        return reply
+          .status(result.error === "care-request-already-claimed" ? 409 : 404)
+          .send(
+            error(
+              result.error === "care-request-already-claimed"
+                ? "ALREADY_CLAIMED"
+                : "NOT_FOUND",
+            ),
+          );
+      }
       return visibleRequests(current.userId);
     },
   );
