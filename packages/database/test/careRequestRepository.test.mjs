@@ -232,6 +232,25 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
     { ok: true, value: null },
   );
 
+  await database
+    .update(curatedPersons)
+    .set({ placement: "holding" })
+    .where(eq(curatedPersons.id, ids.curatedPerson));
+  assert.deepEqual(
+    await repository.withdraw({
+      careRequestId: withdrawnRequestId,
+      participantUserId: ids.owner,
+      statementId: "meal-something-changed",
+      message: "I need to step back this time.",
+      now: completedAt,
+    }),
+    { ok: false, error: "care-request-not-found" },
+  );
+  await database
+    .update(curatedPersons)
+    .set({ placement: "party" })
+    .where(eq(curatedPersons.id, ids.curatedPerson));
+
   const withdrawnAt = new Date(completedAt.getTime() + 1_000);
   assert.deepEqual(
     await repository.withdraw({
