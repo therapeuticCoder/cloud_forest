@@ -11,11 +11,13 @@ import {
   users,
 } from "@cloud-forest/database";
 
-import { buildApi } from "../../src/app.ts";
 import {
+  createTimelineItemResolver,
   createTimelineItemsResolver,
   createTimelinePostResolver,
 } from "../../src/timelineItemResolver.ts";
+
+import { buildApi } from "../../src/app.ts";
 
 const authorUserId = "timeline-api-author";
 const viewerUserId = "timeline-api-party-viewer";
@@ -90,6 +92,7 @@ test("the API publishes and lists a user-backed Timeline post", async (t) => {
   const server = buildApi({
     timelineItemsResolver: createTimelineItemsResolver(repository),
     createTimelinePostResolver: createTimelinePostResolver(repository),
+    timelineItemResolver: createTimelineItemResolver(repository),
     sessionResolver: {
       async resolve() {
         return {

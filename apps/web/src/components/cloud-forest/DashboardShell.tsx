@@ -43,6 +43,11 @@ import {
   type CareGratitudeDraft,
   type CareGratitudeResult,
 } from "./CareGratitudeWizard";
+import {
+  CareWithdrawalWizard,
+  type CareWithdrawalDraft,
+  type CareWithdrawalResult,
+} from "./CareWithdrawalWizard";
 import { MyCareView, type MyCareTab } from "./MyCareView";
 import {
   clearPendingConnectionPairing,
@@ -129,6 +134,7 @@ export function DashboardShell({
     pass: passCareRequest,
     recordGratitude: recordCareGratitude,
     state: durableCareRequestsState,
+    withdraw: withdrawCareRequest,
   } = useCareRequests(careApiClient, careViewerId);
   const {
     claim: claimCareOffer,
@@ -141,6 +147,8 @@ export function DashboardShell({
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
   const [careGratitudeRequest, setCareGratitudeRequest] =
+    useState<ReceiveCareRequest | null>(null);
+  const [careWithdrawalRequest, setCareWithdrawalRequest] =
     useState<ReceiveCareRequest | null>(null);
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<string>();
   const carePassAnnouncementTimeoutRef = useRef<number | undefined>(undefined);
@@ -671,6 +679,20 @@ export function DashboardShell({
     return { ok: true };
   };
 
+  const saveCareWithdrawal = async (
+    draft: CareWithdrawalDraft,
+  ): Promise<CareWithdrawalResult> => {
+    if (!careWithdrawalRequest) {
+      return { ok: false, message: "Care is no longer available." };
+    }
+    const result = await withdrawCareRequest(careWithdrawalRequest.id, draft);
+    if (!result.ok) {
+      return { ok: false, message: careRequestErrorMessage(result) };
+    }
+    setCareWithdrawalRequest(null);
+    return { ok: true };
+  };
+
   useEffect(() => {
     if (!careDestination) return;
 
@@ -746,6 +768,9 @@ export function DashboardShell({
   );
   const durableCompletedRequests = durableCareRequestRecords.filter(
     (request) => request.status === "completed",
+  );
+  const durableNotCompletedRequests = durableCareRequestRecords.filter(
+    (request) => request.status === "not_completed",
   );
   const durableExpiredRequests = durableCareRequestRecords.filter(
     (request) => request.status === "expired",
@@ -877,7 +902,11 @@ export function DashboardShell({
       data-give-open={giveWizardOpen}
       data-timeline-post-open={timelinePostComposerOpen}
       data-care-destination={
-        careGratitudeRequest ? "gratitude" : careDestination?.kind
+        careWithdrawalRequest
+          ? "withdrawal"
+          : careGratitudeRequest
+            ? "gratitude"
+            : careDestination?.kind
       }
     >
       <div
@@ -963,9 +992,15 @@ export function DashboardShell({
         <>
           <div
             aria-hidden={
-              careDestination || careGratitudeRequest ? true : undefined
+              careDestination || careGratitudeRequest || careWithdrawalRequest
+                ? true
+                : undefined
             }
-            inert={careDestination || careGratitudeRequest ? true : undefined}
+            inert={
+              careDestination || careGratitudeRequest || careWithdrawalRequest
+                ? true
+                : undefined
+            }
           >
             {activeView === "timeline" ? (
               <TimelineView
@@ -991,6 +1026,7 @@ export function DashboardShell({
                 onClaimOffer={(offerId) => void claimGiveOffer(offerId)}
                 onPassOffer={(offer) => void handlePassCareOffer(offer)}
                 onRecordCompleted={recordCareCompleted}
+                onRecordNotCompleted={setCareWithdrawalRequest}
                 onPass={handlePassCareRequest}
                 onWithdrawOffer={(offerId) => void withdrawCareOffer(offerId)}
                 viewerClaimedRequestIds={durableViewerClaimedRequestIds}
@@ -1039,7 +1075,7 @@ export function DashboardShell({
                 }
                 onPass={handlePassCareRequest}
                 onRecordCompleted={recordCareCompleted}
-                onRecordNotCompleted={() => undefined}
+                onRecordNotCompleted={setCareWithdrawalRequest}
                 onReceive={openReceiveWizard}
                 onStartConnection={startConnection}
                 onUnblockCharacter={unblockCharacter}
@@ -1051,7 +1087,13 @@ export function DashboardShell({
               />
             )}
           </div>
-          {careGratitudeRequest ? (
+          {careWithdrawalRequest ? (
+            <CareWithdrawalWizard
+              onBack={() => setCareWithdrawalRequest(null)}
+              onComplete={saveCareWithdrawal}
+              request={careWithdrawalRequest}
+            />
+          ) : careGratitudeRequest ? (
             <CareGratitudeWizard
               onBack={skipCareGratitude}
               onComplete={saveCareGratitude}
@@ -1070,6 +1112,7 @@ export function DashboardShell({
               activeRequests={durableSelfProfileRequests}
               claimedRequests={durableClaimedRequests}
               completedRequests={durableCompletedRequests}
+              notCompletedRequests={durableNotCompletedRequests}
               expiredRequests={durableExpiredRequests}
               offers={durableViewerCareOffers}
               expiredOffers={durableExpiredCareOffers}
@@ -1079,6 +1122,7 @@ export function DashboardShell({
               isAdmin={role === "admin"}
               onCreateSignupCode={onCreateSignupCode}
               onRecordCompleted={recordCareCompleted}
+              onRecordNotCompleted={setCareWithdrawalRequest}
               onWithdrawOffer={(offerId) => void withdrawCareOffer(offerId)}
               onSignOut={onSignOut}
               viewerId={careViewerId}
@@ -1092,6 +1136,7 @@ export function DashboardShell({
       !giveWizardOpen &&
       !careDestination &&
       !careGratitudeRequest &&
+      !careWithdrawalRequest &&
       activeView === "timeline" ? (
         <div
           className="timeline-chrome timeline-chrome--bottom"

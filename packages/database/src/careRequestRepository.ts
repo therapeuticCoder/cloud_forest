@@ -14,6 +14,7 @@ import {
   relationshipBlocks,
   type CareExpiration,
   type CareGratitudeStatementId,
+  type CareWithdrawalStatementId,
 } from "./schema.ts";
 
 type TransactionClient = Parameters<
@@ -24,7 +25,8 @@ export type CareRequestRepositoryError =
   | "care-request-not-found"
   | "care-request-already-claimed"
   | "care-gratitude-invalid"
-  | "care-gratitude-already-recorded";
+  | "care-gratitude-already-recorded"
+  | "care-withdrawal-invalid";
 
 export type CareRequestRepositoryResult<T> =
   | { ok: true; value: T }
@@ -88,7 +90,13 @@ type CareRequestRecord = {
   foodDoesNotWork: string;
   handoffStyle: string;
   audience: "party" | "tribe";
-  status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+  status:
+    | "open"
+    | "claimed"
+    | "orphaned"
+    | "completed"
+    | "expired"
+    | "not_completed";
   claimantUserId: string | null;
   claimedAt: Date | null;
   requesterCompletedAt: Date | null;
@@ -96,11 +104,17 @@ type CareRequestRecord = {
   completedAt: Date | null;
   expiresAt: Date | null;
   expiredAt: Date | null;
+  notCompletedAt: Date | null;
   createdAt: Date;
   requester: { personId: string; displayName: string };
   claimant: { personId: string; displayName: string } | null;
   gratitude: {
     statementId: CareGratitudeStatementId;
+    message: string;
+    createdAt: Date;
+  } | null;
+  apology: {
+    statementId: CareWithdrawalStatementId;
     message: string;
     createdAt: Date;
   } | null;
@@ -121,6 +135,11 @@ const careGratitudeStatementIds = new Set<CareGratitudeStatementId>([
   "meal-fed-when-needed",
   "meal-care-felt-easy",
   "meal-seen-and-supported",
+]);
+const careWithdrawalStatementIds = new Set<CareWithdrawalStatementId>([
+  "meal-sorry-cant-follow-through",
+  "meal-something-changed",
+  "meal-sorry-committed",
 ]);
 
 export function createCareRequestRepository(database: DatabaseClient) {
@@ -320,10 +339,14 @@ export function createCareRequestRepository(database: DatabaseClient) {
           completedAt: careRequests.completedAt,
           expiresAt: careRequests.expiresAt,
           expiredAt: careRequests.expiredAt,
+          notCompletedAt: careRequests.notCompletedAt,
           createdAt: careRequests.createdAt,
           gratitudeStatementId: careGratitudes.statementId,
           gratitudeMessage: careGratitudes.message,
           gratitudeCreatedAt: careGratitudes.createdAt,
+          apologyStatementId: careRequests.withdrawalStatementId,
+          apologyMessage: careRequests.withdrawalMessage,
+          apologyCreatedAt: careRequests.notCompletedAt,
           requesterPersonId: requesterAccountPeople.personId,
           requesterDisplayName: requesterProfiles.displayName,
           claimantPersonId: claimantAccountPeople.personId,
@@ -367,6 +390,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
               or(
                 eq(careRequests.status, "orphaned"),
                 eq(careRequests.status, "completed"),
+                eq(careRequests.status, "not_completed"),
               ),
               eq(careRequests.claimantUserId, viewerUserId),
             ),
@@ -393,6 +417,7 @@ export function createCareRequestRepository(database: DatabaseClient) {
           completedAt: row.completedAt,
           expiresAt: row.expiresAt,
           expiredAt: row.expiredAt,
+          notCompletedAt: row.notCompletedAt,
           createdAt: row.createdAt,
           requester: {
             personId: row.requesterPersonId,
@@ -413,6 +438,16 @@ export function createCareRequestRepository(database: DatabaseClient) {
                   statementId: row.gratitudeStatementId,
                   message: row.gratitudeMessage,
                   createdAt: row.gratitudeCreatedAt,
+                }
+              : null,
+          apology:
+            row.apologyStatementId !== null &&
+            row.apologyMessage !== null &&
+            row.apologyCreatedAt !== null
+              ? {
+                  statementId: row.apologyStatementId,
+                  message: row.apologyMessage,
+                  createdAt: row.apologyCreatedAt,
                 }
               : null,
         }),
@@ -797,6 +832,115 @@ export function createCareRequestRepository(database: DatabaseClient) {
         return updated.length === 1
           ? { ok: true, value: null }
           : { ok: false, error: "care-request-not-found" };
+      });
+    },
+
+    async withdraw(input: {
+      careRequestId: string;
+      participantUserId: string;
+      statementId: CareWithdrawalStatementId;
+      message: string;
+      now: Date;
+    }): Promise<CareRequestRepositoryResult<null>> {
+      if (
+        !careWithdrawalStatementIds.has(input.statementId) ||
+        typeof input.message !== "string" ||
+        input.message.length > 1_000
+      ) {
+        return { ok: false, error: "care-withdrawal-invalid" };
+      }
+
+      return database.transaction(async (transaction) => {
+        const [foundRequest] = await transaction
+          .select({
+            requesterUserId: careRequests.requesterUserId,
+            originatorUserId: careRequests.originatorUserId,
+            claimantUserId: careRequests.claimantUserId,
+            audience: careRequests.audience,
+            status: careRequests.status,
+          })
+          .from(careRequests)
+          .where(eq(careRequests.id, input.careRequestId))
+          .limit(1);
+        if (
+          foundRequest === undefined ||
+          foundRequest.status !== "claimed" ||
+          foundRequest.claimantUserId === null
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        await lockCare(transaction, input.careRequestId);
+        await lockUsers(
+          transaction,
+          foundRequest.requesterUserId,
+          foundRequest.claimantUserId,
+        );
+
+        const [request] = await transaction
+          .select({
+            requesterUserId: careRequests.requesterUserId,
+            originatorUserId: careRequests.originatorUserId,
+            claimantUserId: careRequests.claimantUserId,
+            audience: careRequests.audience,
+            status: careRequests.status,
+          })
+          .from(careRequests)
+          .where(eq(careRequests.id, input.careRequestId))
+          .limit(1);
+        if (
+          request === undefined ||
+          request.status !== "claimed" ||
+          request.claimantUserId === null
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        const isRequester = request.requesterUserId === input.participantUserId;
+        const isClaimant = request.claimantUserId === input.participantUserId;
+        if (!isRequester && !isClaimant) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        const otherParticipantUserId =
+          request.originatorUserId === request.requesterUserId
+            ? request.claimantUserId
+            : request.requesterUserId;
+        if (
+          !(await canAccess(
+            request.originatorUserId,
+            otherParticipantUserId,
+            request.audience,
+            transaction,
+          ))
+        ) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        const updated = await transaction
+          .update(careRequests)
+          .set({
+            status: "not_completed",
+            withdrawnByUserId: input.participantUserId,
+            notCompletedAt: input.now,
+            withdrawalStatementId: input.statementId,
+            withdrawalMessage: input.message.trim(),
+          })
+          .where(
+            and(
+              eq(careRequests.id, input.careRequestId),
+              eq(careRequests.status, "claimed"),
+            ),
+          )
+          .returning({ id: careRequests.id });
+        if (updated.length !== 1) {
+          return { ok: false, error: "care-request-not-found" };
+        }
+
+        await transaction
+          .delete(careGratitudes)
+          .where(eq(careGratitudes.careRequestId, input.careRequestId));
+        return { ok: true, value: null };
       });
     },
 

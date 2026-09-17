@@ -213,4 +213,92 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
     }),
     { ok: false, error: "care-gratitude-already-recorded" },
   );
+
+  const withdrawnRequestId = await repository.create({
+    requesterUserId: ids.owner,
+    helpfulWhen: "Tomorrow",
+    foodWorks: "Rice",
+    foodDoesNotWork: "Nothing spicy",
+    handoffStyle: "Leave it at my door",
+    expiresIn: "1w",
+    now: completedAt,
+  });
+  assert.deepEqual(
+    await repository.claim({
+      careRequestId: withdrawnRequestId,
+      claimantUserId: ids.helper,
+      now: completedAt,
+    }),
+    { ok: true, value: null },
+  );
+
+  await database
+    .update(curatedPersons)
+    .set({ placement: "holding" })
+    .where(eq(curatedPersons.id, ids.curatedPerson));
+  assert.deepEqual(
+    await repository.withdraw({
+      careRequestId: withdrawnRequestId,
+      participantUserId: ids.owner,
+      statementId: "meal-something-changed",
+      message: "I need to step back this time.",
+      now: completedAt,
+    }),
+    { ok: false, error: "care-request-not-found" },
+  );
+  await database
+    .update(curatedPersons)
+    .set({ placement: "party" })
+    .where(eq(curatedPersons.id, ids.curatedPerson));
+
+  const withdrawnAt = new Date(completedAt.getTime() + 1_000);
+  assert.deepEqual(
+    await repository.withdraw({
+      careRequestId: withdrawnRequestId,
+      participantUserId: ids.helper,
+      statementId: "meal-something-changed",
+      message: "I need to step back this time.",
+      now: withdrawnAt,
+    }),
+    { ok: true, value: null },
+  );
+  const ownerWithdrawal = (await repository.listVisible(ids.owner)).find(
+    (request) => request.id === withdrawnRequestId,
+  );
+  const helperWithdrawal = (await repository.listVisible(ids.helper)).find(
+    (request) => request.id === withdrawnRequestId,
+  );
+  assert.equal(ownerWithdrawal?.status, "not_completed");
+  assert.equal(helperWithdrawal?.status, "not_completed");
+  assert.deepEqual(ownerWithdrawal?.notCompletedAt, withdrawnAt);
+  assert.deepEqual(ownerWithdrawal?.apology, {
+    statementId: "meal-something-changed",
+    message: "I need to step back this time.",
+    createdAt: withdrawnAt,
+  });
+  assert.deepEqual(helperWithdrawal?.apology, ownerWithdrawal?.apology);
+  assert.equal(
+    (await repository.listVisible(ids.stranger)).some(
+      (request) => request.id === withdrawnRequestId,
+    ),
+    false,
+  );
+  assert.deepEqual(
+    await repository.recordCompletion({
+      careRequestId: withdrawnRequestId,
+      participantUserId: ids.owner,
+      now: withdrawnAt,
+    }),
+    { ok: false, error: "care-request-not-found" },
+  );
+  assert.deepEqual(
+    await repository.recordGratitude({
+      careRequestId: withdrawnRequestId,
+      receiverUserId: ids.owner,
+      statementId: "meal-care-felt-easy",
+      message: "This should not be recorded.",
+      now: withdrawnAt,
+    }),
+    { ok: false, error: "care-request-not-found" },
+  );
 });

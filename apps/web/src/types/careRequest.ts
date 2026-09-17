@@ -37,14 +37,22 @@ export type ReceiveCareRequest = {
   handoffStyle: string;
   audience: CareAudience;
   audienceSnapshot: CareAudienceSnapshot;
-  status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+  status:
+    | "open"
+    | "claimed"
+    | "orphaned"
+    | "completed"
+    | "expired"
+    | "not_completed";
   createdAt: string;
   claimedAt?: string;
   requesterCompletedAt?: string;
   claimantCompletedAt?: string;
   completedAt?: string;
+  notCompletedAt?: string;
   expiresAt?: string;
   gratitude?: CareHistoryGratitude;
+  apology?: CareHistoryApology;
   expiredAt?: string;
   requester: CareRequester;
   claimant?: CarePublicPerson;
@@ -55,6 +63,15 @@ export type CareHistoryGratitude = {
     | "meal-fed-when-needed"
     | "meal-care-felt-easy"
     | "meal-seen-and-supported";
+  message: string;
+  createdAt: string;
+};
+
+export type CareHistoryApology = {
+  statementId:
+    | "meal-sorry-cant-follow-through"
+    | "meal-something-changed"
+    | "meal-sorry-committed";
   message: string;
   createdAt: string;
 };

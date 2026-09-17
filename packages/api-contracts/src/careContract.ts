@@ -30,6 +30,19 @@ const careGratitude = Type.Object(
   },
   { additionalProperties: false },
 );
+const careApologyStatementId = Type.Union([
+  Type.Literal("meal-sorry-cant-follow-through"),
+  Type.Literal("meal-something-changed"),
+  Type.Literal("meal-sorry-committed"),
+]);
+const careApology = Type.Object(
+  {
+    statementId: careApologyStatementId,
+    message: Type.String({ maxLength: 1_000 }),
+    createdAt: dateTime,
+  },
+  { additionalProperties: false },
+);
 
 export const carePersonSchema = Type.Object(
   { personId: id, displayName },
@@ -53,15 +66,18 @@ export const careRequestSchema = Type.Object(
       Type.Literal("orphaned"),
       Type.Literal("completed"),
       Type.Literal("expired"),
+      Type.Literal("not_completed"),
     ]),
     createdAt: dateTime,
     claimedAt: Type.Optional(dateTime),
     requesterCompletedAt: Type.Optional(dateTime),
     claimantCompletedAt: Type.Optional(dateTime),
     completedAt: Type.Optional(dateTime),
+    notCompletedAt: Type.Optional(dateTime),
     expiresAt: Type.Optional(dateTime),
     expiredAt: Type.Optional(dateTime),
     gratitude: Type.Optional(careGratitude),
+    apology: Type.Optional(careApology),
     requester: carePersonSchema,
     claimant: Type.Optional(carePersonSchema),
   },
@@ -119,6 +135,8 @@ export const careRequestCompletePath =
   "/api/v1/care-requests/:careRequestId/complete";
 export const careRequestGratitudePath =
   "/api/v1/care-requests/:careRequestId/gratitude";
+export const careRequestWithdrawPath =
+  "/api/v1/care-requests/:careRequestId/withdraw";
 export const careRequestParamsSchema = Type.Object(
   { careRequestId: id },
   { additionalProperties: false },
@@ -130,12 +148,22 @@ export const createCareGratitudeBodySchema = Type.Object(
   },
   { additionalProperties: false },
 );
+export const createCareWithdrawalBodySchema = Type.Object(
+  {
+    statementId: careApologyStatementId,
+    message: Type.String({ maxLength: 1_000 }),
+  },
+  { additionalProperties: false },
+);
 
 export type CarePerson = Static<typeof carePersonSchema>;
 export type CareRequest = Static<typeof careRequestSchema>;
 export type CreateCareRequestBody = Static<typeof createCareRequestBodySchema>;
 export type CreateCareGratitudeBody = Static<
   typeof createCareGratitudeBodySchema
+>;
+export type CreateCareWithdrawalBody = Static<
+  typeof createCareWithdrawalBodySchema
 >;
 export type CareRequestsSuccessResponse = Static<
   typeof careRequestsSuccessSchema

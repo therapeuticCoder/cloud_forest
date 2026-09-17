@@ -143,6 +143,22 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/care-requests/{careRequestId}/withdraw": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["withdrawCareRequestV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/connection-pairings": {
         readonly parameters: {
             readonly query?: never;
@@ -983,6 +999,12 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
+                                readonly apology?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                                };
                                 readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
@@ -1016,13 +1038,15 @@ export interface operations {
                                 readonly kind: "meal";
                                 /** @enum {string} */
                                 readonly need: "A meal";
+                                /** Format: date-time */
+                                readonly notCompletedAt?: string;
                                 readonly requester: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
                             }[];
                         };
                     };
@@ -1076,6 +1100,12 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
+                                readonly apology?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                                };
                                 readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
@@ -1109,13 +1139,15 @@ export interface operations {
                                 readonly kind: "meal";
                                 /** @enum {string} */
                                 readonly need: "A meal";
+                                /** Format: date-time */
+                                readonly notCompletedAt?: string;
                                 readonly requester: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
                             }[];
                         };
                     };
@@ -1177,6 +1209,12 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
+                                readonly apology?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                                };
                                 readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
@@ -1210,13 +1248,15 @@ export interface operations {
                                 readonly kind: "meal";
                                 /** @enum {string} */
                                 readonly need: "A meal";
+                                /** Format: date-time */
+                                readonly notCompletedAt?: string;
                                 readonly requester: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
                             }[];
                         };
                     };
@@ -1310,6 +1350,12 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
+                                readonly apology?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                                };
                                 readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
@@ -1343,13 +1389,15 @@ export interface operations {
                                 readonly kind: "meal";
                                 /** @enum {string} */
                                 readonly need: "A meal";
+                                /** Format: date-time */
+                                readonly notCompletedAt?: string;
                                 readonly requester: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
                             }[];
                         };
                     };
@@ -1434,6 +1482,12 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
+                                readonly apology?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                                };
                                 readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
@@ -1467,13 +1521,15 @@ export interface operations {
                                 readonly kind: "meal";
                                 /** @enum {string} */
                                 readonly need: "A meal";
+                                /** Format: date-time */
+                                readonly notCompletedAt?: string;
                                 readonly requester: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
                             }[];
                         };
                     };
@@ -1567,6 +1623,12 @@ export interface operations {
                         readonly apiVersion: "v1";
                         readonly data: {
                             readonly requests: readonly {
+                                readonly apology?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                                };
                                 readonly audience: "Party" | "Tribe";
                                 readonly claimant?: {
                                     readonly displayName: string;
@@ -1600,13 +1662,15 @@ export interface operations {
                                 readonly kind: "meal";
                                 /** @enum {string} */
                                 readonly need: "A meal";
+                                /** Format: date-time */
+                                readonly notCompletedAt?: string;
                                 readonly requester: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
-                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired";
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
                             }[];
                         };
                     };
@@ -1646,6 +1710,138 @@ export interface operations {
             };
             /** @description Default Response */
             readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly withdrawCareRequestV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careRequestId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly message: string;
+                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly requests: readonly {
+                                readonly apology?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
+                                };
+                                readonly audience: "Party" | "Tribe";
+                                readonly claimant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly claimantCompletedAt?: string;
+                                /** Format: date-time */
+                                readonly claimedAt?: string;
+                                /** Format: date-time */
+                                readonly completedAt?: string;
+                                /** Format: date-time */
+                                readonly createdAt: string;
+                                readonly direction: "receive" | "give";
+                                /** Format: date-time */
+                                readonly expiredAt?: string;
+                                /** Format: date-time */
+                                readonly expiresAt?: string;
+                                readonly foodDoesNotWork: string;
+                                readonly foodWorks: string;
+                                readonly gratitude?: {
+                                    /** Format: date-time */
+                                    readonly createdAt: string;
+                                    readonly message: string;
+                                    readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
+                                };
+                                readonly handoffStyle: string;
+                                readonly helpfulWhen: string;
+                                readonly id: string;
+                                /** @enum {string} */
+                                readonly kind: "meal";
+                                /** @enum {string} */
+                                readonly need: "A meal";
+                                /** Format: date-time */
+                                readonly notCompletedAt?: string;
+                                readonly requester: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly requesterCompletedAt?: string;
+                                readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
                 headers: {
                     readonly [name: string]: unknown;
                 };

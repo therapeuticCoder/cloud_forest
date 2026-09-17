@@ -9,6 +9,7 @@ import {
   type GetCareRequestsResponse,
   type PassCareRequestResult,
   type RecordCareGratitudeResult,
+  type WithdrawCareRequestResult,
 } from "@cloud-forest/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -21,6 +22,7 @@ export type CareRequestApiClient = Pick<
   | "claimCareRequest"
   | "passCareRequest"
   | "completeCareRequest"
+  | "withdrawCareRequest"
   | "recordCareGratitude"
 >;
 
@@ -30,6 +32,7 @@ type CareRequestOperationResult =
   | ClaimCareRequestResult
   | PassCareRequestResult
   | CompleteCareRequestResult
+  | WithdrawCareRequestResult
   | RecordCareGratitudeResult;
 type CareRequestRecord = GetCareRequestsResponse["data"]["requests"][number];
 
@@ -73,9 +76,13 @@ function toReceiveCareRequest(
       ? { claimantCompletedAt: request.claimantCompletedAt }
       : {}),
     ...(request.completedAt ? { completedAt: request.completedAt } : {}),
+    ...(request.notCompletedAt
+      ? { notCompletedAt: request.notCompletedAt }
+      : {}),
     ...(request.expiresAt ? { expiresAt: request.expiresAt } : {}),
     ...(request.expiredAt ? { expiredAt: request.expiredAt } : {}),
     ...(request.gratitude ? { gratitude: request.gratitude } : {}),
+    ...(request.apology ? { apology: request.apology } : {}),
     requester: {
       kind: request.requester.personId === viewerPersonId ? "self" : "party",
       id: request.requester.personId,
@@ -292,5 +299,37 @@ export function useCareRequests(
     [apiClient, applyResult],
   );
 
-  return { claim, complete, create, load, pass, recordGratitude, state };
+  const withdraw = useCallback(
+    async (
+      careRequestId: string,
+      input: Parameters<CareRequestApiClient["withdrawCareRequest"]>[1],
+    ) => {
+      const requestSequence = ++requestSequenceRef.current;
+      const result = await apiClient.withdrawCareRequest(
+        { careRequestId },
+        input,
+      );
+      if (result.ok) {
+        applyResult(result, requestSequence);
+      } else if (result.kind === "http" && result.status === 404) {
+        const latest = await apiClient.getCareRequests();
+        applyResult(latest, requestSequence);
+      } else {
+        applyResult(result, requestSequence);
+      }
+      return result;
+    },
+    [apiClient, applyResult],
+  );
+
+  return {
+    claim,
+    complete,
+    create,
+    load,
+    pass,
+    recordGratitude,
+    state,
+    withdraw,
+  };
 }

@@ -4,12 +4,14 @@ import {
   careRequestGratitudePath,
   careRequestClaimPath,
   careRequestPassPath,
+  careRequestWithdrawPath,
   careRequestErrorSchema,
   careRequestParamsSchema,
   careRequestsPath,
   careRequestsSuccessSchema,
   createCareGratitudeBodySchema,
   createCareRequestBodySchema,
+  createCareWithdrawalBodySchema,
 } from "@cloud-forest/api-contracts";
 import type { CareRequestRepository } from "@cloud-forest/database";
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
@@ -71,6 +73,9 @@ function toApiRequest(
     ...(request.completedAt
       ? { completedAt: request.completedAt.toISOString() }
       : {}),
+    ...(request.notCompletedAt
+      ? { notCompletedAt: request.notCompletedAt.toISOString() }
+      : {}),
     ...(request.expiresAt
       ? { expiresAt: request.expiresAt.toISOString() }
       : {}),
@@ -83,6 +88,15 @@ function toApiRequest(
             statementId: request.gratitude.statementId,
             message: request.gratitude.message,
             createdAt: request.gratitude.createdAt.toISOString(),
+          },
+        }
+      : {}),
+    ...(request.apology
+      ? {
+          apology: {
+            statementId: request.apology.statementId,
+            message: request.apology.message,
+            createdAt: request.apology.createdAt.toISOString(),
           },
         }
       : {}),
@@ -304,6 +318,46 @@ export const careRequestRoutes: FastifyPluginAsyncTypebox<Options> = async (
           return reply.status(400).send(error("VALIDATION_ERROR"));
         }
         return reply.status(404).send(error("NOT_FOUND"));
+      }
+      return visibleRequests(current.userId);
+    },
+  );
+
+  server.post(
+    careRequestWithdrawPath,
+    {
+      schema: {
+        operationId: "withdrawCareRequestV1",
+        tags: ["Care"],
+        params: careRequestParamsSchema,
+        body: createCareWithdrawalBodySchema,
+        response: {
+          200: careRequestsSuccessSchema,
+          400: careRequestErrorSchema,
+          401: careRequestErrorSchema,
+          404: careRequestErrorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const current = await auth(request);
+      if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const result = await options.repository.withdraw({
+        careRequestId: request.params.careRequestId,
+        participantUserId: current.userId,
+        ...request.body,
+        now: new Date(),
+      });
+      if (!result.ok) {
+        return reply
+          .status(result.error === "care-withdrawal-invalid" ? 400 : 404)
+          .send(
+            error(
+              result.error === "care-withdrawal-invalid"
+                ? "VALIDATION_ERROR"
+                : "NOT_FOUND",
+            ),
+          );
       }
       return visibleRequests(current.userId);
     },

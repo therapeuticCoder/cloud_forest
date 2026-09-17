@@ -58,7 +58,7 @@ For Party Care, audience exhaustion first demotes the Care to Tribe. If the Trib
 
 Expiration removes the Care from Timeline and Active Care. It leaves a small private history entry for the originator, but does not imply failure, apology, gratitude, retry, or prejudice toward anyone who passed or could not help.
 
-## Completion and retry
+## Completion and withdrawal
 
 Requester and giver record their own outcomes independently.
 
@@ -66,7 +66,9 @@ Care remains active until both participants complete it, unless either participa
 
 When both participants complete Care, it becomes terminally completed and remains available as a private history entry for each participant. A partial completion does not create the terminal history state.
 
-A not-completed outcome may include a private reason and may offer an allowed close, postpone, or linked retry path. Private reasons never appear in shared Timeline activity.
+A participant may withdraw from a claimed Care when they can no longer follow through. The Care becomes terminally not completed, leaves active Care surfaces, and does not return to Party or Tribe. Both participants retain a private history entry with the Care, their participant role, the ending time, and the apology the withdrawing participant chose to share. An optional personal note is included in both participants' private history; neither the apology nor its note appears on Timeline.
+
+Withdrawal is not a neutral expiration and does not assign blame. In the alpha, withdrawal does not retry, postpone, or republish the Care.
 
 Claimed Care may also expire after its completion window. The exact duration is not yet durable product truth.
 

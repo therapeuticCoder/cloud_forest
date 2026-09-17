@@ -41,6 +41,7 @@ type CreateCareRequestOperation = operations["createCareRequestV1"];
 type ClaimCareRequestOperation = operations["claimCareRequestV1"];
 type PassCareRequestOperation = operations["passCareRequestV1"];
 type CompleteCareRequestOperation = operations["completeCareRequestV1"];
+type WithdrawCareRequestOperation = operations["withdrawCareRequestV1"];
 type RecordCareGratitudeOperation = operations["recordCareGratitudeV1"];
 type GetCareOffersOperation = operations["getCareOffersV1"];
 type CreateCareOfferOperation = operations["createCareOfferV1"];
@@ -105,6 +106,10 @@ export type PassCareRequestParameters =
   PassCareRequestOperation["parameters"]["path"];
 export type CompleteCareRequestParameters =
   CompleteCareRequestOperation["parameters"]["path"];
+export type WithdrawCareRequestParameters =
+  WithdrawCareRequestOperation["parameters"]["path"];
+export type WithdrawCareRequestInput =
+  WithdrawCareRequestOperation["requestBody"]["content"]["application/json"];
 export type RecordCareGratitudeInput =
   RecordCareGratitudeOperation["requestBody"]["content"]["application/json"];
 export type RecordCareGratitudeParameters =
@@ -154,6 +159,12 @@ export type CompleteCareRequestResult = ApiResult<
   GetCareRequestsResponse,
   400 | 401 | 404,
   OperationResponseBody<CompleteCareRequestOperation, 400 | 401 | 404>
+>;
+export type WithdrawCareRequestResult = ApiResult<
+  200,
+  GetCareRequestsResponse,
+  400 | 401 | 404,
+  OperationResponseBody<WithdrawCareRequestOperation, 400 | 401 | 404>
 >;
 export type RecordCareGratitudeResult = ApiResult<
   200,
@@ -309,6 +320,10 @@ export interface ApiClient {
   completeCareRequest(
     parameters: CompleteCareRequestParameters,
   ): Promise<CompleteCareRequestResult>;
+  withdrawCareRequest(
+    parameters: WithdrawCareRequestParameters,
+    input: WithdrawCareRequestInput,
+  ): Promise<WithdrawCareRequestResult>;
   recordCareGratitude(
     parameters: RecordCareGratitudeParameters,
     input: RecordCareGratitudeInput,
@@ -612,6 +627,17 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
       );
     },
 
+    async withdrawCareRequest({ careRequestId }, input) {
+      return parseCareRequestsResponse(
+        await request(
+          "POST",
+          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/withdraw`,
+          input,
+        ),
+        [400, 401, 404] as const,
+      ) as WithdrawCareRequestResult;
+    },
+
     async recordCareGratitude({ careRequestId }, input) {
       return parseCareRequestsResponse(
         await request(
@@ -743,13 +769,18 @@ function parseCareRequestsResponse(
 ): CompleteCareRequestResult;
 function parseCareRequestsResponse(
   result: RawRequestResult,
+  errorStatuses: readonly [400, 401, 404],
+): WithdrawCareRequestResult;
+function parseCareRequestsResponse(
+  result: RawRequestResult,
   errorStatuses: readonly number[],
 ):
   | GetCareRequestsResult
   | CreateCareRequestResult
   | ClaimCareRequestResult
   | PassCareRequestResult
-  | CompleteCareRequestResult {
+  | CompleteCareRequestResult
+  | WithdrawCareRequestResult {
   if (result.kind === "network") return result;
   if (result.status === 200 && isCareRequestsSuccessResponse(result.body)) {
     return { ok: true, status: 200, value: result.body };

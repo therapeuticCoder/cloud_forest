@@ -105,6 +105,34 @@ function createRepository() {
       }
       return { ok: true, value: null };
     },
+    async withdraw({
+      careRequestId,
+      participantUserId,
+      statementId,
+      message,
+      now,
+    }) {
+      const request = requests.find(({ id }) => id === careRequestId);
+      if (
+        !request ||
+        request.status !== "claimed" ||
+        (request.requesterUserId !== participantUserId &&
+          request.claimantUserId !== participantUserId)
+      ) {
+        return { ok: false, error: "care-request-not-found" };
+      }
+      requests = requests.map((candidate) =>
+        candidate.id === careRequestId
+          ? {
+              ...candidate,
+              status: "not_completed",
+              notCompletedAt: now,
+              apology: { statementId, message, createdAt: now },
+            }
+          : candidate,
+      );
+      return { ok: true, value: null };
+    },
     async recordGratitude({
       careRequestId,
       receiverUserId,
@@ -338,4 +366,68 @@ test("Care API keeps create and claim responses durable and non-disclosing", asy
   });
   assert.equal(secondClaim.statusCode, 409);
   assert.equal(secondClaim.json().error.code, "ALREADY_CLAIMED");
+});
+
+test("Care API closes a claimed Care with a private apology", async (t) => {
+  const repository = createRepository();
+  const server = serverFor(repository);
+  t.after(() => server.close());
+
+  const created = await server.inject({
+    method: "POST",
+    url: "/api/v1/care-requests",
+    headers: { cookie: "session=user-a" },
+    payload: {
+      helpfulWhen: "Tonight",
+      foodWorks: "Soup",
+      foodDoesNotWork: "Nothing spicy",
+      handoffStyle: "Leave it at my door",
+      expiresIn: "1w",
+    },
+  });
+  const requestId = created.json().data.requests[0].id;
+  await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${requestId}/claim`,
+    headers: { cookie: "session=user-b" },
+  });
+
+  const withdrawn = await server.inject({
+    method: "POST",
+    url: `/api/v1/care-requests/${requestId}/withdraw`,
+    headers: { cookie: "session=user-b" },
+    payload: {
+      statementId: "meal-something-changed",
+      message: "I need to step back this time.",
+    },
+  });
+  assert.equal(withdrawn.statusCode, 200);
+  assert.equal(withdrawn.json().data.requests[0].status, "not_completed");
+  assert.deepEqual(withdrawn.json().data.requests[0].apology, {
+    statementId: "meal-something-changed",
+    message: "I need to step back this time.",
+    createdAt: withdrawn.json().data.requests[0].apology.createdAt,
+  });
+
+  const requesterHistory = await server.inject({
+    method: "GET",
+    url: "/api/v1/care-requests",
+    headers: { cookie: "session=user-a" },
+  });
+  assert.equal(requesterHistory.statusCode, 200);
+  assert.equal(
+    requesterHistory.json().data.requests[0].status,
+    "not_completed",
+  );
+  assert.equal(
+    requesterHistory.json().data.requests[0].apology.message,
+    "I need to step back this time.",
+  );
+
+  const nonparticipantHistory = await server.inject({
+    method: "GET",
+    url: "/api/v1/care-requests",
+    headers: { cookie: "session=user-c" },
+  });
+  assert.deepEqual(nonparticipantHistory.json().data.requests, []);
 });

@@ -248,7 +248,7 @@ export function CareRequestCard({
                       onClick={() => onRecordNotCompleted(request)}
                       type="button"
                     >
-                      Not completed
+                      I can’t complete this Care
                     </button>
                   ) : null}
                 </div>

@@ -31,12 +31,17 @@ export type CareRequestStatus =
   | "claimed"
   | "orphaned"
   | "completed"
-  | "expired";
+  | "expired"
+  | "not_completed";
 export type CareOfferStatus = "available" | "expired";
 export type CareGratitudeStatementId =
   | "meal-fed-when-needed"
   | "meal-care-felt-easy"
   | "meal-seen-and-supported";
+export type CareWithdrawalStatementId =
+  | "meal-sorry-cant-follow-through"
+  | "meal-something-changed"
+  | "meal-sorry-committed";
 
 export const timelineItems = pgTable(
   "timeline_items",
@@ -368,6 +373,14 @@ export const careRequests = pgTable(
     }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     expiredAt: timestamp("expired_at", { withTimezone: true }),
+    withdrawnByUserId: varchar("withdrawn_by_user_id", {
+      length: 128,
+    }).references(() => users.id, { onDelete: "cascade" }),
+    notCompletedAt: timestamp("not_completed_at", { withTimezone: true }),
+    withdrawalStatementId: varchar("withdrawal_statement_id", {
+      length: 64,
+    }).$type<CareWithdrawalStatementId>(),
+    withdrawalMessage: text("withdrawal_message").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [
@@ -398,11 +411,19 @@ export const careRequests = pgTable(
     ),
     check(
       "care_requests_status_allowed",
-      sql`${table.status} in ('open', 'claimed', 'orphaned', 'completed', 'expired')`,
+      sql`${table.status} in ('open', 'claimed', 'orphaned', 'completed', 'expired', 'not_completed')`,
     ),
     check(
       "care_requests_claim_state",
-      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and (${table.requesterCompletedAt} is null or ${table.claimantCompletedAt} is null) and ${table.expiredAt} is null) or (${table.status} = 'completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.requesterCompletedAt} is not null and ${table.claimantCompletedAt} is not null and ${table.completedAt} is not null and ${table.expiredAt} is null) or (${table.status} = 'expired' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is not null)`,
+      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and (${table.requesterCompletedAt} is null or ${table.claimantCompletedAt} is null) and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.requesterCompletedAt} is not null and ${table.claimantCompletedAt} is not null and ${table.completedAt} is not null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'expired' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is not null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'not_completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is not null and ${table.notCompletedAt} is not null and ${table.withdrawalStatementId} is not null)`,
+    ),
+    check(
+      "care_requests_withdrawal_statement_allowed",
+      sql`${table.withdrawalStatementId} is null or ${table.withdrawalStatementId} in ('meal-sorry-cant-follow-through', 'meal-something-changed', 'meal-sorry-committed')`,
+    ),
+    check(
+      "care_requests_withdrawal_message_length",
+      sql`char_length(${table.withdrawalMessage}) <= 1000`,
     ),
     check(
       "care_requests_not_self_claimed",
