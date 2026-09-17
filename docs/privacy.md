@@ -26,7 +26,7 @@ Every protected Care read or mutation re-evaluates current eligibility. Moving t
 
 After a claim, only the requester and giver receive the active participant projection while their current Connection remains valid.
 
-Private not-completed reasons are participant-private. Gratitude may have a separate Tribe-facing projection, including an optional “A neighbor” presentation, without exposing private participant provenance.
+Withdrawal apologies are private to the two Care participants and never appear on Timeline or in Tribe activity. Withdrawal does not create or preserve gratitude.
 
 ## Signals and public data
 

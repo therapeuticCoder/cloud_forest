@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { getMealApologyStatement } from "@/data/careApologyStatements";
 import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
 import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 
@@ -41,6 +42,7 @@ type MyCareViewProps = {
   activeRequests: ReceiveCareRequest[];
   claimedRequests: ReceiveCareRequest[];
   completedRequests: ReceiveCareRequest[];
+  notCompletedRequests: ReceiveCareRequest[];
   expiredRequests: ReceiveCareRequest[];
   offers: GiveCareOffer[];
   expiredOffers: GiveCareOffer[];
@@ -67,6 +69,7 @@ export function MyCareView({
   activeRequests,
   claimedRequests,
   completedRequests,
+  notCompletedRequests,
   expiredRequests,
   offers,
   expiredOffers,
@@ -140,6 +143,12 @@ export function MyCareView({
       kind: "completed" as const,
       request,
       recordedAt: request.completedAt ?? request.claimedAt ?? request.createdAt,
+    })),
+    ...notCompletedRequests.map((request) => ({
+      kind: "not-completed" as const,
+      request,
+      recordedAt:
+        request.notCompletedAt ?? request.claimedAt ?? request.createdAt,
     })),
     ...expiredRequests.map((request) => ({
       kind: "expired-request" as const,
@@ -317,6 +326,7 @@ export function MyCareView({
                   onOfferHelp={() => undefined}
                   onPass={() => undefined}
                   onRecordCompleted={onRecordCompleted}
+                  onRecordNotCompleted={onRecordNotCompleted}
                   onSetMinimized={onSetRequestMinimized}
                   onWithdraw={onWithdraw}
                   request={request}
@@ -451,6 +461,47 @@ export function MyCareView({
                               {request.gratitude.message ? (
                                 <blockquote>
                                   {request.gratitude.message}
+                                </blockquote>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                        <time dateTime={item.recordedAt}>
+                          {formatter.format(new Date(item.recordedAt))}
+                        </time>
+                      </li>
+                    );
+                  }
+
+                  if (item.kind === "not-completed") {
+                    const { request } = item;
+                    const isRequester = request.requester.id === viewerId;
+                    return (
+                      <li key={`not-completed-${request.id}`}>
+                        <div>
+                          <span>Not completed</span>
+                          <strong>
+                            {isRequester
+                              ? request.direction === "give"
+                                ? `You received an offer from ${request.claimant?.displayName ?? "your care partner"}`
+                                : `You requested care from ${request.claimant?.displayName ?? "your care partner"}`
+                              : `You committed to help ${request.requester.displayName}`}
+                          </strong>
+                          <p>
+                            {request.need} · {request.helpfulWhen}
+                          </p>
+                          {request.apology ? (
+                            <div className="my-care-history__apology">
+                              <span>Private apology</span>
+                              <p>
+                                {getMealApologyStatement(
+                                  request.apology.statementId,
+                                )?.text ??
+                                  "I’m sorry, I couldn’t complete this."}
+                              </p>
+                              {request.apology.message ? (
+                                <blockquote>
+                                  {request.apology.message}
                                 </blockquote>
                               ) : null}
                             </div>

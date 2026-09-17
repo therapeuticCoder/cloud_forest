@@ -193,6 +193,27 @@ function createCareApiClient(
       });
       return careSuccess(requests);
     }),
+    withdrawCareRequest: vi.fn(async ({ careRequestId }, input) => {
+      const request = requests.find(
+        (candidate) => candidate.id === careRequestId,
+      );
+      if (!request || request.status !== "claimed") return notFound();
+      requests = requests.map((candidate) =>
+        candidate.id === careRequestId
+          ? {
+              ...candidate,
+              status: "not_completed" as const,
+              notCompletedAt: "2026-09-14T13:10:00.000Z",
+              apology: {
+                statementId: input.statementId,
+                message: input.message,
+                createdAt: "2026-09-14T13:10:00.000Z",
+              },
+            }
+          : candidate,
+      );
+      return careSuccess(requests);
+    }),
     recordCareGratitude: vi.fn(async ({ careRequestId }, input) => {
       const request = requests.find(
         (candidate) => candidate.id === careRequestId,
@@ -342,17 +363,6 @@ async function renderAuthenticatedApp(careApiClient = testCareApiClient) {
   );
   await screen.findByRole("region", { name: /timeline view/i });
   return result;
-}
-
-async function claimIncomingRequest(user: ReturnType<typeof userEvent.setup>) {
-  const request = screen.getByRole("article", {
-    name: "Incoming meal care request from Anya Reed",
-  });
-  await user.click(within(request).getByRole("button", { name: "I can help" }));
-  await user.click(screen.getByRole("button", { name: "I’ll help with this" }));
-  await waitFor(() =>
-    expect(screen.getByText("You’re helping Anya.")).toHaveFocus(),
-  );
 }
 
 describe("App", () => {
@@ -547,6 +557,79 @@ describe("App", () => {
       await within(careCard).findByText(
         "You marked this completed. Waiting for the other person.",
       ),
+    ).toBeInTheDocument();
+  });
+
+  it("withdraws claimed Care with an optional private apology", async () => {
+    const careApiClient = createCareApiClient([
+      careRequest({
+        status: "claimed",
+        claimedAt: "2026-09-14T13:05:00.000Z",
+        claimant: { personId: "you", displayName: "River Tester" },
+      }),
+    ]);
+    const user = await openCurator(careApiClient);
+    await user.click(screen.getByRole("button", { name: /open anya reed/i }));
+
+    const careCard = screen.getByRole("article", {
+      name: "Incoming meal care request from Anya Reed",
+    });
+    await user.click(
+      within(careCard).getByRole("button", {
+        name: "I can’t complete this Care",
+      }),
+    );
+
+    const withdrawal = screen.getByRole("region", {
+      name: "Withdraw committed Care with Anya Reed",
+    });
+    expect(
+      within(withdrawal).getByRole("button", { name: "Continue" }),
+    ).toBeDisabled();
+    await user.click(
+      within(withdrawal).getByLabelText(
+        "Something changed and I need to step back.",
+      ),
+    );
+    await user.type(
+      within(withdrawal).getByLabelText("Add your own words (optional)"),
+      "I need to step back this time.",
+    );
+    await user.click(
+      within(withdrawal).getByRole("button", { name: "Continue" }),
+    );
+    expect(withdrawal).toHaveTextContent(
+      "The Care will close as not completed",
+    );
+    await user.click(
+      within(withdrawal).getByRole("button", {
+        name: "Close Care as not completed",
+      }),
+    );
+
+    await waitFor(() =>
+      expect(careApiClient.withdrawCareRequest).toHaveBeenCalledWith(
+        { careRequestId: "care-request-anya-meal-001" },
+        {
+          statementId: "meal-something-changed",
+          message: "I need to step back this time.",
+        },
+      ),
+    );
+    expect(
+      screen.queryByRole("article", {
+        name: "Incoming meal care request from Anya Reed",
+      }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Open My Care" }));
+    await user.click(screen.getByRole("tab", { name: /history/i }));
+    expect(screen.getByText("Not completed")).toBeInTheDocument();
+    expect(
+      screen.getByText("Something changed and I need to step back."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("I need to step back this time."),
     ).toBeInTheDocument();
   });
 
@@ -970,76 +1053,6 @@ describe("App", () => {
         name: "Incoming meal care request from Anya Reed",
       }),
     ).toBeInTheDocument();
-  });
-
-  it.skip("collects a private reason before closing not-completed care", async () => {
-    const user = userEvent.setup();
-    await renderAuthenticatedApp();
-    await claimIncomingRequest(user);
-
-    await user.click(screen.getByRole("button", { name: "Not completed" }));
-    const outcome = screen.getByRole("region", {
-      name: "Care was not completed for Anya Reed",
-    });
-    expect(outcome).toHaveTextContent("not a rating or a public report");
-    expect(
-      within(outcome).getByRole("button", { name: "Close" }),
-    ).toBeDisabled();
-    await user.type(
-      within(outcome).getByLabelText("Reason"),
-      "The timing did not work",
-    );
-    await user.click(within(outcome).getByRole("button", { name: "Close" }));
-
-    expect(
-      screen.queryByRole("article", { name: "Claimed meal care request" }),
-    ).not.toBeInTheDocument();
-    const stored = JSON.parse(
-      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
-    );
-    expect(stored.dispositions).toEqual([
-      expect.objectContaining({
-        kind: "close",
-        reason: "The timing did not work",
-      }),
-    ]);
-    expect(stored.history).toHaveLength(2);
-  });
-
-  it.skip("closes the original care and creates a linked request when trying again", async () => {
-    const user = userEvent.setup();
-    await renderAuthenticatedApp();
-    await claimIncomingRequest(user);
-
-    await user.click(screen.getByRole("button", { name: "Not completed" }));
-    const outcome = screen.getByRole("region", {
-      name: "Care was not completed for Anya Reed",
-    });
-    await user.type(
-      within(outcome).getByLabelText("Reason"),
-      "We missed each other",
-    );
-    await user.click(
-      within(outcome).getByRole("button", { name: "Postpone / try again" }),
-    );
-
-    const retry = screen.getByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
-    });
-    expect(
-      within(retry).getByRole("button", { name: "I can help" }),
-    ).toBeInTheDocument();
-    const stored = JSON.parse(
-      window.localStorage.getItem("cloud-forest:care-lifecycle:v2") ?? "{}",
-    );
-    expect(stored.dispositions).toEqual([
-      expect.objectContaining({
-        kind: "retry",
-        successorRequestId: expect.stringContaining(
-          "care-request-anya-meal-001-retry-",
-        ),
-      }),
-    ]);
   });
 
   it.skip("reviews open, passed, demoted, and claimed care without changing state on switch", async () => {

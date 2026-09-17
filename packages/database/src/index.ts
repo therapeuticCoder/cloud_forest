@@ -32,6 +32,7 @@ export {
   type CareAudience,
   type CareExpiration,
   type CareGratitudeStatementId,
+  type CareWithdrawalStatementId,
   type NewTimelineItemRow,
   type TimelineItemRow,
 } from "./schema.ts";
