@@ -1,45 +1,28 @@
+import type { Care, CarePersonId } from "@/types/care";
+
 import {
   TimelinePanel,
   type TimelineApiClient,
   type TimelineError,
 } from "./TimelinePanel";
-import type {
-  CareGratitude,
-  CarePersonId,
-  GiveCareOffer,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
 
-const noClaimedRequestIds = new Set<string>();
-const noMinimizedRequestIds = new Set<string>();
-const noPassableRequestIds = new Set<string>();
-const noCompletedRequestIds = new Set<string>();
+const noCareIds = new Set<string>();
 
 export function TimelineView({
-  careGratitudes = [],
-  careOffers = [],
-  careRequests = [],
+  cares = [],
   careError,
-  careGratitudeRequests = careRequests,
-  claimedRequestIds = noClaimedRequestIds,
-  minimizedRequestIds = noMinimizedRequestIds,
-  onOfferHelp = () => undefined,
-  onClaimOffer,
+  minimizedCareIds = noCareIds,
+  onCommitToCare,
+  onClaim,
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
-  onPassOffer,
-  onSetRequestMinimized,
+  onSetCareMinimized,
   onWithdraw,
-  onWithdrawOffer = () => undefined,
   onOfflineChange,
-  passableRequestIds = noPassableRequestIds,
-  passableOfferIds = noPassableRequestIds,
+  passableCareIds = noCareIds,
   passAnnouncement,
   viewerId = "you",
-  viewerClaimedRequestIds = noClaimedRequestIds,
-  viewerCompletedRequestIds = noCompletedRequestIds,
-  otherParticipantCompletedRequestIds = noCompletedRequestIds,
   cacheOwnerId,
   apiClient,
   postComposerOpen = false,
@@ -47,31 +30,21 @@ export function TimelineView({
   offline = false,
 }: {
   apiClient?: TimelineApiClient;
-  careOffers?: GiveCareOffer[];
-  careGratitudes?: CareGratitude[];
-  careGratitudeRequests?: ReceiveCareRequest[];
-  careRequests?: ReceiveCareRequest[];
+  cares?: Care[];
   careError?: TimelineError;
-  claimedRequestIds?: Set<string>;
-  minimizedRequestIds?: Set<string>;
-  onOfferHelp?: (request: ReceiveCareRequest) => void;
-  onClaimOffer?: (offerId: string) => void;
-  onPassOffer?: (offer: GiveCareOffer) => void;
-  onRecordCompleted?: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
-  onPass?: (request: ReceiveCareRequest) => void;
-  onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
-  onWithdraw?: (requestId: string) => void;
-  onWithdrawOffer?: (offerId: string) => void;
+  minimizedCareIds?: Set<string>;
+  onCommitToCare?: (care: Care) => void;
+  onClaim?: (careId: string) => void;
+  onRecordCompleted?: (care: Care) => void;
+  onRecordNotCompleted?: (care: Care) => void;
+  onPass?: (care: Care) => void;
+  onSetCareMinimized?: (careId: string, minimized: boolean) => void;
+  onWithdraw?: (careId: string) => void;
   onOfflineChange?: (offline: boolean) => void;
-  passableRequestIds?: Set<string>;
-  passableOfferIds?: Set<string>;
+  passableCareIds?: Set<string>;
   passAnnouncement?: string;
   cacheOwnerId?: string;
   viewerId?: CarePersonId;
-  viewerClaimedRequestIds?: Set<string>;
-  viewerCompletedRequestIds?: Set<string>;
-  otherParticipantCompletedRequestIds?: Set<string>;
   offline?: boolean;
   postComposerOpen?: boolean;
   onClosePostComposer?: () => void;
@@ -79,36 +52,24 @@ export function TimelineView({
   return (
     <section aria-label="Timeline view" className="timeline-view">
       <TimelinePanel
-        careGratitudes={careGratitudes}
-        careGratitudeRequests={careGratitudeRequests}
-        careOffers={careOffers}
-        careRequests={careRequests}
+        apiClient={apiClient}
+        cacheOwnerId={cacheOwnerId}
         careError={careError}
-        claimedRequestIds={claimedRequestIds}
-        minimizedRequestIds={minimizedRequestIds}
-        onOfferHelp={onOfferHelp}
-        onClaimOffer={onClaimOffer}
+        cares={cares}
+        minimizedCareIds={minimizedCareIds}
+        offline={offline}
+        onClaim={onClaim}
+        onClosePostComposer={onClosePostComposer}
+        onCommitToCare={onCommitToCare}
+        onOfflineChange={onOfflineChange}
+        onPass={onPass}
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}
-        onPass={onPass}
-        onPassOffer={onPassOffer}
-        onSetRequestMinimized={onSetRequestMinimized}
+        onSetCareMinimized={onSetCareMinimized}
         onWithdraw={onWithdraw}
-        onWithdrawOffer={onWithdrawOffer}
-        onOfflineChange={onOfflineChange}
-        offline={offline}
-        apiClient={apiClient}
-        passableRequestIds={passableRequestIds}
-        passableOfferIds={passableOfferIds}
         passAnnouncement={passAnnouncement}
-        cacheOwnerId={cacheOwnerId}
+        passableCareIds={passableCareIds}
         postComposerOpen={postComposerOpen}
-        onClosePostComposer={onClosePostComposer}
-        viewerClaimedRequestIds={viewerClaimedRequestIds}
-        viewerCompletedRequestIds={viewerCompletedRequestIds}
-        otherParticipantCompletedRequestIds={
-          otherParticipantCompletedRequestIds
-        }
         viewerId={viewerId}
       />
     </section>

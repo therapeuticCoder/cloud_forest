@@ -5,7 +5,6 @@ import {
   type CareTime,
 } from "@cloud-forest/domain";
 
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 import type { CareDraft } from "./CareWizard";
 
 const dayLabels: Record<CareDay, string> = {
@@ -31,20 +30,6 @@ export function careCategoryName(
   return category ? (getCareCategory(category)?.name ?? fallback) : fallback;
 }
 
-export function careRequestCategoryName(request: ReceiveCareRequest) {
-  return careCategoryName(
-    request.category,
-    request.kind === "meal" ? "Food" : request.need,
-  );
-}
-
-export function careOfferCategoryName(offer: GiveCareOffer) {
-  return careCategoryName(
-    offer.category,
-    offer.kind === "meal" ? "Food" : offer.offer,
-  );
-}
-
 export function careDraftSchedule(
   draft: Pick<CareDraft, "days" | "times" | "timeNote">,
 ) {
@@ -53,17 +38,6 @@ export function careDraftSchedule(
     ...draft.times.map((time) => timeLabels[time]),
   ];
   return [parts.join(", "), draft.timeNote].filter(Boolean).join(" · ");
-}
-
-export function careDraftDescription(
-  draft: Pick<CareDraft, "category" | "subtype" | "requirements">,
-) {
-  return (
-    draft.requirements ||
-    draft.subtype ||
-    getCareCategory(draft.category)?.name ||
-    "Care"
-  );
 }
 
 export function careScheduleLabel(input: {

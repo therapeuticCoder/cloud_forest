@@ -24,7 +24,8 @@ A block breaks the Connection and overrides relationship-derived shared access. 
 
 Every protected Care read or mutation re-evaluates current eligibility. Moving to Holding, removal from the Forest, breaking a Connection, or blocking can immediately revoke access.
 
-After a claim, only the requester and giver receive the active participant projection while their current Connection remains valid.
+After a claim, only the originator and participant receive the active Care
+projection while their current Connection remains valid.
 
 Withdrawal apologies are private to the two Care participants and never appear on Timeline or in Tribe activity. Withdrawal does not create or preserve gratitude.
 

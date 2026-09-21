@@ -28,8 +28,7 @@ import { partyRoutes } from "./routes/party.ts";
 import { curatedPersonRoutes } from "./routes/curatedPerson.ts";
 import { signupRoutes } from "./routes/signup.ts";
 import { connectionPairingRoutes } from "./routes/connectionPairing.ts";
-import { careRequestRoutes } from "./routes/careRequest.ts";
-import { careOfferRoutes } from "./routes/careOffer.ts";
+import { careRoutes } from "./routes/care.ts";
 
 export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   timelineItemResolver?: TimelineItemResolver;
@@ -41,8 +40,7 @@ export interface BuildApiOptions extends Pick<FastifyServerOptions, "logger"> {
   partyRepository?: PartyRepository;
   curatedPersonRepository?: CuratedPersonRepository;
   connectionRepository?: ConnectionRepository;
-  careRequestRepository?: import("@cloud-forest/database").CareRequestRepository;
-  careOfferRepository?: import("@cloud-forest/database").CareOfferRepository;
+  careRepository?: import("@cloud-forest/database").CareRepository;
   identityRepository?: import("@cloud-forest/database").IdentityRepository;
 }
 
@@ -95,26 +93,16 @@ const missingConnectionRepository = new Proxy(
     },
   },
 ) as ConnectionRepository;
-const missingCareRequestRepository = new Proxy(
+const missingCareRepository = new Proxy(
   {},
   {
     get() {
       return () => {
-        throw new Error("Care request repository is not configured.");
+        throw new Error("Care repository is not configured.");
       };
     },
   },
-) as import("@cloud-forest/database").CareRequestRepository;
-const missingCareOfferRepository = new Proxy(
-  {},
-  {
-    get() {
-      return () => {
-        throw new Error("Care offer repository is not configured.");
-      };
-    },
-  },
-) as import("@cloud-forest/database").CareOfferRepository;
+) as import("@cloud-forest/database").CareRepository;
 
 export function buildApi(
   options: BuildApiOptions = { logger: false },
@@ -170,12 +158,8 @@ export function buildApi(
     repository: options.connectionRepository ?? missingConnectionRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
-  server.register(careRequestRoutes, {
-    repository: options.careRequestRepository ?? missingCareRequestRepository,
-    sessionResolver: options.sessionResolver ?? missingSessionResolver,
-  });
-  server.register(careOfferRoutes, {
-    repository: options.careOfferRepository ?? missingCareOfferRepository,
+  server.register(careRoutes, {
+    repository: options.careRepository ?? missingCareRepository,
     sessionResolver: options.sessionResolver ?? missingSessionResolver,
   });
   return server;

@@ -2,7 +2,7 @@ import { RadioTower, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
+import type { Care, CarePersonId } from "@/types/care";
 import {
   hasActiveConnection,
   type CuratorPerson,
@@ -41,7 +41,7 @@ type CuratorViewProps = {
   addDestination: "holding" | "party" | "tribe";
   addSubmission: { pending: boolean; error?: string };
   addWizardOpen: boolean;
-  activeCareRequests: ReceiveCareRequest[];
+  activeCares: Care[];
   careViewerId: CarePersonId;
   characterSubmission: { pending: boolean; error?: string };
   curatedPeopleStatus: "loading" | "ready" | "error";
@@ -78,15 +78,15 @@ type CuratorViewProps = {
       relationshipShape: string;
     },
   ) => Promise<CuratorPerson | null>;
-  onOfferHelp: (request: ReceiveCareRequest) => void;
-  onPass: (request: ReceiveCareRequest) => void;
-  onRecordCompleted: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
+  onCommitToCare: (care: Care) => void;
+  onPass: (care: Care) => void;
+  onRecordCompleted: (care: Care) => void;
+  onRecordNotCompleted: (care: Care) => void;
   onReceive: () => void;
   onSelectionChange?: (selection: CuratorSelection | null) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
   onUnblockCharacter: (person: CuratorPerson) => Promise<boolean>;
-  onWithdraw: (requestId: string) => void;
+  onWithdraw: (careId: string) => void;
   partyPeople: CuratorPerson[];
   blockedPeople: CuratorPerson[];
   holdingPeople: CuratorPerson[];
@@ -192,7 +192,7 @@ export function CuratorView({
   addDestination,
   addSubmission,
   addWizardOpen,
-  activeCareRequests,
+  activeCares,
   careViewerId,
   characterSubmission,
   curatedPeopleCached,
@@ -210,7 +210,7 @@ export function CuratorView({
   onRetryCuratedPeople,
   onGive,
   onUpdateCharacter,
-  onOfferHelp,
+  onCommitToCare,
   onPass,
   onRecordCompleted,
   onRecordNotCompleted,
@@ -358,14 +358,14 @@ export function CuratorView({
   if (selection) {
     return (
       <CuratorDetailView
-        activeCareRequests={activeCareRequests}
+        activeCares={activeCares}
         characterSubmission={characterSubmission}
         onBlockCharacter={onBlockCharacter}
         onBack={handleBack}
         onBackToLayer={handleBackToLayer}
         onDeleteCharacter={onDeleteCharacter}
         onEndConnection={onEndConnection}
-        onOfferHelp={onOfferHelp}
+        onCommitToCare={onCommitToCare}
         onPass={onPass}
         onRecordCompleted={onRecordCompleted}
         onRecordNotCompleted={onRecordNotCompleted}

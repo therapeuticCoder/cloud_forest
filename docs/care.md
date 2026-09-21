@@ -2,7 +2,8 @@
 
 Care turns Cloud Forest's relationship map into practical mutual aid. The goal is to make asking for help and helping someone else feel socially and cognitively lightweight.
 
-Give offers and Receive requests use the same relationship and audience principles.
+Give and Receive are directions on the same Care record. They use the same
+relationship, audience, lifecycle, and privacy rules.
 
 ## Eligibility
 
@@ -39,9 +40,11 @@ Moving a Connection between Party and Tribe clears that Connection's existing pa
 
 If the originator explicitly returns Tribe Care to Party, that begins a fresh Party round and clears Party passes for that round. Existing Tribe passes remain unless that Connection itself moves between Party and Tribe.
 
-The first eligible claim wins. After a claim, the active Care is shared only by the requester and giver while their Connection remains valid.
+The first eligible claim wins. After a claim, the active Care is shared only by
+the originator and participant while their Connection remains valid.
 
-A claimant may release a claim. The Care returns to the same layer with prior passes intact.
+The Care keeps the same identity across the claim; claiming does not create a
+second request or offer object.
 
 ## Expiration
 
@@ -60,7 +63,7 @@ Expiration removes the Care from Timeline and Active Care. It leaves a small pri
 
 ## Completion and withdrawal
 
-Requester and giver record their own outcomes independently.
+The originator and participant record their own outcomes independently.
 
 Care remains active until both participants complete it, unless either participant closes it as not completed or another terminal condition applies.
 

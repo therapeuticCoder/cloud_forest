@@ -32,6 +32,16 @@ export const careDays: readonly CareDay[] = [
 
 export type CareTime = "morning" | "afternoon" | "evening";
 
+export type CareDirection = "give" | "receive";
+
+export type CareStatus =
+  | "open"
+  | "claimed"
+  | "orphaned"
+  | "completed"
+  | "expired"
+  | "not_completed";
+
 export const careTimes: readonly CareTime[] = [
   "morning",
   "afternoon",

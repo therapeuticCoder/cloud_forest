@@ -1,21 +1,21 @@
 export interface paths {
-    readonly "/api/v1/care-offers": {
+    readonly "/api/v1/cares": {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
             readonly path?: never;
             readonly cookie?: never;
         };
-        readonly get: operations["getCareOffersV1"];
+        readonly get: operations["getCaresV1"];
         readonly put?: never;
-        readonly post: operations["createCareOfferV1"];
+        readonly post: operations["createCareV1"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/care-offers/{careOfferId}": {
+    readonly "/api/v1/cares/{careId}/claim": {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -24,14 +24,14 @@ export interface paths {
         };
         readonly get?: never;
         readonly put?: never;
-        readonly post?: never;
-        readonly delete: operations["withdrawCareOfferV1"];
+        readonly post: operations["claimCareV1"];
+        readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/care-offers/{careOfferId}/claim": {
+    readonly "/api/v1/cares/{careId}/complete": {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -40,78 +40,14 @@ export interface paths {
         };
         readonly get?: never;
         readonly put?: never;
-        readonly post: operations["claimCareOfferV1"];
+        readonly post: operations["completeCareV1"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/care-offers/{careOfferId}/pass": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        readonly post: operations["passCareOfferV1"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/care-requests": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get: operations["getCareRequestsV1"];
-        readonly put?: never;
-        readonly post: operations["createCareRequestV1"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/care-requests/{careRequestId}/claim": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        readonly post: operations["claimCareRequestV1"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/care-requests/{careRequestId}/complete": {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly get?: never;
-        readonly put?: never;
-        readonly post: operations["completeCareRequestV1"];
-        readonly delete?: never;
-        readonly options?: never;
-        readonly head?: never;
-        readonly patch?: never;
-        readonly trace?: never;
-    };
-    readonly "/api/v1/care-requests/{careRequestId}/gratitude": {
+    readonly "/api/v1/cares/{careId}/gratitude": {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -127,7 +63,7 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/care-requests/{careRequestId}/pass": {
+    readonly "/api/v1/cares/{careId}/pass": {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -136,14 +72,14 @@ export interface paths {
         };
         readonly get?: never;
         readonly put?: never;
-        readonly post: operations["passCareRequestV1"];
+        readonly post: operations["passCareV1"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
         readonly patch?: never;
         readonly trace?: never;
     };
-    readonly "/api/v1/care-requests/{careRequestId}/withdraw": {
+    readonly "/api/v1/cares/{careId}/withdraw": {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -152,7 +88,7 @@ export interface paths {
         };
         readonly get?: never;
         readonly put?: never;
-        readonly post: operations["withdrawCareRequestV1"];
+        readonly post: operations["withdrawCareV1"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -543,7 +479,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    readonly getCareOffersV1: {
+    readonly getCaresV1: {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -562,482 +498,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            readonly offers: readonly {
-                                readonly audience: "Party" | "Tribe";
-                                readonly availableWhen: string;
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                /** Format: date-time */
-                                readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                /** @enum {string} */
-                                readonly direction: "give";
-                                /** Format: date-time */
-                                readonly expiredAt?: string;
-                                /** Format: date-time */
-                                readonly expiresAt?: string;
-                                readonly giver: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                readonly handoffStyle: string;
-                                readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly mealDescription: string;
-                                readonly offer: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
-                                readonly status: "available" | "expired";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
-                            }[];
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    readonly createCareOfferV1: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody: {
-            readonly content: {
-                readonly "application/json": {
-                    readonly audience?: "Party" | "Tribe";
-                    readonly availableWhen: string;
-                    readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                    readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                    readonly expiresIn: "1h" | "4h" | "1d" | "1w";
-                    readonly handoffStyle: string;
-                    readonly location?: string;
-                    readonly mealDescription: string;
-                    readonly requirements?: string;
-                    readonly sensitivities?: string;
-                    readonly subtype?: string;
-                    readonly timeNote?: string;
-                    readonly times?: readonly ("morning" | "afternoon" | "evening")[];
-                };
-            };
-        };
-        readonly responses: {
-            /** @description Default Response */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly data: {
-                            readonly offers: readonly {
-                                readonly audience: "Party" | "Tribe";
-                                readonly availableWhen: string;
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                /** Format: date-time */
-                                readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                /** @enum {string} */
-                                readonly direction: "give";
-                                /** Format: date-time */
-                                readonly expiredAt?: string;
-                                /** Format: date-time */
-                                readonly expiresAt?: string;
-                                readonly giver: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                readonly handoffStyle: string;
-                                readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly mealDescription: string;
-                                readonly offer: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
-                                readonly status: "available" | "expired";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
-                            }[];
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    readonly withdrawCareOfferV1: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path: {
-                readonly careOfferId: string;
-            };
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Default Response */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly data: {
-                            readonly offers: readonly {
-                                readonly audience: "Party" | "Tribe";
-                                readonly availableWhen: string;
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                /** Format: date-time */
-                                readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                /** @enum {string} */
-                                readonly direction: "give";
-                                /** Format: date-time */
-                                readonly expiredAt?: string;
-                                /** Format: date-time */
-                                readonly expiresAt?: string;
-                                readonly giver: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                readonly handoffStyle: string;
-                                readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly mealDescription: string;
-                                readonly offer: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
-                                readonly status: "available" | "expired";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
-                            }[];
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    readonly claimCareOfferV1: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path: {
-                readonly careOfferId: string;
-            };
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Default Response */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly data: {
-                            readonly offers: readonly {
-                                readonly audience: "Party" | "Tribe";
-                                readonly availableWhen: string;
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                /** Format: date-time */
-                                readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                /** @enum {string} */
-                                readonly direction: "give";
-                                /** Format: date-time */
-                                readonly expiredAt?: string;
-                                /** Format: date-time */
-                                readonly expiresAt?: string;
-                                readonly giver: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                readonly handoffStyle: string;
-                                readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly mealDescription: string;
-                                readonly offer: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
-                                readonly status: "available" | "expired";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
-                            }[];
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 409: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    readonly passCareOfferV1: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path: {
-                readonly careOfferId: string;
-            };
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Default Response */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly data: {
-                            readonly offers: readonly {
-                                readonly audience: "Party" | "Tribe";
-                                readonly availableWhen: string;
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                /** Format: date-time */
-                                readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                /** @enum {string} */
-                                readonly direction: "give";
-                                /** Format: date-time */
-                                readonly expiredAt?: string;
-                                /** Format: date-time */
-                                readonly expiresAt?: string;
-                                readonly giver: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                readonly handoffStyle: string;
-                                readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly mealDescription: string;
-                                readonly offer: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
-                                readonly status: "available" | "expired";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
-                            }[];
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 401: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 404: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 409: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED";
-                            readonly message: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    readonly getCareRequestsV1: {
-        readonly parameters: {
-            readonly query?: never;
-            readonly header?: never;
-            readonly path?: never;
-            readonly cookie?: never;
-        };
-        readonly requestBody?: never;
-        readonly responses: {
-            /** @description Default Response */
-            readonly 200: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly data: {
-                            readonly requests: readonly {
+                            readonly cares: readonly {
                                 readonly apology?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
@@ -1045,53 +506,47 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                readonly claimant?: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                /** Format: date-time */
-                                readonly claimantCompletedAt?: string;
+                                readonly category: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                readonly direction: "receive" | "give";
+                                readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                                readonly direction: "give" | "receive";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
                                 /** Format: date-time */
                                 readonly expiresAt?: string;
-                                readonly foodDoesNotWork: string;
-                                readonly foodWorks: string;
                                 readonly gratitude?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
                                     readonly message: string;
                                     readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
                                 };
-                                readonly handoffStyle: string;
-                                readonly helpfulWhen: string;
                                 readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly need: string;
+                                readonly location: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
-                                readonly requester: {
+                                readonly originator: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
-                                readonly requesterCompletedAt?: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
+                                readonly originatorCompletedAt?: string;
+                                readonly participant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly participantCompletedAt?: string;
+                                readonly requirements: string;
+                                readonly sensitivities: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
+                                readonly subtype: string;
+                                readonly timeNote: string;
+                                readonly times: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1115,7 +570,7 @@ export interface operations {
             };
         };
     };
-    readonly createCareRequestV1: {
+    readonly createCareV1: {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
@@ -1128,11 +583,8 @@ export interface operations {
                     readonly audience?: "Party" | "Tribe";
                     readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                     readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                    readonly direction: "give" | "receive";
                     readonly expiresIn: "1h" | "4h" | "1d" | "1w";
-                    readonly foodDoesNotWork: string;
-                    readonly foodWorks: string;
-                    readonly handoffStyle: string;
-                    readonly helpfulWhen: string;
                     readonly location?: string;
                     readonly requirements?: string;
                     readonly sensitivities?: string;
@@ -1153,7 +605,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            readonly requests: readonly {
+                            readonly cares: readonly {
                                 readonly apology?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
@@ -1161,53 +613,47 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                readonly claimant?: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                /** Format: date-time */
-                                readonly claimantCompletedAt?: string;
+                                readonly category: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                readonly direction: "receive" | "give";
+                                readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                                readonly direction: "give" | "receive";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
                                 /** Format: date-time */
                                 readonly expiresAt?: string;
-                                readonly foodDoesNotWork: string;
-                                readonly foodWorks: string;
                                 readonly gratitude?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
                                     readonly message: string;
                                     readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
                                 };
-                                readonly handoffStyle: string;
-                                readonly helpfulWhen: string;
                                 readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly need: string;
+                                readonly location: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
-                                readonly requester: {
+                                readonly originator: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
-                                readonly requesterCompletedAt?: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
+                                readonly originatorCompletedAt?: string;
+                                readonly participant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly participantCompletedAt?: string;
+                                readonly requirements: string;
+                                readonly sensitivities: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
+                                readonly subtype: string;
+                                readonly timeNote: string;
+                                readonly times: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1247,12 +693,12 @@ export interface operations {
             };
         };
     };
-    readonly claimCareRequestV1: {
+    readonly claimCareV1: {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
             readonly path: {
-                readonly careRequestId: string;
+                readonly careId: string;
             };
             readonly cookie?: never;
         };
@@ -1268,7 +714,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            readonly requests: readonly {
+                            readonly cares: readonly {
                                 readonly apology?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
@@ -1276,70 +722,48 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                readonly claimant?: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                /** Format: date-time */
-                                readonly claimantCompletedAt?: string;
+                                readonly category: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                readonly direction: "receive" | "give";
+                                readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                                readonly direction: "give" | "receive";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
                                 /** Format: date-time */
                                 readonly expiresAt?: string;
-                                readonly foodDoesNotWork: string;
-                                readonly foodWorks: string;
                                 readonly gratitude?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
                                     readonly message: string;
                                     readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
                                 };
-                                readonly handoffStyle: string;
-                                readonly helpfulWhen: string;
                                 readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly need: string;
+                                readonly location: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
-                                readonly requester: {
+                                readonly originator: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
-                                readonly requesterCompletedAt?: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
+                                readonly originatorCompletedAt?: string;
+                                readonly participant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly participantCompletedAt?: string;
+                                readonly requirements: string;
+                                readonly sensitivities: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
+                                readonly subtype: string;
+                                readonly timeNote: string;
+                                readonly times: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
-                            readonly message: string;
                         };
                     };
                 };
@@ -1394,12 +818,12 @@ export interface operations {
             };
         };
     };
-    readonly completeCareRequestV1: {
+    readonly completeCareV1: {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
             readonly path: {
-                readonly careRequestId: string;
+                readonly careId: string;
             };
             readonly cookie?: never;
         };
@@ -1415,7 +839,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            readonly requests: readonly {
+                            readonly cares: readonly {
                                 readonly apology?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
@@ -1423,70 +847,48 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                readonly claimant?: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                /** Format: date-time */
-                                readonly claimantCompletedAt?: string;
+                                readonly category: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                readonly direction: "receive" | "give";
+                                readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                                readonly direction: "give" | "receive";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
                                 /** Format: date-time */
                                 readonly expiresAt?: string;
-                                readonly foodDoesNotWork: string;
-                                readonly foodWorks: string;
                                 readonly gratitude?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
                                     readonly message: string;
                                     readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
                                 };
-                                readonly handoffStyle: string;
-                                readonly helpfulWhen: string;
                                 readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly need: string;
+                                readonly location: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
-                                readonly requester: {
+                                readonly originator: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
-                                readonly requesterCompletedAt?: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
+                                readonly originatorCompletedAt?: string;
+                                readonly participant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly participantCompletedAt?: string;
+                                readonly requirements: string;
+                                readonly sensitivities: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
+                                readonly subtype: string;
+                                readonly timeNote: string;
+                                readonly times: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
-                        };
-                    };
-                };
-            };
-            /** @description Default Response */
-            readonly 400: {
-                headers: {
-                    readonly [name: string]: unknown;
-                };
-                content: {
-                    readonly "application/json": {
-                        /** @enum {string} */
-                        readonly apiVersion: "v1";
-                        readonly error: {
-                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
-                            readonly message: string;
                         };
                     };
                 };
@@ -1530,7 +932,7 @@ export interface operations {
             readonly query?: never;
             readonly header?: never;
             readonly path: {
-                readonly careRequestId: string;
+                readonly careId: string;
             };
             readonly cookie?: never;
         };
@@ -1553,7 +955,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            readonly requests: readonly {
+                            readonly cares: readonly {
                                 readonly apology?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
@@ -1561,53 +963,47 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                readonly claimant?: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                /** Format: date-time */
-                                readonly claimantCompletedAt?: string;
+                                readonly category: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                readonly direction: "receive" | "give";
+                                readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                                readonly direction: "give" | "receive";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
                                 /** Format: date-time */
                                 readonly expiresAt?: string;
-                                readonly foodDoesNotWork: string;
-                                readonly foodWorks: string;
                                 readonly gratitude?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
                                     readonly message: string;
                                     readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
                                 };
-                                readonly handoffStyle: string;
-                                readonly helpfulWhen: string;
                                 readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly need: string;
+                                readonly location: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
-                                readonly requester: {
+                                readonly originator: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
-                                readonly requesterCompletedAt?: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
+                                readonly originatorCompletedAt?: string;
+                                readonly participant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly participantCompletedAt?: string;
+                                readonly requirements: string;
+                                readonly sensitivities: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
+                                readonly subtype: string;
+                                readonly timeNote: string;
+                                readonly times: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1679,12 +1075,12 @@ export interface operations {
             };
         };
     };
-    readonly passCareRequestV1: {
+    readonly passCareV1: {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
             readonly path: {
-                readonly careRequestId: string;
+                readonly careId: string;
             };
             readonly cookie?: never;
         };
@@ -1700,7 +1096,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            readonly requests: readonly {
+                            readonly cares: readonly {
                                 readonly apology?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
@@ -1708,53 +1104,47 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                readonly claimant?: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                /** Format: date-time */
-                                readonly claimantCompletedAt?: string;
+                                readonly category: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                readonly direction: "receive" | "give";
+                                readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                                readonly direction: "give" | "receive";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
                                 /** Format: date-time */
                                 readonly expiresAt?: string;
-                                readonly foodDoesNotWork: string;
-                                readonly foodWorks: string;
                                 readonly gratitude?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
                                     readonly message: string;
                                     readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
                                 };
-                                readonly handoffStyle: string;
-                                readonly helpfulWhen: string;
                                 readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly need: string;
+                                readonly location: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
-                                readonly requester: {
+                                readonly originator: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
-                                readonly requesterCompletedAt?: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
+                                readonly originatorCompletedAt?: string;
+                                readonly participant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly participantCompletedAt?: string;
+                                readonly requirements: string;
+                                readonly sensitivities: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
+                                readonly subtype: string;
+                                readonly timeNote: string;
+                                readonly times: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1810,12 +1200,12 @@ export interface operations {
             };
         };
     };
-    readonly withdrawCareRequestV1: {
+    readonly withdrawCareV1: {
         readonly parameters: {
             readonly query?: never;
             readonly header?: never;
             readonly path: {
-                readonly careRequestId: string;
+                readonly careId: string;
             };
             readonly cookie?: never;
         };
@@ -1838,7 +1228,7 @@ export interface operations {
                         /** @enum {string} */
                         readonly apiVersion: "v1";
                         readonly data: {
-                            readonly requests: readonly {
+                            readonly cares: readonly {
                                 readonly apology?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
@@ -1846,53 +1236,47 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
-                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
-                                readonly claimant?: {
-                                    readonly displayName: string;
-                                    readonly personId: string;
-                                };
-                                /** Format: date-time */
-                                readonly claimantCompletedAt?: string;
+                                readonly category: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
-                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-                                readonly direction: "receive" | "give";
+                                readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+                                readonly direction: "give" | "receive";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
                                 /** Format: date-time */
                                 readonly expiresAt?: string;
-                                readonly foodDoesNotWork: string;
-                                readonly foodWorks: string;
                                 readonly gratitude?: {
                                     /** Format: date-time */
                                     readonly createdAt: string;
                                     readonly message: string;
                                     readonly statementId: "meal-fed-when-needed" | "meal-care-felt-easy" | "meal-seen-and-supported";
                                 };
-                                readonly handoffStyle: string;
-                                readonly helpfulWhen: string;
                                 readonly id: string;
-                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
-                                readonly location?: string;
-                                readonly need: string;
+                                readonly location: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
-                                readonly requester: {
+                                readonly originator: {
                                     readonly displayName: string;
                                     readonly personId: string;
                                 };
                                 /** Format: date-time */
-                                readonly requesterCompletedAt?: string;
-                                readonly requirements?: string;
-                                readonly sensitivities?: string;
+                                readonly originatorCompletedAt?: string;
+                                readonly participant?: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly participantCompletedAt?: string;
+                                readonly requirements: string;
+                                readonly sensitivities: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
-                                readonly subtype?: string;
-                                readonly timeNote?: string;
-                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
+                                readonly subtype: string;
+                                readonly timeNote: string;
+                                readonly times: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };

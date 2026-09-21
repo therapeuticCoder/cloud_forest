@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { GetTimelineItemsResult } from "@cloud-forest/api-client";
 
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+import type { Care } from "@/types/care";
 
 import { TimelinePanel } from "./TimelinePanel";
 
@@ -19,94 +19,68 @@ const timelineItem = {
   publishedAt: "2026-05-30T17:00:00.000Z",
 };
 
-describe("TimelinePanel live item seam", () => {
-  it("orders Give and Receive listings newest first", () => {
-    const offer: GiveCareOffer = {
-      id: "offer-1",
-      kind: "meal",
+function care(overrides: Partial<Care> = {}): Care {
+  return {
+    id: "care-1",
+    direction: "receive",
+    category: "food",
+    subtype: "",
+    days: ["thursday"],
+    times: ["evening"],
+    timeNote: "",
+    location: "Party kitchen",
+    requirements: "Soup",
+    sensitivities: "Nothing spicy",
+    audience: "Party",
+    status: "open",
+    createdAt: "2026-09-02T19:00:00.000Z",
+    expiresAt: "2030-09-02T19:00:00.000Z",
+    originator: { id: "anya", displayName: "Anya Reed" },
+    ...overrides,
+  };
+}
+
+function noTimelineItems(): GetTimelineItemsResult {
+  return {
+    ok: true,
+    status: 200,
+    value: { apiVersion: "v1", data: { timelineItems: [] } },
+  };
+}
+
+describe("TimelinePanel", () => {
+  it("orders Give and Receive Care records newest first", () => {
+    const receiveCare = care();
+    const giveCare = care({
+      id: "care-2",
       direction: "give",
-      offer: "A meal",
-      mealDescription: "Soup",
-      availableWhen: "Tonight",
-      handoffStyle: "I can deliver it",
-      audience: "Party",
-      status: "available",
       createdAt: "2026-09-02T18:00:00.000Z",
-      giver: { id: "you", displayName: "You" },
-    };
-    const request: ReceiveCareRequest = {
-      id: "request-1",
-      kind: "meal",
-      direction: "receive",
-      need: "A meal",
-      helpfulWhen: "Tomorrow",
-      foodWorks: "Rice",
-      foodDoesNotWork: "None",
-      handoffStyle: "Leave it at my door",
-      audience: "Party",
-      audienceSnapshot: {
-        partyMemberIds: ["mira"],
-        tribeMemberIds: ["neighbors-1"],
-      },
-      status: "open",
-      createdAt: "2026-09-02T19:00:00.000Z",
-      expiresAt: "2030-09-02T19:00:00.000Z",
-      requester: { kind: "self", id: "you", displayName: "You" },
-    };
+      originator: { id: "you", displayName: "You" },
+    });
 
     render(
       <TimelinePanel
         apiClient={{
-          getTimelineItems: vi.fn(
-            () => new Promise<GetTimelineItemsResult>(() => undefined),
-          ),
+          getTimelineItems: vi.fn().mockResolvedValue(noTimelineItems()),
         }}
-        careOffers={[offer]}
-        careRequests={[request]}
+        cares={[giveCare, receiveCare]}
       />,
     );
 
-    const cards = screen
-      .getAllByRole("article")
-      .filter((article) => article.classList.contains("care-request-card"));
+    const cards = screen.getAllByRole("article");
     expect(cards).toHaveLength(2);
-    expect(cards[0]).toHaveTextContent("Food request");
-    expect(cards[1]).toHaveTextContent("Food offer");
+    expect(cards[0]).toHaveAccessibleName("Anya Reed shared food Care");
+    expect(cards[1]).toHaveAccessibleName("Open food Care");
   });
 
   it("interleaves Timeline posts and Care records chronologically", async () => {
-    const offer: GiveCareOffer = {
-      id: "offer-chronology",
-      kind: "meal",
+    const receiveCare = care();
+    const giveCare = care({
+      id: "care-2",
       direction: "give",
-      offer: "A meal",
-      mealDescription: "Soup",
-      availableWhen: "Tonight",
-      handoffStyle: "I can deliver it",
-      audience: "Party",
-      status: "available",
       createdAt: "2026-09-02T18:00:00.000Z",
-      giver: { id: "you", displayName: "You" },
-    };
-    const request: ReceiveCareRequest = {
-      id: "request-chronology",
-      kind: "meal",
-      direction: "receive",
-      need: "A meal",
-      helpfulWhen: "Tomorrow",
-      foodWorks: "Rice",
-      foodDoesNotWork: "None",
-      handoffStyle: "Leave it at my door",
-      audience: "Party",
-      audienceSnapshot: {
-        partyMemberIds: ["mira"],
-        tribeMemberIds: ["neighbors-1"],
-      },
-      status: "open",
-      createdAt: "2026-09-02T19:00:00.000Z",
-      expiresAt: "2030-09-02T19:00:00.000Z",
-      requester: { kind: "self", id: "you", displayName: "You" },
-    };
+      originator: { id: "you", displayName: "You" },
+    });
     const post = {
       ...timelineItem,
       publishedAt: "2026-09-02T20:00:00.000Z",
@@ -121,16 +95,15 @@ describe("TimelinePanel live item seam", () => {
             value: { apiVersion: "v1", data: { timelineItems: [post] } },
           }),
         }}
-        careOffers={[offer]}
-        careRequests={[request]}
+        cares={[giveCare, receiveCare]}
       />,
     );
 
     expect(await screen.findByText(post.content)).toBeInTheDocument();
     const cards = screen.getAllByRole("article");
     expect(cards[0]).toHaveTextContent(post.content);
-    expect(cards[1]).toHaveTextContent("Food request");
-    expect(cards[2]).toHaveTextContent("Food offer");
+    expect(cards[1]).toHaveAccessibleName("Anya Reed shared food Care");
+    expect(cards[2]).toHaveAccessibleName("Open food Care");
   });
 
   it("keeps the composer open when Escape closes the audience menu", async () => {
@@ -183,11 +156,7 @@ describe("TimelinePanel live item seam", () => {
 
   it("shows an accessible empty state when no posts are available", async () => {
     const apiClient = {
-      getTimelineItems: vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        value: { apiVersion: "v1", data: { timelineItems: [] } },
-      }),
+      getTimelineItems: vi.fn().mockResolvedValue(noTimelineItems()),
     };
 
     render(<TimelinePanel apiClient={apiClient} />);

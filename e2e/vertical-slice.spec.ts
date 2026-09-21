@@ -216,7 +216,7 @@ test("database-backed Timeline and normal app path", async ({
   const anyaTile = page.getByRole("button", { name: "Open Anya Reed" });
   await anyaTile.click();
   const anyaProfileRequest = page.getByRole("article", {
-    name: "Incoming meal care request from Anya Reed",
+    name: "Anya Reed shared food Care",
   });
   await expect(anyaProfileRequest).toBeVisible();
   await expect(
@@ -239,17 +239,17 @@ test("database-backed Timeline and normal app path", async ({
   await expect(anyaTile).toBeFocused();
   await page.getByRole("button", { name: "Go to Timeline" }).click();
 
-  const fullCareRequest = page.getByRole("article", {
-    name: "Incoming meal care request from Anya Reed",
+  const fullCare = page.getByRole("article", {
+    name: "Anya Reed shared food Care",
   });
-  await fullCareRequest.getByRole("button", { name: "I’ve seen this" }).click();
-  const minimizedCareRequest = page.getByRole("article", {
-    name: "Incoming meal care request from Anya Reed, minimized",
+  await fullCare.getByRole("button", { name: "I’ve seen this" }).click();
+  const minimizedCare = page.getByRole("article", {
+    name: "Anya Reed shared food Care, minimized",
   });
-  await expect(minimizedCareRequest).toBeVisible();
-  await expect(minimizedCareRequest).not.toContainText("Nothing spicy");
+  await expect(minimizedCare).toBeVisible();
+  await expect(minimizedCare).not.toContainText("Nothing spicy");
   await expect(
-    minimizedCareRequest.getByRole("button", { name: "Show details" }),
+    minimizedCare.getByRole("button", { name: "Show details" }),
   ).toBeFocused();
   await expectNoHorizontalOverflow(page);
   await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
@@ -257,24 +257,22 @@ test("database-backed Timeline and normal app path", async ({
   );
 
   await page.reload();
-  await expect(minimizedCareRequest).toBeVisible();
-  await minimizedCareRequest
-    .getByRole("button", { name: "Show details" })
-    .click();
-  await expect(fullCareRequest).toContainText("Nothing spicy");
+  await expect(minimizedCare).toBeVisible();
+  await minimizedCare.getByRole("button", { name: "Show details" }).click();
+  await expect(fullCare).toContainText("Nothing spicy");
   await expect(
-    fullCareRequest.getByRole("button", { name: "I’ve seen this" }),
+    fullCare.getByRole("button", { name: "I’ve seen this" }),
   ).toBeFocused();
 
-  await fullCareRequest.getByRole("button", { name: "Pass this time" }).click();
-  await expect(fullCareRequest).toHaveCount(0);
+  await fullCare.getByRole("button", { name: "Pass this time" }).click();
+  await expect(fullCare).toHaveCount(0);
   await expect(
     page.getByText(
-      "You passed on Anya’s request this time. Other Party members can still respond.",
+      "Passed privately. This Care won’t appear again unless your relationship layer changes.",
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Filter to Receive requests" }),
+    page.getByRole("button", { name: "Filter to Receive Care" }),
   ).toBeFocused();
   await expectNoHorizontalOverflow(page);
   await expect(page.locator("main.cloud-forest-app")).toHaveScreenshot(
@@ -282,7 +280,7 @@ test("database-backed Timeline and normal app path", async ({
   );
 
   await page.reload();
-  await expect(fullCareRequest).toHaveCount(0);
+  await expect(fullCare).toHaveCount(0);
 
   await expectMyCarePreservesTimelineScroll(page);
   await expectHiddenChromeRecoversFromKeyboard(page);

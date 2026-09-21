@@ -1,7 +1,7 @@
 import { CloudOff, Gift, HandHeart } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInitials, curatorUser } from "@/data/cloudForest";
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+import type { Care } from "@/types/care";
 import type { CuratorPerson, CuratorSelection } from "@/types/curator";
 
 import { CuratorView } from "./CuratorView";
@@ -20,23 +20,17 @@ import {
   type CuratedPersonApiClient,
 } from "./useCuratedPeople";
 import {
+  careErrorMessage,
   careGratitudeErrorMessage,
-  careRequestErrorMessage,
-  useCareRequests,
-  type CareRequestApiClient,
-} from "./useCareRequests";
-import {
-  careOfferErrorMessage,
-  useCareOffers,
-  type CareOfferApiClient,
-} from "./useCareOffers";
+  useCares,
+  type CareApiClient,
+} from "./useCares";
 import { PartyAction, PartyActions, Portrait } from "./PartyLayer";
 import { TimelineView } from "./TimelineView";
 import type { TimelineError } from "./TimelinePanel";
 import { type CloudForestView, ViewSwitcher } from "./ViewSwitcher";
 import type { CuratorLayerLabel } from "./curatorLayerStyles";
-import { ReceiveCareWizard, type ReceiveCareDraft } from "./ReceiveCareWizard";
-import { GiveCareWizard, type GiveCareDraft } from "./GiveCareWizard";
+import { CareWizard, type CareDraft } from "./CareWizard";
 import { ClaimCareView } from "./ClaimCareView";
 import {
   CareGratitudeWizard,
@@ -55,7 +49,7 @@ import {
 } from "@/lib/pendingConnectionPairing";
 
 type CareDestination =
-  | { kind: "claim"; request: ReceiveCareRequest }
+  | { kind: "claim"; care: Care }
   | {
       kind: "my-care";
       initialTab?: MyCareTab;
@@ -73,13 +67,11 @@ const curatorSelectionLayerLabels: Record<
 };
 
 export type { CuratedPersonApiClient } from "./useCuratedPeople";
-export type { CareRequestApiClient } from "./useCareRequests";
-export type { CareOfferApiClient } from "./useCareOffers";
+export type { CareApiClient } from "./useCares";
 
 export function DashboardShell({
   apiClient,
   careApiClient,
-  careOfferApiClient,
   currentPersonId,
   displayName,
   role,
@@ -90,8 +82,7 @@ export function DashboardShell({
   signingOut,
 }: {
   apiClient?: CuratedPersonApiClient;
-  careApiClient?: CareRequestApiClient;
-  careOfferApiClient?: CareOfferApiClient;
+  careApiClient?: CareApiClient;
   currentPersonId: string;
   displayName: string;
   role: "admin" | "user";
@@ -127,29 +118,19 @@ export function DashboardShell({
     [currentPersonId, displayName],
   );
   const {
-    claim: claimCareRequest,
-    complete: completeCareRequest,
-    create: createCareRequest,
-    load: loadCareRequests,
-    pass: passCareRequest,
+    claim: claimCare,
+    complete: completeCare,
+    create: createCare,
+    load: loadCares,
+    pass: passCare,
     recordGratitude: recordCareGratitude,
-    state: durableCareRequestsState,
-    withdraw: withdrawCareRequest,
-  } = useCareRequests(careApiClient, careViewerId);
-  const {
-    claim: claimCareOffer,
-    create: createCareOffer,
-    load: loadCareOffers,
-    pass: passCareOffer,
-    state: careOffersState,
-    withdraw: withdrawCareOffer,
-  } = useCareOffers(careOfferApiClient);
+    state: caresState,
+    withdraw: withdrawCare,
+  } = useCares(careApiClient);
   const [careDestination, setCareDestination] =
     useState<CareDestination | null>(null);
-  const [careGratitudeRequest, setCareGratitudeRequest] =
-    useState<ReceiveCareRequest | null>(null);
-  const [careWithdrawalRequest, setCareWithdrawalRequest] =
-    useState<ReceiveCareRequest | null>(null);
+  const [careGratitude, setCareGratitude] = useState<Care | null>(null);
+  const [careWithdrawal, setCareWithdrawal] = useState<Care | null>(null);
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<string>();
   const carePassAnnouncementTimeoutRef = useRef<number | undefined>(undefined);
   const {
@@ -518,19 +499,19 @@ export function DashboardShell({
     void loadCuratedPeople();
   };
 
-  const completeReceive = async (draft: ReceiveCareDraft) => {
-    const result = await createCareRequest(draft);
+  const completeReceive = async (draft: CareDraft) => {
+    const result = await createCare({ ...draft, direction: "receive" });
     if (!result.ok) {
-      return { ok: false as const, message: careRequestErrorMessage(result) };
+      return { ok: false as const, message: careErrorMessage(result) };
     }
     setReceiveWizardOpen(false);
     navigateToView("timeline");
     return { ok: true as const };
   };
-  const completeGive = async (draft: GiveCareDraft) => {
-    const result = await createCareOffer(draft);
+  const completeGive = async (draft: CareDraft) => {
+    const result = await createCare({ ...draft, direction: "give" });
     if (!result.ok) {
-      return { ok: false as const, message: careOfferErrorMessage(result) };
+      return { ok: false as const, message: careErrorMessage(result) };
     }
     setGiveWizardOpen(false);
     navigateToView("timeline");
@@ -548,20 +529,8 @@ export function DashboardShell({
       carePassAnnouncementTimeoutRef.current = undefined;
     }, 5_000);
   };
-  const claimGiveOffer = async (offerId: string) => {
-    const result = await claimCareOffer(offerId);
-    if (result.ok) {
-      await loadCareRequests();
-    }
-  };
-  const handlePassCareRequest = async (request: ReceiveCareRequest) => {
-    const result = await passCareRequest(request.id);
-    if (result.ok) {
-      announceCarePass();
-    }
-  };
-  const handlePassCareOffer = async (offer: GiveCareOffer) => {
-    const result = await passCareOffer(offer.id);
+  const handlePassCare = async (care: Care) => {
+    const result = await passCare(care.id);
     if (result.ok) {
       announceCarePass();
     }
@@ -635,61 +604,62 @@ export function DashboardShell({
     if (careDestination?.kind !== "claim") {
       return {
         ok: false as const,
-        message: "This Care request is no longer available.",
+        message: "This Care is no longer available.",
       };
     }
 
-    const result = await claimCareRequest(careDestination.request.id);
+    const result = await claimCare(careDestination.care.id);
     if (!result.ok) {
-      return { ok: false as const, message: careRequestErrorMessage(result) };
+      return { ok: false as const, message: careErrorMessage(result) };
     }
     restoreFromCareDestination(
-      `[data-care-claim-status="${careDestination.request.id}"]`,
+      `[data-care-claim-status="${careDestination.care.id}"]`,
     );
     rewindCareHistory();
     return { ok: true as const };
   };
 
-  const recordCareCompleted = async (request: ReceiveCareRequest) => {
-    const result = await completeCareRequest(request.id);
+  const recordCareCompleted = async (care: Care) => {
+    const result = await completeCare(care.id);
     if (
       result.ok &&
-      request.requester.id === careViewerId &&
-      request.gratitude === undefined
+      ((care.direction === "receive" && care.originator.id === careViewerId) ||
+        (care.direction === "give" && care.participant?.id === careViewerId)) &&
+      care.gratitude === undefined
     ) {
-      setCareGratitudeRequest(request);
+      setCareGratitude(care);
     }
   };
 
   const skipCareGratitude = () => {
-    setCareGratitudeRequest(null);
+    setCareGratitude(null);
   };
 
   const saveCareGratitude = async (
     draft: CareGratitudeDraft,
   ): Promise<CareGratitudeResult> => {
-    if (!careGratitudeRequest) {
+    if (!careGratitude) {
       return { ok: false, message: "Care is no longer available." };
     }
-    const result = await recordCareGratitude(careGratitudeRequest.id, draft);
+    const result = await recordCareGratitude(careGratitude.id, draft);
     if (!result.ok) {
       return { ok: false, message: careGratitudeErrorMessage(result) };
     }
-    setCareGratitudeRequest(null);
+    setCareGratitude(null);
     return { ok: true };
   };
 
   const saveCareWithdrawal = async (
     draft: CareWithdrawalDraft,
   ): Promise<CareWithdrawalResult> => {
-    if (!careWithdrawalRequest) {
+    if (!careWithdrawal) {
       return { ok: false, message: "Care is no longer available." };
     }
-    const result = await withdrawCareRequest(careWithdrawalRequest.id, draft);
+    const result = await withdrawCare(careWithdrawal.id, draft);
     if (!result.ok) {
-      return { ok: false, message: careRequestErrorMessage(result) };
+      return { ok: false, message: careErrorMessage(result) };
     }
-    setCareWithdrawalRequest(null);
+    setCareWithdrawal(null);
     return { ok: true };
   };
 
@@ -758,133 +728,57 @@ export function DashboardShell({
   }, [addWizardOpen, giveWizardOpen, partyPeople.length, receiveWizardOpen]);
 
   useEffect(() => {
-    void loadCareRequests();
-    void loadCareOffers();
-  }, [activeView, careDestination?.kind, loadCareOffers, loadCareRequests]);
+    void loadCares();
+  }, [activeView, careDestination?.kind, loadCares]);
 
-  const durableCareRequestRecords = durableCareRequestsState.requests;
-  const durableCareRequests = durableCareRequestRecords.filter(
-    (request) => request.status === "open" || request.status === "claimed",
+  const durableCareRecords = caresState.cares;
+  const durableCares = durableCareRecords.filter(
+    (care) => care.status === "open" || care.status === "claimed",
   );
-  const durableCompletedRequests = durableCareRequestRecords.filter(
-    (request) => request.status === "completed",
+  const durableCompletedCares = durableCareRecords.filter(
+    (care) => care.status === "completed",
   );
-  const durableNotCompletedRequests = durableCareRequestRecords.filter(
-    (request) => request.status === "not_completed",
+  const durableNotCompletedCares = durableCareRecords.filter(
+    (care) => care.status === "not_completed",
   );
-  const durableExpiredRequests = durableCareRequestRecords.filter(
-    (request) => request.status === "expired",
+  const durableExpiredCares = durableCareRecords.filter(
+    (care) => care.status === "expired",
   );
-  const durableClaimedRequestIds = useMemo(
+  const durableClaimedCares = useMemo(
+    () => durableCares.filter((care) => care.participant?.id === careViewerId),
+    [careViewerId, durableCares],
+  );
+  const durableSelfProfileCares = useMemo(
+    () => durableCares.filter((care) => care.originator.id === careViewerId),
+    [careViewerId, durableCares],
+  );
+  const durableViewerGiveCares = useMemo(
+    () =>
+      durableCares.filter(
+        (care) =>
+          care.direction === "give" && care.originator.id === careViewerId,
+      ),
+    [careViewerId, durableCares],
+  );
+  const passableCareIds = useMemo(
     () =>
       new Set(
-        durableCareRequests
-          .filter((request) => request.status === "claimed")
-          .map((request) => request.id),
-      ),
-    [durableCareRequests],
-  );
-  const durableClaimedRequests = useMemo(
-    () =>
-      durableCareRequests.filter(
-        (request) => request.claimant?.id === careViewerId,
-      ),
-    [careViewerId, durableCareRequests],
-  );
-  const durableSelfProfileRequests = useMemo(
-    () =>
-      durableCareRequests.filter(
-        (request) => request.requester.id === careViewerId,
-      ),
-    [careViewerId, durableCareRequests],
-  );
-  const durableViewerClaimedRequestIds = useMemo(
-    () => new Set(durableClaimedRequests.map((request) => request.id)),
-    [durableClaimedRequests],
-  );
-  const durableViewerCompletedRequestIds = useMemo(
-    () =>
-      new Set(
-        durableCareRequests
-          .filter((request) =>
-            request.requester.id === careViewerId
-              ? request.requesterCompletedAt !== undefined
-              : request.claimant?.id === careViewerId &&
-                request.claimantCompletedAt !== undefined,
-          )
-          .map((request) => request.id),
-      ),
-    [careViewerId, durableCareRequests],
-  );
-  const durableOtherParticipantCompletedRequestIds = useMemo(
-    () =>
-      new Set(
-        durableCareRequests
-          .filter((request) =>
-            request.requester.id === careViewerId
-              ? request.claimantCompletedAt !== undefined
-              : request.claimant?.id === careViewerId &&
-                request.requesterCompletedAt !== undefined,
-          )
-          .map((request) => request.id),
-      ),
-    [careViewerId, durableCareRequests],
-  );
-  const durableViewerCareOffers = useMemo(
-    () =>
-      careOffersState.offers.filter(
-        (offer) =>
-          offer.giver.id === careViewerId && offer.status === "available",
-      ),
-    [careOffersState.offers, careViewerId],
-  );
-  const durableExpiredCareOffers = useMemo(
-    () =>
-      careOffersState.offers.filter(
-        (offer) =>
-          offer.giver.id === careViewerId && offer.status === "expired",
-      ),
-    [careOffersState.offers, careViewerId],
-  );
-  const passableRequestIds = useMemo(
-    () =>
-      new Set(
-        durableCareRequests
+        durableCares
           .filter(
-            (request) =>
-              request.status === "open" &&
-              request.requester.id !== careViewerId,
+            (care) =>
+              care.status === "open" && care.originator.id !== careViewerId,
           )
-          .map((request) => request.id),
+          .map((care) => care.id),
       ),
-    [careViewerId, durableCareRequests],
-  );
-  const passableOfferIds = useMemo(
-    () =>
-      new Set(
-        careOffersState.offers
-          .filter(
-            (offer) =>
-              offer.status === "available" && offer.giver.id !== careViewerId,
-          )
-          .map((offer) => offer.id),
-      ),
-    [careOffersState.offers, careViewerId],
+    [careViewerId, durableCares],
   );
   const durableCareError: TimelineError | undefined =
-    durableCareRequestsState.status === "error"
+    caresState.status === "error"
       ? {
-          code: durableCareRequestsState.errorCode,
-          message: durableCareRequestsState.message,
+          code: caresState.errorCode,
+          message: caresState.message,
         }
-      : careOffersState.status === "error"
-        ? {
-            code: careOffersState.errorCode,
-            message: careOffersState.message,
-          }
-        : undefined;
-  const durableCareOfferStatusMessage =
-    careOffersState.status === "error" ? careOffersState.message : undefined;
+      : undefined;
   if (pairingToken) {
     return (
       <ConnectionPairingView onClose={closePairing} token={pairingToken} />
@@ -902,9 +796,9 @@ export function DashboardShell({
       data-give-open={giveWizardOpen}
       data-timeline-post-open={timelinePostComposerOpen}
       data-care-destination={
-        careWithdrawalRequest
+        careWithdrawal
           ? "withdrawal"
-          : careGratitudeRequest
+          : careGratitude
             ? "gratitude"
             : careDestination?.kind
       }
@@ -979,12 +873,14 @@ export function DashboardShell({
         </header>
       </div>
       {receiveWizardOpen ? (
-        <ReceiveCareWizard
+        <CareWizard
+          direction="receive"
           onCancel={() => setReceiveWizardOpen(false)}
           onComplete={completeReceive}
         />
       ) : giveWizardOpen ? (
-        <GiveCareWizard
+        <CareWizard
+          direction="give"
           onCancel={() => setGiveWizardOpen(false)}
           onComplete={completeGive}
         />
@@ -992,12 +888,12 @@ export function DashboardShell({
         <>
           <div
             aria-hidden={
-              careDestination || careGratitudeRequest || careWithdrawalRequest
+              careDestination || careGratitude || careWithdrawal
                 ? true
                 : undefined
             }
             inert={
-              careDestination || careGratitudeRequest || careWithdrawalRequest
+              careDestination || careGratitude || careWithdrawal
                 ? true
                 : undefined
             }
@@ -1006,37 +902,29 @@ export function DashboardShell({
               <TimelineView
                 cacheOwnerId={currentPersonId}
                 onOfflineChange={setTimelineApiOffline}
-                careOffers={careOffersState.offers.filter(
-                  (offer) => offer.status === "available",
-                )}
-                careGratitudes={[]}
-                careGratitudeRequests={durableCareRequests}
-                careRequests={durableCareRequests}
+                cares={durableCares}
                 careError={durableCareError}
                 offline={deviceIsOffline}
                 postComposerOpen={timelinePostComposerOpen}
                 onClosePostComposer={closeTimelinePostComposer}
-                claimedRequestIds={durableClaimedRequestIds}
-                onOfferHelp={(request) =>
+                onCommitToCare={(care) =>
                   openCareDestination(
-                    { kind: "claim", request },
-                    `[data-care-claim-action="${request.id}"]`,
+                    { kind: "claim", care },
+                    `[data-care-claim-action="${care.id}"]`,
                   )
                 }
-                onClaimOffer={(offerId) => void claimGiveOffer(offerId)}
-                onPassOffer={(offer) => void handlePassCareOffer(offer)}
+                onClaim={(careId) => void claimCare(careId)}
                 onRecordCompleted={recordCareCompleted}
-                onRecordNotCompleted={setCareWithdrawalRequest}
-                onPass={handlePassCareRequest}
-                onWithdrawOffer={(offerId) => void withdrawCareOffer(offerId)}
-                viewerClaimedRequestIds={durableViewerClaimedRequestIds}
-                viewerCompletedRequestIds={durableViewerCompletedRequestIds}
-                otherParticipantCompletedRequestIds={
-                  durableOtherParticipantCompletedRequestIds
+                onRecordNotCompleted={setCareWithdrawal}
+                onPass={handlePassCare}
+                onWithdraw={(careId) =>
+                  void withdrawCare(careId, {
+                    statementId: "meal-something-changed",
+                    message: "",
+                  })
                 }
                 viewerId={careViewerId}
-                passableRequestIds={passableRequestIds}
-                passableOfferIds={passableOfferIds}
+                passableCareIds={passableCareIds}
                 passAnnouncement={carePassAnnouncement}
               />
             ) : (
@@ -1044,7 +932,7 @@ export function DashboardShell({
                 addDestination={addDestination}
                 addSubmission={addSubmission}
                 addWizardOpen={addWizardOpen}
-                activeCareRequests={durableCareRequests}
+                activeCares={durableCares}
                 careViewerId={careViewerId}
                 characterSubmission={characterSubmission}
                 curatedPeopleCached={curatedPeople.source === "cache"}
@@ -1067,15 +955,15 @@ export function DashboardShell({
                 onUpdateCharacter={updateCharacter}
                 onActiveLayerChange={setActiveCuratorLayer}
                 onSelectionChange={setCuratorSelection}
-                onOfferHelp={(request) =>
+                onCommitToCare={(care) =>
                   openCareDestination(
-                    { kind: "claim", request },
-                    `[data-care-claim-action="${request.id}"]`,
+                    { kind: "claim", care },
+                    `[data-care-claim-action="${care.id}"]`,
                   )
                 }
-                onPass={handlePassCareRequest}
+                onPass={handlePassCare}
                 onRecordCompleted={recordCareCompleted}
-                onRecordNotCompleted={setCareWithdrawalRequest}
+                onRecordNotCompleted={setCareWithdrawal}
                 onReceive={openReceiveWizard}
                 onStartConnection={startConnection}
                 onUnblockCharacter={unblockCharacter}
@@ -1087,43 +975,47 @@ export function DashboardShell({
               />
             )}
           </div>
-          {careWithdrawalRequest ? (
+          {careWithdrawal ? (
             <CareWithdrawalWizard
-              onBack={() => setCareWithdrawalRequest(null)}
+              onBack={() => setCareWithdrawal(null)}
               onComplete={saveCareWithdrawal}
-              request={careWithdrawalRequest}
+              care={careWithdrawal}
+              viewerId={careViewerId}
             />
-          ) : careGratitudeRequest ? (
+          ) : careGratitude ? (
             <CareGratitudeWizard
               onBack={skipCareGratitude}
               onComplete={saveCareGratitude}
               onSkip={skipCareGratitude}
-              request={careGratitudeRequest}
+              care={careGratitude}
             />
           ) : careDestination?.kind === "claim" ? (
             <ClaimCareView
               onBack={backFromCareDestination}
               onConfirm={confirmCareClaim}
-              request={careDestination.request}
+              care={careDestination.care}
             />
           ) : careDestination?.kind === "my-care" ? (
             <MyCareView
               initialTab={careDestination.initialTab}
-              activeRequests={durableSelfProfileRequests}
-              claimedRequests={durableClaimedRequests}
-              completedRequests={durableCompletedRequests}
-              notCompletedRequests={durableNotCompletedRequests}
-              expiredRequests={durableExpiredRequests}
-              offers={durableViewerCareOffers}
-              expiredOffers={durableExpiredCareOffers}
-              careOfferStatusMessage={durableCareOfferStatusMessage}
+              activeCares={durableSelfProfileCares}
+              claimedCares={durableClaimedCares}
+              completedCares={durableCompletedCares}
+              notCompletedCares={durableNotCompletedCares}
+              expiredCares={durableExpiredCares}
+              giveCares={durableViewerGiveCares}
               viewerDisplayName={displayName}
               onBack={backFromCareDestination}
               isAdmin={role === "admin"}
               onCreateSignupCode={onCreateSignupCode}
               onRecordCompleted={recordCareCompleted}
-              onRecordNotCompleted={setCareWithdrawalRequest}
-              onWithdrawOffer={(offerId) => void withdrawCareOffer(offerId)}
+              onRecordNotCompleted={setCareWithdrawal}
+              onWithdraw={(careId) =>
+                void withdrawCare(careId, {
+                  statementId: "meal-something-changed",
+                  message: "",
+                })
+              }
               onSignOut={onSignOut}
               viewerId={careViewerId}
               signOutError={signOutError}
@@ -1135,8 +1027,8 @@ export function DashboardShell({
       {!receiveWizardOpen &&
       !giveWizardOpen &&
       !careDestination &&
-      !careGratitudeRequest &&
-      !careWithdrawalRequest &&
+      !careGratitude &&
+      !careWithdrawal &&
       activeView === "timeline" ? (
         <div
           className="timeline-chrome timeline-chrome--bottom"

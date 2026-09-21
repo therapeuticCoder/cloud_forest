@@ -9,21 +9,21 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { CarePersonId, ReceiveCareRequest } from "@/types/careRequest";
+import type { Care, CarePersonId } from "@/types/care";
 import {
   hasActiveConnection,
   type CuratorPerson,
   type CuratorSelection,
 } from "@/types/curator";
 
-import { CareRequestCard } from "./CareRequestCard";
+import { CareCard } from "./CareCard";
 import { layerBackgrounds, layerOuterBackgrounds } from "./curatorLayerStyles";
 import { partyRelationshipOptions } from "./partyRelationshipOptions";
 import { Portrait } from "./PartyLayer";
 import { RelationshipConfirmationDialog } from "./RelationshipConfirmationDialog";
 
 type CuratorDetailViewProps = {
-  activeCareRequests: ReceiveCareRequest[];
+  activeCares: Care[];
   characterSubmission: { pending: boolean; error?: string };
   isOffline: boolean;
   onBack: () => void;
@@ -38,10 +38,10 @@ type CuratorDetailViewProps = {
     deleteCharacter: boolean,
   ) => Promise<boolean>;
   onUnblockCharacter: (person: CuratorPerson) => Promise<boolean>;
-  onOfferHelp: (request: ReceiveCareRequest) => void;
-  onPass: (request: ReceiveCareRequest) => void;
-  onRecordCompleted: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted: (request: ReceiveCareRequest) => void;
+  onCommitToCare: (care: Care) => void;
+  onPass: (care: Care) => void;
+  onRecordCompleted: (care: Care) => void;
+  onRecordNotCompleted: (care: Care) => void;
   onStartConnection: (person: CuratorPerson) => Promise<void>;
   onUpdateCharacter: (
     person: CuratorPerson,
@@ -55,7 +55,7 @@ type CuratorDetailViewProps = {
       relationshipShape: string;
     },
   ) => Promise<CuratorPerson | null>;
-  onWithdraw: (requestId: string) => void;
+  onWithdraw: (careId: string) => void;
   selection: CuratorSelection;
   viewerId: CarePersonId;
 };
@@ -173,7 +173,7 @@ function isCharacterSelection(
 }
 
 export function CuratorDetailView({
-  activeCareRequests,
+  activeCares,
   characterSubmission,
   onBackToLayer,
   onBlockCharacter,
@@ -182,7 +182,7 @@ export function CuratorDetailView({
   onDeleteCharacter,
   onEndConnection,
   onUnblockCharacter,
-  onOfferHelp,
+  onCommitToCare,
   onPass,
   onRecordCompleted,
   onRecordNotCompleted,
@@ -228,16 +228,16 @@ export function CuratorDetailView({
   const profileOwnerId = isPerson
     ? (selection.item.linkedPersonId ?? undefined)
     : undefined;
-  const careRequests = useMemo(
+  const cares = useMemo(
     () =>
       profileOwnerId
-        ? activeCareRequests.filter(
-            (request) =>
-              request.requester.id === profileOwnerId ||
-              request.claimant?.id === profileOwnerId,
+        ? activeCares.filter(
+            (care) =>
+              care.originator.id === profileOwnerId ||
+              care.participant?.id === profileOwnerId,
           )
         : [],
-    [activeCareRequests, profileOwnerId],
+    [activeCares, profileOwnerId],
   );
 
   useEffect(() => {
@@ -643,25 +643,23 @@ export function CuratorDetailView({
                 </div>
               </div>
 
-              {careRequests.length > 0 ? (
-                careRequests.map((request) => {
+              {cares.length > 0 ? (
+                cares.map((care) => {
                   return (
-                    <CareRequestCard
+                    <CareCard
                       canPass={
-                        request.status === "open" &&
-                        request.requester.id !== viewerId
+                        care.status === "open" &&
+                        care.originator.id !== viewerId
                       }
-                      claimed={request.status === "claimed"}
-                      key={request.id}
+                      key={care.id}
                       minimized={false}
-                      onOfferHelp={onOfferHelp}
+                      onCommitToCare={onCommitToCare}
                       onPass={onPass}
                       onRecordCompleted={onRecordCompleted}
                       onRecordNotCompleted={onRecordNotCompleted}
                       onWithdraw={onWithdraw}
-                      request={request}
+                      care={care}
                       viewerId={viewerId}
-                      viewerIsClaimer={request.claimant?.id === viewerId}
                     />
                   );
                 })

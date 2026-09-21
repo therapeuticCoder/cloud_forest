@@ -25,21 +25,14 @@ import {
 } from "react";
 
 import type { CloudForestLayer } from "@/types/cloudForest";
-import type {
-  CareGratitude,
-  CarePersonId,
-  GiveCareOffer,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import type { Care, CarePersonId } from "@/types/care";
 import {
   clearTimelineItemSnapshot,
   loadTimelineItemsSnapshot,
   saveTimelineItemsSnapshot,
 } from "@/lib/timelineItemStorage";
 
-import { CareOfferCard } from "./CareOfferCard";
-import { CareGratitudeCard } from "./CareGratitudeCard";
-import { CareRequestCard } from "./CareRequestCard";
+import { CareCard } from "./CareCard";
 import { TimelineCard, type TimelineCardItem } from "./TimelineCard";
 
 const timelineApiClient = createApiClient({
@@ -127,100 +120,41 @@ function remoteTimelineItemToCardItem(
   };
 }
 
-type CareListing =
-  | { kind: "give"; item: GiveCareOffer | ReceiveCareRequest }
-  | { kind: "receive"; item: ReceiveCareRequest };
+type CareListing = Care;
 
 type CareListingCardProps = {
-  claimedRequestIds: Set<string>;
-  onClaimOffer?: (offerId: string) => void;
-  onPassOffer?: (offer: GiveCareOffer) => void;
-  minimizedRequestIds: Set<string>;
-  onOfferHelp: (request: ReceiveCareRequest) => void;
-  onRecordCompleted?: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
-  onPass?: (request: ReceiveCareRequest) => void;
-  onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
-  onWithdraw?: (requestId: string) => void;
-  onWithdrawOffer: (offerId: string) => void;
-  passableRequestIds: Set<string>;
-  passableOfferIds: Set<string>;
-  viewerClaimedRequestIds: Set<string>;
-  viewerCompletedRequestIds: Set<string>;
-  otherParticipantCompletedRequestIds: Set<string>;
+  onClaim?: (careId: string) => void;
+  minimizedCareIds: Set<string>;
+  onCommitToCare?: (care: Care) => void;
+  onRecordCompleted?: (care: Care) => void;
+  onRecordNotCompleted?: (care: Care) => void;
+  onPass?: (care: Care) => void;
+  onSetCareMinimized?: (careId: string, minimized: boolean) => void;
+  onWithdraw?: (careId: string) => void;
+  passableCareIds: Set<string>;
   viewerId: CarePersonId;
 };
 
-const noClaimedRequestIds = new Set<string>();
-const noMinimizedRequestIds = new Set<string>();
-const noPassableRequestIds = new Set<string>();
-const noCompletedRequestIds = new Set<string>();
+const noMinimizedCareIds = new Set<string>();
+const noPassableCareIds = new Set<string>();
 
 function CareListingCard({
   listing,
   ...props
 }: CareListingCardProps & { listing: CareListing }) {
-  if (listing.kind === "give") {
-    if ("offer" in listing.item) {
-      return (
-        <CareOfferCard
-          offer={listing.item}
-          canPass={props.passableOfferIds.has(listing.item.id)}
-          onClaim={props.onClaimOffer}
-          onPass={props.onPassOffer}
-          onWithdraw={props.onWithdrawOffer}
-          viewerId={props.viewerId}
-        />
-      );
-    }
-
-    return (
-      <CareRequestCard
-        canPass={false}
-        claimed
-        minimized={false}
-        onOfferHelp={props.onOfferHelp}
-        onRecordCompleted={props.onRecordCompleted}
-        onRecordNotCompleted={props.onRecordNotCompleted}
-        onSetMinimized={undefined}
-        onWithdraw={undefined}
-        request={listing.item}
-        viewerId={props.viewerId}
-        viewerCompletion={
-          props.viewerCompletedRequestIds.has(listing.item.id)
-            ? "completed"
-            : undefined
-        }
-        viewerIsClaimer={props.viewerClaimedRequestIds.has(listing.item.id)}
-        otherParticipantCompleted={props.otherParticipantCompletedRequestIds.has(
-          listing.item.id,
-        )}
-      />
-    );
-  }
-
   return (
-    <CareRequestCard
-      canPass={props.passableRequestIds.has(listing.item.id)}
-      claimed={props.claimedRequestIds.has(listing.item.id)}
-      minimized={props.minimizedRequestIds.has(listing.item.id)}
-      onOfferHelp={props.onOfferHelp}
+    <CareCard
+      canPass={props.passableCareIds.has(listing.id)}
+      care={listing}
+      minimized={props.minimizedCareIds.has(listing.id)}
+      onClaim={props.onClaim}
+      onCommitToCare={props.onCommitToCare}
       onRecordCompleted={props.onRecordCompleted}
       onRecordNotCompleted={props.onRecordNotCompleted}
       onPass={props.onPass}
-      onSetMinimized={props.onSetRequestMinimized}
+      onSetMinimized={props.onSetCareMinimized}
       onWithdraw={props.onWithdraw}
-      request={listing.item}
       viewerId={props.viewerId}
-      viewerCompletion={
-        props.viewerCompletedRequestIds.has(listing.item.id)
-          ? "completed"
-          : undefined
-      }
-      viewerIsClaimer={props.viewerClaimedRequestIds.has(listing.item.id)}
-      otherParticipantCompleted={props.otherParticipantCompletedRequestIds.has(
-        listing.item.id,
-      )}
     />
   );
 }
@@ -230,7 +164,7 @@ function CareListings({
   ...props
 }: CareListingCardProps & { listings: CareListing[] }) {
   return listings.map((listing) => (
-    <CareListingCard key={listing.item.id} listing={listing} {...props} />
+    <CareListingCard key={listing.id} listing={listing} {...props} />
   ));
 }
 
@@ -432,29 +366,18 @@ function TimelineItemSlot({
 
 type TimelineActivity =
   | { kind: "post"; item: RemoteTimelineItem }
-  | { kind: "care-listing"; listing: CareListing }
-  | {
-      kind: "care-gratitude";
-      gratitude: CareGratitude;
-      request: ReceiveCareRequest;
-    };
+  | { kind: "care-listing"; listing: CareListing };
 
 function timelineActivityTime(activity: TimelineActivity) {
   if (activity.kind === "post") {
     return new Date(activity.item.publishedAt).getTime();
   }
-  if (activity.kind === "care-listing") {
-    return new Date(activity.listing.item.createdAt).getTime();
-  }
-  return new Date(activity.gratitude.createdAt).getTime();
+  return new Date(activity.listing.createdAt).getTime();
 }
 
 function timelineActivityKey(activity: TimelineActivity) {
   if (activity.kind === "post") return `post-${activity.item.id}`;
-  if (activity.kind === "care-listing") {
-    return `care-listing-${activity.listing.item.id}`;
-  }
-  return `care-gratitude-${activity.gratitude.id}`;
+  return `care-listing-${activity.listing.id}`;
 }
 
 function TimelineActivityCard({
@@ -470,28 +393,16 @@ function TimelineActivityCard({
       <TimelineCard item={item} time={formatActivityTime(item.publishedAt)} />
     );
   }
-  if (activity.kind === "care-listing") {
-    return (
-      <CareListingCard listing={activity.listing} {...careListingCardProps} />
-    );
-  }
   return (
-    <CareGratitudeCard
-      gratitude={activity.gratitude}
-      request={activity.request}
-    />
+    <CareListingCard listing={activity.listing} {...careListingCardProps} />
   );
 }
 
 function TimelineActivitySlot({
-  careGratitudes,
-  careGratitudeRequests,
   careListingCardProps,
   careListings,
   state,
 }: {
-  careGratitudes: CareGratitude[];
-  careGratitudeRequests: ReceiveCareRequest[];
   careListingCardProps: CareListingCardProps;
   careListings: CareListing[];
   state: TimelineItemState;
@@ -501,14 +412,6 @@ function TimelineActivitySlot({
       kind: "care-listing" as const,
       listing,
     })),
-    ...careGratitudes.flatMap((gratitude) => {
-      const request = careGratitudeRequests.find(
-        (candidate) => candidate.id === gratitude.requestId,
-      );
-      return request
-        ? [{ kind: "care-gratitude" as const, gratitude, request }]
-        : [];
-    }),
     ...(state.status === "success"
       ? state.items.map((item) => ({ kind: "post" as const, item }))
       : []),
@@ -761,60 +664,40 @@ function TimelinePostComposer({
 
 export function TimelinePanel({
   apiClient = timelineApiClient,
-  careGratitudes = [],
-  careOffers = [],
-  careRequests = [],
+  cares = [],
   careError,
-  careGratitudeRequests = careRequests,
-  claimedRequestIds = noClaimedRequestIds,
-  minimizedRequestIds = noMinimizedRequestIds,
-  onOfferHelp = () => undefined,
-  onClaimOffer,
-  onPassOffer,
+  minimizedCareIds = noMinimizedCareIds,
+  onCommitToCare,
+  onClaim,
   onRecordCompleted,
   onRecordNotCompleted,
   onPass,
-  onSetRequestMinimized,
+  onSetCareMinimized,
   onWithdraw,
-  onWithdrawOffer = () => undefined,
   onOfflineChange,
-  passableRequestIds = noPassableRequestIds,
-  passableOfferIds = noPassableRequestIds,
+  passableCareIds = noPassableCareIds,
   passAnnouncement,
   cacheOwnerId,
-  viewerClaimedRequestIds = noClaimedRequestIds,
-  viewerCompletedRequestIds = noCompletedRequestIds,
-  otherParticipantCompletedRequestIds = noCompletedRequestIds,
   viewerId = "you",
   offline = false,
   postComposerOpen = false,
   onClosePostComposer = () => undefined,
 }: {
   apiClient?: TimelineApiClient;
-  careGratitudes?: CareGratitude[];
-  careGratitudeRequests?: ReceiveCareRequest[];
-  careOffers?: GiveCareOffer[];
-  careRequests?: ReceiveCareRequest[];
+  cares?: Care[];
   careError?: TimelineError;
-  claimedRequestIds?: Set<string>;
-  minimizedRequestIds?: Set<string>;
-  onOfferHelp?: (request: ReceiveCareRequest) => void;
-  onClaimOffer?: (offerId: string) => void;
-  onPassOffer?: (offer: GiveCareOffer) => void;
-  onRecordCompleted?: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
-  onPass?: (request: ReceiveCareRequest) => void;
-  onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
-  onWithdraw?: (requestId: string) => void;
-  onWithdrawOffer?: (offerId: string) => void;
+  minimizedCareIds?: Set<string>;
+  onCommitToCare?: (care: Care) => void;
+  onClaim?: (careId: string) => void;
+  onRecordCompleted?: (care: Care) => void;
+  onRecordNotCompleted?: (care: Care) => void;
+  onPass?: (care: Care) => void;
+  onSetCareMinimized?: (careId: string, minimized: boolean) => void;
+  onWithdraw?: (careId: string) => void;
   onOfflineChange?: (offline: boolean) => void;
-  passableRequestIds?: Set<string>;
-  passableOfferIds?: Set<string>;
+  passableCareIds?: Set<string>;
   passAnnouncement?: string;
   cacheOwnerId?: string;
-  viewerClaimedRequestIds?: Set<string>;
-  viewerCompletedRequestIds?: Set<string>;
-  otherParticipantCompletedRequestIds?: Set<string>;
   viewerId?: CarePersonId;
   offline?: boolean;
   postComposerOpen?: boolean;
@@ -839,29 +722,14 @@ export function TimelinePanel({
   const [layerFilter, setLayerFilter] = useState<TimelineLayerFilter | null>(
     null,
   );
-  const giveCareRequests = careRequests.filter(
-    (request) => request.direction === "give",
-  );
-  const receiveRequests = careRequests.filter(
-    (request) => request.direction !== "give",
-  );
-  const careListings = [
-    ...careOffers.map((offer) => ({ kind: "give" as const, item: offer })),
-    ...giveCareRequests.map((request) => ({
-      kind: "give" as const,
-      item: request,
-    })),
-    ...receiveRequests.map((request) => ({
-      kind: "receive" as const,
-      item: request,
-    })),
-  ].sort(
+  const careListings = [...cares];
+  careListings.sort(
     (first, second) =>
-      new Date(second.item.createdAt).getTime() -
-      new Date(first.item.createdAt).getTime(),
+      new Date(second.createdAt).getTime() -
+      new Date(first.createdAt).getTime(),
   );
   const visibleCareListings = careListings.filter(
-    (listing) => careFilter === "all" || listing.kind === careFilter,
+    (listing) => careFilter === "all" || listing.direction === careFilter,
   );
   const showCareListingsOnly = careFilter !== "all";
   const toggleLayerFilter = (nextLayer: TimelineLayerFilter) => {
@@ -869,22 +737,15 @@ export function TimelinePanel({
     setCareFilter("all");
   };
   const careListingCardProps: CareListingCardProps = {
-    claimedRequestIds,
-    minimizedRequestIds,
-    onOfferHelp,
-    onClaimOffer,
-    onPassOffer,
+    minimizedCareIds,
+    onCommitToCare,
+    onClaim,
     onRecordCompleted,
     onRecordNotCompleted,
     onPass,
-    onSetRequestMinimized,
+    onSetCareMinimized,
     onWithdraw,
-    onWithdrawOffer,
-    passableRequestIds,
-    passableOfferIds,
-    viewerClaimedRequestIds,
-    viewerCompletedRequestIds,
-    otherParticipantCompletedRequestIds,
+    passableCareIds,
     viewerId,
   };
 
@@ -946,7 +807,7 @@ export function TimelinePanel({
           <RadioTower aria-hidden="true" />
         </button>
         <button
-          aria-label="Filter to Give offers"
+          aria-label="Filter to Give Care"
           aria-pressed={careFilter === "give"}
           className="timeline-key timeline-key--give"
           onClick={() => {
@@ -958,7 +819,7 @@ export function TimelinePanel({
           <Gift aria-hidden="true" />
         </button>
         <button
-          aria-label="Filter to Receive requests"
+          aria-label="Filter to Receive Care"
           aria-pressed={careFilter === "receive"}
           className="timeline-key timeline-key--receive"
           data-care-receive-filter
@@ -996,8 +857,6 @@ export function TimelinePanel({
           )
         ) : layerFilter === null ? (
           <TimelineActivitySlot
-            careGratitudes={careGratitudes}
-            careGratitudeRequests={careGratitudeRequests}
             careListingCardProps={careListingCardProps}
             careListings={careListings}
             state={timelineItems.state}

@@ -1,5 +1,6 @@
 import Type, { type Static } from "typebox";
 import Compile from "typebox/compile";
+
 import {
   getCareCategory,
   isCareCategory,
@@ -10,10 +11,6 @@ export const careApiVersion = "v1" as const;
 
 const id = Type.String({ minLength: 1, maxLength: 128 });
 const displayName = Type.String({ minLength: 1, maxLength: 200 });
-const helpfulWhen = Type.String({ minLength: 1, maxLength: 500 });
-const foodWorks = Type.String({ minLength: 1, maxLength: 10_000 });
-const foodDoesNotWork = Type.String({ maxLength: 10_000 });
-const handoffStyle = Type.String({ minLength: 1, maxLength: 200 });
 const careCategory = Type.Union([
   Type.Literal("transportation"),
   Type.Literal("food"),
@@ -39,8 +36,8 @@ const careTime = Type.Union([
   Type.Literal("evening"),
 ]);
 const careSubtype = Type.String({ maxLength: 200 });
-const careDays = Type.Array(careDay, { minItems: 1, maxItems: 7 });
-const careTimes = Type.Array(careTime, { minItems: 1, maxItems: 3 });
+const careDays = Type.Array(careDay, { maxItems: 7 });
+const careTimes = Type.Array(careTime, { maxItems: 3 });
 const timeNote = Type.String({ maxLength: 500 });
 const location = Type.String({ minLength: 1, maxLength: 500 });
 const requirements = Type.String({ maxLength: 10_000 });
@@ -53,11 +50,34 @@ export const careExpiration = Type.Union([
   Type.Literal("1w"),
 ]);
 const careAudience = Type.Union([Type.Literal("Party"), Type.Literal("Tribe")]);
+const careDirection = Type.Union([
+  Type.Literal("give"),
+  Type.Literal("receive"),
+]);
+const careStatus = Type.Union([
+  Type.Literal("open"),
+  Type.Literal("claimed"),
+  Type.Literal("orphaned"),
+  Type.Literal("completed"),
+  Type.Literal("expired"),
+  Type.Literal("not_completed"),
+]);
 const careGratitudeStatementId = Type.Union([
   Type.Literal("meal-fed-when-needed"),
   Type.Literal("meal-care-felt-easy"),
   Type.Literal("meal-seen-and-supported"),
 ]);
+const careApologyStatementId = Type.Union([
+  Type.Literal("meal-sorry-cant-follow-through"),
+  Type.Literal("meal-something-changed"),
+  Type.Literal("meal-sorry-committed"),
+]);
+
+export const carePersonSchema = Type.Object(
+  { personId: id, displayName },
+  { additionalProperties: false },
+);
+
 const careGratitude = Type.Object(
   {
     statementId: careGratitudeStatementId,
@@ -66,11 +86,6 @@ const careGratitude = Type.Object(
   },
   { additionalProperties: false },
 );
-const careApologyStatementId = Type.Union([
-  Type.Literal("meal-sorry-cant-follow-through"),
-  Type.Literal("meal-something-changed"),
-  Type.Literal("meal-sorry-committed"),
-]);
 const careApology = Type.Object(
   {
     statementId: careApologyStatementId,
@@ -80,56 +95,39 @@ const careApology = Type.Object(
   { additionalProperties: false },
 );
 
-export const carePersonSchema = Type.Object(
-  { personId: id, displayName },
-  { additionalProperties: false },
-);
-
-export const careRequestSchema = Type.Object(
+export const careSchema = Type.Object(
   {
     id,
-    kind: Type.Union([Type.Literal("meal"), careCategory]),
-    direction: Type.Union([Type.Literal("receive"), Type.Literal("give")]),
-    need: Type.String({ minLength: 1, maxLength: 200 }),
-    category: Type.Optional(careCategory),
-    subtype: Type.Optional(careSubtype),
-    days: Type.Optional(careDays),
-    times: Type.Optional(careTimes),
-    timeNote: Type.Optional(timeNote),
-    location: Type.Optional(location),
-    requirements: Type.Optional(requirements),
-    sensitivities: Type.Optional(sensitivities),
-    helpfulWhen,
-    foodWorks,
-    foodDoesNotWork,
-    handoffStyle,
+    direction: careDirection,
+    category: careCategory,
+    subtype: careSubtype,
+    days: careDays,
+    times: careTimes,
+    timeNote,
+    location,
+    requirements,
+    sensitivities,
     audience: careAudience,
-    status: Type.Union([
-      Type.Literal("open"),
-      Type.Literal("claimed"),
-      Type.Literal("orphaned"),
-      Type.Literal("completed"),
-      Type.Literal("expired"),
-      Type.Literal("not_completed"),
-    ]),
+    status: careStatus,
     createdAt: dateTime,
     claimedAt: Type.Optional(dateTime),
-    requesterCompletedAt: Type.Optional(dateTime),
-    claimantCompletedAt: Type.Optional(dateTime),
+    originatorCompletedAt: Type.Optional(dateTime),
+    participantCompletedAt: Type.Optional(dateTime),
     completedAt: Type.Optional(dateTime),
     notCompletedAt: Type.Optional(dateTime),
     expiresAt: Type.Optional(dateTime),
     expiredAt: Type.Optional(dateTime),
     gratitude: Type.Optional(careGratitude),
     apology: Type.Optional(careApology),
-    requester: carePersonSchema,
-    claimant: Type.Optional(carePersonSchema),
+    originator: carePersonSchema,
+    participant: Type.Optional(carePersonSchema),
   },
   { additionalProperties: false },
 );
 
-export const createCareRequestBodySchema = Type.Object(
+export const createCareBodySchema = Type.Object(
   {
+    direction: careDirection,
     category: Type.Optional(careCategory),
     subtype: Type.Optional(careSubtype),
     days: Type.Optional(careDays),
@@ -139,27 +137,23 @@ export const createCareRequestBodySchema = Type.Object(
     requirements: Type.Optional(requirements),
     sensitivities: Type.Optional(sensitivities),
     audience: Type.Optional(careAudience),
-    helpfulWhen,
-    foodWorks,
-    foodDoesNotWork,
-    handoffStyle,
     expiresIn: careExpiration,
   },
   { additionalProperties: false },
 );
 
-export const careRequestsSuccessSchema = Type.Object(
+export const caresSuccessSchema = Type.Object(
   {
     apiVersion: Type.Literal(careApiVersion),
     data: Type.Object(
-      { requests: Type.Array(careRequestSchema) },
+      { cares: Type.Array(careSchema) },
       { additionalProperties: false },
     ),
   },
   { additionalProperties: false },
 );
 
-export const careRequestErrorSchema = Type.Object(
+export const careErrorSchema = Type.Object(
   {
     apiVersion: Type.Literal(careApiVersion),
     error: Type.Object(
@@ -179,21 +173,16 @@ export const careRequestErrorSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const careRequestsPath = "/api/v1/care-requests";
-export const careRequestPath = "/api/v1/care-requests/:careRequestId";
-export const careRequestClaimPath =
-  "/api/v1/care-requests/:careRequestId/claim";
-export const careRequestPassPath = "/api/v1/care-requests/:careRequestId/pass";
-export const careRequestCompletePath =
-  "/api/v1/care-requests/:careRequestId/complete";
-export const careRequestGratitudePath =
-  "/api/v1/care-requests/:careRequestId/gratitude";
-export const careRequestWithdrawPath =
-  "/api/v1/care-requests/:careRequestId/withdraw";
-export const careRequestParamsSchema = Type.Object(
-  { careRequestId: id },
+export const caresPath = "/api/v1/cares";
+export const careParamsSchema = Type.Object(
+  { careId: id },
   { additionalProperties: false },
 );
+export const careClaimPath = "/api/v1/cares/:careId/claim";
+export const carePassPath = "/api/v1/cares/:careId/pass";
+export const careCompletePath = "/api/v1/cares/:careId/complete";
+export const careGratitudePath = "/api/v1/cares/:careId/gratitude";
+export const careWithdrawPath = "/api/v1/cares/:careId/withdraw";
 export const createCareGratitudeBodySchema = Type.Object(
   {
     statementId: careGratitudeStatementId,
@@ -213,18 +202,16 @@ export type CarePerson = Static<typeof carePersonSchema>;
 export type CareCategory = Static<typeof careCategory>;
 export type CareDay = Static<typeof careDay>;
 export type CareTime = Static<typeof careTime>;
-export type CareRequest = Static<typeof careRequestSchema>;
-export type CreateCareRequestBody = Static<typeof createCareRequestBodySchema>;
+export type Care = Static<typeof careSchema>;
+export type CreateCareBody = Static<typeof createCareBodySchema>;
 export type CreateCareGratitudeBody = Static<
   typeof createCareGratitudeBodySchema
 >;
 export type CreateCareWithdrawalBody = Static<
   typeof createCareWithdrawalBodySchema
 >;
-export type CareRequestsSuccessResponse = Static<
-  typeof careRequestsSuccessSchema
->;
-export type CareRequestErrorResponse = Static<typeof careRequestErrorSchema>;
+export type CaresSuccessResponse = Static<typeof caresSuccessSchema>;
+export type CareErrorResponse = Static<typeof careErrorSchema>;
 
 export function isValidCareSelection(category: string, subtype: string) {
   return isCareCategory(category) && isCatalogCareSubtype(category, subtype);
@@ -234,12 +221,10 @@ export function careCategoryName(category: CareCategory) {
   return getCareCategory(category)?.name ?? "Care";
 }
 
-export const isCareRequestsSuccessResponse = (
+export const isCaresSuccessResponse = (
   value: unknown,
-): value is CareRequestsSuccessResponse =>
-  Compile(careRequestsSuccessSchema).Check(value);
+): value is CaresSuccessResponse => Compile(caresSuccessSchema).Check(value);
 
-export const isCareRequestErrorResponse = (
+export const isCareErrorResponse = (
   value: unknown,
-): value is CareRequestErrorResponse =>
-  Compile(careRequestErrorSchema).Check(value);
+): value is CareErrorResponse => Compile(careErrorSchema).Check(value);
