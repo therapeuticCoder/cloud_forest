@@ -170,8 +170,16 @@ describe("unified Care", () => {
 
     await renderAuthenticatedApp(client);
 
-    expect(await screen.findByText("Transportation Care")).toBeInTheDocument();
-    expect(await screen.findByText("Food Care")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("article", {
+        name: "Anya Reed shared transportation Care",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("article", {
+        name: "Mira Vale shared food Care",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("claims a Care without changing its identity", async () => {

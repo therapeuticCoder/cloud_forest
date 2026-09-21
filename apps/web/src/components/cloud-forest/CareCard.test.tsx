@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -25,6 +25,80 @@ const receiveCare: Care = {
 };
 
 describe("CareCard", () => {
+  it.each([
+    { direction: "receive" as const, viewerId: "you", action: "I can help" },
+    { direction: "give" as const, viewerId: "you", action: "Receive" },
+    { direction: "receive" as const, viewerId: "anya", action: "Withdraw" },
+  ])(
+    "stops offering $action at the leaf expiration boundary",
+    ({ direction, viewerId, action }) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-09-10T09:59:30.000Z"));
+      try {
+        render(
+          <CareCard
+            canPass
+            care={{ ...receiveCare, direction }}
+            minimized={false}
+            presentation="leaf"
+            onCommitToCare={vi.fn()}
+            onPass={vi.fn()}
+            onWithdraw={vi.fn()}
+            onOpenDetails={vi.fn()}
+            viewerId={viewerId}
+          />,
+        );
+        expect(screen.getByText("Thu | Evening")).toBeInTheDocument();
+        expect(screen.getByText("Flexible")).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: action }),
+        ).toBeInTheDocument();
+        if (viewerId === "you") {
+          expect(
+            screen.getByRole("button", { name: "Pass" }),
+          ).toBeInTheDocument();
+        }
+
+        act(() => vi.advanceTimersByTime(30_000));
+
+        expect(
+          screen.queryByRole("button", { name: action }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("button", { name: "Pass" }),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText("Opportunity passed")).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: "Details for food Care" }),
+        ).toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it("keeps completion available for a claimed leaf past its original expiration", () => {
+    render(
+      <CareCard
+        canPass={false}
+        care={{
+          ...receiveCare,
+          status: "claimed",
+          expiresAt: "2000-01-01T00:00:00.000Z",
+          participant: { id: "you", displayName: "You" },
+        }}
+        minimized={false}
+        presentation="leaf"
+        onRecordCompleted={vi.fn()}
+        viewerId="you"
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Mark done" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Opportunity passed")).not.toBeInTheDocument();
+  });
+
   it("presents a shared Care and lets a viewer minimize it", async () => {
     const user = userEvent.setup();
     const onSetMinimized = vi.fn();

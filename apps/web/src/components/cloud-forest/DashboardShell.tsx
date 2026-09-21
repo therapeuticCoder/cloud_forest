@@ -31,6 +31,7 @@ import type { TimelineError } from "./TimelinePanel";
 import { type CloudForestView, ViewSwitcher } from "./ViewSwitcher";
 import type { CuratorLayerLabel } from "./curatorLayerStyles";
 import { CareWizard, type CareDraft } from "./CareWizard";
+import { CareDetailView } from "./CareDetailView";
 import { ClaimCareView } from "./ClaimCareView";
 import {
   CareGratitudeWizard,
@@ -49,6 +50,7 @@ import {
 } from "@/lib/pendingConnectionPairing";
 
 type CareDestination =
+  | { kind: "detail"; careId: string }
   | { kind: "claim"; care: Care }
   | {
       kind: "my-care";
@@ -919,6 +921,12 @@ export function DashboardShell({
                 offline={deviceIsOffline}
                 postComposerOpen={timelinePostComposerOpen}
                 onClosePostComposer={closeTimelinePostComposer}
+                onOpenCareDetails={(care) =>
+                  openCareDestination(
+                    { kind: "detail", careId: care.id },
+                    `[data-care-detail-action="${care.id}"]`,
+                  )
+                }
                 onCommitToCare={(care) =>
                   openCareDestination(
                     { kind: "claim", care },
@@ -1000,6 +1008,14 @@ export function DashboardShell({
               onComplete={saveCareGratitude}
               onSkip={skipCareGratitude}
               care={careGratitude}
+            />
+          ) : careDestination?.kind === "detail" ? (
+            <CareDetailView
+              care={durableCares.find(
+                (care) => care.id === careDestination.careId,
+              )}
+              onBack={backFromCareDestination}
+              viewerId={careViewerId}
             />
           ) : careDestination?.kind === "claim" ? (
             <ClaimCareView

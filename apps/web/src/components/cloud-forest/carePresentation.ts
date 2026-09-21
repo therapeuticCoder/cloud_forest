@@ -45,14 +45,21 @@ export function careScheduleLabel(input: {
   times?: CareTime[];
   timeNote?: string;
   fallback: string;
+  abbreviatedDays?: boolean;
+  dayTimeSeparator?: string;
 }) {
   if (!input.days?.length && !input.times?.length && !input.timeNote?.trim()) {
     return input.fallback;
   }
-  const parts = [
-    ...(input.days?.map((day) => dayLabels[day]) ?? []),
-    ...(input.times?.map((time) => timeLabels[time]) ?? []),
-  ];
+  const days = (input.days ?? [])
+    .map((day) =>
+      input.abbreviatedDays ? dayLabels[day].slice(0, 3) : dayLabels[day],
+    )
+    .join(", ");
+  const times = (input.times ?? []).map((time) => timeLabels[time]).join(", ");
+  const schedule = [days, times]
+    .filter(Boolean)
+    .join(input.dayTimeSeparator ?? ", ");
   const note = input.timeNote?.trim();
-  return [parts.join(", "), note].filter(Boolean).join(" · ");
+  return [schedule, note].filter(Boolean).join(" · ");
 }

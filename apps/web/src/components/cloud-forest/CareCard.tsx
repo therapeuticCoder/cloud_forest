@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Care, CarePersonId } from "@/types/care";
 import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
 import { careCategoryName, careScheduleLabel } from "./carePresentation";
+import { CareLeaf } from "./CareLeaf";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -14,6 +15,8 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 
 export function CareCard({
   canPass,
+  presentation = "card",
+  onOpenDetails,
   minimized,
   onCommitToCare,
   onClaim,
@@ -26,6 +29,8 @@ export function CareCard({
   viewerId,
 }: {
   canPass: boolean;
+  presentation?: "card" | "leaf";
+  onOpenDetails?: (care: Care) => void;
   minimized: boolean;
   onCommitToCare?: (care: Care) => void;
   onClaim?: (careId: string) => void;
@@ -82,7 +87,138 @@ export function CareCard({
 
   const otherPerson = care.participant ?? care.originator;
   const actionLabel =
-    care.direction === "give" ? "I will receive this" : "I can help";
+    care.direction === "give"
+      ? presentation === "leaf"
+        ? "Receive"
+        : "I will receive this"
+      : "I can help";
+
+  const actions =
+    isSelfAuthored && !isClaimed && care.status !== "expired" && onWithdraw ? (
+      <button
+        className="care-card__withdraw"
+        onClick={() => onWithdraw(care.id)}
+        type="button"
+      >
+        {presentation === "leaf" ? "Withdraw" : "Withdraw Care"}
+      </button>
+    ) : isClaimed ? (
+      <div className="care-card__outcome">
+        <p
+          className="care-card__commitment"
+          data-care-claim-status={care.id}
+          tabIndex={-1}
+        >
+          {care.participant?.id === viewerId
+            ? care.direction === "give"
+              ? `You’re receiving this Care from ${care.originator.displayName}.`
+              : `You’re helping ${care.originator.displayName}.`
+            : `${otherPerson.displayName} is part of this Care.`}
+        </p>
+        {viewerCompleted ? (
+          <p
+            className="care-card__waiting"
+            data-care-outcome-status={care.id}
+            role="status"
+            tabIndex={-1}
+          >
+            You marked this completed. Waiting for the other person.
+          </p>
+        ) : onRecordCompleted ? (
+          <>
+            {otherCompleted ? (
+              <p
+                className="care-card__waiting"
+                data-care-outcome-status={care.id}
+                role="status"
+                tabIndex={-1}
+              >
+                The other person marked this completed. What happened for you?
+              </p>
+            ) : null}
+            <div
+              className={`care-card__outcome-actions${onRecordNotCompleted ? "" : " care-card__outcome-actions--single"}`}
+            >
+              <button
+                data-care-completed-action={care.id}
+                onClick={() => onRecordCompleted(care)}
+                type="button"
+              >
+                Mark done
+              </button>
+              {onRecordNotCompleted ? (
+                <button
+                  data-care-outcome-action={care.id}
+                  onClick={() => onRecordNotCompleted(care)}
+                  type="button"
+                >
+                  I can’t complete this Care
+                </button>
+              ) : null}
+            </div>
+          </>
+        ) : null}
+        {care.gratitude ? (
+          <div className="care-card__gratitude">
+            <span>Private gratitude</span>
+            <p>
+              {getMealGratitudeStatement(care.gratitude.statementId)?.text ??
+                "Thank you for showing up with care."}
+            </p>
+            {care.gratitude.message ? (
+              <blockquote>{care.gratitude.message}</blockquote>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    ) : !isSelfAuthored && (onCommitToCare || onClaim) ? (
+      <div className="care-card__actions">
+        <button
+          className="care-card__claim"
+          data-care-claim-action={care.id}
+          onClick={() =>
+            onCommitToCare ? onCommitToCare(care) : onClaim?.(care.id)
+          }
+          type="button"
+        >
+          {actionLabel}
+        </button>
+        {canPass && onPass ? (
+          <button
+            className="care-card__pass"
+            onClick={() => onPass(care)}
+            type="button"
+          >
+            {presentation === "leaf" ? "Pass" : "Pass this time"}
+          </button>
+        ) : null}
+      </div>
+    ) : null;
+
+  if (presentation === "leaf") {
+    return (
+      <CareLeaf
+        articleLabel={articleLabel}
+        care={care}
+        viewerId={viewerId}
+        minimized={minimized}
+        onOpenDetails={onOpenDetails}
+        actions={minimized ? null : actions}
+        presentationControl={
+          onSetMinimized ? (
+            <button
+              className="care-card__presentation"
+              onClick={() => setMinimized(!minimized)}
+              ref={presentationButtonRef}
+              type="button"
+            >
+              {minimized ? "Show details" : "I’ve seen this"}
+            </button>
+          ) : null
+        }
+      />
+    );
+  }
 
   if (minimized) {
     return (
@@ -198,110 +334,7 @@ export function CareCard({
             I’ve seen this
           </button>
         ) : null}
-        {isSelfAuthored &&
-        !isClaimed &&
-        care.status !== "expired" &&
-        onWithdraw ? (
-          <button
-            className="care-card__withdraw"
-            onClick={() => onWithdraw(care.id)}
-            type="button"
-          >
-            Withdraw Care
-          </button>
-        ) : isClaimed ? (
-          <div className="care-card__outcome">
-            <p
-              className="care-card__commitment"
-              data-care-claim-status={care.id}
-              tabIndex={-1}
-            >
-              {care.participant?.id === viewerId
-                ? care.direction === "give"
-                  ? `You’re receiving this Care from ${care.originator.displayName}.`
-                  : `You’re helping ${care.originator.displayName}.`
-                : `${otherPerson.displayName} is part of this Care.`}
-            </p>
-            {viewerCompleted ? (
-              <p
-                className="care-card__waiting"
-                data-care-outcome-status={care.id}
-                role="status"
-                tabIndex={-1}
-              >
-                You marked this completed. Waiting for the other person.
-              </p>
-            ) : onRecordCompleted ? (
-              <>
-                {otherCompleted ? (
-                  <p
-                    className="care-card__waiting"
-                    data-care-outcome-status={care.id}
-                    role="status"
-                    tabIndex={-1}
-                  >
-                    The other person marked this completed. What happened for
-                    you?
-                  </p>
-                ) : null}
-                <div
-                  className={`care-card__outcome-actions${onRecordNotCompleted ? "" : " care-card__outcome-actions--single"}`}
-                >
-                  <button
-                    data-care-completed-action={care.id}
-                    onClick={() => onRecordCompleted(care)}
-                    type="button"
-                  >
-                    Mark done
-                  </button>
-                  {onRecordNotCompleted ? (
-                    <button
-                      data-care-outcome-action={care.id}
-                      onClick={() => onRecordNotCompleted(care)}
-                      type="button"
-                    >
-                      I can’t complete this Care
-                    </button>
-                  ) : null}
-                </div>
-              </>
-            ) : null}
-            {care.gratitude ? (
-              <div className="care-card__gratitude">
-                <span>Private gratitude</span>
-                <p>
-                  {getMealGratitudeStatement(care.gratitude.statementId)
-                    ?.text ?? "Thank you for showing up with care."}
-                </p>
-                {care.gratitude.message ? (
-                  <blockquote>{care.gratitude.message}</blockquote>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        ) : !isSelfAuthored && (onCommitToCare || onClaim) ? (
-          <div className="care-card__actions">
-            <button
-              className="care-card__claim"
-              data-care-claim-action={care.id}
-              onClick={() =>
-                onCommitToCare ? onCommitToCare(care) : onClaim?.(care.id)
-              }
-              type="button"
-            >
-              {actionLabel}
-            </button>
-            {canPass && onPass ? (
-              <button
-                className="care-card__pass"
-                onClick={() => onPass(care)}
-                type="button"
-              >
-                Pass this time
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        {actions}
       </div>
     </article>
   );
