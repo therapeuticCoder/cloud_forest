@@ -16,7 +16,7 @@ import {
   careExpirationOptions,
   type CareAudience,
   type CareExpiration,
-} from "@/types/careRequest";
+} from "@/types/care";
 
 export type CareWizardDirection = "give" | "receive";
 

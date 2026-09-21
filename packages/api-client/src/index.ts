@@ -1,10 +1,8 @@
 import {
   isCuratedPersonErrorResponse,
   isCuratedPersonsSuccessResponse,
-  isCareOfferErrorResponse,
-  isCareOffersSuccessResponse,
-  isCareRequestErrorResponse,
-  isCareRequestsSuccessResponse,
+  isCareErrorResponse,
+  isCaresSuccessResponse,
   isCreateTimelinePostSuccessResponse,
   isGetTimelineItemsSuccessResponse,
   isGetTimelineItemErrorResponse,
@@ -36,18 +34,13 @@ type CuratedPersonsOperation = operations["getCuratedPersonsV1"];
 type CreateCuratedPersonOperation = operations["createCuratedPersonV1"];
 type UpdateCuratedPersonOperation = operations["updateCuratedPersonV1"];
 type DeleteCuratedPersonOperation = operations["deleteCuratedPersonV1"];
-type GetCareRequestsOperation = operations["getCareRequestsV1"];
-type CreateCareRequestOperation = operations["createCareRequestV1"];
-type ClaimCareRequestOperation = operations["claimCareRequestV1"];
-type PassCareRequestOperation = operations["passCareRequestV1"];
-type CompleteCareRequestOperation = operations["completeCareRequestV1"];
-type WithdrawCareRequestOperation = operations["withdrawCareRequestV1"];
+type GetCaresOperation = operations["getCaresV1"];
+type CreateCareOperation = operations["createCareV1"];
+type ClaimCareOperation = operations["claimCareV1"];
+type PassCareOperation = operations["passCareV1"];
+type CompleteCareOperation = operations["completeCareV1"];
+type WithdrawCareOperation = operations["withdrawCareV1"];
 type RecordCareGratitudeOperation = operations["recordCareGratitudeV1"];
-type GetCareOffersOperation = operations["getCareOffersV1"];
-type CreateCareOfferOperation = operations["createCareOfferV1"];
-type WithdrawCareOfferOperation = operations["withdrawCareOfferV1"];
-type ClaimCareOfferOperation = operations["claimCareOfferV1"];
-type PassCareOfferOperation = operations["passCareOfferV1"];
 type CurrentSessionOperation = operations["getCurrentSessionV1"];
 type LogoutOperation = operations["logoutV1"];
 
@@ -94,113 +87,58 @@ export type GetCuratedPersonsErrorResponse = OperationResponseBody<
   CuratedPersonsOperation,
   401
 >;
-export type GetCareRequestsResponse = OperationResponseBody<
-  GetCareRequestsOperation,
-  200
->;
-export type CreateCareRequestInput =
-  CreateCareRequestOperation["requestBody"]["content"]["application/json"];
-export type ClaimCareRequestParameters =
-  ClaimCareRequestOperation["parameters"]["path"];
-export type PassCareRequestParameters =
-  PassCareRequestOperation["parameters"]["path"];
-export type CompleteCareRequestParameters =
-  CompleteCareRequestOperation["parameters"]["path"];
-export type WithdrawCareRequestParameters =
-  WithdrawCareRequestOperation["parameters"]["path"];
-export type WithdrawCareRequestInput =
-  WithdrawCareRequestOperation["requestBody"]["content"]["application/json"];
+export type GetCaresResponse = OperationResponseBody<GetCaresOperation, 200>;
+export type CreateCareInput =
+  CreateCareOperation["requestBody"]["content"]["application/json"];
+export type CareParameters = ClaimCareOperation["parameters"]["path"];
+export type WithdrawCareInput =
+  WithdrawCareOperation["requestBody"]["content"]["application/json"];
 export type RecordCareGratitudeInput =
   RecordCareGratitudeOperation["requestBody"]["content"]["application/json"];
 export type RecordCareGratitudeParameters =
   RecordCareGratitudeOperation["parameters"]["path"];
-export type GetCareOffersResponse = OperationResponseBody<
-  GetCareOffersOperation,
-  200
->;
-export type CreateCareOfferInput =
-  CreateCareOfferOperation["requestBody"]["content"]["application/json"];
-export type WithdrawCareOfferParameters =
-  WithdrawCareOfferOperation["parameters"]["path"];
-export type ClaimCareOfferParameters =
-  ClaimCareOfferOperation["parameters"]["path"];
-export type PassCareOfferParameters =
-  PassCareOfferOperation["parameters"]["path"];
-export type CareRequestsErrorResponse = OperationResponseBody<
-  GetCareRequestsOperation,
-  401
->;
-export type GetCareRequestsResult = ApiResult<
+export type CaresErrorResponse = OperationResponseBody<GetCaresOperation, 401>;
+export type GetCaresResult = ApiResult<
   200,
-  GetCareRequestsResponse,
+  GetCaresResponse,
   401,
-  CareRequestsErrorResponse
+  CaresErrorResponse
 >;
-export type CreateCareRequestResult = ApiResult<
+export type CreateCareResult = ApiResult<
   200,
-  GetCareRequestsResponse,
+  GetCaresResponse,
   400 | 401,
-  OperationResponseBody<CreateCareRequestOperation, 400 | 401>
+  OperationResponseBody<CreateCareOperation, 400 | 401>
 >;
-export type ClaimCareRequestResult = ApiResult<
+export type ClaimCareResult = ApiResult<
   200,
-  GetCareRequestsResponse,
-  400 | 401 | 404 | 409,
-  OperationResponseBody<ClaimCareRequestOperation, 400 | 401 | 404 | 409>
->;
-export type PassCareRequestResult = ApiResult<
-  200,
-  GetCareRequestsResponse,
+  GetCaresResponse,
   401 | 404 | 409,
-  OperationResponseBody<PassCareRequestOperation, 401 | 404 | 409>
+  OperationResponseBody<ClaimCareOperation, 401 | 404 | 409>
 >;
-export type CompleteCareRequestResult = ApiResult<
+export type PassCareResult = ApiResult<
   200,
-  GetCareRequestsResponse,
-  400 | 401 | 404,
-  OperationResponseBody<CompleteCareRequestOperation, 400 | 401 | 404>
+  GetCaresResponse,
+  401 | 404 | 409,
+  OperationResponseBody<PassCareOperation, 401 | 404 | 409>
 >;
-export type WithdrawCareRequestResult = ApiResult<
+export type CompleteCareResult = ApiResult<
   200,
-  GetCareRequestsResponse,
+  GetCaresResponse,
+  401 | 404,
+  OperationResponseBody<CompleteCareOperation, 401 | 404>
+>;
+export type WithdrawCareResult = ApiResult<
+  200,
+  GetCaresResponse,
   400 | 401 | 404,
-  OperationResponseBody<WithdrawCareRequestOperation, 400 | 401 | 404>
+  OperationResponseBody<WithdrawCareOperation, 400 | 401 | 404>
 >;
 export type RecordCareGratitudeResult = ApiResult<
   200,
-  GetCareRequestsResponse,
+  GetCaresResponse,
   400 | 401 | 404 | 409,
   OperationResponseBody<RecordCareGratitudeOperation, 400 | 401 | 404 | 409>
->;
-export type GetCareOffersResult = ApiResult<
-  200,
-  GetCareOffersResponse,
-  401,
-  OperationResponseBody<GetCareOffersOperation, 401>
->;
-export type CreateCareOfferResult = ApiResult<
-  200,
-  GetCareOffersResponse,
-  400 | 401,
-  OperationResponseBody<CreateCareOfferOperation, 400 | 401>
->;
-export type WithdrawCareOfferResult = ApiResult<
-  200,
-  GetCareOffersResponse,
-  401 | 404,
-  OperationResponseBody<WithdrawCareOfferOperation, 401 | 404>
->;
-export type ClaimCareOfferResult = ApiResult<
-  200,
-  GetCareOffersResponse,
-  401 | 404 | 409,
-  OperationResponseBody<ClaimCareOfferOperation, 401 | 404 | 409>
->;
-export type PassCareOfferResult = ApiResult<
-  200,
-  GetCareOffersResponse,
-  401 | 404 | 409,
-  OperationResponseBody<PassCareOfferOperation, 401 | 404 | 409>
 >;
 export type CurrentSessionResponse = OperationResponseBody<
   CurrentSessionOperation,
@@ -307,38 +245,19 @@ export interface ApiClient {
     curatedPersonId: string,
     input: DeleteCuratedPersonInput,
   ): Promise<GetCuratedPersonsResult>;
-  getCareRequests(): Promise<GetCareRequestsResult>;
-  createCareRequest(
-    input: CreateCareRequestInput,
-  ): Promise<CreateCareRequestResult>;
-  claimCareRequest(
-    parameters: ClaimCareRequestParameters,
-  ): Promise<ClaimCareRequestResult>;
-  passCareRequest(
-    parameters: PassCareRequestParameters,
-  ): Promise<PassCareRequestResult>;
-  completeCareRequest(
-    parameters: CompleteCareRequestParameters,
-  ): Promise<CompleteCareRequestResult>;
-  withdrawCareRequest(
-    parameters: WithdrawCareRequestParameters,
-    input: WithdrawCareRequestInput,
-  ): Promise<WithdrawCareRequestResult>;
+  getCares(): Promise<GetCaresResult>;
+  createCare(input: CreateCareInput): Promise<CreateCareResult>;
+  claimCare(parameters: CareParameters): Promise<ClaimCareResult>;
+  passCare(parameters: CareParameters): Promise<PassCareResult>;
+  completeCare(parameters: CareParameters): Promise<CompleteCareResult>;
+  withdrawCare(
+    parameters: CareParameters,
+    input: WithdrawCareInput,
+  ): Promise<WithdrawCareResult>;
   recordCareGratitude(
     parameters: RecordCareGratitudeParameters,
     input: RecordCareGratitudeInput,
   ): Promise<RecordCareGratitudeResult>;
-  getCareOffers(): Promise<GetCareOffersResult>;
-  createCareOffer(input: CreateCareOfferInput): Promise<CreateCareOfferResult>;
-  withdrawCareOffer(
-    parameters: WithdrawCareOfferParameters,
-  ): Promise<WithdrawCareOfferResult>;
-  claimCareOffer(
-    parameters: ClaimCareOfferParameters,
-  ): Promise<ClaimCareOfferResult>;
-  passCareOffer(
-    parameters: PassCareOfferParameters,
-  ): Promise<PassCareOfferResult>;
 }
 
 export interface CreateApiClientOptions {
@@ -583,114 +502,68 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
       );
     },
 
-    async getCareRequests() {
-      return parseCareRequestsResponse(
-        await request("GET", "/api/v1/care-requests"),
-        [401] as const,
-      );
+    async getCares() {
+      return parseCaresResponse(await request("GET", "/api/v1/cares"), [
+        401,
+      ] as const);
     },
 
-    async createCareRequest(input) {
-      return parseCareRequestsResponse(
-        await request("POST", "/api/v1/care-requests", input),
-        [400, 401] as const,
-      );
+    async createCare(input) {
+      return parseCaresResponse(await request("POST", "/api/v1/cares", input), [
+        400, 401,
+      ] as const);
     },
 
-    async claimCareRequest({ careRequestId }) {
-      return parseCareRequestsResponse(
+    async claimCare({ careId }) {
+      return parseCaresResponse(
         await request(
           "POST",
-          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/claim`,
-        ),
-        [400, 401, 404, 409] as const,
-      );
-    },
-
-    async passCareRequest({ careRequestId }) {
-      return parseCareRequestsResponse(
-        await request(
-          "POST",
-          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/pass`,
+          `/api/v1/cares/${encodeURIComponent(careId)}/claim`,
         ),
         [401, 404, 409] as const,
       );
     },
 
-    async completeCareRequest({ careRequestId }) {
-      return parseCareRequestsResponse(
+    async passCare({ careId }) {
+      return parseCaresResponse(
         await request(
           "POST",
-          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/complete`,
+          `/api/v1/cares/${encodeURIComponent(careId)}/pass`,
         ),
-        [400, 401, 404] as const,
+        [401, 404, 409] as const,
       );
     },
 
-    async withdrawCareRequest({ careRequestId }, input) {
-      return parseCareRequestsResponse(
+    async completeCare({ careId }) {
+      return parseCaresResponse(
         await request(
           "POST",
-          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/withdraw`,
-          input,
-        ),
-        [400, 401, 404] as const,
-      ) as WithdrawCareRequestResult;
-    },
-
-    async recordCareGratitude({ careRequestId }, input) {
-      return parseCareRequestsResponse(
-        await request(
-          "POST",
-          `/api/v1/care-requests/${encodeURIComponent(careRequestId)}/gratitude`,
-          input,
-        ),
-        [400, 401, 404, 409] as const,
-      ) as RecordCareGratitudeResult;
-    },
-
-    async getCareOffers() {
-      return parseCareOffersResponse(
-        await request("GET", "/api/v1/care-offers"),
-        [401] as const,
-      );
-    },
-
-    async createCareOffer(input) {
-      return parseCareOffersResponse(
-        await request("POST", "/api/v1/care-offers", input),
-        [400, 401] as const,
-      );
-    },
-
-    async withdrawCareOffer({ careOfferId }) {
-      return parseCareOffersResponse(
-        await request(
-          "DELETE",
-          `/api/v1/care-offers/${encodeURIComponent(careOfferId)}`,
+          `/api/v1/cares/${encodeURIComponent(careId)}/complete`,
         ),
         [401, 404] as const,
       );
     },
 
-    async claimCareOffer({ careOfferId }) {
-      return parseCareOffersResponse(
+    async withdrawCare({ careId }, input) {
+      return parseCaresResponse(
         await request(
           "POST",
-          `/api/v1/care-offers/${encodeURIComponent(careOfferId)}/claim`,
+          `/api/v1/cares/${encodeURIComponent(careId)}/withdraw`,
+          input,
         ),
-        [401, 404, 409] as const,
-      );
+        [400, 401, 404] as const,
+      ) as WithdrawCareResult;
     },
 
-    async passCareOffer({ careOfferId }) {
-      return parseCareOffersResponse(
+    async recordCareGratitude({ careId }, input) {
+      return parseCaresResponse(
         await request(
           "POST",
-          `/api/v1/care-offers/${encodeURIComponent(careOfferId)}/pass`,
+          `/api/v1/cares/${encodeURIComponent(careId)}/gratitude`,
+          input,
         ),
-        [401, 404, 409] as const,
-      );
+        [400, 401, 404, 409] as const,
+      ) as RecordCareGratitudeResult;
     },
   };
 }
@@ -747,93 +620,47 @@ function parseCuratedPersonsResponse(
   };
 }
 
-function parseCareRequestsResponse(
+function parseCaresResponse(
   result: RawRequestResult,
   errorStatuses: readonly [401],
-): GetCareRequestsResult;
-function parseCareRequestsResponse(
+): GetCaresResult;
+function parseCaresResponse(
   result: RawRequestResult,
   errorStatuses: readonly [400, 401],
-): CreateCareRequestResult;
-function parseCareRequestsResponse(
-  result: RawRequestResult,
-  errorStatuses: readonly [400, 401, 404, 409],
-): ClaimCareRequestResult;
-function parseCareRequestsResponse(
+): CreateCareResult;
+function parseCaresResponse(
   result: RawRequestResult,
   errorStatuses: readonly [401, 404, 409],
-): PassCareRequestResult;
-function parseCareRequestsResponse(
+): ClaimCareResult;
+function parseCaresResponse(
   result: RawRequestResult,
-  errorStatuses: readonly [400, 401, 404],
-): CompleteCareRequestResult;
-function parseCareRequestsResponse(
-  result: RawRequestResult,
-  errorStatuses: readonly [400, 401, 404],
-): WithdrawCareRequestResult;
-function parseCareRequestsResponse(
-  result: RawRequestResult,
-  errorStatuses: readonly number[],
-):
-  | GetCareRequestsResult
-  | CreateCareRequestResult
-  | ClaimCareRequestResult
-  | PassCareRequestResult
-  | CompleteCareRequestResult
-  | WithdrawCareRequestResult {
-  if (result.kind === "network") return result;
-  if (result.status === 200 && isCareRequestsSuccessResponse(result.body)) {
-    return { ok: true, status: 200, value: result.body };
-  }
-  if (
-    (result.status === 400 ||
-      result.status === 401 ||
-      result.status === 404 ||
-      result.status === 409) &&
-    errorStatuses.includes(result.status) &&
-    isCareRequestErrorResponse(result.body)
-  ) {
-    return {
-      ok: false,
-      kind: "http",
-      status: result.status,
-      error: result.body,
-    };
-  }
-  return {
-    ok: false,
-    kind: "unexpected-response",
-    status: result.status,
-    body: result.body,
-  };
-}
-
-function parseCareOffersResponse(
-  result: RawRequestResult,
-  errorStatuses: readonly [401],
-): GetCareOffersResult;
-function parseCareOffersResponse(
-  result: RawRequestResult,
-  errorStatuses: readonly [400, 401],
-): CreateCareOfferResult;
-function parseCareOffersResponse(
+  errorStatuses: readonly [401, 404, 409],
+): PassCareResult;
+function parseCaresResponse(
   result: RawRequestResult,
   errorStatuses: readonly [401, 404],
-): WithdrawCareOfferResult;
-function parseCareOffersResponse(
+): CompleteCareResult;
+function parseCaresResponse(
   result: RawRequestResult,
-  errorStatuses: readonly [401, 404, 409],
-): ClaimCareOfferResult;
-function parseCareOffersResponse(
+  errorStatuses: readonly [400, 401, 404],
+): WithdrawCareResult;
+function parseCaresResponse(
+  result: RawRequestResult,
+  errorStatuses: readonly [400, 401, 404, 409],
+): RecordCareGratitudeResult;
+function parseCaresResponse(
   result: RawRequestResult,
   errorStatuses: readonly number[],
 ):
-  | GetCareOffersResult
-  | CreateCareOfferResult
-  | WithdrawCareOfferResult
-  | ClaimCareOfferResult {
+  | GetCaresResult
+  | CreateCareResult
+  | ClaimCareResult
+  | PassCareResult
+  | CompleteCareResult
+  | WithdrawCareResult
+  | RecordCareGratitudeResult {
   if (result.kind === "network") return result;
-  if (result.status === 200 && isCareOffersSuccessResponse(result.body)) {
+  if (result.status === 200 && isCaresSuccessResponse(result.body)) {
     return { ok: true, status: 200, value: result.body };
   }
   if (
@@ -842,7 +669,7 @@ function parseCareOffersResponse(
       result.status === 404 ||
       result.status === 409) &&
     errorStatuses.includes(result.status) &&
-    isCareOfferErrorResponse(result.body)
+    isCareErrorResponse(result.body)
   ) {
     return {
       ok: false,

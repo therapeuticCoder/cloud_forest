@@ -3,10 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { mealApologyStatements } from "@/data/careApologyStatements";
-import type {
-  CareHistoryApology,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import type { CareHistoryApology, Care } from "@/types/care";
 
 export type CareWithdrawalDraft = {
   message: string;
@@ -20,11 +17,13 @@ export type CareWithdrawalResult =
 export function CareWithdrawalWizard({
   onBack,
   onComplete,
-  request,
+  care,
+  viewerId,
 }: {
   onBack: () => void;
   onComplete: (draft: CareWithdrawalDraft) => Promise<CareWithdrawalResult>;
-  request: ReceiveCareRequest;
+  care: Care;
+  viewerId: string;
 }) {
   const [step, setStep] = useState<"compose" | "confirm">("compose");
   const [statementId, setStatementId] = useState<
@@ -35,9 +34,8 @@ export function CareWithdrawalWizard({
   const [error, setError] = useState<string>();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const carePartnerName =
-    request.requester.kind === "self"
-      ? (request.claimant?.displayName ?? "your care partner")
-      : request.requester.displayName;
+    (care.originator.id === viewerId ? care.participant : care.originator)
+      ?.displayName ?? "your care partner";
 
   useEffect(() => {
     requestAnimationFrame(() => headingRef.current?.focus());

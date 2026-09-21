@@ -3,10 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { mealGratitudeStatements } from "@/data/careGratitudeStatements";
-import type {
-  CareHistoryGratitude,
-  ReceiveCareRequest,
-} from "@/types/careRequest";
+import type { CareHistoryGratitude, Care } from "@/types/care";
 
 export type CareGratitudeDraft = {
   message: string;
@@ -19,12 +16,12 @@ export function CareGratitudeWizard({
   onBack,
   onComplete,
   onSkip,
-  request,
+  care,
 }: {
   onBack: () => void;
   onComplete: (draft: CareGratitudeDraft) => Promise<CareGratitudeResult>;
   onSkip: () => void;
-  request: ReceiveCareRequest;
+  care: Care;
 }) {
   const [step, setStep] = useState<"compose" | "confirm">("compose");
   const [statementId, setStatementId] = useState<
@@ -34,6 +31,10 @@ export function CareGratitudeWizard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const carePartner =
+    care.direction === "give"
+      ? care.originator
+      : (care.participant ?? care.originator);
 
   useEffect(() => {
     requestAnimationFrame(() => headingRef.current?.focus());
@@ -41,7 +42,7 @@ export function CareGratitudeWizard({
 
   return (
     <section
-      aria-label={`Thank ${request.claimant?.displayName ?? "your helper"}`}
+      aria-label={`Thank ${carePartner.displayName}`}
       className="care-gratitude-view care-destination"
     >
       <header className="my-care-view__header">

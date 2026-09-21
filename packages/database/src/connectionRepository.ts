@@ -5,7 +5,7 @@ import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { DatabaseClient } from "./client.ts";
 import {
   connectionPairings,
-  careRequests,
+  cares,
   connections,
   curatedPersons,
   relationshipBlocks,
@@ -164,19 +164,19 @@ export function createConnectionRepository(database: DatabaseClient) {
     secondUserId: string,
   ) {
     await transaction
-      .update(careRequests)
+      .update(cares)
       .set({ status: "orphaned" })
       .where(
         and(
-          eq(careRequests.status, "claimed"),
+          eq(cares.status, "claimed"),
           or(
             and(
-              eq(careRequests.requesterUserId, firstUserId),
-              eq(careRequests.claimantUserId, secondUserId),
+              eq(cares.originatorUserId, firstUserId),
+              eq(cares.participantUserId, secondUserId),
             ),
             and(
-              eq(careRequests.requesterUserId, secondUserId),
-              eq(careRequests.claimantUserId, firstUserId),
+              eq(cares.originatorUserId, secondUserId),
+              eq(cares.participantUserId, firstUserId),
             ),
           ),
         ),

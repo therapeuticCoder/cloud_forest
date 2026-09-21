@@ -41,5 +41,7 @@ export {
   type CareCategoryDefinition,
   type CareCategoryId,
   type CareDay,
+  type CareDirection,
+  type CareStatus,
   type CareTime,
 } from "./care.ts";

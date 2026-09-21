@@ -15,15 +15,10 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getMealApologyStatement } from "@/data/careApologyStatements";
 import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
-import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
+import type { Care } from "@/types/care";
 
-import { CareOfferCard } from "./CareOfferCard";
-import { CareRequestCard } from "./CareRequestCard";
-import {
-  careOfferCategoryName,
-  careRequestCategoryName,
-  careScheduleLabel,
-} from "./carePresentation";
+import { CareCard } from "./CareCard";
+import { careCategoryName, careScheduleLabel } from "./carePresentation";
 
 export type MyCareTab = "profile" | "receive" | "give" | "history";
 
@@ -44,14 +39,13 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 
 type MyCareViewProps = {
   initialTab?: MyCareTab;
-  activeRequests: ReceiveCareRequest[];
-  claimedRequests: ReceiveCareRequest[];
-  completedRequests: ReceiveCareRequest[];
-  notCompletedRequests: ReceiveCareRequest[];
-  expiredRequests: ReceiveCareRequest[];
-  offers: GiveCareOffer[];
-  expiredOffers: GiveCareOffer[];
-  careOfferStatusMessage?: string;
+  activeCares: Care[];
+  claimedGiveCares: Care[];
+  claimedReceiveCares: Care[];
+  completedCares: Care[];
+  notCompletedCares: Care[];
+  expiredCares: Care[];
+  giveCares: Care[];
   viewerDisplayName: string;
   onBack: () => void;
   isAdmin: boolean;
@@ -59,11 +53,9 @@ type MyCareViewProps = {
     { ok: true; link: string } | { ok: false; message: string }
   >;
   onSignOut: () => void;
-  onSetRequestMinimized?: (requestId: string, minimized: boolean) => void;
-  onRecordCompleted?: (request: ReceiveCareRequest) => void;
-  onRecordNotCompleted?: (request: ReceiveCareRequest) => void;
-  onWithdraw?: (requestId: string) => void;
-  onWithdrawOffer?: (offerId: string) => void;
+  onRecordCompleted?: (care: Care) => void;
+  onRecordNotCompleted?: (care: Care) => void;
+  onWithdraw?: (careId: string) => void;
   signOutError?: string;
   signingOut: boolean;
   viewerId: string;
@@ -71,34 +63,31 @@ type MyCareViewProps = {
 
 export function MyCareView({
   initialTab = "receive",
-  activeRequests,
-  claimedRequests,
-  completedRequests,
-  notCompletedRequests,
-  expiredRequests,
-  offers,
-  expiredOffers,
-  careOfferStatusMessage,
+  activeCares,
+  claimedGiveCares,
+  claimedReceiveCares,
+  completedCares,
+  notCompletedCares,
+  expiredCares,
+  giveCares,
   viewerDisplayName,
   onBack,
   isAdmin,
   onCreateSignupCode,
   onSignOut,
-  onSetRequestMinimized,
   onRecordCompleted,
   onRecordNotCompleted,
   onWithdraw,
-  onWithdrawOffer = () => undefined,
   signOutError,
   signingOut,
   viewerId,
 }: MyCareViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const [activeTab, setActiveTab] = useState<MyCareTab>(initialTab);
   const [signupLink, setSignupLink] = useState<string>();
+  const [signupLinkCopied, setSignupLinkCopied] = useState(false);
   const [signupCodeError, setSignupCodeError] = useState<string>();
   const [creatingSignupCode, setCreatingSignupCode] = useState(false);
-  const [signupLinkCopied, setSignupLinkCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<MyCareTab>(initialTab);
 
   useEffect(() => {
     requestAnimationFrame(() => headingRef.current?.focus());
@@ -106,15 +95,12 @@ export function MyCareView({
 
   const copySignupLink = async (link: string) => {
     try {
-      if (navigator.clipboard === undefined) {
-        throw new Error("Clipboard unavailable");
-      }
       await navigator.clipboard.writeText(link);
       setSignupLinkCopied(true);
     } catch {
       setSignupLinkCopied(false);
       setSignupCodeError(
-        "The link is ready below, but Cloud Forest could not copy it automatically.",
+        "The link is ready below, but it could not be copied automatically.",
       );
     }
   };
@@ -122,53 +108,47 @@ export function MyCareView({
   const createSignupCode = async () => {
     setCreatingSignupCode(true);
     setSignupCodeError(undefined);
-    setSignupLinkCopied(false);
     const result = await onCreateSignupCode();
     if (result.ok) {
       setSignupLink(result.link);
-      const signupCode = new URL(result.link).searchParams.get("signup");
-      if (signupCode) {
-        const url = new URL(window.location.href);
-        url.searchParams.set("signup", signupCode);
-        window.history.replaceState(
-          { ...window.history.state },
-          "",
-          `${url.pathname}${url.search}${url.hash}`,
-        );
-      }
       await copySignupLink(result.link);
-    } else {
-      setSignupCodeError(result.message);
-    }
+    } else setSignupCodeError(result.message);
     setCreatingSignupCode(false);
   };
 
-  const historyItems = [
-    ...completedRequests.map((request) => ({
+  const history = [
+    ...completedCares.map((care) => ({
       kind: "completed" as const,
-      request,
-      recordedAt: request.completedAt ?? request.claimedAt ?? request.createdAt,
+      care,
+      at: care.completedAt ?? care.createdAt,
     })),
-    ...notCompletedRequests.map((request) => ({
+    ...notCompletedCares.map((care) => ({
       kind: "not-completed" as const,
-      request,
-      recordedAt:
-        request.notCompletedAt ?? request.claimedAt ?? request.createdAt,
+      care,
+      at: care.notCompletedAt ?? care.createdAt,
     })),
-    ...expiredRequests.map((request) => ({
-      kind: "expired-request" as const,
-      request,
-      recordedAt: request.expiredAt ?? request.createdAt,
+    ...expiredCares.map((care) => ({
+      kind: "expired" as const,
+      care,
+      at: care.expiredAt ?? care.createdAt,
     })),
-    ...expiredOffers.map((offer) => ({
-      kind: "expired-offer" as const,
-      offer,
-      recordedAt: offer.expiredAt ?? offer.createdAt,
-    })),
-  ].sort(
-    (first, second) =>
-      new Date(second.recordedAt).getTime() -
-      new Date(first.recordedAt).getTime(),
+  ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+
+  const receiveCares = [
+    ...activeCares.filter((care) => care.direction === "receive"),
+    ...claimedGiveCares,
+  ];
+
+  const renderCareCard = (care: Care) => (
+    <CareCard
+      canPass={false}
+      care={care}
+      minimized={false}
+      onRecordCompleted={onRecordCompleted}
+      onRecordNotCompleted={onRecordNotCompleted}
+      onWithdraw={onWithdraw}
+      viewerId={viewerId}
+    />
   );
 
   return (
@@ -190,7 +170,6 @@ export function MyCareView({
           </h1>
         </div>
       </header>
-
       <nav
         aria-label="My Care sections"
         className="my-care-view__tabs"
@@ -211,7 +190,6 @@ export function MyCareView({
           </button>
         ))}
       </nav>
-
       <div className="my-care-view__content">
         {activeTab === "profile" ? (
           <div
@@ -244,7 +222,6 @@ export function MyCareView({
                 </div>
               </div>
             </section>
-
             <section
               aria-label="Session management"
               className="my-care-view__section my-care-view__session"
@@ -277,38 +254,32 @@ export function MyCareView({
                   {signingOut ? "Signing out…" : "Sign out of Cloud Forest"}
                 </button>
               </div>
-              {isAdmin ? (
-                <div className="my-care-view__signup-code">
-                  {signupLink ? (
-                    <div className="my-care-view__signup-link">
-                      <label htmlFor="signup-link">Signup link</label>
-                      <input id="signup-link" readOnly value={signupLink} />
-                      <button
-                        aria-label="Copy signup link"
-                        className="my-care-view__signup-link-copy"
-                        onClick={() => void copySignupLink(signupLink)}
-                        type="button"
-                      >
-                        {signupLinkCopied ? (
-                          <Check aria-hidden="true" />
-                        ) : (
-                          <Copy aria-hidden="true" />
-                        )}
-                        {signupLinkCopied ? "Copied" : "Copy link"}
-                      </button>
-                    </div>
-                  ) : null}
-                  {signupCodeError ? (
-                    <p className="my-care-view__session-error" role="alert">
-                      {signupCodeError}
-                    </p>
-                  ) : null}
+              {isAdmin && signupLink ? (
+                <div className="my-care-view__signup-link">
+                  <label htmlFor="signup-link">Signup link</label>
+                  <input id="signup-link" readOnly value={signupLink} />
+                  <button
+                    aria-label="Copy signup link"
+                    onClick={() => void copySignupLink(signupLink)}
+                    type="button"
+                  >
+                    {signupLinkCopied ? (
+                      <Check aria-hidden="true" />
+                    ) : (
+                      <Copy aria-hidden="true" />
+                    )}
+                    {signupLinkCopied ? "Copied" : "Copy link"}
+                  </button>
                 </div>
+              ) : null}
+              {signupCodeError ? (
+                <p className="my-care-view__session-error" role="alert">
+                  {signupCodeError}
+                </p>
               ) : null}
             </section>
           </div>
         ) : null}
-
         {activeTab === "receive" ? (
           <section
             aria-labelledby="receive-heading"
@@ -318,35 +289,16 @@ export function MyCareView({
           >
             <div className="my-care-view__section-heading">
               <Send aria-hidden="true" />
-              <h2 id="receive-heading">My open requests</h2>
+              <h2 id="receive-heading">My open Care to receive</h2>
             </div>
-
-            {activeRequests.length > 0 ? (
-              activeRequests.map((request) => (
-                <CareRequestCard
-                  canPass={false}
-                  claimed={request.status === "claimed"}
-                  key={request.id}
-                  minimized={false}
-                  onOfferHelp={() => undefined}
-                  onPass={() => undefined}
-                  onRecordCompleted={onRecordCompleted}
-                  onRecordNotCompleted={onRecordNotCompleted}
-                  onSetMinimized={onSetRequestMinimized}
-                  onWithdraw={onWithdraw}
-                  request={request}
-                  viewerId={viewerId}
-                  viewerIsClaimer={false}
-                />
-              ))
-            ) : (
+            {receiveCares.map(renderCareCard)}
+            {receiveCares.length === 0 ? (
               <p className="my-care-view__empty">
-                You don’t have an active care request right now.
+                You don’t have active Care to receive right now.
               </p>
-            )}
+            ) : null}
           </section>
         ) : null}
-
         {activeTab === "give" ? (
           <div
             aria-labelledby="give-heading"
@@ -354,75 +306,40 @@ export function MyCareView({
             id="my-care-panel-give"
             role="tabpanel"
           >
-            {careOfferStatusMessage ? (
-              <div
-                aria-live="polite"
-                className="timeline-remote-state"
-                role="status"
-              >
-                {careOfferStatusMessage}
-              </div>
-            ) : null}
             <section
               aria-labelledby="give-heading"
               className="my-care-view__section"
             >
               <div className="my-care-view__section-heading">
                 <Gift aria-hidden="true" />
-                <h2 id="give-heading">My open offers</h2>
+                <h2 id="give-heading">My open Give Care</h2>
               </div>
-              {offers.length > 0 ? (
-                offers.map((offer) => (
-                  <CareOfferCard
-                    key={offer.id}
-                    offer={offer}
-                    onWithdraw={onWithdrawOffer}
-                    viewerId={viewerId}
-                  />
-                ))
+              {giveCares.length > 0 ? (
+                giveCares.map(renderCareCard)
               ) : (
                 <p className="my-care-view__empty">
-                  You don’t have an open Give offer right now.
+                  You don’t have an open Give Care right now.
                 </p>
               )}
             </section>
-
             <section
               aria-labelledby="helping-heading"
               className="my-care-view__section"
             >
               <div className="my-care-view__section-heading">
                 <HandHeart aria-hidden="true" />
-                <h2 id="helping-heading">Requests I'm taking care of</h2>
+                <h2 id="helping-heading">Care I’m part of</h2>
               </div>
-
-              {claimedRequests.length > 0 ? (
-                claimedRequests.map((request) => (
-                  <CareRequestCard
-                    canPass={false}
-                    claimed
-                    key={request.id}
-                    minimized={false}
-                    onOfferHelp={() => undefined}
-                    onPass={() => undefined}
-                    onRecordCompleted={onRecordCompleted}
-                    onRecordNotCompleted={onRecordNotCompleted}
-                    onSetMinimized={onSetRequestMinimized}
-                    onWithdraw={() => undefined}
-                    request={request}
-                    viewerId={viewerId}
-                    viewerIsClaimer
-                  />
-                ))
+              {claimedReceiveCares.length > 0 ? (
+                claimedReceiveCares.map(renderCareCard)
               ) : (
                 <p className="my-care-view__empty">
-                  You’re not helping with any care requests right now.
+                  You’re not part of any active Care right now.
                 </p>
               )}
             </section>
           </div>
         ) : null}
-
         {activeTab === "history" ? (
           <section
             aria-label="Private history"
@@ -435,117 +352,67 @@ export function MyCareView({
               <CheckCircle2 aria-hidden="true" />
               <h2 id="history-heading">Care history</h2>
             </div>
-
-            {historyItems.length > 0 ? (
+            {history.length > 0 ? (
               <ul className="my-care-history">
-                {historyItems.map((item) => {
-                  if (item.kind === "completed") {
-                    const { request } = item;
-                    const isRequester = request.requester.id === viewerId;
-                    return (
-                      <li key={`completed-${request.id}`}>
-                        <div>
-                          <span>Completed</span>
-                          <strong>
-                            {isRequester
-                              ? `You received help from ${request.claimant?.displayName ?? "your helper"}`
-                              : `You helped ${request.requester.displayName}`}
-                          </strong>
-                          <p>
-                            {careRequestCategoryName(request)} ·{" "}
-                            {careScheduleLabel({
-                              days: request.days,
-                              times: request.times,
-                              timeNote: request.timeNote,
-                              fallback: request.helpfulWhen,
-                            })}
-                          </p>
-                          {request.gratitude ? (
-                            <div className="my-care-history__gratitude">
-                              <span>Private gratitude</span>
-                              <p>
-                                {getMealGratitudeStatement(
-                                  request.gratitude.statementId,
-                                )?.text ??
-                                  "Thank you for showing up with care."}
-                              </p>
-                              {request.gratitude.message ? (
-                                <blockquote>
-                                  {request.gratitude.message}
-                                </blockquote>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                        <time dateTime={item.recordedAt}>
-                          {formatter.format(new Date(item.recordedAt))}
-                        </time>
-                      </li>
-                    );
-                  }
-
-                  if (item.kind === "not-completed") {
-                    const { request } = item;
-                    const isRequester = request.requester.id === viewerId;
-                    return (
-                      <li key={`not-completed-${request.id}`}>
-                        <div>
-                          <span>Not completed</span>
-                          <strong>
-                            {isRequester
-                              ? request.direction === "give"
-                                ? `You received an offer from ${request.claimant?.displayName ?? "your care partner"}`
-                                : `You requested care from ${request.claimant?.displayName ?? "your care partner"}`
-                              : `You committed to help ${request.requester.displayName}`}
-                          </strong>
-                          <p>
-                            {careRequestCategoryName(request)} ·{" "}
-                            {careScheduleLabel({
-                              days: request.days,
-                              times: request.times,
-                              timeNote: request.timeNote,
-                              fallback: request.helpfulWhen,
-                            })}
-                          </p>
-                          {request.apology ? (
-                            <div className="my-care-history__apology">
-                              <span>Private apology</span>
-                              <p>
-                                {getMealApologyStatement(
-                                  request.apology.statementId,
-                                )?.text ??
-                                  "I’m sorry, I couldn’t complete this."}
-                              </p>
-                              {request.apology.message ? (
-                                <blockquote>
-                                  {request.apology.message}
-                                </blockquote>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                        <time dateTime={item.recordedAt}>
-                          {formatter.format(new Date(item.recordedAt))}
-                        </time>
-                      </li>
-                    );
-                  }
-
-                  const recordedAt = item.recordedAt;
+                {history.map(({ care, kind, at }) => {
+                  const isOriginator = care.originator.id === viewerId;
                   return (
-                    <li
-                      key={`${item.kind}-${item.kind === "expired-request" ? item.request.id : item.offer.id}`}
-                    >
+                    <li key={`${kind}-${care.id}`}>
                       <div>
-                        <span>Care opportunity passed</span>
+                        <span>
+                          {kind === "completed"
+                            ? "Completed"
+                            : kind === "not-completed"
+                              ? "Not completed"
+                              : "Care opportunity passed"}
+                        </span>
+                        <strong>
+                          {isOriginator
+                            ? care.direction === "give"
+                              ? "You offered Care"
+                              : "You requested Care"
+                            : care.direction === "give"
+                              ? `You received Care from ${care.originator.displayName}`
+                              : `You helped ${care.originator.displayName}`}
+                        </strong>
                         <p>
-                          {item.kind === "expired-request"
-                            ? `${careRequestCategoryName(item.request)} · ${careScheduleLabel({ days: item.request.days, times: item.request.times, timeNote: item.request.timeNote, fallback: item.request.helpfulWhen })}`
-                            : `${careOfferCategoryName(item.offer)} · ${careScheduleLabel({ days: item.offer.days, times: item.offer.times, timeNote: item.offer.timeNote, fallback: item.offer.availableWhen })}`}
+                          {careCategoryName(care.category)} ·{" "}
+                          {careScheduleLabel({
+                            days: care.days,
+                            times: care.times,
+                            timeNote: care.timeNote,
+                            fallback: "Flexible",
+                          })}
                         </p>
+                        {care.gratitude ? (
+                          <div className="my-care-history__gratitude">
+                            <span>Private gratitude</span>
+                            <p>
+                              {getMealGratitudeStatement(
+                                care.gratitude.statementId,
+                              )?.text ?? "Thank you for showing up with care."}
+                            </p>
+                            {care.gratitude.message ? (
+                              <blockquote>{care.gratitude.message}</blockquote>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        {care.apology ? (
+                          <div className="my-care-history__apology">
+                            <span>Private apology</span>
+                            <p>
+                              {getMealApologyStatement(care.apology.statementId)
+                                ?.text ??
+                                "I’m sorry, I couldn’t complete this."}
+                            </p>
+                            {care.apology.message ? (
+                              <blockquote>{care.apology.message}</blockquote>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
-                      <time dateTime={recordedAt}>
-                        {formatter.format(new Date(recordedAt))}
+                      <time dateTime={at}>
+                        {formatter.format(new Date(at))}
                       </time>
                     </li>
                   );

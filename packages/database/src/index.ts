@@ -17,18 +17,16 @@ export {
   connections,
   relationshipBlocks,
   connectionPairings,
-  careRequests,
+  cares,
   careGratitudes,
-  careOffers,
-  careRequestPasses,
-  careOfferPasses,
+  carePasses,
   accountPeople,
   invitations,
   signupCodes,
   type AccountRole,
   type ConnectionPairingStatus,
-  type CareRequestStatus,
-  type CareOfferStatus,
+  type CareDirection,
+  type CareStatus,
   type CareAudience,
   type CareExpiration,
   type CareGratitudeStatementId,
@@ -58,13 +56,12 @@ export {
   type ConnectionRepository,
 } from "./connectionRepository.ts";
 export {
-  createCareRequestRepository,
-  type CareRequestRepository,
-} from "./careRequestRepository.ts";
-export {
-  createCareOfferRepository,
-  type CareOfferRepository,
-} from "./careOfferRepository.ts";
+  createCareRepository,
+  type CareRepository,
+  type CareRecord,
+  type CareRepositoryError,
+  type CareRepositoryResult,
+} from "./careRepository.ts";
 export {
   fictionalPartyMemberIds,
   fictionalPartyInvitationId,

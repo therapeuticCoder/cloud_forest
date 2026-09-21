@@ -5,9 +5,9 @@ import { eq, inArray } from "drizzle-orm";
 
 import {
   accountPeople,
-  careRequests,
+  cares,
   connections,
-  createCareRequestRepository,
+  createCareRepository,
   createDatabaseClient,
   curatedPersons,
   getTestDatabaseUrl,
@@ -18,22 +18,20 @@ import {
 
 const now = new Date("2026-09-15T15:00:00.000Z");
 const ids = {
-  owner: "user-care-completion-owner",
-  helper: "user-care-completion-helper",
-  stranger: "user-care-completion-stranger",
-  ownerPerson: "person-care-completion-owner",
-  helperPerson: "person-care-completion-helper",
-  strangerPerson: "person-care-completion-stranger",
-  connection: "connection-care-completion",
-  curatedPerson: "curated-care-completion-helper",
+  owner: "user-care-owner",
+  helper: "user-care-helper",
+  stranger: "user-care-stranger",
+  ownerPerson: "person-care-owner",
+  helperPerson: "person-care-helper",
+  strangerPerson: "person-care-stranger",
+  connection: "connection-care",
+  curatedPerson: "curated-care-helper",
 };
 const userIds = [ids.owner, ids.helper, ids.stranger];
 const personIds = [ids.ownerPerson, ids.helperPerson, ids.strangerPerson];
 
 async function removeFixture(database) {
-  await database
-    .delete(careRequests)
-    .where(eq(careRequests.requesterUserId, ids.owner));
+  await database.delete(cares).where(eq(cares.originatorUserId, ids.owner));
   await database
     .delete(curatedPersons)
     .where(eq(curatedPersons.ownerUserId, ids.owner));
@@ -48,11 +46,29 @@ async function removeFixture(database) {
   await database.delete(users).where(inArray(users.id, userIds));
 }
 
-test("claimed Care completion is shared, terminal, and participant-private", async (t) => {
+function createInput(overrides = {}) {
+  return {
+    originatorUserId: ids.owner,
+    direction: "receive",
+    category: "food",
+    subtype: "A warm meal",
+    days: ["thursday"],
+    times: ["evening"],
+    timeNote: "Tonight",
+    location: "Leave it at my door",
+    requirements: "Soup",
+    sensitivities: "Nothing spicy",
+    expiresIn: "1w",
+    now,
+    ...overrides,
+  };
+}
+
+test("the unified Care repository preserves lifecycle, identity, and privacy", async (t) => {
   const { database, pool } = createDatabaseClient(
     getTestDatabaseUrl(process.env),
   );
-  const repository = createCareRequestRepository(database);
+  const repository = createCareRepository(database);
   t.after(async () => {
     await removeFixture(database);
     await pool.end();
@@ -124,19 +140,11 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
     updatedAt: now,
   });
 
-  const requestId = await repository.create({
-    requesterUserId: ids.owner,
-    helpfulWhen: "Tonight",
-    foodWorks: "Soup",
-    foodDoesNotWork: "Nothing spicy",
-    handoffStyle: "Leave it at my door",
-    expiresIn: "1w",
-    now,
-  });
+  const careId = await repository.create(createInput());
   assert.deepEqual(
     await repository.claim({
-      careRequestId: requestId,
-      claimantUserId: ids.helper,
+      careId,
+      participantUserId: ids.helper,
       now,
     }),
     { ok: true, value: null },
@@ -145,7 +153,7 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   const ownerCompletedAt = new Date(now.getTime() + 1_000);
   assert.deepEqual(
     await repository.recordCompletion({
-      careRequestId: requestId,
+      careId,
       participantUserId: ids.owner,
       now: ownerCompletedAt,
     }),
@@ -154,16 +162,16 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   const helperViewBeforeCompletion = await repository.listVisible(ids.helper);
   assert.equal(helperViewBeforeCompletion[0].status, "claimed");
   assert.deepEqual(
-    helperViewBeforeCompletion[0].requesterCompletedAt,
+    helperViewBeforeCompletion[0].originatorCompletedAt,
     ownerCompletedAt,
   );
-  assert.equal(helperViewBeforeCompletion[0].claimantCompletedAt, null);
+  assert.equal(helperViewBeforeCompletion[0].participantCompletedAt, null);
   assert.deepEqual(await repository.listVisible(ids.stranger), []);
 
   const gratitudeAt = new Date(now.getTime() + 1_500);
   assert.deepEqual(
     await repository.recordGratitude({
-      careRequestId: requestId,
+      careId,
       receiverUserId: ids.owner,
       statementId: "meal-care-felt-easy",
       message: "The soup made tonight possible.",
@@ -181,7 +189,7 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   const completedAt = new Date(now.getTime() + 2_000);
   assert.deepEqual(
     await repository.recordCompletion({
-      careRequestId: requestId,
+      careId,
       participantUserId: ids.helper,
       now: completedAt,
     }),
@@ -192,9 +200,8 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   assert.equal(ownerHistory[0].status, "completed");
   assert.equal(helperHistory[0].status, "completed");
   assert.deepEqual(ownerHistory[0].completedAt, completedAt);
-  assert.deepEqual(helperHistory[0].completedAt, completedAt);
-  assert.deepEqual(ownerHistory[0].requesterCompletedAt, ownerCompletedAt);
-  assert.deepEqual(helperHistory[0].claimantCompletedAt, completedAt);
+  assert.deepEqual(ownerHistory[0].originatorCompletedAt, ownerCompletedAt);
+  assert.deepEqual(ownerHistory[0].participantCompletedAt, completedAt);
   assert.deepEqual(ownerHistory[0].gratitude, {
     statementId: "meal-care-felt-easy",
     message: "The soup made tonight possible.",
@@ -205,7 +212,7 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
 
   assert.deepEqual(
     await repository.recordGratitude({
-      careRequestId: requestId,
+      careId,
       receiverUserId: ids.owner,
       statementId: "meal-fed-when-needed",
       message: "Another note",
@@ -214,19 +221,13 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
     { ok: false, error: "care-gratitude-already-recorded" },
   );
 
-  const withdrawnRequestId = await repository.create({
-    requesterUserId: ids.owner,
-    helpfulWhen: "Tomorrow",
-    foodWorks: "Rice",
-    foodDoesNotWork: "Nothing spicy",
-    handoffStyle: "Leave it at my door",
-    expiresIn: "1w",
-    now: completedAt,
-  });
+  const withdrawnCareId = await repository.create(
+    createInput({ now: completedAt }),
+  );
   assert.deepEqual(
     await repository.claim({
-      careRequestId: withdrawnRequestId,
-      claimantUserId: ids.helper,
+      careId: withdrawnCareId,
+      participantUserId: ids.helper,
       now: completedAt,
     }),
     { ok: true, value: null },
@@ -238,13 +239,13 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
     .where(eq(curatedPersons.id, ids.curatedPerson));
   assert.deepEqual(
     await repository.withdraw({
-      careRequestId: withdrawnRequestId,
+      careId: withdrawnCareId,
       participantUserId: ids.owner,
       statementId: "meal-something-changed",
       message: "I need to step back this time.",
       now: completedAt,
     }),
-    { ok: false, error: "care-request-not-found" },
+    { ok: false, error: "care-not-found" },
   );
   await database
     .update(curatedPersons)
@@ -254,7 +255,7 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   const withdrawnAt = new Date(completedAt.getTime() + 1_000);
   assert.deepEqual(
     await repository.withdraw({
-      careRequestId: withdrawnRequestId,
+      careId: withdrawnCareId,
       participantUserId: ids.helper,
       statementId: "meal-something-changed",
       message: "I need to step back this time.",
@@ -263,10 +264,10 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
     { ok: true, value: null },
   );
   const ownerWithdrawal = (await repository.listVisible(ids.owner)).find(
-    (request) => request.id === withdrawnRequestId,
+    (care) => care.id === withdrawnCareId,
   );
   const helperWithdrawal = (await repository.listVisible(ids.helper)).find(
-    (request) => request.id === withdrawnRequestId,
+    (care) => care.id === withdrawnCareId,
   );
   assert.equal(ownerWithdrawal?.status, "not_completed");
   assert.equal(helperWithdrawal?.status, "not_completed");
@@ -279,26 +280,26 @@ test("claimed Care completion is shared, terminal, and participant-private", asy
   assert.deepEqual(helperWithdrawal?.apology, ownerWithdrawal?.apology);
   assert.equal(
     (await repository.listVisible(ids.stranger)).some(
-      (request) => request.id === withdrawnRequestId,
+      (care) => care.id === withdrawnCareId,
     ),
     false,
   );
   assert.deepEqual(
     await repository.recordCompletion({
-      careRequestId: withdrawnRequestId,
+      careId: withdrawnCareId,
       participantUserId: ids.owner,
       now: withdrawnAt,
     }),
-    { ok: false, error: "care-request-not-found" },
+    { ok: false, error: "care-not-found" },
   );
   assert.deepEqual(
     await repository.recordGratitude({
-      careRequestId: withdrawnRequestId,
+      careId: withdrawnCareId,
       receiverUserId: ids.owner,
       statementId: "meal-care-felt-easy",
       message: "This should not be recorded.",
       now: withdrawnAt,
     }),
-    { ok: false, error: "care-request-not-found" },
+    { ok: false, error: "care-not-found" },
   );
 });

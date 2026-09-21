@@ -2204,7 +2204,7 @@ button:focus-visible {
   border-bottom: 0;
 }
 
-.care-request-card {
+.care-card {
   display: grid;
   grid-template-columns: 3.5rem minmax(0, 1fr);
   gap: 1rem;
@@ -2216,7 +2216,7 @@ button:focus-visible {
   box-shadow: 0 0.35rem 0.8rem rgba(6, 10, 3, 0.2);
 }
 
-.care-request-card__mark {
+.care-card__mark {
   display: grid;
   width: 3.5rem;
   height: 3.5rem;
@@ -2226,24 +2226,24 @@ button:focus-visible {
   background: var(--forest-party);
 }
 
-.care-request-card__mark svg {
+.care-card__mark svg {
   width: 2rem;
   height: 2rem;
   stroke-width: 1.7;
 }
 
-.care-request-card__body {
+.care-card__body {
   min-width: 0;
 }
 
-.care-request-card__heading {
+.care-card__heading {
   display: flex;
   align-items: start;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.care-request-card__eyebrow {
+.care-card__eyebrow {
   color: #607d27;
   font-size: 0.78rem;
   font-weight: 720;
@@ -2251,13 +2251,13 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
-.care-request-card h2 {
+.care-card h2 {
   margin: 0.15rem 0 0;
   font-size: 1.35rem;
   letter-spacing: -0.03em;
 }
 
-.care-request-card__status {
+.care-card__status {
   flex: 0 0 auto;
   padding: 0.28rem 0.6rem;
   border-radius: 999px;
@@ -2267,30 +2267,30 @@ button:focus-visible {
   font-weight: 700;
 }
 
-.care-request-card dl {
+.care-card dl {
   display: grid;
   gap: 0.4rem;
   margin: 0.9rem 0;
 }
 
-.care-request-card dl div {
+.care-card dl div {
   display: grid;
   grid-template-columns: 7.3rem minmax(0, 1fr);
   gap: 0.5rem;
 }
 
-.care-request-card dt {
+.care-card dt {
   color: rgba(10, 42, 29, 0.64);
   font-size: 0.83rem;
   font-weight: 700;
 }
 
-.care-request-card dd {
+.care-card dd {
   margin: 0;
   line-height: 1.3;
 }
 
-.care-request-card__footer {
+.care-card__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2299,18 +2299,18 @@ button:focus-visible {
   font-size: 0.82rem;
 }
 
-.care-request-card__footer span {
+.care-card__footer span {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
 }
 
-.care-request-card__footer svg {
+.care-card__footer svg {
   width: 1rem;
   height: 1rem;
 }
 
-.care-request-card__withdraw {
+.care-card__withdraw {
   margin-top: 0.85rem;
   padding: 0.45rem 0;
   border: 0;
@@ -2324,12 +2324,12 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.care-request-card__withdraw:focus-visible {
+.care-card__withdraw:focus-visible {
   outline: 3px solid var(--forest-amber);
   outline-offset: 3px;
 }
 
-.care-request-card__presentation {
+.care-card__presentation {
   min-height: 2.75rem;
   margin-top: 0.7rem;
   padding: 0.45rem 0.75rem;
@@ -2342,50 +2342,50 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.care-request-card__presentation:hover {
+.care-card__presentation:hover {
   background: rgba(255, 255, 255, 0.56);
 }
 
-.care-request-card__presentation:focus-visible {
+.care-card__presentation:focus-visible {
   outline: 3px solid var(--forest-amber);
   outline-offset: 3px;
 }
 
-.care-request-card--minimized {
+.care-card--minimized {
   grid-template-columns: 3.5rem minmax(0, 1fr);
   align-items: center;
   min-height: 0;
   padding-block: 0.75rem;
 }
 
-.care-request-card__body--minimized {
+.care-card__body--minimized {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 0.75rem;
 }
 
-.care-request-card__body--minimized h2 {
+.care-card__body--minimized h2 {
   margin-top: 0.1rem;
   font-size: 1.1rem;
 }
 
-.care-request-card__body--minimized time {
+.care-card__body--minimized time {
   color: rgba(10, 42, 29, 0.68);
   font-size: 0.8rem;
 }
 
-.care-request-card__body--minimized .care-request-card__presentation {
+.care-card__body--minimized .care-card__presentation {
   margin-top: 0;
   white-space: nowrap;
 }
 
-.care-request-card--incoming {
+.care-card--incoming {
   border-color: #78983a;
   background: linear-gradient(145deg, #edf2e4, var(--forest-card));
 }
 
-.care-request-card__claim {
+.care-card__claim {
   width: 100%;
   min-height: 3rem;
   margin-top: 0.9rem;
@@ -2399,13 +2399,13 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.care-request-card__actions {
+.care-card__actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr);
   gap: 0.65rem;
 }
 
-.care-request-card__pass {
+.care-card__pass {
   min-height: 3rem;
   margin-top: 0.9rem;
   padding: 0.7rem 1rem;
@@ -2418,17 +2418,17 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.care-request-card__pass:hover {
+.care-card__pass:hover {
   background: rgba(255, 255, 255, 0.72);
 }
 
-.care-request-card__claim:hover {
+.care-card__claim:hover {
   background: #103426;
 }
 
-.care-request-card__claim:focus-visible,
-.care-request-card__pass:focus-visible,
-.care-request-card__commitment:focus-visible {
+.care-card__claim:focus-visible,
+.care-card__pass:focus-visible,
+.care-card__commitment:focus-visible {
   outline: 3px solid var(--forest-amber);
   outline-offset: 3px;
 }
@@ -2443,7 +2443,7 @@ button:focus-visible {
   font-size: 0.88rem;
 }
 
-.care-request-card__commitment {
+.care-card__commitment {
   margin: 0.9rem 0 0;
   padding: 0.75rem 1rem;
   border-radius: 0.9rem;
@@ -2453,19 +2453,19 @@ button:focus-visible {
   text-align: center;
 }
 
-.care-request-card__outcome {
+.care-card__outcome {
   display: grid;
   gap: 0.7rem;
 }
 
-.care-request-card__waiting {
+.care-card__waiting {
   margin: 0;
   color: rgba(10, 42, 29, 0.72);
   font-size: 0.92rem;
   font-weight: 650;
 }
 
-.care-request-card__gratitude,
+.care-card__gratitude,
 .my-care-history__gratitude,
 .my-care-history__apology {
   margin-top: 0.75rem;
@@ -2475,7 +2475,7 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.28);
 }
 
-.care-request-card__gratitude span,
+.care-card__gratitude span,
 .my-care-history__gratitude span,
 .my-care-history__apology span {
   color: var(--forest-party);
@@ -2485,14 +2485,14 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
-.care-request-card__gratitude p,
+.care-card__gratitude p,
 .my-care-history__gratitude p,
 .my-care-history__apology p {
   margin: 0.25rem 0 0;
   line-height: 1.45;
 }
 
-.care-request-card__gratitude blockquote,
+.care-card__gratitude blockquote,
 .my-care-history__gratitude blockquote,
 .my-care-history__apology blockquote {
   margin: 0.45rem 0 0;
@@ -2500,17 +2500,17 @@ button:focus-visible {
   border-left: 2px solid rgba(10, 42, 29, 0.3);
 }
 
-.care-request-card__outcome-actions {
+.care-card__outcome-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
-.care-request-card__outcome-actions--single {
+.care-card__outcome-actions--single {
   grid-template-columns: 1fr;
 }
 
-.care-request-card__outcome-actions button {
+.care-card__outcome-actions button {
   min-height: 3rem;
   border: 1px solid rgba(8, 36, 25, 0.35);
   border-radius: 0.9rem;
@@ -2521,16 +2521,16 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.care-request-card__outcome-actions button:first-child {
+.care-card__outcome-actions button:first-child {
   color: #f5f8ed;
   background: var(--forest-pine);
 }
 
-.care-request-card__outcome-actions button:hover {
+.care-card__outcome-actions button:hover {
   filter: brightness(1.06);
 }
 
-.care-request-card__outcome-actions button:focus-visible,
+.care-card__outcome-actions button:focus-visible,
 .care-gratitude-view textarea:focus-visible {
   outline: 3px solid var(--forest-amber);
   outline-offset: 3px;
@@ -2697,8 +2697,7 @@ button:focus-visible {
   font-size: 1.2rem;
 }
 
-.my-care-profile p,
-.care-offer-card__giver {
+.my-care-profile p {
   margin: 0.25rem 0 0;
   color: rgba(231, 232, 216, 0.72);
 }
@@ -3202,51 +3201,51 @@ button:focus-visible {
 }
 
 @media (max-width: 700px) {
-  .care-request-card {
+  .care-card {
     grid-template-columns: 2.8rem minmax(0, 1fr);
     gap: 0.75rem;
     padding: 0.8rem;
     border-width: 6px;
   }
 
-  .care-request-card__mark {
+  .care-card__mark {
     width: 2.8rem;
     height: 2.8rem;
   }
 
-  .care-request-card__mark svg {
+  .care-card__mark svg {
     width: 1.65rem;
     height: 1.65rem;
   }
 
-  .care-request-card dl div {
+  .care-card dl div {
     grid-template-columns: 5.6rem minmax(0, 1fr);
   }
 
-  .care-request-card__footer {
+  .care-card__footer {
     align-items: start;
     flex-direction: column;
     gap: 0.3rem;
   }
 
-  .care-request-card__actions {
+  .care-card__actions {
     grid-template-columns: 1fr;
     gap: 0;
   }
 
-  .care-request-card--minimized {
+  .care-card--minimized {
     grid-template-columns: 2.8rem minmax(0, 1fr);
   }
 
-  .care-request-card__body--minimized {
+  .care-card__body--minimized {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .care-request-card__body--minimized .care-request-card__status {
+  .care-card__body--minimized .care-card__status {
     display: none;
   }
 
-  .care-request-card__body--minimized .care-request-card__presentation {
+  .care-card__body--minimized .care-card__presentation {
     min-height: 2.75rem;
     padding-inline: 0.65rem;
   }
@@ -3263,7 +3262,7 @@ button:focus-visible {
     gap: 0.35rem;
   }
 
-  .care-request-card__outcome-actions,
+  .care-card__outcome-actions,
   .care-gratitude-view__confirm-actions {
     grid-template-columns: 1fr;
   }

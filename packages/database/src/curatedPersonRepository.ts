@@ -6,8 +6,7 @@ import type { CuratedPersonPlacement } from "@cloud-forest/domain";
 import type { DatabaseClient } from "./client.ts";
 import {
   accountPeople,
-  careOfferPasses,
-  careRequestPasses,
+  carePasses,
   connections,
   curatedPersons,
   relationshipBlocks,
@@ -291,19 +290,11 @@ export function createCuratedPersonRepository(database: DatabaseClient) {
           (input.placement === "party" || input.placement === "tribe")
         ) {
           await transaction
-            .delete(careRequestPasses)
+            .delete(carePasses)
             .where(
               and(
-                eq(careRequestPasses.originatorUserId, input.ownerUserId),
-                eq(careRequestPasses.viewerUserId, existing.linkedUserId),
-              ),
-            );
-          await transaction
-            .delete(careOfferPasses)
-            .where(
-              and(
-                eq(careOfferPasses.originatorUserId, input.ownerUserId),
-                eq(careOfferPasses.viewerUserId, existing.linkedUserId),
+                eq(carePasses.originatorUserId, input.ownerUserId),
+                eq(carePasses.viewerUserId, existing.linkedUserId),
               ),
             );
         }

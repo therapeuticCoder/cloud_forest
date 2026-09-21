@@ -2,26 +2,22 @@ import { ArrowLeft, Check, HandHeart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { ReceiveCareRequest } from "@/types/careRequest";
-import { careRequestCategoryName, careScheduleLabel } from "./carePresentation";
+import type { Care } from "@/types/care";
+import { careCategoryName, careScheduleLabel } from "./carePresentation";
 
 type ClaimCareViewProps = {
   onBack: () => void;
   onConfirm: () => Promise<{ ok: true } | { ok: false; message: string }>;
-  request: ReceiveCareRequest;
+  care: Care;
 };
 
-export function ClaimCareView({
-  onBack,
-  onConfirm,
-  request,
-}: ClaimCareViewProps) {
-  const categoryName = careRequestCategoryName(request);
+export function ClaimCareView({ onBack, onConfirm, care }: ClaimCareViewProps) {
+  const categoryName = careCategoryName(care.category);
   const schedule = careScheduleLabel({
-    days: request.days,
-    times: request.times,
-    timeNote: request.timeNote,
-    fallback: request.helpfulWhen,
+    days: care.days,
+    times: care.times,
+    timeNote: care.timeNote,
+    fallback: "Flexible",
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [error, setError] = useState<string>();
@@ -42,7 +38,7 @@ export function ClaimCareView({
 
   return (
     <section
-      aria-label={`Commit to helping ${request.requester.displayName}`}
+      aria-label={`Commit to ${care.direction === "give" ? "receiving" : "helping"} ${care.originator.displayName}`}
       className="party-wizard care-destination"
     >
       <header className="party-wizard__header">
@@ -71,46 +67,49 @@ export function ClaimCareView({
         <div className="party-wizard__question party-wizard__preview-wrap">
           <HandHeart aria-hidden="true" className="receive-care-icon" />
           <h1 ref={headingRef} className="party-wizard__title" tabIndex={-1}>
-            Help {request.requester.displayName} with this{" "}
-            {categoryName.toLowerCase()} care?
+            {care.direction === "give" ? "Receive this from" : "Help"}{" "}
+            {care.originator.displayName} with this {categoryName.toLowerCase()}{" "}
+            care?
           </h1>
           <p className="party-wizard__hint">
-            This makes a commitment to provide this care.
+            {care.direction === "give"
+              ? "This makes a commitment to receive this Care."
+              : "This makes a commitment to help with this Care."}
           </p>
           <dl className="receive-care-review care-destination__details">
             <div>
-              <dt>Requester</dt>
-              <dd>{request.requester.displayName}</dd>
+              <dt>Care partner</dt>
+              <dd>{care.originator.displayName}</dd>
             </div>
             <div>
               <dt>Care</dt>
               <dd>{categoryName}</dd>
             </div>
-            {request.subtype ? (
+            {care.subtype ? (
               <div>
                 <dt>Type</dt>
-                <dd>{request.subtype}</dd>
+                <dd>{care.subtype}</dd>
               </div>
             ) : null}
             <div>
               <dt>When</dt>
               <dd>{schedule}</dd>
             </div>
-            {(request.requirements ?? request.foodWorks) ? (
+            {care.requirements ? (
               <div>
                 <dt>Works well</dt>
-                <dd>{request.requirements ?? request.foodWorks}</dd>
+                <dd>{care.requirements}</dd>
               </div>
             ) : null}
-            {(request.sensitivities ?? request.foodDoesNotWork) ? (
+            {care.sensitivities ? (
               <div>
                 <dt>Preferences</dt>
-                <dd>{request.sensitivities ?? request.foodDoesNotWork}</dd>
+                <dd>{care.sensitivities}</dd>
               </div>
             ) : null}
             <div>
               <dt>Location</dt>
-              <dd>{request.location ?? request.handoffStyle}</dd>
+              <dd>{care.location}</dd>
             </div>
           </dl>
         </div>
@@ -129,7 +128,10 @@ export function ClaimCareView({
           size="lg"
           type="button"
         >
-          <Check aria-hidden="true" /> I’ll help with this
+          <Check aria-hidden="true" />
+          {care.direction === "give"
+            ? " I’ll receive this"
+            : " I’ll help with this"}
         </Button>
       </footer>
     </section>

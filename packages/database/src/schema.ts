@@ -16,11 +16,15 @@ import {
 import type {
   CareCategoryId,
   CareDay,
+  CareDirection,
+  CareStatus,
   CareTime,
   CuratedPersonPlacement,
   TimelineAudience,
   TimelineItemLayer,
 } from "@cloud-forest/domain";
+
+export type { CareDirection, CareStatus } from "@cloud-forest/domain";
 
 export type AccountRole = "admin" | "user";
 export type ConnectionPairingStatus =
@@ -30,14 +34,6 @@ export type ConnectionPairingStatus =
   | "superseded";
 export type CareAudience = "party" | "tribe";
 export type CareExpiration = "1h" | "4h" | "1d" | "1w";
-export type CareRequestStatus =
-  | "open"
-  | "claimed"
-  | "orphaned"
-  | "completed"
-  | "expired"
-  | "not_completed";
-export type CareOfferStatus = "available" | "expired";
 export type CareGratitudeStatementId =
   | "meal-fed-when-needed"
   | "meal-care-felt-easy"
@@ -340,17 +336,19 @@ export const connections = pgTable(
   ],
 );
 
-export const careRequests = pgTable(
-  "care_requests",
+export const cares = pgTable(
+  "cares",
   {
     id: varchar("id", { length: 128 }).primaryKey(),
-    requesterUserId: varchar("requester_user_id", { length: 128 })
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
     originatorUserId: varchar("originator_user_id", { length: 128 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    kind: varchar("kind", { length: 16 }).notNull().default("meal"),
+    participantUserId: varchar("participant_user_id", {
+      length: 128,
+    }).references(() => users.id, { onDelete: "cascade" }),
+    direction: varchar("direction", { length: 8 })
+      .$type<CareDirection>()
+      .notNull(),
     category: varchar("category", { length: 32 })
       .$type<CareCategoryId>()
       .notNull()
@@ -364,28 +362,20 @@ export const careRequests = pgTable(
       .default("Not specified"),
     requirements: text("requirements").notNull().default(""),
     sensitivities: text("sensitivities").notNull().default(""),
-    helpfulWhen: varchar("helpful_when", { length: 500 }).notNull(),
-    foodWorks: text("food_works").notNull(),
-    foodDoesNotWork: text("food_does_not_work").notNull().default(""),
-    handoffStyle: varchar("handoff_style", { length: 200 }).notNull(),
     audience: varchar("audience", { length: 16 })
       .$type<CareAudience>()
       .notNull()
       .default("party"),
     status: varchar("status", { length: 16 })
-      .$type<CareRequestStatus>()
+      .$type<CareStatus>()
       .notNull()
       .default("open"),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
-    claimantUserId: varchar("claimant_user_id", { length: 128 }).references(
-      () => users.id,
-      { onDelete: "cascade" },
-    ),
     claimedAt: timestamp("claimed_at", { withTimezone: true }),
-    requesterCompletedAt: timestamp("requester_completed_at", {
+    originatorCompletedAt: timestamp("originator_completed_at", {
       withTimezone: true,
     }),
-    claimantCompletedAt: timestamp("claimant_completed_at", {
+    participantCompletedAt: timestamp("participant_completed_at", {
       withTimezone: true,
     }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
@@ -401,74 +391,54 @@ export const careRequests = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   },
   (table) => [
-    index("care_requests_requester_index").on(table.requesterUserId),
-    index("care_requests_originator_index").on(table.originatorUserId),
-    index("care_requests_claimant_index").on(table.claimantUserId),
-    check("care_requests_id_length", sql`char_length(${table.id}) >= 1`),
-    check("care_requests_kind_allowed", sql`${table.kind} = 'meal'`),
+    index("cares_originator_index").on(table.originatorUserId),
+    index("cares_participant_index").on(table.participantUserId),
+    check("cares_id_length", sql`char_length(${table.id}) >= 1`),
     check(
-      "care_requests_category_allowed",
+      "cares_direction_allowed",
+      sql`${table.direction} in ('give', 'receive')`,
+    ),
+    check(
+      "cares_category_allowed",
       sql`${table.category} in ('transportation', 'food', 'pet-care', 'child-care', 'urgent-shelter', 'help-at-home', 'executive-function-support', 'get-out-of-the-house')`,
     ),
+    check("cares_subtype_length", sql`char_length(${table.subtype}) <= 200`),
+    check("cares_time_note_length", sql`char_length(${table.timeNote}) <= 500`),
     check(
-      "care_requests_subtype_length",
-      sql`char_length(${table.subtype}) <= 200`,
-    ),
-    check(
-      "care_requests_time_note_length",
-      sql`char_length(${table.timeNote}) <= 500`,
-    ),
-    check(
-      "care_requests_location_length",
+      "cares_location_length",
       sql`char_length(${table.location}) between 1 and 500`,
     ),
     check(
-      "care_requests_requirements_length",
+      "cares_requirements_length",
       sql`char_length(${table.requirements}) <= 10000`,
     ),
     check(
-      "care_requests_sensitivities_length",
+      "cares_sensitivities_length",
       sql`char_length(${table.sensitivities}) <= 10000`,
     ),
     check(
-      "care_requests_helpful_when_length",
-      sql`char_length(${table.helpfulWhen}) between 1 and 500`,
-    ),
-    check(
-      "care_requests_food_works_length",
-      sql`char_length(${table.foodWorks}) between 1 and 10000`,
-    ),
-    check(
-      "care_requests_food_does_not_work_length",
-      sql`char_length(${table.foodDoesNotWork}) <= 10000`,
-    ),
-    check(
-      "care_requests_handoff_style_length",
-      sql`char_length(${table.handoffStyle}) between 1 and 200`,
-    ),
-    check(
-      "care_requests_audience_allowed",
+      "cares_audience_allowed",
       sql`${table.audience} in ('party', 'tribe')`,
     ),
     check(
-      "care_requests_status_allowed",
+      "cares_status_allowed",
       sql`${table.status} in ('open', 'claimed', 'orphaned', 'completed', 'expired', 'not_completed')`,
     ),
     check(
-      "care_requests_claim_state",
-      sql`(${table.status} = 'open' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and (${table.requesterCompletedAt} is null or ${table.claimantCompletedAt} is null) and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.requesterCompletedAt} is not null and ${table.claimantCompletedAt} is not null and ${table.completedAt} is not null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'expired' and ${table.claimantUserId} is null and ${table.claimedAt} is null and ${table.requesterCompletedAt} is null and ${table.claimantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is not null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'not_completed' and ${table.claimantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is not null and ${table.notCompletedAt} is not null and ${table.withdrawalStatementId} is not null)`,
+      "cares_lifecycle_allowed",
+      sql`(${table.status} = 'open' and ${table.participantUserId} is null and ${table.claimedAt} is null and ${table.originatorCompletedAt} is null and ${table.participantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} in ('claimed', 'orphaned') and ${table.participantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and (${table.originatorCompletedAt} is null or ${table.participantCompletedAt} is null) and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'completed' and ${table.participantUserId} is not null and ${table.claimedAt} is not null and ${table.originatorCompletedAt} is not null and ${table.participantCompletedAt} is not null and ${table.completedAt} is not null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'expired' and ${table.participantUserId} is null and ${table.claimedAt} is null and ${table.originatorCompletedAt} is null and ${table.participantCompletedAt} is null and ${table.completedAt} is null and ${table.expiredAt} is not null and ${table.withdrawnByUserId} is null and ${table.notCompletedAt} is null and ${table.withdrawalStatementId} is null) or (${table.status} = 'not_completed' and ${table.participantUserId} is not null and ${table.claimedAt} is not null and ${table.completedAt} is null and ${table.expiredAt} is null and ${table.withdrawnByUserId} is not null and ${table.notCompletedAt} is not null and ${table.withdrawalStatementId} is not null)`,
     ),
     check(
-      "care_requests_withdrawal_statement_allowed",
+      "cares_withdrawal_statement_allowed",
       sql`${table.withdrawalStatementId} is null or ${table.withdrawalStatementId} in ('meal-sorry-cant-follow-through', 'meal-something-changed', 'meal-sorry-committed')`,
     ),
     check(
-      "care_requests_withdrawal_message_length",
+      "cares_withdrawal_message_length",
       sql`char_length(${table.withdrawalMessage}) <= 1000`,
     ),
     check(
-      "care_requests_not_self_claimed",
-      sql`${table.claimantUserId} is null or ${table.requesterUserId} <> ${table.claimantUserId}`,
+      "cares_not_self_claimed",
+      sql`${table.participantUserId} is null or ${table.originatorUserId} <> ${table.participantUserId}`,
     ),
   ],
 );
@@ -477,9 +447,9 @@ export const careGratitudes = pgTable(
   "care_gratitudes",
   {
     id: varchar("id", { length: 128 }).primaryKey(),
-    careRequestId: varchar("care_request_id", { length: 128 })
+    careId: varchar("care_id", { length: 128 })
       .notNull()
-      .references(() => careRequests.id, { onDelete: "cascade" }),
+      .references(() => cares.id, { onDelete: "cascade" }),
     receiverUserId: varchar("receiver_user_id", { length: 128 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -496,7 +466,7 @@ export const careGratitudes = pgTable(
     }).notNull(),
   },
   (table) => [
-    uniqueIndex("care_gratitudes_request_unique").on(table.careRequestId),
+    uniqueIndex("care_gratitudes_care_unique").on(table.careId),
     index("care_gratitudes_receiver_index").on(table.receiverUserId),
     index("care_gratitudes_giver_index").on(table.giverUserId),
     check("care_gratitudes_id_length", sql`char_length(${table.id}) >= 1`),
@@ -515,104 +485,13 @@ export const careGratitudes = pgTable(
   ],
 );
 
-export const careOffers = pgTable(
-  "care_offers",
+export const carePasses = pgTable(
+  "care_passes",
   {
     id: varchar("id", { length: 128 }).primaryKey(),
-    giverUserId: varchar("giver_user_id", { length: 128 })
+    careId: varchar("care_id", { length: 128 })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    kind: varchar("kind", { length: 16 }).notNull().default("meal"),
-    category: varchar("category", { length: 32 })
-      .$type<CareCategoryId>()
-      .notNull()
-      .default("food"),
-    subtype: varchar("subtype", { length: 200 }).notNull().default(""),
-    days: jsonb("days").$type<CareDay[]>().notNull().default([]),
-    times: jsonb("times").$type<CareTime[]>().notNull().default([]),
-    timeNote: varchar("time_note", { length: 500 }).notNull().default(""),
-    location: varchar("location", { length: 500 })
-      .notNull()
-      .default("Not specified"),
-    requirements: text("requirements").notNull().default(""),
-    sensitivities: text("sensitivities").notNull().default(""),
-    mealDescription: text("meal_description").notNull(),
-    availableWhen: varchar("available_when", { length: 500 }).notNull(),
-    handoffStyle: varchar("handoff_style", { length: 200 }).notNull(),
-    audience: varchar("audience", { length: 16 })
-      .$type<CareAudience>()
-      .notNull()
-      .default("party"),
-    status: varchar("status", { length: 16 })
-      .$type<CareOfferStatus>()
-      .notNull()
-      .default("available"),
-    expiresAt: timestamp("expires_at", { withTimezone: true }),
-    expiredAt: timestamp("expired_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-  },
-  (table) => [
-    index("care_offers_giver_index").on(table.giverUserId),
-    check("care_offers_id_length", sql`char_length(${table.id}) >= 1`),
-    check("care_offers_kind_allowed", sql`${table.kind} = 'meal'`),
-    check(
-      "care_offers_category_allowed",
-      sql`${table.category} in ('transportation', 'food', 'pet-care', 'child-care', 'urgent-shelter', 'help-at-home', 'executive-function-support', 'get-out-of-the-house')`,
-    ),
-    check(
-      "care_offers_subtype_length",
-      sql`char_length(${table.subtype}) <= 200`,
-    ),
-    check(
-      "care_offers_time_note_length",
-      sql`char_length(${table.timeNote}) <= 500`,
-    ),
-    check(
-      "care_offers_location_length",
-      sql`char_length(${table.location}) between 1 and 500`,
-    ),
-    check(
-      "care_offers_requirements_length",
-      sql`char_length(${table.requirements}) <= 10000`,
-    ),
-    check(
-      "care_offers_sensitivities_length",
-      sql`char_length(${table.sensitivities}) <= 10000`,
-    ),
-    check(
-      "care_offers_meal_description_length",
-      sql`char_length(${table.mealDescription}) between 1 and 10000`,
-    ),
-    check(
-      "care_offers_available_when_length",
-      sql`char_length(${table.availableWhen}) between 1 and 500`,
-    ),
-    check(
-      "care_offers_handoff_style_length",
-      sql`char_length(${table.handoffStyle}) between 1 and 200`,
-    ),
-    check(
-      "care_offers_audience_allowed",
-      sql`${table.audience} in ('party', 'tribe')`,
-    ),
-    check(
-      "care_offers_status_allowed",
-      sql`${table.status} in ('available', 'expired')`,
-    ),
-    check(
-      "care_offers_expiry_state",
-      sql`(${table.status} = 'available' and ${table.expiredAt} is null) or (${table.status} = 'expired' and ${table.expiredAt} is not null)`,
-    ),
-  ],
-);
-
-export const careRequestPasses = pgTable(
-  "care_request_passes",
-  {
-    id: varchar("id", { length: 128 }).primaryKey(),
-    careRequestId: varchar("care_request_id", { length: 128 })
-      .notNull()
-      .references(() => careRequests.id, { onDelete: "cascade" }),
+      .references(() => cares.id, { onDelete: "cascade" }),
     originatorUserId: varchar("originator_user_id", { length: 128 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -625,60 +504,21 @@ export const careRequestPasses = pgTable(
     passedAt: timestamp("passed_at", { withTimezone: true }).notNull(),
   },
   (table) => [
-    uniqueIndex("care_request_passes_viewer_unique").on(
-      table.careRequestId,
+    uniqueIndex("care_passes_viewer_unique").on(
+      table.careId,
       table.viewerUserId,
       table.audience,
     ),
-    index("care_request_passes_originator_viewer_index").on(
+    index("care_passes_originator_viewer_index").on(
       table.originatorUserId,
       table.viewerUserId,
     ),
     check(
-      "care_request_passes_audience_allowed",
+      "care_passes_audience_allowed",
       sql`${table.audience} in ('party', 'tribe')`,
     ),
     check(
-      "care_request_passes_viewer_distinct",
-      sql`${table.originatorUserId} <> ${table.viewerUserId}`,
-    ),
-  ],
-);
-
-export const careOfferPasses = pgTable(
-  "care_offer_passes",
-  {
-    id: varchar("id", { length: 128 }).primaryKey(),
-    careOfferId: varchar("care_offer_id", { length: 128 })
-      .notNull()
-      .references(() => careOffers.id, { onDelete: "cascade" }),
-    originatorUserId: varchar("originator_user_id", { length: 128 })
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    viewerUserId: varchar("viewer_user_id", { length: 128 })
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    audience: varchar("audience", { length: 16 })
-      .$type<CareAudience>()
-      .notNull(),
-    passedAt: timestamp("passed_at", { withTimezone: true }).notNull(),
-  },
-  (table) => [
-    uniqueIndex("care_offer_passes_viewer_unique").on(
-      table.careOfferId,
-      table.viewerUserId,
-      table.audience,
-    ),
-    index("care_offer_passes_originator_viewer_index").on(
-      table.originatorUserId,
-      table.viewerUserId,
-    ),
-    check(
-      "care_offer_passes_audience_allowed",
-      sql`${table.audience} in ('party', 'tribe')`,
-    ),
-    check(
-      "care_offer_passes_viewer_distinct",
+      "care_passes_viewer_distinct",
       sql`${table.originatorUserId} <> ${table.viewerUserId}`,
     ),
   ],
