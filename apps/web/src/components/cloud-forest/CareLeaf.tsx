@@ -85,11 +85,25 @@ export function CareLeaf({
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (care.status !== "open" || !care.expiresAt) return;
-    const update = () => setNow(Date.now());
-    const timer = window.setInterval(update, 60_000);
+    const expiresAt = Date.parse(care.expiresAt);
+    if (!Number.isFinite(expiresAt)) return;
+    let timer: number;
+    const scheduleUpdate = () => {
+      timer = window.setTimeout(
+        update,
+        Math.max(0, Math.min(60_000, expiresAt - Date.now())),
+      );
+    };
+    const update = () => {
+      window.clearTimeout(timer);
+      const currentTime = Date.now();
+      setNow(currentTime);
+      if (currentTime < expiresAt) scheduleUpdate();
+    };
+    scheduleUpdate();
     window.addEventListener("focus", update);
     return () => {
-      window.clearInterval(timer);
+      window.clearTimeout(timer);
       window.removeEventListener("focus", update);
     };
   }, [care.status, care.expiresAt]);
@@ -98,6 +112,11 @@ export function CareLeaf({
   const CategoryIcon = categoryIcons[care.category];
   const DirectionIcon = care.direction === "give" ? Gift : HandHeart;
   const expiration = expirationPresentation(care, now);
+  const expirationReached =
+    care.status === "open" &&
+    care.expiresAt !== undefined &&
+    Date.parse(care.expiresAt) <= now;
+  const presentationStatus = expirationReached ? "expired" : care.status;
   const schedule = careScheduleLabel({
     days: care.days,
     times: care.times,
@@ -115,7 +134,7 @@ export function CareLeaf({
   return (
     <article
       aria-label={`${articleLabel}${minimized ? ", minimized" : ""}`}
-      className={`care-leaf care-leaf--${care.direction} care-leaf--${care.status} care-leaf--${expiration.season}${minimized ? " care-leaf--minimized" : ""}`}
+      className={`care-leaf care-leaf--${care.direction} care-leaf--${presentationStatus} care-leaf--${expiration.season}${minimized ? " care-leaf--minimized" : ""}`}
     >
       {onOpenDetails ? (
         <button
@@ -177,16 +196,19 @@ export function CareLeaf({
           <CalendarDays aria-hidden="true" />
           <span>{schedule}</span>
         </p>
-        {expiration.label ? (
+        {care.timeNote.trim() ? (
+          <p className="care-leaf__timing-note">{care.timeNote.trim()}</p>
+        ) : null}
+        {expiration.label && !expirationReached ? (
           <p className="care-leaf__time">
             <Clock aria-hidden="true" />
             <time dateTime={care.expiresAt}>{expiration.label}</time>
           </p>
         ) : null}
-        {stateLabels[care.status] ? (
-          <p className="care-leaf__state">{stateLabels[care.status]}</p>
+        {stateLabels[presentationStatus] ? (
+          <p className="care-leaf__state">{stateLabels[presentationStatus]}</p>
         ) : null}
-        {actions}
+        {presentationStatus === "expired" ? null : actions}
         {presentationControl}
       </div>
       <div className="care-leaf__identity">

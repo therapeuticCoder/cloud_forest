@@ -164,6 +164,12 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.care-leaf__timing-note {
+  margin: 4px 0 4px 21px;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
 .care-leaf__state {
   margin: 5px 0;
   font-size: 0.78rem;
