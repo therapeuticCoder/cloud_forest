@@ -77,14 +77,30 @@ export function TimelineCard({ item, time }: TimelineCardProps) {
   const { actor } = item;
   const layer = getTimelineLayer(actor);
   const LayerIcon = layerIcons[layer];
+  const isSignal = layer === "signal";
 
   return (
     <article className={cn("timeline-card", layerStyles[layer])}>
       <TimelineIdentity actor={actor} />
-      <div className="timeline-card__body">
+      <div
+        className={cn(
+          "timeline-card__body",
+          isSignal && "timeline-card__body--signal",
+        )}
+      >
+        {isSignal ? (
+          <span className="timeline-card__kind">Signal · Public source</span>
+        ) : null}
         <h3>{actor.displayName}</h3>
         <time dateTime={item.publishedAt}>{time}</time>
-        <p>{item.content}</p>
+        {isSignal ? (
+          <details className="timeline-signal-content">
+            <summary>Reveal public post</summary>
+            <p>{item.content}</p>
+          </details>
+        ) : (
+          <p>{item.content}</p>
+        )}
       </div>
       <span aria-hidden="true" className="timeline-layer-mark">
         <LayerIcon />

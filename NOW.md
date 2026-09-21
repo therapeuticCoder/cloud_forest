@@ -17,7 +17,8 @@ Build a coherent trusted-tester alpha for fewer than 100 people. Alpha succeeds 
 - Ordinary Timeline posting is currently in PR: real users can create durable Party/Tribe posts for eligible real Connections.
 - A public alpha front door is being built separately from the application repository.
 - Guilds remain a visible alpha promise rather than implemented collaboration functionality.
-- Signals remain fixture-backed; no real ActivityPub/federated Signal exists yet.
+- One operator-configured ActivityPub source now imports a small durable batch
+  of public posts into Timeline as Signals.
 
 ## Now
 
@@ -28,9 +29,8 @@ In parallel, improve product legibility where work can stay isolated from Care l
 ## Next
 
 1. **Care types and presentation** — define the alpha Care catalog with Scott, implement the corresponding Give/Receive wizards and language, then make Care visually distinct by type and from ordinary Posts.
-2. **Signals** — follow at least one real external federated account and bring real public ActivityPub content into Timeline as a quiet, collapsed Signal.
-3. **Alpha coherence** — use the whole product end to end; remove remaining prototype fixtures; decompose oversized coordinators; reduce giant files; clarify feature ownership; separate global styling from feature styling; repair confusing seams.
-4. **React Native preparation** — as part of coherence, leave domain, API, state, and feature boundaries cleaner and less web-entangled so a post-alpha React Native client refactor is easier. Do not begin the React Native migration during alpha.
+2. **Alpha coherence** — use the whole product end to end; remove remaining prototype fixtures; decompose oversized coordinators; reduce giant files; clarify feature ownership; separate global styling from feature styling; repair confusing seams.
+3. **React Native preparation** — as part of coherence, leave domain, API, state, and feature boundaries cleaner and less web-entangled so a post-alpha React Native client refactor is easier. Do not begin the React Native migration during alpha.
 
 ## Known temporary debt
 
@@ -39,7 +39,7 @@ In parallel, improve product legibility where work can stay isolated from Care l
 - Large app-level tests have accumulated around prototype behavior.
 - Disconnected review prototypes remain in source until their accepted behavior is safely represented in product code or durable product docs.
 - Care presentation still needs type-specific language and visual identity.
-- Guild/Signal presentation still depends on fictional fixture state.
+- Guild presentation still depends on fictional fixture state.
 
 ## Definition of done for an alpha increment
 

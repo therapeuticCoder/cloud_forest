@@ -44,16 +44,20 @@ export function createTimelineItemResolver(
 
 export function createTimelineItemsResolver(
   repository: TimelineItemRepository,
+  syncSignals: () => Promise<void> = async () => undefined,
 ): TimelineItemsResolver {
-  return async (viewerUserId) => ({
-    statusCode: 200,
-    body: {
-      apiVersion,
-      data: {
-        timelineItems: await repository.listForViewer(viewerUserId),
+  return async (viewerUserId) => {
+    await syncSignals();
+    return {
+      statusCode: 200,
+      body: {
+        apiVersion,
+        data: {
+          timelineItems: await repository.listForViewer(viewerUserId),
+        },
       },
-    },
-  });
+    };
+  };
 }
 
 export function createTimelinePostResolver(

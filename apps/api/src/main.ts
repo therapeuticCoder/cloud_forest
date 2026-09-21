@@ -13,6 +13,7 @@ import type { FastifyInstance } from "fastify";
 
 import { startApi, stopApi } from "./lifecycle.ts";
 import { createInvitedAuth } from "./auth.ts";
+import { createActivityPubSignalImporter } from "./activityPubSignal.ts";
 import { createSessionResolver } from "./sessionResolver.ts";
 import {
   createTimelinePostResolver,
@@ -22,6 +23,10 @@ import {
 
 const { database, pool } = createDatabaseClient(getDatabaseUrl());
 const timelineItemRepository = createTimelineItemRepository(database);
+const signalImporter = createActivityPubSignalImporter({
+  repository: timelineItemRepository,
+  source: process.env.SIGNAL_SOURCE_HANDLE,
+});
 
 const invitedAuth = createInvitedAuth(
   database,
@@ -49,6 +54,7 @@ try {
       timelineItemResolver: createTimelineItemResolver(timelineItemRepository),
       timelineItemsResolver: createTimelineItemsResolver(
         timelineItemRepository,
+        signalImporter.sync,
       ),
       createTimelinePostResolver: createTimelinePostResolver(
         timelineItemRepository,

@@ -6,6 +6,7 @@ import {
   eq,
   exists,
   isNotNull,
+  isNull,
   notExists,
   or,
   sql,
@@ -91,7 +92,7 @@ function visibleTimelineItemForViewer(
       ),
   );
 
-  return and(
+  const visibleRelationshipPost = and(
     isNotNull(timelineItems.authorUserId),
     isNotNull(timelineItems.audience),
     relationshipIsNotBlocked,
@@ -100,6 +101,15 @@ function visibleTimelineItemForViewer(
       and(connectionWithAuthor, authorPlacementMatches),
     ),
   );
+
+  const visibleExternalSignal = and(
+    eq(timelineItems.actorLayer, "signal"),
+    isNull(timelineItems.ownerUserId),
+    isNull(timelineItems.authorUserId),
+    isNull(timelineItems.audience),
+  );
+
+  return or(visibleRelationshipPost, visibleExternalSignal);
 }
 
 export function createTimelineItemRepository(database: DatabaseClient) {
@@ -159,6 +169,39 @@ export function createTimelineItemRepository(database: DatabaseClient) {
         .returning();
 
       return created === undefined ? null : mapTimelineItemRow(created);
+    },
+
+    async insertSignalItems(
+      items: readonly {
+        id: string;
+        actorId: string;
+        actorDisplayName: string;
+        actorInitials?: string;
+        actorAvatarUrl?: string;
+        content: string;
+        publishedAt: Date;
+      }[],
+    ): Promise<void> {
+      if (items.length === 0) return;
+
+      await database
+        .insert(timelineItems)
+        .values(
+          items.map((item) => ({
+            id: item.id,
+            ownerUserId: null,
+            authorUserId: null,
+            audience: null,
+            actorId: item.actorId,
+            actorDisplayName: item.actorDisplayName,
+            actorLayer: "signal" as const,
+            actorInitials: item.actorInitials ?? null,
+            actorAvatarUrl: item.actorAvatarUrl ?? null,
+            content: item.content,
+            publishedAt: item.publishedAt,
+          })),
+        )
+        .onConflictDoNothing();
     },
 
     async findByIdForViewer(
