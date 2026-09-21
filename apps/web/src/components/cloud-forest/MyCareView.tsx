@@ -40,7 +40,8 @@ const formatter = new Intl.DateTimeFormat("en-US", {
 type MyCareViewProps = {
   initialTab?: MyCareTab;
   activeCares: Care[];
-  claimedCares: Care[];
+  claimedGiveCares: Care[];
+  claimedReceiveCares: Care[];
   completedCares: Care[];
   notCompletedCares: Care[];
   expiredCares: Care[];
@@ -63,7 +64,8 @@ type MyCareViewProps = {
 export function MyCareView({
   initialTab = "receive",
   activeCares,
-  claimedCares,
+  claimedGiveCares,
+  claimedReceiveCares,
   completedCares,
   notCompletedCares,
   expiredCares,
@@ -131,6 +133,11 @@ export function MyCareView({
       at: care.expiredAt ?? care.createdAt,
     })),
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+
+  const receiveCares = [
+    ...activeCares.filter((care) => care.direction === "receive"),
+    ...claimedGiveCares,
+  ];
 
   const renderCareCard = (care: Care) => (
     <CareCard
@@ -284,11 +291,8 @@ export function MyCareView({
               <Send aria-hidden="true" />
               <h2 id="receive-heading">My open Care to receive</h2>
             </div>
-            {activeCares
-              .filter((care) => care.direction === "receive")
-              .map(renderCareCard)}
-            {activeCares.filter((care) => care.direction === "receive")
-              .length === 0 ? (
+            {receiveCares.map(renderCareCard)}
+            {receiveCares.length === 0 ? (
               <p className="my-care-view__empty">
                 You don’t have active Care to receive right now.
               </p>
@@ -326,8 +330,8 @@ export function MyCareView({
                 <HandHeart aria-hidden="true" />
                 <h2 id="helping-heading">Care I’m part of</h2>
               </div>
-              {claimedCares.length > 0 ? (
-                claimedCares.map(renderCareCard)
+              {claimedReceiveCares.length > 0 ? (
+                claimedReceiveCares.map(renderCareCard)
               ) : (
                 <p className="my-care-view__empty">
                   You’re not part of any active Care right now.

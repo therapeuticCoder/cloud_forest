@@ -192,4 +192,54 @@ describe("unified Care", () => {
     );
     expect(await screen.findByText("Committed")).toBeInTheDocument();
   });
+
+  it("places claimed Care in the tab matching the viewer's role", async () => {
+    const client = createCareClient([
+      care({
+        id: "care-anya-transportation-claimed-001",
+        status: "claimed",
+        claimedAt: "2026-09-21T12:05:00.000Z",
+        participant: viewer,
+      }),
+      care({
+        id: "care-mira-food-claimed-001",
+        direction: "give",
+        category: "food",
+        originator: { personId: "mira", displayName: "Mira Vale" },
+        status: "claimed",
+        claimedAt: "2026-09-21T12:05:00.000Z",
+        participant: viewer,
+      }),
+    ]);
+
+    await renderAuthenticatedApp(client);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Open My Care" }));
+    await user.click(screen.getByRole("tab", { name: "Receive" }));
+
+    expect(
+      await screen.findByRole("article", {
+        name: "Mira Vale shared food Care",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("article", {
+        name: "Anya Reed shared transportation Care",
+      }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Give" }));
+
+    expect(
+      await screen.findByRole("article", {
+        name: "Anya Reed shared transportation Care",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("article", {
+        name: "Mira Vale shared food Care",
+      }),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -744,8 +744,20 @@ export function DashboardShell({
   const durableExpiredCares = durableCareRecords.filter(
     (care) => care.status === "expired",
   );
-  const durableClaimedCares = useMemo(
-    () => durableCares.filter((care) => care.participant?.id === careViewerId),
+  const durableClaimedGiveCares = useMemo(
+    () =>
+      durableCares.filter(
+        (care) =>
+          care.participant?.id === careViewerId && care.direction === "give",
+      ),
+    [careViewerId, durableCares],
+  );
+  const durableClaimedReceiveCares = useMemo(
+    () =>
+      durableCares.filter(
+        (care) =>
+          care.participant?.id === careViewerId && care.direction === "receive",
+      ),
     [careViewerId, durableCares],
   );
   const durableSelfProfileCares = useMemo(
@@ -999,7 +1011,8 @@ export function DashboardShell({
             <MyCareView
               initialTab={careDestination.initialTab}
               activeCares={durableSelfProfileCares}
-              claimedCares={durableClaimedCares}
+              claimedGiveCares={durableClaimedGiveCares}
+              claimedReceiveCares={durableClaimedReceiveCares}
               completedCares={durableCompletedCares}
               notCompletedCares={durableNotCompletedCares}
               expiredCares={durableExpiredCares}
