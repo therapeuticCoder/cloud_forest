@@ -218,7 +218,11 @@ export function CareWizard({
         </Button>
       </header>
 
-      <div className="party-wizard__progress" aria-hidden="true">
+      <div
+        aria-hidden="true"
+        className="party-wizard__progress"
+        data-step-count={wizardSteps.length}
+      >
         {wizardSteps.map((wizardStep, index) => (
           <span
             className={index <= step ? "is-current" : ""}
@@ -261,13 +265,6 @@ export function CareWizard({
                 </Button>
               ))}
             </div>
-            {definition && !hasSubtypes(category) ? (
-              <p className="party-wizard__hint">
-                {direction === "receive"
-                  ? definition.receiveWording
-                  : definition.giveWording}
-              </p>
-            ) : null}
           </div>
         ) : null}
 
