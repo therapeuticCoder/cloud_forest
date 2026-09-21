@@ -12,6 +12,7 @@ export function TimelineView({
   cares = [],
   careError,
   minimizedCareIds = noCareIds,
+  onOpenCareDetails,
   onCommitToCare,
   onClaim,
   onRecordCompleted,
@@ -33,6 +34,7 @@ export function TimelineView({
   cares?: Care[];
   careError?: TimelineError;
   minimizedCareIds?: Set<string>;
+  onOpenCareDetails?: (care: Care) => void;
   onCommitToCare?: (care: Care) => void;
   onClaim?: (careId: string) => void;
   onRecordCompleted?: (care: Care) => void;
@@ -60,6 +62,7 @@ export function TimelineView({
         offline={offline}
         onClaim={onClaim}
         onClosePostComposer={onClosePostComposer}
+        onOpenCareDetails={onOpenCareDetails}
         onCommitToCare={onCommitToCare}
         onOfflineChange={onOfflineChange}
         onPass={onPass}

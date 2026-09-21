@@ -1,0 +1,415 @@
+.care-leaf {
+  --leaf-fill: #20491c;
+  --leaf-edge: #74954a;
+  --leaf-vein: #a7bd67;
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  margin: 6px 0 10px;
+  padding: 22px 22px 36px 84px;
+  color: #f4efda;
+}
+
+.care-leaf--amber {
+  --leaf-fill: #67521e;
+  --leaf-edge: #c0a653;
+  --leaf-vein: #e4c479;
+}
+
+.care-leaf--rust {
+  --leaf-fill: #733c29;
+  --leaf-edge: #be8260;
+  --leaf-vein: #dba77c;
+}
+
+.care-leaf--expired,
+.care-leaf--not_completed,
+.care-leaf--orphaned {
+  --leaf-fill: #493d2b;
+  --leaf-edge: #8c7856;
+  --leaf-vein: #b6a380;
+}
+
+.care-leaf__shape {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 4px 4px #090b0570);
+}
+
+.care-leaf__blade {
+  fill: var(--leaf-fill);
+  stroke: var(--leaf-edge);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.care-leaf__vein {
+  fill: none;
+  stroke: var(--leaf-vein);
+  stroke-width: 1;
+  opacity: 0.13;
+  vector-effect: non-scaling-stroke;
+}
+
+.care-leaf__branch {
+  position: absolute;
+  z-index: -2;
+  inset: 4px auto 12px 0;
+  width: 64px;
+  height: calc(100% - 16px);
+  overflow: hidden;
+  fill: none;
+  stroke: #9b7847;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.care-leaf__twig {
+  stroke-width: 2;
+}
+.care-leaf__bud {
+  fill: var(--leaf-fill);
+  stroke: var(--leaf-edge);
+  stroke-width: 1;
+}
+
+.care-leaf__category-mark {
+  position: absolute;
+  left: 20px;
+  top: 49px;
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border: 2px solid var(--leaf-edge);
+  border-radius: 50%;
+  background: #173623;
+}
+
+.care-leaf__category-mark svg {
+  width: 23px;
+  height: 23px;
+}
+.care-leaf__content {
+  min-width: 0;
+}
+.care-leaf__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-height: 44px;
+  padding-right: clamp(24px, 12%, 44px);
+}
+.care-leaf__category {
+  color: #eee1a8;
+  font-size: 0.65rem;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+/* A sibling button opens details without nesting the Care action buttons. */
+.care-leaf__open {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 0 15%;
+  border: 0;
+  border-radius: 45% 35% 25% 30%;
+  padding: 0;
+  background: transparent;
+}
+.care-leaf:has(.care-leaf__open) .care-leaf__content,
+.care-leaf:has(.care-leaf__open) .care-leaf__identity,
+.care-leaf:has(.care-leaf__open) .care-leaf__category-mark {
+  pointer-events: none;
+}
+.care-leaf:has(.care-leaf__open) .care-leaf__content button {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+.care-leaf h2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  font-weight: 650;
+}
+.care-leaf__when,
+.care-leaf__time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+.care-leaf__when svg,
+.care-leaf__time svg {
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+}
+.care-leaf__when span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.care-leaf__state {
+  margin: 5px 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.care-leaf__identity {
+  position: absolute;
+  left: 0;
+  bottom: 24px;
+  width: 78px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.care-leaf__initials {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border: 1px solid var(--leaf-edge);
+  border-radius: 50%;
+  background: #385425;
+  font-size: 0.85rem;
+}
+.care-leaf__identity > svg {
+  width: 22px;
+  height: 22px;
+  color: #eee1a8;
+}
+.care-leaf__relationship {
+  width: 100%;
+  font-size: 0.65rem;
+  line-height: 1.2;
+  color: #efe6cd;
+}
+
+.care-leaf .care-card__actions {
+  display: grid;
+  width: 80%;
+  max-width: 18rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.care-leaf .care-card__actions > button,
+.care-leaf .care-card__withdraw,
+.care-leaf .care-card__outcome-actions > button {
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  padding: 7px 6px;
+  border: 1px solid #b0bf7370;
+  border-radius: 13px;
+  background: #142d21;
+  color: #f4efda;
+  font-size: 0.77rem;
+  line-height: 1.15;
+  font-weight: 650;
+}
+.care-leaf .care-card__actions > .care-card__claim {
+  background: #59732e;
+}
+.care-leaf .care-card__withdraw {
+  width: calc((80% - 6px) / 2);
+  max-width: 9rem;
+  margin-top: 12px;
+  text-decoration: none;
+}
+.care-leaf .care-card__presentation {
+  min-height: 44px;
+  margin: 4px 0 0;
+  color: #f4efda;
+  font-size: 0.75rem;
+}
+.care-leaf .care-card__commitment,
+.care-leaf .care-card__waiting {
+  color: #f4efda;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+.care-leaf .care-card__outcome {
+  margin-top: 8px;
+}
+.care-leaf .care-card__outcome-actions {
+  gap: 6px;
+}
+.care-leaf button {
+  cursor: pointer;
+}
+.care-leaf button:hover {
+  filter: brightness(1.12);
+}
+.care-leaf button:focus-visible {
+  outline: 3px solid #f0d78a;
+  outline-offset: 3px;
+}
+
+/* Only the blade changes posture; controls stay upright and fully sized. */
+.care-leaf--claimed,
+.care-leaf--orphaned,
+.care-leaf--minimized {
+  margin-right: 18px;
+  padding-top: 14px;
+  padding-bottom: 22px;
+}
+.care-leaf--claimed .care-leaf__shape,
+.care-leaf--orphaned .care-leaf__shape,
+.care-leaf--minimized .care-leaf__shape {
+  transform: scaleY(0.94);
+  transform-origin: left center;
+}
+
+.care-leaf--claimed h2,
+.care-leaf--orphaned h2,
+.care-leaf--minimized h2 {
+  -webkit-line-clamp: 1;
+  font-size: 0.95rem;
+}
+.care-leaf--completed {
+  --leaf-fill: #4b502f;
+  --leaf-edge: #8a9662;
+  padding-top: 30px;
+}
+.care-leaf--completed .care-leaf__shape {
+  transform: rotate(3deg) scaleY(0.9);
+  transform-origin: center;
+}
+.care-leaf--completed .care-leaf__branch {
+  opacity: 0.35;
+}
+.care-leaf--expired .care-leaf__vein,
+.care-leaf--not_completed .care-leaf__vein {
+  opacity: 0.3;
+  stroke-dasharray: 5 3;
+}
+
+/* Posts keep the entire feed width and a quieter soil-colored surface. */
+.timeline-list > .timeline-card {
+  width: 100%;
+  margin-inline: 0;
+  border: 1px solid #ac875826;
+  background: #302012;
+  color: #f0e8d6;
+  box-shadow: none;
+}
+.timeline-list > .timeline-card .timeline-card__body time {
+  color: #c8bda8;
+}
+.timeline-list > .timeline-card .timeline-card__body p {
+  color: #e0d5c1;
+}
+
+.care-detail {
+  padding: 16px;
+  color: #f4efda;
+}
+.care-detail__panel {
+  position: relative;
+  width: 100%;
+  max-width: 48rem;
+  min-height: calc(100svh - 32px);
+  margin: 0 auto;
+  padding: 80px 24px 32px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 2rem;
+}
+.care-detail__back {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: inherit;
+  background: #ffffff0a;
+  cursor: pointer;
+}
+.care-detail__back:focus-visible {
+  outline: 3px solid #f0d78a;
+  outline-offset: 3px;
+}
+.care-detail__identity {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+.care-detail__identity h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  line-height: 1.2;
+}
+.care-detail__identity p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.care-detail__identity svg {
+  width: 22px;
+  height: 22px;
+}
+.care-detail__fields {
+  width: 100%;
+  max-width: 36rem;
+  margin: 24px auto 0;
+}
+.care-detail__fields dd {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 360px) {
+  .care-leaf {
+    padding-left: 70px;
+    padding-right: 14px;
+  }
+  .care-leaf__identity {
+    width: 65px;
+  }
+  .care-leaf__category-mark {
+    left: 14px;
+  }
+  .care-leaf h2 {
+    font-size: 0.97rem;
+  }
+  .care-leaf .care-card__actions > button {
+    font-size: 0.7rem;
+  }
+  .care-detail__panel {
+    padding-inline: 16px;
+  }
+}
+
+@media (min-width: 700px) {
+  .care-leaf {
+    max-width: 36rem;
+    padding-left: 100px;
+    padding-right: 40px;
+  }
+  .care-leaf__identity {
+    left: 10px;
+  }
+}

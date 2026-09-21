@@ -125,6 +125,7 @@ type CareListing = Care;
 type CareListingCardProps = {
   onClaim?: (careId: string) => void;
   minimizedCareIds: Set<string>;
+  onOpenCareDetails?: (care: Care) => void;
   onCommitToCare?: (care: Care) => void;
   onRecordCompleted?: (care: Care) => void;
   onRecordNotCompleted?: (care: Care) => void;
@@ -144,6 +145,8 @@ function CareListingCard({
 }: CareListingCardProps & { listing: CareListing }) {
   return (
     <CareCard
+      presentation="leaf"
+      onOpenDetails={props.onOpenCareDetails}
       canPass={props.passableCareIds.has(listing.id)}
       care={listing}
       minimized={props.minimizedCareIds.has(listing.id)}
@@ -667,6 +670,7 @@ export function TimelinePanel({
   cares = [],
   careError,
   minimizedCareIds = noMinimizedCareIds,
+  onOpenCareDetails,
   onCommitToCare,
   onClaim,
   onRecordCompleted,
@@ -687,6 +691,7 @@ export function TimelinePanel({
   cares?: Care[];
   careError?: TimelineError;
   minimizedCareIds?: Set<string>;
+  onOpenCareDetails?: (care: Care) => void;
   onCommitToCare?: (care: Care) => void;
   onClaim?: (careId: string) => void;
   onRecordCompleted?: (care: Care) => void;
@@ -738,6 +743,7 @@ export function TimelinePanel({
   };
   const careListingCardProps: CareListingCardProps = {
     minimizedCareIds,
+    onOpenCareDetails,
     onCommitToCare,
     onClaim,
     onRecordCompleted,
