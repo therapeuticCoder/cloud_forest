@@ -11,14 +11,53 @@ const id = Type.String({ minLength: 1, maxLength: 128 });
 const mealDescription = Type.String({ minLength: 1, maxLength: 10_000 });
 const availableWhen = Type.String({ minLength: 1, maxLength: 500 });
 const handoffStyle = Type.String({ minLength: 1, maxLength: 200 });
+const careCategory = Type.Union([
+  Type.Literal("transportation"),
+  Type.Literal("food"),
+  Type.Literal("pet-care"),
+  Type.Literal("child-care"),
+  Type.Literal("urgent-shelter"),
+  Type.Literal("help-at-home"),
+  Type.Literal("executive-function-support"),
+  Type.Literal("get-out-of-the-house"),
+]);
+const careDay = Type.Union([
+  Type.Literal("monday"),
+  Type.Literal("tuesday"),
+  Type.Literal("wednesday"),
+  Type.Literal("thursday"),
+  Type.Literal("friday"),
+  Type.Literal("saturday"),
+  Type.Literal("sunday"),
+]);
+const careTime = Type.Union([
+  Type.Literal("morning"),
+  Type.Literal("afternoon"),
+  Type.Literal("evening"),
+]);
+const careSubtype = Type.String({ maxLength: 200 });
+const careDays = Type.Array(careDay, { minItems: 1, maxItems: 7 });
+const careTimes = Type.Array(careTime, { minItems: 1, maxItems: 3 });
+const timeNote = Type.String({ maxLength: 500 });
+const location = Type.String({ minLength: 1, maxLength: 500 });
+const requirements = Type.String({ maxLength: 10_000 });
+const sensitivities = Type.String({ maxLength: 10_000 });
 const dateTime = Type.String({ format: "date-time" });
 
 export const careOfferSchema = Type.Object(
   {
     id,
-    kind: Type.Literal("meal"),
+    kind: Type.Union([Type.Literal("meal"), careCategory]),
     direction: Type.Literal("give"),
-    offer: Type.Literal("A meal"),
+    offer: Type.String({ minLength: 1, maxLength: 200 }),
+    category: Type.Optional(careCategory),
+    subtype: Type.Optional(careSubtype),
+    days: Type.Optional(careDays),
+    times: Type.Optional(careTimes),
+    timeNote: Type.Optional(timeNote),
+    location: Type.Optional(location),
+    requirements: Type.Optional(requirements),
+    sensitivities: Type.Optional(sensitivities),
     mealDescription,
     availableWhen,
     handoffStyle,
@@ -33,7 +72,23 @@ export const careOfferSchema = Type.Object(
 );
 
 export const createCareOfferBodySchema = Type.Object(
-  { mealDescription, availableWhen, handoffStyle, expiresIn: careExpiration },
+  {
+    category: Type.Optional(careCategory),
+    subtype: Type.Optional(careSubtype),
+    days: Type.Optional(careDays),
+    times: Type.Optional(careTimes),
+    timeNote: Type.Optional(timeNote),
+    location: Type.Optional(location),
+    requirements: Type.Optional(requirements),
+    sensitivities: Type.Optional(sensitivities),
+    audience: Type.Optional(
+      Type.Union([Type.Literal("Party"), Type.Literal("Tribe")]),
+    ),
+    mealDescription,
+    availableWhen,
+    handoffStyle,
+    expiresIn: careExpiration,
+  },
   { additionalProperties: false },
 );
 

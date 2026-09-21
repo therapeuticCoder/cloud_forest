@@ -12,6 +12,8 @@ import {
   createCareGratitudeBodySchema,
   createCareRequestBodySchema,
   createCareWithdrawalBodySchema,
+  careCategoryName,
+  isValidCareSelection,
 } from "@cloud-forest/api-contracts";
 import type { CareRequestRepository } from "@cloud-forest/database";
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
@@ -43,16 +45,27 @@ function error(code: ErrorCode) {
 function toApiRequest(
   request: Awaited<ReturnType<CareRequestRepository["listVisible"]>>[number],
 ) {
+  const category =
+    request.category ?? (request.kind === "meal" ? "food" : request.kind);
+
   return {
     id: request.id,
-    kind: "meal" as const,
+    kind: category === "food" ? ("meal" as const) : category,
     direction:
       request.originatorUserId !== undefined &&
       request.requesterUserId !== undefined &&
       request.originatorUserId !== request.requesterUserId
         ? ("give" as const)
         : ("receive" as const),
-    need: "A meal" as const,
+    need: careCategoryName(category),
+    category,
+    subtype: request.subtype,
+    ...(request.days?.length ? { days: request.days } : {}),
+    ...(request.times?.length ? { times: request.times } : {}),
+    timeNote: request.timeNote,
+    location: request.location,
+    requirements: request.requirements,
+    sensitivities: request.sensitivities,
     helpfulWhen: request.helpfulWhen,
     foodWorks: request.foodWorks,
     foodDoesNotWork: request.foodDoesNotWork,
@@ -168,9 +181,15 @@ export const careRequestRoutes: FastifyPluginAsyncTypebox<Options> = async (
     async (request, reply) => {
       const current = await auth(request);
       if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const category = request.body.category ?? "food";
+      const subtype = request.body.subtype ?? "";
+      if (!isValidCareSelection(category, subtype)) {
+        return reply.status(400).send(error("VALIDATION_ERROR"));
+      }
       await options.repository.create({
         requesterUserId: current.userId,
         ...request.body,
+        audience: request.body.audience === "Tribe" ? "tribe" : "party",
         now: new Date(),
       });
       return visibleRequests(current.userId);

@@ -46,7 +46,7 @@ describe("CareRequestCard seen presentation", () => {
     );
 
     const card = screen.getByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
     expect(card).toHaveTextContent("Thursday evening");
     await user.click(
@@ -74,9 +74,9 @@ describe("CareRequestCard seen presentation", () => {
     );
 
     const card = screen.getByRole("article", {
-      name: "Incoming meal care request from Anya Reed, minimized",
+      name: "Incoming food care request from Anya Reed, minimized",
     });
-    expect(card).toHaveTextContent("Anya asked for a meal");
+    expect(card).toHaveTextContent("Anya asked for food care");
     expect(card).toHaveTextContent("Needs help");
     expect(card).not.toHaveTextContent("Nothing spicy");
     await user.click(
@@ -146,7 +146,7 @@ describe("CareRequestCard seen presentation", () => {
     );
 
     expect(
-      screen.getByRole("article", { name: "Claimed meal care request" }),
+      screen.getByRole("article", { name: "Claimed food care request" }),
     ).toHaveTextContent("Help is on the way!");
     expect(
       screen.getByText("Someone is helping with this request."),

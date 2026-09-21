@@ -565,8 +565,10 @@ export interface operations {
                             readonly offers: readonly {
                                 readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 /** @enum {string} */
                                 readonly direction: "give";
                                 /** Format: date-time */
@@ -579,12 +581,16 @@ export interface operations {
                                 };
                                 readonly handoffStyle: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
                                 readonly mealDescription: string;
-                                /** @enum {string} */
-                                readonly offer: "A meal";
+                                readonly offer: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "available" | "expired";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -618,10 +624,19 @@ export interface operations {
         readonly requestBody: {
             readonly content: {
                 readonly "application/json": {
+                    readonly audience?: "Party" | "Tribe";
                     readonly availableWhen: string;
+                    readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
+                    readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                     readonly expiresIn: "1h" | "4h" | "1d" | "1w";
                     readonly handoffStyle: string;
+                    readonly location?: string;
                     readonly mealDescription: string;
+                    readonly requirements?: string;
+                    readonly sensitivities?: string;
+                    readonly subtype?: string;
+                    readonly timeNote?: string;
+                    readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                 };
             };
         };
@@ -639,8 +654,10 @@ export interface operations {
                             readonly offers: readonly {
                                 readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 /** @enum {string} */
                                 readonly direction: "give";
                                 /** Format: date-time */
@@ -653,12 +670,16 @@ export interface operations {
                                 };
                                 readonly handoffStyle: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
                                 readonly mealDescription: string;
-                                /** @enum {string} */
-                                readonly offer: "A meal";
+                                readonly offer: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "available" | "expired";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -722,8 +743,10 @@ export interface operations {
                             readonly offers: readonly {
                                 readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 /** @enum {string} */
                                 readonly direction: "give";
                                 /** Format: date-time */
@@ -736,12 +759,16 @@ export interface operations {
                                 };
                                 readonly handoffStyle: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
                                 readonly mealDescription: string;
-                                /** @enum {string} */
-                                readonly offer: "A meal";
+                                readonly offer: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "available" | "expired";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -805,8 +832,10 @@ export interface operations {
                             readonly offers: readonly {
                                 readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 /** @enum {string} */
                                 readonly direction: "give";
                                 /** Format: date-time */
@@ -819,12 +848,16 @@ export interface operations {
                                 };
                                 readonly handoffStyle: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
                                 readonly mealDescription: string;
-                                /** @enum {string} */
-                                readonly offer: "A meal";
+                                readonly offer: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "available" | "expired";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -904,8 +937,10 @@ export interface operations {
                             readonly offers: readonly {
                                 readonly audience: "Party" | "Tribe";
                                 readonly availableWhen: string;
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 /** @enum {string} */
                                 readonly direction: "give";
                                 /** Format: date-time */
@@ -918,12 +953,16 @@ export interface operations {
                                 };
                                 readonly handoffStyle: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
                                 readonly mealDescription: string;
-                                /** @enum {string} */
-                                readonly offer: "A meal";
+                                readonly offer: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "available" | "expired";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1006,6 +1045,7 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1018,6 +1058,7 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
@@ -1034,10 +1075,9 @@ export interface operations {
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
-                                /** @enum {string} */
-                                readonly need: "A meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
+                                readonly need: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
                                 readonly requester: {
@@ -1046,7 +1086,12 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1080,11 +1125,20 @@ export interface operations {
         readonly requestBody: {
             readonly content: {
                 readonly "application/json": {
+                    readonly audience?: "Party" | "Tribe";
+                    readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
+                    readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                     readonly expiresIn: "1h" | "4h" | "1d" | "1w";
                     readonly foodDoesNotWork: string;
                     readonly foodWorks: string;
                     readonly handoffStyle: string;
                     readonly helpfulWhen: string;
+                    readonly location?: string;
+                    readonly requirements?: string;
+                    readonly sensitivities?: string;
+                    readonly subtype?: string;
+                    readonly timeNote?: string;
+                    readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                 };
             };
         };
@@ -1107,6 +1161,7 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1119,6 +1174,7 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
@@ -1135,10 +1191,9 @@ export interface operations {
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
-                                /** @enum {string} */
-                                readonly need: "A meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
+                                readonly need: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
                                 readonly requester: {
@@ -1147,7 +1202,12 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1216,6 +1276,7 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1228,6 +1289,7 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
@@ -1244,10 +1306,9 @@ export interface operations {
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
-                                /** @enum {string} */
-                                readonly need: "A meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
+                                readonly need: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
                                 readonly requester: {
@@ -1256,7 +1317,12 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1357,6 +1423,7 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1369,6 +1436,7 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
@@ -1385,10 +1453,9 @@ export interface operations {
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
-                                /** @enum {string} */
-                                readonly need: "A meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
+                                readonly need: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
                                 readonly requester: {
@@ -1397,7 +1464,12 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1489,6 +1561,7 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1501,6 +1574,7 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
@@ -1517,10 +1591,9 @@ export interface operations {
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
-                                /** @enum {string} */
-                                readonly need: "A meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
+                                readonly need: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
                                 readonly requester: {
@@ -1529,7 +1602,12 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1630,6 +1708,7 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1642,6 +1721,7 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
@@ -1658,10 +1738,9 @@ export interface operations {
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
-                                /** @enum {string} */
-                                readonly need: "A meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
+                                readonly need: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
                                 readonly requester: {
@@ -1670,7 +1749,12 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };
@@ -1762,6 +1846,7 @@ export interface operations {
                                     readonly statementId: "meal-sorry-cant-follow-through" | "meal-something-changed" | "meal-sorry-committed";
                                 };
                                 readonly audience: "Party" | "Tribe";
+                                readonly category?: "transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house";
                                 readonly claimant?: {
                                     readonly displayName: string;
                                     readonly personId: string;
@@ -1774,6 +1859,7 @@ export interface operations {
                                 readonly completedAt?: string;
                                 /** Format: date-time */
                                 readonly createdAt: string;
+                                readonly days?: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
                                 readonly direction: "receive" | "give";
                                 /** Format: date-time */
                                 readonly expiredAt?: string;
@@ -1790,10 +1876,9 @@ export interface operations {
                                 readonly handoffStyle: string;
                                 readonly helpfulWhen: string;
                                 readonly id: string;
-                                /** @enum {string} */
-                                readonly kind: "meal";
-                                /** @enum {string} */
-                                readonly need: "A meal";
+                                readonly kind: "meal" | ("transportation" | "food" | "pet-care" | "child-care" | "urgent-shelter" | "help-at-home" | "executive-function-support" | "get-out-of-the-house");
+                                readonly location?: string;
+                                readonly need: string;
                                 /** Format: date-time */
                                 readonly notCompletedAt?: string;
                                 readonly requester: {
@@ -1802,7 +1887,12 @@ export interface operations {
                                 };
                                 /** Format: date-time */
                                 readonly requesterCompletedAt?: string;
+                                readonly requirements?: string;
+                                readonly sensitivities?: string;
                                 readonly status: "open" | "claimed" | "orphaned" | "completed" | "expired" | "not_completed";
+                                readonly subtype?: string;
+                                readonly timeNote?: string;
+                                readonly times?: readonly ("morning" | "afternoon" | "evening")[];
                             }[];
                         };
                     };

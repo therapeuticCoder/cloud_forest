@@ -6,7 +6,7 @@ export {
   type Person,
   type PersonId,
   type PersonProfile,
-} from "./identity.js";
+} from "./identity.ts";
 export {
   createParty,
   createPartyPosition,
@@ -21,7 +21,7 @@ export {
   type PartyValidationError,
   type PartyValidationResult,
   type RelationshipLayer,
-} from "./relationships.js";
+} from "./relationships.ts";
 export {
   timelineAudiences,
   timelineItemLayers,
@@ -29,4 +29,17 @@ export {
   type TimelineItem,
   type TimelineItemActor,
   type TimelineItemLayer,
-} from "./timelineItem.js";
+} from "./timelineItem.ts";
+export {
+  careCategories,
+  careCategoryIds,
+  careDays,
+  careTimes,
+  getCareCategory,
+  isCareCategory,
+  isValidCareSubtype,
+  type CareCategoryDefinition,
+  type CareCategoryId,
+  type CareDay,
+  type CareTime,
+} from "./care.ts";
