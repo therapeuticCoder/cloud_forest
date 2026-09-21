@@ -70,8 +70,8 @@ describe("TimelinePanel live item seam", () => {
       .getAllByRole("article")
       .filter((article) => article.classList.contains("care-request-card"));
     expect(cards).toHaveLength(2);
-    expect(cards[0]).toHaveTextContent("Meal request");
-    expect(cards[1]).toHaveTextContent("Meal offer");
+    expect(cards[0]).toHaveTextContent("Food request");
+    expect(cards[1]).toHaveTextContent("Food offer");
   });
 
   it("interleaves Timeline posts and Care records chronologically", async () => {
@@ -129,8 +129,8 @@ describe("TimelinePanel live item seam", () => {
     expect(await screen.findByText(post.content)).toBeInTheDocument();
     const cards = screen.getAllByRole("article");
     expect(cards[0]).toHaveTextContent(post.content);
-    expect(cards[1]).toHaveTextContent("Meal request");
-    expect(cards[2]).toHaveTextContent("Meal offer");
+    expect(cards[1]).toHaveTextContent("Food request");
+    expect(cards[2]).toHaveTextContent("Food offer");
   });
 
   it("keeps the composer open when Escape closes the audience menu", async () => {

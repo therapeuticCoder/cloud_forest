@@ -1493,6 +1493,45 @@ button:focus-visible {
   background: var(--forest-card);
 }
 
+.party-wizard__care-options {
+  grid-template-columns: 1fr;
+}
+
+.party-wizard__care-options .party-wizard__option {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.party-wizard__care-options .party-wizard__option span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.party-wizard__care-options .party-wizard__option small {
+  color: rgba(231, 232, 216, 0.72);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.party-wizard__checkbox {
+  display: flex;
+  min-height: 2.8rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(228, 236, 217, 0.24);
+  border-radius: 0.75rem;
+  color: #e7e8d8;
+  font-weight: 500;
+}
+
+.party-wizard__checkbox input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--forest-party);
+}
+
 .party-wizard {
   display: flex;
   min-height: 100svh;

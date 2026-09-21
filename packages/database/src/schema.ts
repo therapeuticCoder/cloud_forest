@@ -4,6 +4,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -13,6 +14,9 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type {
+  CareCategoryId,
+  CareDay,
+  CareTime,
   CuratedPersonPlacement,
   TimelineAudience,
   TimelineItemLayer,
@@ -347,6 +351,19 @@ export const careRequests = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     kind: varchar("kind", { length: 16 }).notNull().default("meal"),
+    category: varchar("category", { length: 32 })
+      .$type<CareCategoryId>()
+      .notNull()
+      .default("food"),
+    subtype: varchar("subtype", { length: 200 }).notNull().default(""),
+    days: jsonb("days").$type<CareDay[]>().notNull().default([]),
+    times: jsonb("times").$type<CareTime[]>().notNull().default([]),
+    timeNote: varchar("time_note", { length: 500 }).notNull().default(""),
+    location: varchar("location", { length: 500 })
+      .notNull()
+      .default("Not specified"),
+    requirements: text("requirements").notNull().default(""),
+    sensitivities: text("sensitivities").notNull().default(""),
     helpfulWhen: varchar("helpful_when", { length: 500 }).notNull(),
     foodWorks: text("food_works").notNull(),
     foodDoesNotWork: text("food_does_not_work").notNull().default(""),
@@ -389,6 +406,30 @@ export const careRequests = pgTable(
     index("care_requests_claimant_index").on(table.claimantUserId),
     check("care_requests_id_length", sql`char_length(${table.id}) >= 1`),
     check("care_requests_kind_allowed", sql`${table.kind} = 'meal'`),
+    check(
+      "care_requests_category_allowed",
+      sql`${table.category} in ('transportation', 'food', 'pet-care', 'child-care', 'urgent-shelter', 'help-at-home', 'executive-function-support', 'get-out-of-the-house')`,
+    ),
+    check(
+      "care_requests_subtype_length",
+      sql`char_length(${table.subtype}) <= 200`,
+    ),
+    check(
+      "care_requests_time_note_length",
+      sql`char_length(${table.timeNote}) <= 500`,
+    ),
+    check(
+      "care_requests_location_length",
+      sql`char_length(${table.location}) between 1 and 500`,
+    ),
+    check(
+      "care_requests_requirements_length",
+      sql`char_length(${table.requirements}) <= 10000`,
+    ),
+    check(
+      "care_requests_sensitivities_length",
+      sql`char_length(${table.sensitivities}) <= 10000`,
+    ),
     check(
       "care_requests_helpful_when_length",
       sql`char_length(${table.helpfulWhen}) between 1 and 500`,
@@ -482,6 +523,19 @@ export const careOffers = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     kind: varchar("kind", { length: 16 }).notNull().default("meal"),
+    category: varchar("category", { length: 32 })
+      .$type<CareCategoryId>()
+      .notNull()
+      .default("food"),
+    subtype: varchar("subtype", { length: 200 }).notNull().default(""),
+    days: jsonb("days").$type<CareDay[]>().notNull().default([]),
+    times: jsonb("times").$type<CareTime[]>().notNull().default([]),
+    timeNote: varchar("time_note", { length: 500 }).notNull().default(""),
+    location: varchar("location", { length: 500 })
+      .notNull()
+      .default("Not specified"),
+    requirements: text("requirements").notNull().default(""),
+    sensitivities: text("sensitivities").notNull().default(""),
     mealDescription: text("meal_description").notNull(),
     availableWhen: varchar("available_when", { length: 500 }).notNull(),
     handoffStyle: varchar("handoff_style", { length: 200 }).notNull(),
@@ -501,6 +555,30 @@ export const careOffers = pgTable(
     index("care_offers_giver_index").on(table.giverUserId),
     check("care_offers_id_length", sql`char_length(${table.id}) >= 1`),
     check("care_offers_kind_allowed", sql`${table.kind} = 'meal'`),
+    check(
+      "care_offers_category_allowed",
+      sql`${table.category} in ('transportation', 'food', 'pet-care', 'child-care', 'urgent-shelter', 'help-at-home', 'executive-function-support', 'get-out-of-the-house')`,
+    ),
+    check(
+      "care_offers_subtype_length",
+      sql`char_length(${table.subtype}) <= 200`,
+    ),
+    check(
+      "care_offers_time_note_length",
+      sql`char_length(${table.timeNote}) <= 500`,
+    ),
+    check(
+      "care_offers_location_length",
+      sql`char_length(${table.location}) between 1 and 500`,
+    ),
+    check(
+      "care_offers_requirements_length",
+      sql`char_length(${table.requirements}) <= 10000`,
+    ),
+    check(
+      "care_offers_sensitivities_length",
+      sql`char_length(${table.sensitivities}) <= 10000`,
+    ),
     check(
       "care_offers_meal_description_length",
       sql`char_length(${table.mealDescription}) between 1 and 10000`,

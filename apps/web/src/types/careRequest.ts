@@ -1,3 +1,7 @@
+import type { CareCategoryId, CareDay, CareTime } from "@cloud-forest/domain";
+
+export type { CareCategoryId, CareDay, CareTime } from "@cloud-forest/domain";
+
 export type CareRequester =
   | { kind: "self"; id: string; displayName: string }
   | { kind: "party"; id: string; displayName: string };
@@ -28,9 +32,17 @@ export type CareAudienceSnapshot = {
 
 export type ReceiveCareRequest = {
   id: string;
-  kind: "meal";
+  kind: "meal" | CareCategoryId;
   direction: "receive" | "give";
-  need: "A meal";
+  need: string;
+  category?: CareCategoryId;
+  subtype?: string;
+  days?: CareDay[];
+  times?: CareTime[];
+  timeNote?: string;
+  location?: string;
+  requirements?: string;
+  sensitivities?: string;
   helpfulWhen: string;
   foodWorks: string;
   foodDoesNotWork: string;
@@ -167,9 +179,17 @@ export type CareLifecycleState = {
 
 export type GiveCareOffer = {
   id: string;
-  kind: "meal";
+  kind: "meal" | CareCategoryId;
   direction: "give";
-  offer: "A meal";
+  offer: string;
+  category?: CareCategoryId;
+  subtype?: string;
+  days?: CareDay[];
+  times?: CareTime[];
+  timeNote?: string;
+  location?: string;
+  requirements?: string;
+  sensitivities?: string;
   mealDescription: string;
   availableWhen: string;
   handoffStyle: string;

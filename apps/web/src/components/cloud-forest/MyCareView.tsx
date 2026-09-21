@@ -19,6 +19,11 @@ import type { GiveCareOffer, ReceiveCareRequest } from "@/types/careRequest";
 
 import { CareOfferCard } from "./CareOfferCard";
 import { CareRequestCard } from "./CareRequestCard";
+import {
+  careOfferCategoryName,
+  careRequestCategoryName,
+  careScheduleLabel,
+} from "./carePresentation";
 
 export type MyCareTab = "profile" | "receive" | "give" | "history";
 
@@ -447,7 +452,13 @@ export function MyCareView({
                               : `You helped ${request.requester.displayName}`}
                           </strong>
                           <p>
-                            {request.need} · {request.helpfulWhen}
+                            {careRequestCategoryName(request)} ·{" "}
+                            {careScheduleLabel({
+                              days: request.days,
+                              times: request.times,
+                              timeNote: request.timeNote,
+                              fallback: request.helpfulWhen,
+                            })}
                           </p>
                           {request.gratitude ? (
                             <div className="my-care-history__gratitude">
@@ -488,7 +499,13 @@ export function MyCareView({
                               : `You committed to help ${request.requester.displayName}`}
                           </strong>
                           <p>
-                            {request.need} · {request.helpfulWhen}
+                            {careRequestCategoryName(request)} ·{" "}
+                            {careScheduleLabel({
+                              days: request.days,
+                              times: request.times,
+                              timeNote: request.timeNote,
+                              fallback: request.helpfulWhen,
+                            })}
                           </p>
                           {request.apology ? (
                             <div className="my-care-history__apology">
@@ -523,8 +540,8 @@ export function MyCareView({
                         <span>Care opportunity passed</span>
                         <p>
                           {item.kind === "expired-request"
-                            ? `${item.request.need} · ${item.request.helpfulWhen}`
-                            : `A meal · ${item.offer.availableWhen}`}
+                            ? `${careRequestCategoryName(item.request)} · ${careScheduleLabel({ days: item.request.days, times: item.request.times, timeNote: item.request.timeNote, fallback: item.request.helpfulWhen })}`
+                            : `${careOfferCategoryName(item.offer)} · ${careScheduleLabel({ days: item.offer.days, times: item.offer.times, timeNote: item.offer.timeNote, fallback: item.offer.availableWhen })}`}
                         </p>
                       </div>
                       <time dateTime={recordedAt}>

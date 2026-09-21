@@ -7,7 +7,9 @@ import {
   careOfferPath,
   careOffersPath,
   careOffersSuccessSchema,
+  careCategoryName,
   createCareOfferBodySchema,
+  isValidCareSelection,
 } from "@cloud-forest/api-contracts";
 import type { CareOfferRepository } from "@cloud-forest/database";
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
@@ -38,11 +40,22 @@ function error(code: ErrorCode) {
 function toApiOffer(
   offer: Awaited<ReturnType<CareOfferRepository["listVisible"]>>[number],
 ) {
+  const category =
+    offer.category ?? (offer.kind === "meal" ? "food" : offer.kind);
+
   return {
     id: offer.id,
-    kind: "meal" as const,
+    kind: category === "food" ? ("meal" as const) : category,
     direction: "give" as const,
-    offer: "A meal" as const,
+    offer: careCategoryName(category),
+    category,
+    subtype: offer.subtype,
+    days: offer.days,
+    times: offer.times,
+    timeNote: offer.timeNote,
+    location: offer.location,
+    requirements: offer.requirements,
+    sensitivities: offer.sensitivities,
     mealDescription: offer.mealDescription,
     availableWhen: offer.availableWhen,
     handoffStyle: offer.handoffStyle,
@@ -119,9 +132,15 @@ export const careOfferRoutes: FastifyPluginAsyncTypebox<Options> = async (
     async (request, reply) => {
       const current = await auth(request);
       if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
+      const category = request.body.category ?? "food";
+      const subtype = request.body.subtype ?? "";
+      if (!isValidCareSelection(category, subtype)) {
+        return reply.status(400).send(error("VALIDATION_ERROR"));
+      }
       await options.repository.create({
         giverUserId: current.userId,
         ...request.body,
+        audience: request.body.audience === "Tribe" ? "tribe" : "party",
         now: new Date(),
       });
       return visibleOffers(current.userId);

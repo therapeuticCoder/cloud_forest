@@ -52,9 +52,112 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "enum": [
@@ -101,9 +204,70 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "mealDescription": {
@@ -112,9 +276,16 @@
                                 "type": "string"
                               },
                               "offer": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -132,6 +303,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -247,10 +453,129 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "audience": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "Party"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "Tribe"
+                        ],
+                        "type": "string"
+                      }
+                    ]
+                  },
                   "availableWhen": {
                     "maxLength": 500,
                     "minLength": 1,
                     "type": "string"
+                  },
+                  "category": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "transportation"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "food"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "pet-care"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "child-care"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "urgent-shelter"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "help-at-home"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "executive-function-support"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "get-out-of-the-house"
+                        ],
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "days": {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "monday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "tuesday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "wednesday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "thursday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "friday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "saturday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "sunday"
+                          ],
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "maxItems": 7,
+                    "minItems": 1,
+                    "type": "array"
                   },
                   "expiresIn": {
                     "anyOf": [
@@ -285,10 +610,58 @@
                     "minLength": 1,
                     "type": "string"
                   },
+                  "location": {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
                   "mealDescription": {
                     "maxLength": 10000,
                     "minLength": 1,
                     "type": "string"
+                  },
+                  "requirements": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "sensitivities": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "subtype": {
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  "timeNote": {
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "times": {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "morning"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "afternoon"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "evening"
+                          ],
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "maxItems": 3,
+                    "minItems": 1,
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -344,9 +717,112 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "enum": [
@@ -393,9 +869,70 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "mealDescription": {
@@ -404,9 +941,16 @@
                                 "type": "string"
                               },
                               "offer": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -424,6 +968,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -654,9 +1233,112 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "enum": [
@@ -703,9 +1385,70 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "mealDescription": {
@@ -714,9 +1457,16 @@
                                 "type": "string"
                               },
                               "offer": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -734,6 +1484,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -964,9 +1749,112 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "enum": [
@@ -1013,9 +1901,70 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "mealDescription": {
@@ -1024,9 +1973,16 @@
                                 "type": "string"
                               },
                               "offer": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -1044,6 +2000,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -1340,9 +2331,112 @@
                                 "minLength": 1,
                                 "type": "string"
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "enum": [
@@ -1389,9 +2483,70 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "mealDescription": {
@@ -1400,9 +2555,16 @@
                                 "type": "string"
                               },
                               "offer": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -1420,6 +2582,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -1740,6 +2937,58 @@
                                   }
                                 ]
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "claimant": {
                                 "additionalProperties": false,
                                 "properties": {
@@ -1775,6 +3024,57 @@
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "anyOf": [
@@ -1866,15 +3166,75 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "need": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "notCompletedAt": {
@@ -1903,6 +3263,14 @@
                               },
                               "requesterCompletedAt": {
                                 "format": "date-time",
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -1944,6 +3312,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -2066,6 +3469,125 @@
               "schema": {
                 "additionalProperties": false,
                 "properties": {
+                  "audience": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "Party"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "Tribe"
+                        ],
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "category": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "transportation"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "food"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "pet-care"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "child-care"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "urgent-shelter"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "help-at-home"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "executive-function-support"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "enum": [
+                          "get-out-of-the-house"
+                        ],
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "days": {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "monday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "tuesday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "wednesday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "thursday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "friday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "saturday"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "sunday"
+                          ],
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "maxItems": 7,
+                    "minItems": 1,
+                    "type": "array"
+                  },
                   "expiresIn": {
                     "anyOf": [
                       {
@@ -2112,6 +3634,54 @@
                     "maxLength": 500,
                     "minLength": 1,
                     "type": "string"
+                  },
+                  "location": {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "requirements": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "sensitivities": {
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "subtype": {
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  "timeNote": {
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "times": {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "morning"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "afternoon"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "enum": [
+                            "evening"
+                          ],
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "maxItems": 3,
+                    "minItems": 1,
+                    "type": "array"
                   }
                 },
                 "required": [
@@ -2204,6 +3774,58 @@
                                   }
                                 ]
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "claimant": {
                                 "additionalProperties": false,
                                 "properties": {
@@ -2239,6 +3861,57 @@
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "anyOf": [
@@ -2330,15 +4003,75 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "need": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "notCompletedAt": {
@@ -2367,6 +4100,14 @@
                               },
                               "requesterCompletedAt": {
                                 "format": "date-time",
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -2408,6 +4149,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -2687,6 +4463,58 @@
                                   }
                                 ]
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "claimant": {
                                 "additionalProperties": false,
                                 "properties": {
@@ -2722,6 +4550,57 @@
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "anyOf": [
@@ -2813,15 +4692,75 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "need": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "notCompletedAt": {
@@ -2850,6 +4789,14 @@
                               },
                               "requesterCompletedAt": {
                                 "format": "date-time",
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -2891,6 +4838,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -3314,6 +5296,58 @@
                                   }
                                 ]
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "claimant": {
                                 "additionalProperties": false,
                                 "properties": {
@@ -3349,6 +5383,57 @@
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "anyOf": [
@@ -3440,15 +5525,75 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "need": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "notCompletedAt": {
@@ -3477,6 +5622,14 @@
                               },
                               "requesterCompletedAt": {
                                 "format": "date-time",
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -3518,6 +5671,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -3912,6 +6100,58 @@
                                   }
                                 ]
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "claimant": {
                                 "additionalProperties": false,
                                 "properties": {
@@ -3947,6 +6187,57 @@
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "anyOf": [
@@ -4038,15 +6329,75 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "need": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "notCompletedAt": {
@@ -4075,6 +6426,14 @@
                               },
                               "requesterCompletedAt": {
                                 "format": "date-time",
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -4116,6 +6475,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -4539,6 +6933,58 @@
                                   }
                                 ]
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "claimant": {
                                 "additionalProperties": false,
                                 "properties": {
@@ -4574,6 +7020,57 @@
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "anyOf": [
@@ -4665,15 +7162,75 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "need": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "notCompletedAt": {
@@ -4702,6 +7259,14 @@
                               },
                               "requesterCompletedAt": {
                                 "format": "date-time",
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -4743,6 +7308,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [
@@ -5137,6 +7737,58 @@
                                   }
                                 ]
                               },
+                              "category": {
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "transportation"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "food"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "pet-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "child-care"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "urgent-shelter"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "help-at-home"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "executive-function-support"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "enum": [
+                                      "get-out-of-the-house"
+                                    ],
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "claimant": {
                                 "additionalProperties": false,
                                 "properties": {
@@ -5172,6 +7824,57 @@
                               "createdAt": {
                                 "format": "date-time",
                                 "type": "string"
+                              },
+                              "days": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "monday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "tuesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "wednesday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "thursday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "friday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "saturday"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "sunday"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 7,
+                                "minItems": 1,
+                                "type": "array"
                               },
                               "direction": {
                                 "anyOf": [
@@ -5263,15 +7966,75 @@
                                 "type": "string"
                               },
                               "kind": {
-                                "enum": [
-                                  "meal"
-                                ],
+                                "anyOf": [
+                                  {
+                                    "enum": [
+                                      "meal"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "enum": [
+                                          "transportation"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "food"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "pet-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "child-care"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "urgent-shelter"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "help-at-home"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "executive-function-support"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      {
+                                        "enum": [
+                                          "get-out-of-the-house"
+                                        ],
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "location": {
+                                "maxLength": 500,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "need": {
-                                "enum": [
-                                  "A meal"
-                                ],
+                                "maxLength": 200,
+                                "minLength": 1,
                                 "type": "string"
                               },
                               "notCompletedAt": {
@@ -5300,6 +8063,14 @@
                               },
                               "requesterCompletedAt": {
                                 "format": "date-time",
+                                "type": "string"
+                              },
+                              "requirements": {
+                                "maxLength": 10000,
+                                "type": "string"
+                              },
+                              "sensitivities": {
+                                "maxLength": 10000,
                                 "type": "string"
                               },
                               "status": {
@@ -5341,6 +8112,41 @@
                                     "type": "string"
                                   }
                                 ]
+                              },
+                              "subtype": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "timeNote": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "times": {
+                                "items": {
+                                  "anyOf": [
+                                    {
+                                      "enum": [
+                                        "morning"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "afternoon"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    {
+                                      "enum": [
+                                        "evening"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "minItems": 1,
+                                "type": "array"
                               }
                             },
                             "required": [

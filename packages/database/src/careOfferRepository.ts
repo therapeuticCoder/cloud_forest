@@ -2,6 +2,13 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, notExists, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
+import {
+  getCareCategory,
+  type CareCategoryId,
+  type CareDay,
+  type CareTime,
+} from "@cloud-forest/domain";
+
 import type { DatabaseClient } from "./client.ts";
 import {
   accountPeople,
@@ -22,6 +29,14 @@ type TransactionClient = Parameters<
 type CareOfferRecord = {
   id: string;
   kind: "meal";
+  category: CareCategoryId;
+  subtype: string;
+  days: CareDay[];
+  times: CareTime[];
+  timeNote: string;
+  location: string;
+  requirements: string;
+  sensitivities: string;
   mealDescription: string;
   availableWhen: string;
   handoffStyle: string;
@@ -327,6 +342,14 @@ export function createCareOfferRepository(database: DatabaseClient) {
         .select({
           id: careOffers.id,
           kind: careOffers.kind,
+          category: careOffers.category,
+          subtype: careOffers.subtype,
+          days: careOffers.days,
+          times: careOffers.times,
+          timeNote: careOffers.timeNote,
+          location: careOffers.location,
+          requirements: careOffers.requirements,
+          sensitivities: careOffers.sensitivities,
           mealDescription: careOffers.mealDescription,
           availableWhen: careOffers.availableWhen,
           handoffStyle: careOffers.handoffStyle,
@@ -362,6 +385,14 @@ export function createCareOfferRepository(database: DatabaseClient) {
         (row): CareOfferRecord => ({
           id: row.id,
           kind: "meal",
+          category: row.category,
+          subtype: row.subtype,
+          days: row.days,
+          times: row.times,
+          timeNote: row.timeNote,
+          location: row.location,
+          requirements: row.requirements,
+          sensitivities: row.sensitivities,
           mealDescription: row.mealDescription,
           availableWhen: row.availableWhen,
           handoffStyle: row.handoffStyle,
@@ -386,23 +417,60 @@ export function createCareOfferRepository(database: DatabaseClient) {
 
     async create(input: {
       giverUserId: string;
-      mealDescription: string;
-      availableWhen: string;
-      handoffStyle: string;
+      category?: CareCategoryId;
+      subtype?: string;
+      days?: CareDay[];
+      times?: CareTime[];
+      timeNote?: string;
+      location?: string;
+      requirements?: string;
+      sensitivities?: string;
+      mealDescription?: string;
+      availableWhen?: string;
+      handoffStyle?: string;
       expiresIn: CareExpiration;
       audience?: "party" | "tribe";
       now: Date;
     }) {
       return database.transaction(async (transaction) => {
         const id = `care-offer-${randomUUID()}`;
+        const category = input.category ?? "food";
+        const subtype = input.subtype?.trim() ?? "";
+        const days = input.days ?? [];
+        const times = input.times ?? [];
+        const timeNote = input.timeNote?.trim() ?? "";
+        const availableWhen =
+          input.availableWhen?.trim() || timeNote || "Flexible";
+        const location =
+          input.location?.trim() ||
+          input.handoffStyle?.trim() ||
+          "Not specified";
+        const requirements =
+          input.requirements?.trim() ?? input.mealDescription?.trim() ?? "";
+        const sensitivities = input.sensitivities?.trim() ?? "";
+        const categoryDescription = getCareCategory(category)?.name ?? "Care";
+        const mealDescription =
+          input.mealDescription?.trim() ||
+          requirements ||
+          subtype ||
+          categoryDescription;
+        const handoffStyle = input.handoffStyle?.trim() || location;
         const [created] = await transaction
           .insert(careOffers)
           .values({
             id,
             giverUserId: input.giverUserId,
-            mealDescription: input.mealDescription,
-            availableWhen: input.availableWhen,
-            handoffStyle: input.handoffStyle,
+            category,
+            subtype,
+            days,
+            times,
+            timeNote,
+            location,
+            requirements,
+            sensitivities,
+            mealDescription,
+            availableWhen,
+            handoffStyle,
             audience: input.audience ?? "party",
             expiresAt: expiresAtFor(input.now, input.expiresIn),
             createdAt: input.now,
@@ -502,6 +570,14 @@ export function createCareOfferRepository(database: DatabaseClient) {
           .select({
             giverUserId: careOffers.giverUserId,
             audience: careOffers.audience,
+            category: careOffers.category,
+            subtype: careOffers.subtype,
+            days: careOffers.days,
+            times: careOffers.times,
+            timeNote: careOffers.timeNote,
+            location: careOffers.location,
+            requirements: careOffers.requirements,
+            sensitivities: careOffers.sensitivities,
             mealDescription: careOffers.mealDescription,
             availableWhen: careOffers.availableWhen,
             handoffStyle: careOffers.handoffStyle,
@@ -548,9 +624,17 @@ export function createCareOfferRepository(database: DatabaseClient) {
           requesterUserId: input.claimantUserId,
           originatorUserId: availableOffer.giverUserId,
           claimantUserId: availableOffer.giverUserId,
+          category: availableOffer.category,
+          subtype: availableOffer.subtype,
+          days: availableOffer.days,
+          times: availableOffer.times,
+          timeNote: availableOffer.timeNote,
+          location: availableOffer.location,
+          requirements: availableOffer.requirements,
+          sensitivities: availableOffer.sensitivities,
           helpfulWhen: availableOffer.availableWhen,
           foodWorks: availableOffer.mealDescription,
-          foodDoesNotWork: "",
+          foodDoesNotWork: availableOffer.sensitivities,
           handoffStyle: availableOffer.handoffStyle,
           audience: availableOffer.audience,
           status: "claimed",

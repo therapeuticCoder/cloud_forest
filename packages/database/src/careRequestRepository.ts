@@ -2,6 +2,13 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, isNull, notExists, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
+import {
+  getCareCategory,
+  type CareCategoryId,
+  type CareDay,
+  type CareTime,
+} from "@cloud-forest/domain";
+
 import type { DatabaseClient } from "./client.ts";
 import {
   accountPeople,
@@ -85,6 +92,14 @@ type CareRequestRecord = {
   originatorUserId?: string;
   requesterUserId?: string;
   kind: "meal";
+  category: CareCategoryId;
+  subtype: string;
+  days: CareDay[];
+  times: CareTime[];
+  timeNote: string;
+  location: string;
+  requirements: string;
+  sensitivities: string;
   helpfulWhen: string;
   foodWorks: string;
   foodDoesNotWork: string;
@@ -326,6 +341,14 @@ export function createCareRequestRepository(database: DatabaseClient) {
           originatorUserId: careRequests.originatorUserId,
           requesterUserId: careRequests.requesterUserId,
           kind: careRequests.kind,
+          category: careRequests.category,
+          subtype: careRequests.subtype,
+          days: careRequests.days,
+          times: careRequests.times,
+          timeNote: careRequests.timeNote,
+          location: careRequests.location,
+          requirements: careRequests.requirements,
+          sensitivities: careRequests.sensitivities,
           helpfulWhen: careRequests.helpfulWhen,
           foodWorks: careRequests.foodWorks,
           foodDoesNotWork: careRequests.foodDoesNotWork,
@@ -404,6 +427,14 @@ export function createCareRequestRepository(database: DatabaseClient) {
           originatorUserId: row.originatorUserId,
           requesterUserId: row.requesterUserId,
           kind: "meal",
+          category: row.category,
+          subtype: row.subtype,
+          days: row.days,
+          times: row.times,
+          timeNote: row.timeNote,
+          location: row.location,
+          requirements: row.requirements,
+          sensitivities: row.sensitivities,
           helpfulWhen: row.helpfulWhen,
           foodWorks: row.foodWorks,
           foodDoesNotWork: row.foodDoesNotWork,
@@ -532,26 +563,63 @@ export function createCareRequestRepository(database: DatabaseClient) {
 
     async create(input: {
       requesterUserId: string;
-      helpfulWhen: string;
-      foodWorks: string;
-      foodDoesNotWork: string;
-      handoffStyle: string;
+      category?: CareCategoryId;
+      subtype?: string;
+      days?: CareDay[];
+      times?: CareTime[];
+      timeNote?: string;
+      location?: string;
+      requirements?: string;
+      sensitivities?: string;
+      helpfulWhen?: string;
+      foodWorks?: string;
+      foodDoesNotWork?: string;
+      handoffStyle?: string;
       expiresIn: CareExpiration;
       audience?: "party" | "tribe";
       now: Date;
     }) {
       return database.transaction(async (transaction) => {
         const id = `care-request-${randomUUID()}`;
+        const category = input.category ?? "food";
+        const subtype = input.subtype?.trim() ?? "";
+        const days = input.days ?? [];
+        const times = input.times ?? [];
+        const timeNote = input.timeNote?.trim() ?? "";
+        const helpfulWhen = input.helpfulWhen?.trim() || timeNote || "Flexible";
+        const location =
+          input.location?.trim() ||
+          input.handoffStyle?.trim() ||
+          "Not specified";
+        const requirements =
+          input.requirements?.trim() ?? input.foodWorks?.trim() ?? "";
+        const sensitivities =
+          input.sensitivities?.trim() ?? input.foodDoesNotWork?.trim() ?? "";
+        const categoryDescription = getCareCategory(category)?.name ?? "Care";
+        const foodWorks =
+          input.foodWorks?.trim() ||
+          requirements ||
+          subtype ||
+          categoryDescription;
+        const handoffStyle = input.handoffStyle?.trim() || location;
         const [created] = await transaction
           .insert(careRequests)
           .values({
             id,
             requesterUserId: input.requesterUserId,
             originatorUserId: input.requesterUserId,
-            helpfulWhen: input.helpfulWhen,
-            foodWorks: input.foodWorks,
-            foodDoesNotWork: input.foodDoesNotWork,
-            handoffStyle: input.handoffStyle,
+            category,
+            subtype,
+            days,
+            times,
+            timeNote,
+            location,
+            requirements,
+            sensitivities,
+            helpfulWhen,
+            foodWorks,
+            foodDoesNotWork: sensitivities,
+            handoffStyle,
             audience: input.audience ?? "party",
             expiresAt: expiresAtFor(input.now, input.expiresIn),
             createdAt: input.now,

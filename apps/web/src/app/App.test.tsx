@@ -515,9 +515,9 @@ describe("App", () => {
       screen.getByRole("heading", { name: "Care with Anya Reed" }),
     ).toBeInTheDocument();
     const careCard = screen.getByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
-    expect(careCard).toHaveTextContent("Anya is asking for a meal");
+    expect(careCard).toHaveTextContent("Anya is asking for food care");
     expect(
       within(careCard).queryByRole("button", { name: "I’ve seen this" }),
     ).not.toBeInTheDocument();
@@ -542,7 +542,7 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: /open anya reed/i }));
 
     const careCard = screen.getByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
     await user.click(
       within(careCard).getByRole("button", { name: "Mark done" }),
@@ -572,7 +572,7 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: /open anya reed/i }));
 
     const careCard = screen.getByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
     await user.click(
       within(careCard).getByRole("button", {
@@ -618,7 +618,7 @@ describe("App", () => {
     );
     expect(
       screen.queryByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
+        name: "Incoming food care request from Anya Reed",
       }),
     ).not.toBeInTheDocument();
 
@@ -663,8 +663,8 @@ describe("App", () => {
       screen.queryByRole("heading", { name: "Private history" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("article", { name: "Open meal care request" }),
-    ).toHaveTextContent("Your meal request");
+      screen.getByRole("article", { name: "Open food care request" }),
+    ).toHaveTextContent("Your food request");
   });
 
   it("adds a Party member through the mobile wizard", async () => {
@@ -737,33 +737,35 @@ describe("App", () => {
 
     await user.click(screen.getAllByRole("button", { name: "Receive" })[1]);
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Meal" })).toHaveFocus(),
+      expect(
+        screen.getByRole("button", { name: /^Transportation/ }),
+      ).toHaveFocus(),
     );
     expect(
-      screen.getByRole("button", { name: "Transportation" }),
-    ).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
-    await user.click(screen.getByRole("button", { name: "Meal" }));
+      screen.getByRole("button", { name: /^Transportation/ }),
+    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Food/ })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: /^Food/ }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("checkbox", { name: "Thursday" }));
+    await user.click(screen.getByRole("button", { name: "Evening" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.type(
-      screen.getByPlaceholderText("Tonight after 6"),
-      "Tonight after 6",
+      screen.getByPlaceholderText("Neighborhood, home, or nearby area"),
+      "Leave it at my door",
     );
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.type(
-      screen.getByPlaceholderText("Soup, rice, or something easy"),
+      screen.getByPlaceholderText("Anything that would make this easier"),
       "Soup or rice",
     );
+    await user.type(screen.getByPlaceholderText("Optional"), "Nothing spicy");
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.click(screen.getByRole("button", { name: "1 day" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(
-      screen.getByRole("button", { name: "Leave it at my door" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(
-      screen.getByText("This request will be shared with your Party."),
+      screen.getByText("This Care will be shared with your Party."),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Ask my Party" }));
     await waitFor(() =>
@@ -773,9 +775,9 @@ describe("App", () => {
     );
 
     const request = screen.getByRole("article", {
-      name: "Open meal care request",
+      name: "Open food care request",
     });
-    expect(request).toHaveTextContent("Meal request");
+    expect(request).toHaveTextContent("Food request");
     expect(request).toHaveTextContent("Open");
     expect(request).toHaveTextContent("Shared with: Party");
   });
@@ -783,7 +785,7 @@ describe("App", () => {
   it("does not use browser-local presentation state for durable requests", async () => {
     const firstRender = await renderAuthenticatedApp();
     const incomingRequest = await screen.findByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
 
     expect(
@@ -794,7 +796,7 @@ describe("App", () => {
     await renderAuthenticatedApp();
     expect(
       await screen.findByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
+        name: "Incoming food care request from Anya Reed",
       }),
     ).toHaveTextContent("Nothing spicy");
   });
@@ -804,7 +806,7 @@ describe("App", () => {
     const user = userEvent.setup();
     const firstRender = await renderAuthenticatedApp(careApiClient);
     const incomingRequest = await screen.findByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
 
     await user.click(
@@ -819,7 +821,7 @@ describe("App", () => {
     );
     expect(
       screen.queryByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
+        name: "Incoming food care request from Anya Reed",
       }),
     ).not.toBeInTheDocument();
 
@@ -827,7 +829,7 @@ describe("App", () => {
     await renderAuthenticatedApp(careApiClient);
     expect(
       screen.queryByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
+        name: "Incoming food care request from Anya Reed",
       }),
     ).not.toBeInTheDocument();
   });
@@ -839,7 +841,7 @@ describe("App", () => {
 
     expect(
       await screen.findByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
+        name: "Incoming food care request from Anya Reed",
       }),
     ).toBeInTheDocument();
   });
@@ -854,9 +856,9 @@ describe("App", () => {
       ),
     );
     expect(
-      screen.getByRole("region", { name: /ask my party for a meal/i }),
+      screen.getByRole("region", { name: /ask care to my party/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Food/ })).toBeEnabled();
     await user.click(
       screen.getByRole("button", { name: /cancel asking for care/i }),
     );
@@ -869,32 +871,35 @@ describe("App", () => {
 
     await user.click(screen.getAllByRole("button", { name: "Give" })[1]);
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Meal" })).toHaveFocus(),
+      expect(
+        screen.getByRole("button", { name: /^Transportation/ }),
+      ).toHaveFocus(),
     );
-    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Food/ })).toBeEnabled();
     expect(
-      screen.getByRole("button", { name: "Transportation" }),
-    ).toBeDisabled();
+      screen.getByRole("button", { name: /^Transportation/ }),
+    ).toBeEnabled();
 
-    await user.click(screen.getByRole("button", { name: "Meal" }));
+    await user.click(screen.getByRole("button", { name: /^Food/ }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("checkbox", { name: "Saturday" }));
+    await user.click(screen.getByRole("button", { name: "Afternoon" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.type(
-      screen.getByPlaceholderText("Soup, rice, or something easy"),
-      "A pot of soup",
+      screen.getByPlaceholderText("Neighborhood, home, or nearby area"),
+      "I’m flexible",
     );
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.type(
-      screen.getByPlaceholderText("Saturday afternoon"),
-      "Saturday afternoon",
+      screen.getByPlaceholderText("Anything that would make this easier"),
+      "A pot of soup",
     );
     await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.click(screen.getByRole("button", { name: "1 day" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(screen.getByRole("button", { name: "I’m flexible" }));
-    await user.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(
-      screen.getByText("This offer will be shared with your Party."),
+      screen.getByText("This Care will be shared with your Party."),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Offer to my Party" }));
     await waitFor(() =>
@@ -902,11 +907,11 @@ describe("App", () => {
     );
 
     const offer = screen.getByRole("article", {
-      name: "Open meal care offer",
+      name: "Open food care offer",
     });
-    expect(offer).toHaveTextContent("Meal offer");
+    expect(offer).toHaveTextContent("Food offer");
     expect(offer).toHaveTextContent("A pot of soup");
-    expect(offer).toHaveTextContent("Saturday afternoon");
+    expect(offer).toHaveTextContent("Saturday, Afternoon");
     expect(offer).toHaveTextContent("Open");
     expect(offer).toHaveTextContent("Offered to: Party");
 
@@ -914,20 +919,20 @@ describe("App", () => {
       screen.getByRole("button", { name: "Filter to Give offers" }),
     );
     expect(
-      screen.getByRole("article", { name: "Open meal care offer" }),
+      screen.getByRole("article", { name: "Open food care offer" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "Ren" }),
     ).not.toBeInTheDocument();
 
     const filteredOffer = screen.getByRole("article", {
-      name: "Open meal care offer",
+      name: "Open food care offer",
     });
     await user.click(
       within(filteredOffer).getByRole("button", { name: "Withdraw offer" }),
     );
     expect(
-      screen.queryByRole("article", { name: "Open meal care offer" }),
+      screen.queryByRole("article", { name: "Open food care offer" }),
     ).not.toBeInTheDocument();
   });
 
@@ -941,9 +946,9 @@ describe("App", () => {
       ),
     );
     expect(
-      screen.getByRole("region", { name: /offer a meal to my party/i }),
+      screen.getByRole("region", { name: /offer care to my party/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Meal" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Food/ })).toBeEnabled();
     await user.click(
       screen.getByRole("button", { name: /cancel offering care/i }),
     );
@@ -962,10 +967,10 @@ describe("App", () => {
     const user = userEvent.setup();
     const firstRender = await renderAuthenticatedApp();
     const incomingRequest = await screen.findByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
 
-    expect(incomingRequest).toHaveTextContent("Anya is asking for a meal");
+    expect(incomingRequest).toHaveTextContent("Anya is asking for food care");
     expect(incomingRequest).toHaveTextContent("From your Party");
     await user.click(
       screen.getByRole("button", { name: "Filter to Receive requests" }),
@@ -977,7 +982,7 @@ describe("App", () => {
       screen.queryByRole("heading", { name: "Ren" }),
     ).not.toBeInTheDocument();
     const filteredIncomingRequest = screen.getByRole("article", {
-      name: "Incoming meal care request from Anya Reed",
+      name: "Incoming food care request from Anya Reed",
     });
     await user.click(
       within(filteredIncomingRequest).getByRole("button", {
@@ -1028,7 +1033,7 @@ describe("App", () => {
     expect(
       within(
         screen.getByRole("article", {
-          name: "Incoming meal care request from Anya Reed",
+          name: "Incoming food care request from Anya Reed",
         }),
       ).queryByRole("button", { name: "I can help" }),
     ).not.toBeInTheDocument();
@@ -1038,7 +1043,7 @@ describe("App", () => {
     await user.click(screen.getByRole("tab", { name: /give/i }));
     expect(
       screen.getByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
+        name: "Incoming food care request from Anya Reed",
       }),
     ).toHaveTextContent("You’re helping Anya.");
 
@@ -1050,7 +1055,7 @@ describe("App", () => {
     await user.click(screen.getByRole("tab", { name: /give/i }));
     expect(
       screen.getByRole("article", {
-        name: "Incoming meal care request from Anya Reed",
+        name: "Incoming food care request from Anya Reed",
       }),
     ).toBeInTheDocument();
   });
@@ -1059,7 +1064,7 @@ describe("App", () => {
     const user = userEvent.setup();
     await renderAuthenticatedApp();
     const perspective = screen.getByLabelText("Reviewing as");
-    const incomingName = "Incoming meal care request from Anya Reed";
+    const incomingName = "Incoming food care request from Anya Reed";
 
     expect(screen.getByText(/not account switching/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Pass this time" }));
@@ -1092,7 +1097,7 @@ describe("App", () => {
 
     await user.selectOptions(perspective, "anya");
     expect(
-      screen.getByRole("article", { name: "Claimed meal care request" }),
+      screen.getByRole("article", { name: "Claimed food care request" }),
     ).toHaveTextContent("Someone is helping with this request.");
 
     await user.selectOptions(perspective, "mira");
@@ -1100,7 +1105,7 @@ describe("App", () => {
       screen.queryByRole("article", { name: incomingName }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("article", { name: "Claimed meal care request" }),
+      screen.queryByRole("article", { name: "Claimed food care request" }),
     ).not.toBeInTheDocument();
 
     await user.selectOptions(perspective, "nearby-family-1");

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { ReceiveCareRequest } from "@/types/careRequest";
+import { careRequestCategoryName, careScheduleLabel } from "./carePresentation";
 
 type ClaimCareViewProps = {
   onBack: () => void;
@@ -15,6 +16,13 @@ export function ClaimCareView({
   onConfirm,
   request,
 }: ClaimCareViewProps) {
+  const categoryName = careRequestCategoryName(request);
+  const schedule = careScheduleLabel({
+    days: request.days,
+    times: request.times,
+    timeNote: request.timeNote,
+    fallback: request.helpfulWhen,
+  });
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
@@ -63,7 +71,8 @@ export function ClaimCareView({
         <div className="party-wizard__question party-wizard__preview-wrap">
           <HandHeart aria-hidden="true" className="receive-care-icon" />
           <h1 ref={headingRef} className="party-wizard__title" tabIndex={-1}>
-            Help {request.requester.displayName} with this meal?
+            Help {request.requester.displayName} with this{" "}
+            {categoryName.toLowerCase()} care?
           </h1>
           <p className="party-wizard__hint">
             This makes a commitment to provide this care.
@@ -74,26 +83,34 @@ export function ClaimCareView({
               <dd>{request.requester.displayName}</dd>
             </div>
             <div>
-              <dt>Need</dt>
-              <dd>{request.need}</dd>
+              <dt>Care</dt>
+              <dd>{categoryName}</dd>
             </div>
-            <div>
-              <dt>Timing</dt>
-              <dd>{request.helpfulWhen}</dd>
-            </div>
-            <div>
-              <dt>Food that works</dt>
-              <dd>{request.foodWorks}</dd>
-            </div>
-            {request.foodDoesNotWork ? (
+            {request.subtype ? (
               <div>
-                <dt>Please avoid</dt>
-                <dd>{request.foodDoesNotWork}</dd>
+                <dt>Type</dt>
+                <dd>{request.subtype}</dd>
               </div>
             ) : null}
             <div>
-              <dt>Handoff</dt>
-              <dd>{request.handoffStyle}</dd>
+              <dt>When</dt>
+              <dd>{schedule}</dd>
+            </div>
+            {(request.requirements ?? request.foodWorks) ? (
+              <div>
+                <dt>Works well</dt>
+                <dd>{request.requirements ?? request.foodWorks}</dd>
+              </div>
+            ) : null}
+            {(request.sensitivities ?? request.foodDoesNotWork) ? (
+              <div>
+                <dt>Preferences</dt>
+                <dd>{request.sensitivities ?? request.foodDoesNotWork}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt>Location</dt>
+              <dd>{request.location ?? request.handoffStyle}</dd>
             </div>
           </dl>
         </div>

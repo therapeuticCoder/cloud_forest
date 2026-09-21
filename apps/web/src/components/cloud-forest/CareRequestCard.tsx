@@ -7,6 +7,7 @@ import type {
   ReceiveCareRequest,
 } from "@/types/careRequest";
 import { getMealGratitudeStatement } from "@/data/careGratitudeStatements";
+import { careRequestCategoryName, careScheduleLabel } from "./carePresentation";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -61,13 +62,24 @@ export function CareRequestCard({
   const effectiveOtherParticipantCompleted =
     otherParticipantCompleted ?? durableOtherParticipantCompleted;
   const requesterFirstName = request.requester.displayName.split(" ")[0];
+  const categoryName = careRequestCategoryName(request);
+  const categoryLabel = categoryName.toLowerCase();
+  const schedule = careScheduleLabel({
+    days: request.days,
+    times: request.times,
+    timeNote: request.timeNote,
+    fallback: request.helpfulWhen,
+  });
+  const requirements = request.requirements ?? request.foodWorks;
+  const sensitivities = request.sensitivities ?? request.foodDoesNotWork;
+  const location = request.location ?? request.handoffStyle;
   const presentationButtonRef = useRef<HTMLButtonElement>(null);
   const restorePresentationFocusRef = useRef(false);
   const articleLabel = isSelfAuthored
     ? claimed
-      ? "Claimed meal care request"
-      : "Open meal care request"
-    : `Incoming meal care request from ${request.requester.displayName}`;
+      ? `Claimed ${categoryLabel} care request`
+      : `Open ${categoryLabel} care request`
+    : `Incoming ${categoryLabel} care request from ${request.requester.displayName}`;
   const statusLabel = claimed
     ? viewerIsClaimer
       ? "Committed"
@@ -98,11 +110,13 @@ export function CareRequestCard({
         </div>
         <div className="care-request-card__body care-request-card__body--minimized">
           <div>
-            <span className="care-request-card__eyebrow">Meal request</span>
+            <span className="care-request-card__eyebrow">
+              {categoryName} request
+            </span>
             <h2>
               {isSelfAuthored
-                ? "Your meal request"
-                : `${requesterFirstName} asked for a meal`}
+                ? `Your ${categoryLabel} request`
+                : `${requesterFirstName} asked for ${categoryLabel} care`}
             </h2>
             <time dateTime={request.createdAt}>
               {formatter.format(new Date(request.createdAt))}
@@ -135,33 +149,47 @@ export function CareRequestCard({
       <div className="care-request-card__body">
         <div className="care-request-card__heading">
           <div>
-            <span className="care-request-card__eyebrow">Meal request</span>
+            <span className="care-request-card__eyebrow">
+              {categoryName} request
+            </span>
             <h2>
               {isSelfAuthored
-                ? "Your meal request"
-                : `${requesterFirstName} is asking for a meal`}
+                ? `Your ${categoryLabel} request`
+                : `${requesterFirstName} is asking for ${categoryLabel} care`}
             </h2>
           </div>
           <span className="care-request-card__status">{statusLabel}</span>
         </div>
         <dl>
           <div>
-            <dt>Would help</dt>
-            <dd>{request.helpfulWhen}</dd>
+            <dt>Care</dt>
+            <dd>{categoryName}</dd>
           </div>
-          <div>
-            <dt>Works for me</dt>
-            <dd>{request.foodWorks}</dd>
-          </div>
-          {request.foodDoesNotWork ? (
+          {request.subtype ? (
             <div>
-              <dt>Please avoid</dt>
-              <dd>{request.foodDoesNotWork}</dd>
+              <dt>Type</dt>
+              <dd>{request.subtype}</dd>
             </div>
           ) : null}
           <div>
-            <dt>Handoff</dt>
-            <dd>{request.handoffStyle}</dd>
+            <dt>When</dt>
+            <dd>{schedule}</dd>
+          </div>
+          {requirements ? (
+            <div>
+              <dt>Works well</dt>
+              <dd>{requirements}</dd>
+            </div>
+          ) : null}
+          {sensitivities ? (
+            <div>
+              <dt>Preferences</dt>
+              <dd>{sensitivities}</dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>Location</dt>
+            <dd>{location}</dd>
           </div>
         </dl>
         <div className="care-request-card__footer">

@@ -1,6 +1,7 @@
 import { Gift, HeartHandshake, Network } from "lucide-react";
 
 import type { GiveCareOffer } from "@/types/careRequest";
+import { careOfferCategoryName, careScheduleLabel } from "./carePresentation";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -25,10 +26,21 @@ export function CareOfferCard({
   viewerId: string;
 }) {
   const isSelfAuthored = offer.giver.id === viewerId;
+  const categoryName = careOfferCategoryName(offer);
+  const categoryLabel = categoryName.toLowerCase();
+  const schedule = careScheduleLabel({
+    days: offer.days,
+    times: offer.times,
+    timeNote: offer.timeNote,
+    fallback: offer.availableWhen,
+  });
+  const requirements = offer.requirements ?? offer.mealDescription;
+  const sensitivities = offer.sensitivities;
+  const location = offer.location ?? offer.handoffStyle;
 
   return (
     <article
-      aria-label="Open meal care offer"
+      aria-label={`Open ${categoryLabel} care offer`}
       className="care-request-card care-offer-card"
     >
       <div aria-hidden="true" className="care-request-card__mark">
@@ -37,11 +49,13 @@ export function CareOfferCard({
       <div className="care-request-card__body">
         <div className="care-request-card__heading">
           <div>
-            <span className="care-request-card__eyebrow">Meal offer</span>
+            <span className="care-request-card__eyebrow">
+              {categoryName} offer
+            </span>
             <p className="care-offer-card__giver">
               {isSelfAuthored
-                ? "You can provide this care."
-                : `${offer.giver.displayName} can provide this care.`}
+                ? `You can provide this ${categoryLabel} care.`
+                : `${offer.giver.displayName} can provide this ${categoryLabel} care.`}
             </p>
           </div>
           <span className="care-request-card__status">
@@ -50,16 +64,34 @@ export function CareOfferCard({
         </div>
         <dl>
           <div>
-            <dt>Could provide</dt>
-            <dd>{offer.mealDescription}</dd>
+            <dt>Care</dt>
+            <dd>{categoryName}</dd>
           </div>
+          {offer.subtype ? (
+            <div>
+              <dt>Type</dt>
+              <dd>{offer.subtype}</dd>
+            </div>
+          ) : null}
           <div>
-            <dt>Available</dt>
-            <dd>{offer.availableWhen}</dd>
+            <dt>When</dt>
+            <dd>{schedule}</dd>
           </div>
+          {requirements ? (
+            <div>
+              <dt>Works well</dt>
+              <dd>{requirements}</dd>
+            </div>
+          ) : null}
+          {sensitivities ? (
+            <div>
+              <dt>Preferences</dt>
+              <dd>{sensitivities}</dd>
+            </div>
+          ) : null}
           <div>
-            <dt>Handoff</dt>
-            <dd>{offer.handoffStyle}</dd>
+            <dt>Location</dt>
+            <dd>{location}</dd>
           </div>
         </dl>
         <div className="care-request-card__footer">
