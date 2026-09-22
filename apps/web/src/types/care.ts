@@ -3,6 +3,9 @@ import type {
   CareDay,
   CareDirection,
   CareStatus,
+  CareExpiration,
+  CareGratitudeStatementId,
+  CareWithdrawalStatementId,
   CareTime,
 } from "@cloud-forest/domain";
 
@@ -11,12 +14,14 @@ export type {
   CareDay,
   CareDirection,
   CareStatus,
+  CareExpiration,
+  CareGratitudeStatementId,
+  CareWithdrawalStatementId,
   CareTime,
 } from "@cloud-forest/domain";
 
 export type CarePersonId = string;
 export type CareAudience = "Party" | "Tribe";
-export type CareExpiration = "1h" | "4h" | "1d" | "1w";
 
 export const careExpirationOptions: Array<{
   label: string;
@@ -61,19 +66,28 @@ export type Care = {
 };
 
 export type CareHistoryGratitude = {
-  statementId:
-    | "meal-fed-when-needed"
-    | "meal-care-felt-easy"
-    | "meal-seen-and-supported";
+  statementId: CareGratitudeStatementId;
   message: string;
   createdAt: string;
 };
 
 export type CareHistoryApology = {
-  statementId:
-    | "meal-sorry-cant-follow-through"
-    | "meal-something-changed"
-    | "meal-sorry-committed";
+  statementId: CareWithdrawalStatementId;
   message: string;
   createdAt: string;
+};
+
+export type CareWizardDirection = CareDirection;
+
+export type CareDraft = {
+  category: CareCategoryId;
+  subtype: string;
+  days: CareDay[];
+  times: CareTime[];
+  timeNote: string;
+  location: string;
+  requirements: string;
+  sensitivities: string;
+  expiresIn: CareExpiration;
+  audience: CareAudience;
 };

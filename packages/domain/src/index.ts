@@ -45,3 +45,18 @@ export {
   type CareStatus,
   type CareTime,
 } from "./care.ts";
+
+export {
+  careRole,
+  isActiveCareStatus,
+  careExpirationMs,
+  type CareExpiration,
+} from "./care.ts";
+export {
+  careGratitudeStatements,
+  careApologyStatements,
+  getCareGratitudeStatement,
+  getCareApologyStatement,
+  type CareGratitudeStatementId,
+  type CareWithdrawalStatementId,
+} from "./careStatements.ts";

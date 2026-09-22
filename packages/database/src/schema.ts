@@ -33,15 +33,15 @@ export type ConnectionPairingStatus =
   | "cancelled"
   | "superseded";
 export type CareAudience = "party" | "tribe";
-export type CareExpiration = "1h" | "4h" | "1d" | "1w";
-export type CareGratitudeStatementId =
-  | "meal-fed-when-needed"
-  | "meal-care-felt-easy"
-  | "meal-seen-and-supported";
-export type CareWithdrawalStatementId =
-  | "meal-sorry-cant-follow-through"
-  | "meal-something-changed"
-  | "meal-sorry-committed";
+export type {
+  CareExpiration,
+  CareGratitudeStatementId,
+  CareWithdrawalStatementId,
+} from "@cloud-forest/domain";
+import type {
+  CareGratitudeStatementId,
+  CareWithdrawalStatementId,
+} from "@cloud-forest/domain";
 
 export const timelineItems = pgTable(
   "timeline_items",

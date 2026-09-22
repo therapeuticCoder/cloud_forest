@@ -1,0 +1,17 @@
+.cloud-forest-app {
+  min-height: 100vh;
+  color: var(--forest-ink);
+  background:
+    radial-gradient(
+      circle at 14% 12%,
+      rgba(101, 69, 42, 0.24),
+      transparent 30%
+    ),
+    radial-gradient(circle at 88% 58%, rgba(82, 51, 31, 0.2), transparent 34%),
+    repeating-linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.012) 0 1px,
+      transparent 1px 5px
+    ),
+    var(--forest-bark);
+}

@@ -196,3 +196,30 @@ export function isValidCareSubtype(category: CareCategoryId, subtype: string) {
     definition.giveOptions?.includes(subtype),
   );
 }
+
+export type CareExpiration = "1h" | "4h" | "1d" | "1w";
+
+export const careExpirationMs: Record<CareExpiration, number> = {
+  "1h": 60 * 60 * 1_000,
+  "4h": 4 * 60 * 60 * 1_000,
+  "1d": 24 * 60 * 60 * 1_000,
+  "1w": 7 * 24 * 60 * 60 * 1_000,
+};
+
+export function isActiveCareStatus(status: CareStatus) {
+  return status === "open" || status === "claimed";
+}
+
+// Resolves participant roles only; current relationship access is server-owned.
+// Callers must use one identity namespace consistently (User IDs or Person IDs).
+export function careRole(
+  direction: CareDirection,
+  originatorId: string,
+  participantId: string | null | undefined,
+  viewerId: string,
+): CareDirection | undefined {
+  if (viewerId === originatorId) return direction;
+  if (viewerId === participantId)
+    return direction === "give" ? "receive" : "give";
+  return undefined;
+}

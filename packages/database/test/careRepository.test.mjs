@@ -238,6 +238,24 @@ test("the unified Care repository preserves lifecycle, identity, and privacy", a
     .set({ placement: "holding" })
     .where(eq(curatedPersons.id, ids.curatedPerson));
   assert.deepEqual(
+    await repository.recordCompletion({
+      careId: withdrawnCareId,
+      participantUserId: ids.helper,
+      now: completedAt,
+    }),
+    { ok: false, error: "care-not-found" },
+  );
+  assert.deepEqual(
+    await repository.withdraw({
+      careId: withdrawnCareId,
+      participantUserId: ids.helper,
+      statementId: "meal-something-changed",
+      message: "I need to step back this time.",
+      now: completedAt,
+    }),
+    { ok: false, error: "care-not-found" },
+  );
+  assert.deepEqual(
     await repository.withdraw({
       careId: withdrawnCareId,
       participantUserId: ids.owner,

@@ -26,13 +26,6 @@ export function hasActiveConnection(person: CuratorPerson) {
   );
 }
 
-export type CuratorNeighborhood = {
-  id: string;
-  name: string;
-  description: string;
-  people: CuratorPerson[];
-};
-
 export type CuratorGuild = {
   id: string;
   name: string;
@@ -59,14 +52,28 @@ export type CuratorSignal = {
   recentActivity: string;
 };
 
-export type CuratorMockData = {
-  user: CuratorPerson;
-  partyPeople: CuratorPerson[];
-};
-
 export type CuratorSelection =
   | { layer: "party"; item: CuratorPerson }
   | { layer: "tribe"; item: CuratorPerson }
   | { layer: "holding"; item: CuratorPerson }
   | { layer: "guild"; item: CuratorGuild }
   | { layer: "signal"; item: CuratorSignal };
+
+export type CharacterDraft = {
+  firstName: string;
+  lastName: string;
+  nickname: string;
+  portraitUrl?: string;
+  relationshipNote: string;
+  relationshipTitle: string;
+};
+
+export type CharacterUpdate = {
+  firstName: string;
+  lastName: string;
+  nickname: string;
+  placement: "holding" | "party" | "tribe";
+  privateDescription: string;
+  portraitUrl?: string;
+  relationshipShape: string;
+};
