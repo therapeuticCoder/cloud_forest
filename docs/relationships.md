@@ -44,7 +44,7 @@ For 1.0-ALPHA, Guilds are a visible placeholder only. Do not invent durable Guil
 
 Signals are intentionally followed public people or sources. They are not Characters or Connections and do not imply reciprocity.
 
-Signals exist so a user can care about what someone or something says without pretending there is a personal relationship. The alpha federation proof should allow at least one external federated public source to appear as a Signal.
+Signals exist so a user can care about what someone or something says without pretending there is a personal relationship. Signals and ActivityPub are outside the alpha boundary. The current presentation is a placeholder; experimental federation work remains separate.
 
 ## Mutual Connection protocol
 

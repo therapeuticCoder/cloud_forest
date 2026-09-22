@@ -6,12 +6,13 @@ Its central premise is that social software should help people care for the peop
 
 ## Alpha promises
 
-Cloud Forest 1.0-ALPHA should let a small group of trusted testers experience four things clearly:
+Cloud Forest 1.0-ALPHA should let a small group of trusted testers experience three things clearly:
 
-1. **Relationship structure matters.** Party, Tribe, Guilds, and Signals represent different kinds and degrees of social meaning instead of flattening everyone into one undifferentiated graph.
+1. **Relationship structure matters.** Party and Tribe represent different degrees of social closeness. Holding is a private curation workspace.
 2. **Care can be easy.** Asking for and providing practical aid should be possible even for people who struggle with initiation, coordination, or ordinary social maintenance.
-3. **The social web can cross walls.** A Cloud Forest user should be able to receive at least one real public update from an external federated source as a Signal.
-4. **The network should help, then get out of the way.** Cloud Forest does not optimize for time spent, popularity, compulsive scrolling, or helpless attention cycles.
+3. **The network should help, then get out of the way.** Cloud Forest does not optimize for time spent, popularity, compulsive scrolling, or helpless attention cycles.
+
+Signals and ActivityPub are post-alpha. Guilds remain a visible promise of future cooperation.
 
 ## Product surfaces
 
@@ -25,7 +26,7 @@ Curation is a continuing gameplay loop, not a one-time onboarding task. Relation
 
 Timeline shows activity from the user's social world while preserving relational hierarchy. Party, Tribe, Guild, and Signal activity should not compete equally for attention.
 
-Ordinary user-authored posts belong here. External Signals also belong here, but should be visually de-emphasized and collapsed by default so imported public activity does not become a miniature attention feed.
+Ordinary user-authored posts belong here. Future external Signals should be visually de-emphasized and collapsed by default. They are not part of alpha.
 
 ### Care
 

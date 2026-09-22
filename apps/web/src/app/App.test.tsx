@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ApiClient, GetCaresResponse } from "@cloud-forest/api-client";
 import { App } from "./App";
-import type { CareApiClient } from "@/components/cloud-forest/DashboardShell";
+import type { CareApiClient } from "@/app/DashboardShell";
 
 type TestCare = GetCaresResponse["data"]["cares"][number];
 

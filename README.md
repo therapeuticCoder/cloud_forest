@@ -39,7 +39,7 @@ The API defaults to `http://127.0.0.1:3001`; Vite proxies `/api` to it.
 ```text
 apps/
   api/          Fastify service
-  web/          React PWA
+  web/          React PWA (app composition, Care/Curator/Timeline/pairing features)
   worker/       reserved boundary
 packages/
   api-client/   generated browser-safe client

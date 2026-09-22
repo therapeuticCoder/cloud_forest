@@ -2,54 +2,46 @@
 
 ## Goal
 
-Build a coherent trusted-tester alpha for fewer than 100 people. Alpha succeeds when people can use Cloud Forest together and clearly perceive its central ideas: meaningful relationship layers, low-friction mutual care, a social web that can cross platform boundaries, and an experience designed to help rather than capture attention.
+A coherent trusted-tester alpha for fewer than 100 people: private relationship curation, mutual Connections, practical Care, ordinary Timeline posts, and control over attention.
 
 ## Current product state
 
-- React PWA, Fastify API, PostgreSQL/Drizzle, Better Auth, signup codes, sessions, and account-to-person mapping exist.
-- Username/password login, logout, invited signup, and multiple real users work.
-- Private Character curation across Holding, Party, and Tribe is durable and user-backed.
-- Mutual Connection establishment, relationship exit, blocking, and unblocking are durable.
-- Pairing intent survives login and invited signup, so a pairing link can bring a new tester into Cloud Forest and return them to the pending Connection flow.
-- The installed PWA has a bounded offline read path for session, Curator relationship data, and existing Timeline state. Server-dependent mutations remain unavailable offline.
-- Give and Receive Care are durable between real users. Eligible Connections can see Care, pass privately, claim it, release a claim, record completion independently, retain private completion history, and exchange private gratitude.
-- Care audience lifecycle is durable: Party Care can demote to Tribe when its audience is exhausted, passes follow the accepted layer semantics, and unclaimed Care expires neutrally when its audience is exhausted or its originator-chosen deadline passes.
-- A participant in claimed Care may withdraw compassionately with an apology; the Care closes without returning to the audience and both participants retain the appropriate private history.
-- Ordinary Timeline posting is durable: real users can create Party/Tribe posts for eligible real Connections.
-- Shared Timeline/Curator navigation and active Curator layer/capacity presentation are in place.
-- A public alpha front door is being built separately from the application repository.
-- Guilds remain a visible alpha promise rather than implemented collaboration functionality.
-- Signals remain unimplemented beyond presentation placeholders; no real ActivityPub/federated Signal exists yet.
+- Invited signup, username/password authentication, sessions, and account-to-person mapping are durable.
+- Private Characters live in Holding, Party, or Tribe. Mutual Connections, pairing by QR/link, relationship exit, blocking, and unblocking are durable. Pairing intent survives login and invited signup.
+- The PWA supports bounded cached reads for session, Curator, and existing Timeline state. Shared mutations require the server.
+- Ordinary Party/Tribe Timeline posts are durable.
+- Give and Receive use one Care record, shared alpha catalog, and creation wizard. The catalog covers transportation, food, pet care, child care, urgent shelter, help at home, executive function support, and getting out of the house.
+- Care supports private passing, claiming, independent completion, private gratitude, Party-to-Tribe audience demotion, expiration, and compassionate withdrawal. Current Connection and placement remain authoritative for shared access.
+- Approved Care leaf presentation distinguishes Care from ordinary Timeline posts. Detail navigation, mobile behavior, and accessible action labels remain part of that design.
+- Guilds remain a visible placeholder. Signals and ActivityPub are outside alpha; experimental federation work is not merged into this branch.
+- The public front door is maintained in a separate repository.
 
-## Now
+## Coherence and ownership
 
-**Care types and presentation.** Define the small alpha Care catalog with Scott, then adapt Give/Receive creation, language, and visual presentation so each Care type can ask for the information it actually needs without turning Care into a generalized form builder.
-
-In parallel, work may proceed on **Signals** because the first real federated Signal is largely isolated from Care-type decisions. Keep this slice intentionally narrow: one real external public source flowing into Timeline as a quiet Signal is enough to satisfy the alpha promise before broader federation work.
+- `apps/web/src/app` composes authenticated navigation and feature workflows.
+- `apps/web/src/features` separates Care, Curator, Timeline, and pairing. Authentication forms remain separate from session/cache policy in `components/auth`.
+- Care role and active-status rules, catalog, expiration durations, and persisted statement identities belong to `packages/domain`. UI projections consume already-authorized records; they never grant access.
+- Timeline fetching/caching, post composition, and rendering have separate modules. Browser storage and PWA code remain explicit web-only boundaries.
+- Global tokens/base rules and feature styles are separate, with their cascade order retained in `index.css`.
+- Disconnected review prototypes, obsolete private-Character-to-public-Person adapters, and unused federation-shaped client models have been removed.
 
 ## Next
 
-1. **Care types and presentation** — define the alpha Care catalog with Scott, implement the corresponding Give/Receive wizard variations and language, then make Care visually distinct by type and from ordinary Posts.
-2. **First real Signal** — follow one real external federated account/source, persist or retrieve its public updates through the server, and render them in Timeline as visually de-emphasized, collapsed-by-default Signal items. Do not generalize into a full federation platform yet.
-3. **Alpha coherence** — use the whole product end to end; remove remaining prototype fixtures; decompose oversized coordinators; reduce giant files; clarify feature ownership; separate global styling from feature styling; repair confusing seams.
-4. **React Native preparation** — as part of coherence, leave domain, API, state, and feature boundaries cleaner and less web-entangled so a post-alpha React Native client refactor is easier. Do not begin the React Native migration during alpha.
+Use the existing alpha together with invited testers. Prioritize defects that interrupt signup, connection, curation, posting, or exchanging Care. Do not add another feature tranche before that feedback.
 
-## Known temporary debt
+React Native / Expo remains a post-alpha direction. No native migration or speculative portability framework is part of this pass.
 
-- `DashboardShell.tsx` owns too many unrelated responsibilities.
-- `apps/web/src/index.css` is oversized and mixes global and localized styling.
-- Large app-level tests have accumulated around prototype behavior.
-- Disconnected review prototypes remain in source until their accepted behavior is safely represented in product code or durable product docs.
-- Care presentation still needs type-specific language and visual identity.
-- Guild presentation still depends on placeholder behavior.
-- Signals have only placeholder presentation; there is no durable external source model or real federated ingestion path yet.
+Before release, bring the existing browser suite up to the current alpha contracts. Its Character-update setup omits required first/last names and receives HTTP 400 on both desktop and mobile, before reaching visual assertions. The full check and database integration tests pass; the approved Care visuals still need a working browser comparison and product-owner review.
 
-## Definition of done for an alpha increment
+## Deliberately retained boundaries
 
-An increment is done when its intended behavior works in the real application, the product owner has used and accepted the experience, no known defect blocks the next increment, and temporary scaffolding created for that increment is removed or intentionally retained.
-
-Testing and verification are risk-driven and owned by the product owner. A story does not automatically require full-repository gates, E2E coverage, or documentation beyond updating durable product truth when a real product decision changed.
+- Database Care and Connection repositories retain their transaction, locking, current-access, and private-history boundaries.
+- Persisted gratitude/apology IDs retain their historical `meal-` prefixes. Existing statement copy is preserved; broader category-specific wording remains a product decision.
+- Seeded fictional accounts, portrait mappings, and browser fixtures still support development and verification. They are separate from the removed disconnected review prototypes.
+- Browser history/focus recovery, pairing intent storage, and cache upgrade/purge paths remain web-specific. They protect existing installed-client behavior.
 
 ## 1.0-ALPHA exit
 
-Cloud Forest is 1.0-ALPHA when invited testers can get in, curate meaningful relationships, connect mutually, exchange care, write Timeline posts, receive at least one real federated Signal, understand that Guilds are the coming collaboration layer, and experience the product as calm, bounded, and non-extractive.
+Invited testers can get in, curate private Characters, connect mutually, exchange Care, write Timeline posts, understand Guilds as future cooperation, and experience the product as calm and bounded. Signals are not an alpha release requirement.
+
+Product-owner acceptance of the real experience remains the release gate. Automated verification is risk-driven and may be delegated explicitly, as it is for this coherence pass.

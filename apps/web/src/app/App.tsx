@@ -2,7 +2,7 @@ import { AuthBoundary } from "@/components/auth/AuthBoundary";
 import type {
   CareApiClient,
   CuratedPersonApiClient,
-} from "@/components/cloud-forest/DashboardShell";
+} from "@/app/DashboardShell";
 import { restorePendingConnectionPairing } from "@/lib/pendingConnectionPairing";
 import type { SessionClient } from "./sessionClient";
 

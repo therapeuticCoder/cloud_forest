@@ -94,3 +94,9 @@ Current mutual consent outranks an earlier Care participant role.
 ## Alpha scope
 
 For 1.0-ALPHA, favor one complete, understandable shared Care path over a generalized Care platform. Preserve the accepted interaction semantics where useful, but do not carry forward browser-storage authority, fictional perspective switching, fixture-specific audience snapshots, or speculative hardening from the old prototype.
+
+## Shared implementation
+
+The alpha catalog in `packages/domain/src/care.ts` defines the eight selected categories and their Give/Receive options. `careStatements.ts` owns persisted gratitude/apology identities and existing wording. Historical `meal-` IDs remain stable for stored records.
+
+The web Care feature separates API projection, fetch state, action workflows, navigation/focus recovery, and presentation. My Care derives role-based tabs from one authorized collection. Domain role helpers describe participation; current relationship eligibility and lifecycle transitions remain authoritative in the database repository.

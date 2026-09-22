@@ -3,6 +3,10 @@ import { and, desc, eq, isNull, notExists, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import {
+  careExpirationMs,
+  careGratitudeStatements,
+  careApologyStatements,
+  type CareStatus,
   type CareCategoryId,
   type CareDay,
   type CareDirection,
@@ -54,13 +58,7 @@ export type CareRecord = {
   requirements: string;
   sensitivities: string;
   audience: CareAudience;
-  status:
-    | "open"
-    | "claimed"
-    | "orphaned"
-    | "completed"
-    | "expired"
-    | "not_completed";
+  status: CareStatus;
   claimedAt: Date | null;
   originatorCompletedAt: Date | null;
   participantCompletedAt: Date | null;
@@ -83,23 +81,12 @@ export type CareRecord = {
   } | null;
 };
 
-const careExpirationMs: Record<CareExpiration, number> = {
-  "1h": 60 * 60 * 1_000,
-  "4h": 4 * 60 * 60 * 1_000,
-  "1d": 24 * 60 * 60 * 1_000,
-  "1w": 7 * 24 * 60 * 60 * 1_000,
-};
-
-const gratitudeStatements = new Set<CareGratitudeStatementId>([
-  "meal-fed-when-needed",
-  "meal-care-felt-easy",
-  "meal-seen-and-supported",
-]);
-const withdrawalStatements = new Set<CareWithdrawalStatementId>([
-  "meal-sorry-cant-follow-through",
-  "meal-something-changed",
-  "meal-sorry-committed",
-]);
+const gratitudeStatements = new Set<CareGratitudeStatementId>(
+  careGratitudeStatements.map(({ id }) => id),
+);
+const withdrawalStatements = new Set<CareWithdrawalStatementId>(
+  careApologyStatements.map(({ id }) => id),
+);
 
 function orderedUsers(firstUserId: string, secondUserId: string) {
   return firstUserId < secondUserId
@@ -699,16 +686,13 @@ export function createCareRepository(database: DatabaseClient) {
         if (!isOriginator && !isParticipant) {
           return { ok: false, error: "care-not-found" };
         }
-        const otherUserId = isOriginator
-          ? care.participantUserId
-          : care.originatorUserId;
         const requiresCurrentAccess =
           care.direction === "give" || isParticipant;
         if (
           requiresCurrentAccess &&
           !(await canAccess(
             care.originatorUserId,
-            otherUserId,
+            care.participantUserId,
             care.audience,
             transaction,
           ))
@@ -826,14 +810,10 @@ export function createCareRepository(database: DatabaseClient) {
         ) {
           return { ok: false, error: "care-not-found" };
         }
-        const otherUserId =
-          input.participantUserId === current.originatorUserId
-            ? current.participantUserId
-            : current.originatorUserId;
         if (
           !(await canAccess(
             current.originatorUserId,
-            otherUserId,
+            current.participantUserId,
             current.audience,
             transaction,
           ))
