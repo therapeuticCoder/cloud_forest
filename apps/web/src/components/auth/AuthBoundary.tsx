@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EntryScreen } from "./EntryScreen";
 import { LoadingScreen } from "./AuthLayout";
 
@@ -9,6 +9,10 @@ import {
 } from "@/app/DashboardShell";
 import { clearCuratedPeopleSnapshot } from "@/lib/curatedPeopleStorage";
 import { clearTimelineItemSnapshot } from "@/lib/timelineItemStorage";
+import {
+  allowDeviceReads,
+  clearOwnerDeviceReads,
+} from "@/lib/deviceReadStorage";
 import {
   clearSessionSnapshot,
   loadSessionSnapshot,
@@ -72,14 +76,22 @@ export function AuthBoundary({
     typeof window === "undefined"
       ? null
       : new URL(window.location.href).searchParams.get("pairing");
-  const [boundary, setBoundary] = useState<BoundaryState>({
-    status: "checking",
+  const [boundary, setBoundary] = useState<BoundaryState>(() => {
+    const saved = loadSessionSnapshot();
+    return saved
+      ? { status: "signed-in", ...saved, connection: "offline" }
+      : { status: "checking" };
   });
+  const sessionSequence = useRef(0);
+  const logoutPending = useRef(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string>();
 
   const checkSession = useCallback(async () => {
+    if (logoutPending.current) return;
+    const sequence = ++sessionSequence.current;
     const result = await sessionClient.getCurrentSession();
+    if (sequence !== sessionSequence.current) return;
     if (result.ok) {
       const session = {
         currentPersonId: result.value.data.currentPersonId,
@@ -93,7 +105,11 @@ export function AuthBoundary({
       ) {
         clearCuratedPeopleSnapshot(previousSession.currentPersonId);
         clearTimelineItemSnapshot(previousSession.currentPersonId);
+        await clearOwnerDeviceReads(previousSession.currentPersonId);
       }
+      if (sequence !== sessionSequence.current) return;
+      await allowDeviceReads(session.currentPersonId);
+      if (sequence !== sessionSequence.current) return;
       saveSessionSnapshot(session);
       setBoundary({
         status: "signed-in",
@@ -132,6 +148,7 @@ export function AuthBoundary({
     if (cachedSession) {
       clearCuratedPeopleSnapshot(cachedSession.currentPersonId);
       clearTimelineItemSnapshot(cachedSession.currentPersonId);
+      void clearOwnerDeviceReads(cachedSession.currentPersonId);
     }
     clearSessionSnapshot();
     setBoundary({
@@ -141,10 +158,31 @@ export function AuthBoundary({
   }, [pairingToken, sessionClient]);
 
   useEffect(() => {
+    const expire = (event: Event) => {
+      const ownerId = (event as CustomEvent<{ ownerId: string }>).detail
+        .ownerId;
+      if (loadSessionSnapshot()?.currentPersonId !== ownerId) return;
+      sessionSequence.current += 1;
+      clearSessionSnapshot();
+      void clearOwnerDeviceReads(ownerId);
+      setBoundary({
+        status: "signed-out",
+        message: "Your Cloud Forest session has ended. Please sign in again.",
+      });
+    };
+    window.addEventListener("cloud-forest:session-expired", expire);
+    return () =>
+      window.removeEventListener("cloud-forest:session-expired", expire);
+  }, []);
+
+  useEffect(() => {
     const initialCheck = window.setTimeout(() => {
       void checkSession();
     }, 0);
-    return () => window.clearTimeout(initialCheck);
+    return () => {
+      window.clearTimeout(initialCheck);
+      sessionSequence.current += 1;
+    };
   }, [checkSession]);
 
   useEffect(() => {
@@ -228,6 +266,8 @@ export function AuthBoundary({
   }, [sessionClient]);
 
   const signOut = async () => {
+    logoutPending.current = true;
+    sessionSequence.current += 1;
     setSigningOut(true);
     setSignOutError(undefined);
     const result = await sessionClient.logout();
@@ -235,6 +275,7 @@ export function AuthBoundary({
       if (boundary.status === "signed-in") {
         clearCuratedPeopleSnapshot(boundary.currentPersonId);
         clearTimelineItemSnapshot(boundary.currentPersonId);
+        void clearOwnerDeviceReads(boundary.currentPersonId);
       }
       clearSessionSnapshot();
     };
@@ -255,6 +296,7 @@ export function AuthBoundary({
       );
     }
     setSigningOut(false);
+    logoutPending.current = false;
   };
 
   if (boundary.status === "checking") return <LoadingScreen />;

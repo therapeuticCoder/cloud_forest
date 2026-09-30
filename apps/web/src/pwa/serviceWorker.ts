@@ -5,7 +5,7 @@ import {
   shellCachePrefix,
   shouldDeleteShellCache,
 } from "./cachePolicy";
-import { resolveNetworkFirst } from "./navigationPolicy";
+import { resolveShellNavigation } from "./navigationPolicy";
 
 export {};
 
@@ -18,9 +18,15 @@ const worker = globalThis as unknown as ServiceWorkerGlobalScope;
 // Workbox replaces this exact marker with the generated static-shell entries.
 // @ts-expect-error The injected property exists only in the service-worker build.
 const precacheEntries = self.__WB_MANIFEST as PrecacheEntry[];
-const precacheUrls = precacheEntries.map(
-  (entry) => new URL(entry.url, worker.registration.scope).href,
-);
+// The generated manifest can include icons both from glob patterns and the
+// app manifest. Cache.addAll rejects repeated URLs in the same batch.
+const precacheUrls = [
+  ...new Set(
+    precacheEntries.map(
+      (entry) => new URL(entry.url, worker.registration.scope).href,
+    ),
+  ),
+];
 
 function hashPrecacheEntries(entries: PrecacheEntry[]) {
   const source = entries
@@ -80,22 +86,18 @@ worker.addEventListener("fetch", (event) => {
   if (requestUrl.origin !== worker.location.origin) {
     return;
   }
+  if (
+    requestUrl.pathname === "/api" ||
+    requestUrl.pathname.startsWith("/api/")
+  ) {
+    return;
+  }
 
   if (event.request.mode === "navigate") {
-    if (requestUrl.pathname.startsWith("/api/")) {
-      return;
-    }
-
     event.respondWith(
-      resolveNetworkFirst({
+      resolveShellNavigation({
         network: () => fetch(event.request),
-        fallback: async () => {
-          const cachedShell = await caches.match(
-            shellUrl,
-            shellCacheMatchOptions,
-          );
-          return cachedShell ?? Response.error();
-        },
+        readCache: () => caches.match(shellUrl, shellCacheMatchOptions),
       }),
     );
     return;

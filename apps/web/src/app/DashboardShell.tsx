@@ -25,6 +25,8 @@ import {
   Portrait,
 } from "../features/curator/PartyLayer";
 import { TimelineView } from "../features/timeline/TimelineView";
+import { useTimelineItems } from "../features/timeline/useTimelineItems";
+import { timelineApiClient } from "../features/timeline/timelineClient";
 import type { TimelineError } from "../features/timeline/TimelinePanel";
 import { type CloudForestView, ViewSwitcher } from "./ViewSwitcher";
 import type { CuratorLayerLabel } from "../features/curator/curatorLayerStyles";
@@ -102,11 +104,7 @@ export function DashboardShell({
     }),
     [currentPersonId, displayName],
   );
-  const curated = useCuratedPeople(
-    apiClient,
-    activeView === "curator",
-    currentPersonId,
-  );
+  const curated = useCuratedPeople(apiClient, !sessionOffline, currentPersonId);
   const {
     add: addCuratedPerson,
     blockedPeople,
@@ -159,11 +157,21 @@ export function DashboardShell({
     careApiClient,
     careViewerId,
     `${activeView}:${careDestination?.kind ?? ""}`,
+    !sessionOffline,
   );
+  const timelineItems = useTimelineItems(
+    timelineApiClient,
+    currentPersonId,
+    !sessionOffline,
+  );
+  const careActionsAvailable =
+    !deviceIsOffline && !caresState.offline && caresState.source === "live";
   const curatorIsOffline =
     appIsOffline || curatedPeople.offline || curatedPeople.source === "cache";
   const profileIsOffline =
-    activeView === "curator" ? curatorIsOffline : appIsOffline;
+    activeView === "curator"
+      ? curatorIsOffline
+      : appIsOffline || caresState.offline;
   const currentCuratorLayer = curatorSelection
     ? curatorSelectionLayerLabels[curatorSelection.layer]
     : activeCuratorLayer;
@@ -388,16 +396,19 @@ export function DashboardShell({
     return { ok: true as const };
   };
   const openReceiveWizard = () => {
+    if (!careActionsAvailable) return;
     focusTargetIdRef.current = "receive";
     setReceiveWizardOpen(true);
   };
   const openTimelinePostComposer = () => {
+    if (deviceIsOffline) return;
     setTimelinePostComposerOpen(true);
   };
   const closeTimelinePostComposer = () => {
     setTimelinePostComposerOpen(false);
   };
   const openGiveWizard = (returnFocusSelector?: string) => {
+    if (!careActionsAvailable) return;
     focusTargetIdRef.current =
       typeof returnFocusSelector === "string" ? returnFocusSelector : "give";
     setGiveWizardOpen(true);
@@ -566,10 +577,16 @@ export function DashboardShell({
           !giveWizardOpen &&
           activeView === "timeline" ? (
             <div className="timeline-desktop-care-actions">
-              <PartyAction icon={Gift} onClick={openGiveWizard} tone="quiet">
+              <PartyAction
+                disabled={!careActionsAvailable}
+                icon={Gift}
+                onClick={openGiveWizard}
+                tone="quiet"
+              >
                 Give
               </PartyAction>
               <PartyAction
+                disabled={!careActionsAvailable}
                 icon={HandHeart}
                 onClick={openReceiveWizard}
                 tone="quiet"
@@ -608,11 +625,12 @@ export function DashboardShell({
           >
             {activeView === "timeline" ? (
               <TimelineView
+                timelineItems={timelineItems}
                 cacheOwnerId={currentPersonId}
                 onOfflineChange={setTimelineApiOffline}
                 cares={durableCares}
                 careError={durableCareError}
-                offline={deviceIsOffline}
+                offline={deviceIsOffline || caresState.offline}
                 postComposerOpen={timelinePostComposerOpen}
                 onClosePostComposer={closeTimelinePostComposer}
                 onOpenCareDetails={(care) =>
@@ -621,20 +639,30 @@ export function DashboardShell({
                     `[data-care-detail-action="${care.id}"]`,
                   )
                 }
-                onCommitToCare={(care) =>
-                  openCareDestination(
-                    { kind: "claim", care },
-                    `[data-care-claim-action="${care.id}"]`,
-                  )
+                onCommitToCare={
+                  careActionsAvailable
+                    ? (care) =>
+                        openCareDestination(
+                          { kind: "claim", care },
+                          `[data-care-claim-action="${care.id}"]`,
+                        )
+                    : undefined
                 }
-                onRecordCompleted={recordCareCompleted}
-                onRecordNotCompleted={setCareWithdrawal}
-                onPass={handlePassCare}
-                onWithdraw={(careId) =>
-                  void withdrawCare(careId, {
-                    statementId: "meal-something-changed",
-                    message: "",
-                  })
+                onRecordCompleted={
+                  careActionsAvailable ? recordCareCompleted : undefined
+                }
+                onRecordNotCompleted={
+                  careActionsAvailable ? setCareWithdrawal : undefined
+                }
+                onPass={careActionsAvailable ? handlePassCare : undefined}
+                onWithdraw={
+                  careActionsAvailable
+                    ? (careId) =>
+                        void withdrawCare(careId, {
+                          statementId: "meal-something-changed",
+                          message: "",
+                        })
+                    : undefined
                 }
                 viewerId={careViewerId}
                 passableCareIds={passableCareIds}
@@ -642,6 +670,7 @@ export function DashboardShell({
               />
             ) : (
               <CuratorView
+                careActionsDisabled={!careActionsAvailable}
                 addDestination={addDestination}
                 addSubmission={addSubmission}
                 addWizardOpen={addWizardOpen}
@@ -722,15 +751,22 @@ export function DashboardShell({
               cares={caresState.cares}
               viewerDisplayName={displayName}
               onBack={backFromCareDestination}
-              isAdmin={role === "admin"}
+              isAdmin={role === "admin" && !deviceIsOffline}
               onCreateSignupCode={onCreateSignupCode}
-              onRecordCompleted={recordCareCompleted}
-              onRecordNotCompleted={setCareWithdrawal}
-              onWithdraw={(careId) =>
-                void withdrawCare(careId, {
-                  statementId: "meal-something-changed",
-                  message: "",
-                })
+              onRecordCompleted={
+                careActionsAvailable ? recordCareCompleted : undefined
+              }
+              onRecordNotCompleted={
+                careActionsAvailable ? setCareWithdrawal : undefined
+              }
+              onWithdraw={
+                careActionsAvailable
+                  ? (careId) =>
+                      void withdrawCare(careId, {
+                        statementId: "meal-something-changed",
+                        message: "",
+                      })
+                  : undefined
               }
               onSignOut={onSignOut}
               viewerId={careViewerId}
@@ -752,6 +788,8 @@ export function DashboardShell({
           onFocusCapture={revealChrome}
         >
           <PartyActions
+            careActionsDisabled={!careActionsAvailable}
+            writeDisabled={deviceIsOffline || timelineApiOffline}
             activeView={activeView}
             onAdd={() => openAddWizard("party")}
             onGive={openGiveWizard}

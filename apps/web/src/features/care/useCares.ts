@@ -14,6 +14,11 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Care } from "@/types/care";
+import {
+  loadDeviceRead,
+  saveDeviceRead,
+  reportExpiredDeviceSession,
+} from "@/lib/deviceReadStorage";
 
 export type CareApiClient = Pick<
   ApiClient,
@@ -35,7 +40,7 @@ type CareOperationResult =
   | WithdrawCareResult
   | RecordCareGratitudeResult;
 
-export type CaresState =
+export type CaresState = (
   | { status: "loading"; cares: Care[]; message?: string }
   | { status: "ready"; cares: Care[]; message?: string }
   | {
@@ -43,7 +48,16 @@ export type CaresState =
       cares: Care[];
       errorCode: number | "NETWORK";
       message: string;
-    };
+    }
+) & { offline: boolean; source: "cache" | "live" | "none" };
+
+function offlineCareResult() {
+  return {
+    ok: false as const,
+    kind: "network" as const,
+    cause: new Error("Shared Care requires a live connection."),
+  };
+}
 
 const defaultApiClient: CareApiClient = createApiClient({
   baseUrl: "",
@@ -87,10 +101,14 @@ export function careGratitudeErrorMessage(
 export function useCares(
   apiClient: CareApiClient = defaultApiClient,
   refreshKey = "",
+  ownerId = "",
+  enabled = true,
 ) {
   const [state, setState] = useState<CaresState>({
     status: "loading",
     cares: [],
+    offline: true,
+    source: "none",
   });
   const requestSequenceRef = useRef(0);
 
@@ -98,25 +116,45 @@ export function useCares(
     (result: CareOperationResult, requestSequence: number) => {
       if (requestSequence !== requestSequenceRef.current) return;
       if (result.ok) {
+        void saveDeviceRead(ownerId, "care", result.value.data.cares);
         setState({
           status: "ready",
           cares: result.value.data.cares.map(toCare),
+          offline: false,
+          source: "live",
         });
         return;
       }
-      setState((current) => ({
-        status: "error",
-        cares: current.cares,
-        errorCode: careErrorCode(result),
-        message: careErrorMessage(result),
-      }));
+      const recoverable =
+        result.kind === "network" ||
+        (result.kind === "unexpected-response" && result.status >= 500);
+      if (result.kind !== "network" && result.status === 401)
+        reportExpiredDeviceSession(ownerId);
+      setState((current) =>
+        recoverable && current.source !== "none"
+          ? {
+              ...current,
+              status: "ready",
+              source: "cache",
+              offline: true,
+            }
+          : {
+              status: "error",
+              cares: recoverable ? current.cares : [],
+              source: recoverable ? current.source : "none",
+              offline: recoverable,
+              errorCode: careErrorCode(result),
+              message: careErrorMessage(result),
+            },
+      );
     },
-    [],
+    [ownerId],
   );
 
   const load = useCallback(async () => {
     const requestSequence = ++requestSequenceRef.current;
     setState((current) => ({
+      ...current,
       status: current.cares.length > 0 ? "ready" : "loading",
       cares: current.cares,
       ...(current.message ? { message: current.message } : {}),
@@ -128,39 +166,72 @@ export function useCares(
 
   useEffect(() => {
     let active = true;
-    const refresh = () => {
+    const refresh = async () => {
       const requestSequence = ++requestSequenceRef.current;
-      void apiClient.getCares().then((result) => {
-        if (active) applyResult(result, requestSequence);
-      });
+      const cached = await loadDeviceRead(ownerId, "care");
+      if (!active || requestSequence !== requestSequenceRef.current) return;
+      if (cached !== undefined)
+        setState((current) =>
+          current.source === "live"
+            ? current
+            : {
+                status: "ready",
+                cares: cached.map(toCare),
+                source: "cache",
+                offline: true,
+              },
+        );
+      if (!enabled) {
+        if (cached === undefined)
+          setState({
+            status: "error",
+            cares: [],
+            source: "none",
+            offline: true,
+            errorCode: "NETWORK",
+            message: "No saved Care on this device yet. Connect to load it.",
+          });
+        return;
+      }
+      const result = await apiClient.getCares();
+      if (active) applyResult(result, requestSequence);
     };
-    refresh();
-    const handleFocus = () => refresh();
+    void refresh();
+    const handleFocus = () => {
+      void refresh();
+    };
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") refresh();
+      if (document.visibilityState === "visible") void refresh();
     };
     window.addEventListener("focus", handleFocus);
+    window.addEventListener("online", handleFocus);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       active = false;
+      requestSequenceRef.current += 1;
       window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("online", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [apiClient, applyResult, refreshKey]);
+  }, [apiClient, applyResult, enabled, ownerId, refreshKey]);
 
   const create = useCallback(
     async (input: CreateCareInput) => {
       const requestSequence = ++requestSequenceRef.current;
+      if (!enabled || state.offline || !navigator.onLine)
+        return offlineCareResult();
       const result = await apiClient.createCare(input);
       if (result.ok) applyResult(result, requestSequence);
       return result;
     },
-    [apiClient, applyResult],
+    [apiClient, applyResult, enabled, state.offline],
   );
 
   const claim = useCallback(
     async (careId: string) => {
       const requestSequence = ++requestSequenceRef.current;
+      if (!enabled || state.offline || !navigator.onLine)
+        return offlineCareResult();
       const result = await apiClient.claimCare({ careId });
       if (result.ok) applyResult(result, requestSequence);
       else if (
@@ -172,12 +243,14 @@ export function useCares(
       }
       return result;
     },
-    [apiClient, applyResult],
+    [apiClient, applyResult, enabled, state.offline],
   );
 
   const pass = useCallback(
     async (careId: string) => {
       const requestSequence = ++requestSequenceRef.current;
+      if (!enabled || state.offline || !navigator.onLine)
+        return offlineCareResult();
       const result = await apiClient.passCare({ careId });
       if (result.ok) applyResult(result, requestSequence);
       else if (
@@ -189,17 +262,19 @@ export function useCares(
       } else applyResult(result, requestSequence);
       return result;
     },
-    [apiClient, applyResult],
+    [apiClient, applyResult, enabled, state.offline],
   );
 
   const complete = useCallback(
     async (careId: string) => {
       const requestSequence = ++requestSequenceRef.current;
+      if (!enabled || state.offline || !navigator.onLine)
+        return offlineCareResult();
       const result = await apiClient.completeCare({ careId });
       applyResult(result, requestSequence);
       return result;
     },
-    [apiClient, applyResult],
+    [apiClient, applyResult, enabled, state.offline],
   );
 
   const recordGratitude = useCallback(
@@ -208,6 +283,8 @@ export function useCares(
       input: Parameters<CareApiClient["recordCareGratitude"]>[1],
     ) => {
       const requestSequence = ++requestSequenceRef.current;
+      if (!enabled || state.offline || !navigator.onLine)
+        return offlineCareResult();
       const result = await apiClient.recordCareGratitude({ careId }, input);
       if (result.ok) applyResult(result, requestSequence);
       else if (result.kind === "http" && result.status === 409) {
@@ -216,7 +293,7 @@ export function useCares(
       } else applyResult(result, requestSequence);
       return result;
     },
-    [apiClient, applyResult],
+    [apiClient, applyResult, enabled, state.offline],
   );
 
   const withdraw = useCallback(
@@ -225,6 +302,8 @@ export function useCares(
       input: Parameters<CareApiClient["withdrawCare"]>[1],
     ) => {
       const requestSequence = ++requestSequenceRef.current;
+      if (!enabled || state.offline || !navigator.onLine)
+        return offlineCareResult();
       const result = await apiClient.withdrawCare({ careId }, input);
       if (result.ok) applyResult(result, requestSequence);
       else if (result.kind === "http" && result.status === 404) {
@@ -233,7 +312,7 @@ export function useCares(
       } else applyResult(result, requestSequence);
       return result;
     },
-    [apiClient, applyResult],
+    [apiClient, applyResult, enabled, state.offline],
   );
 
   return {

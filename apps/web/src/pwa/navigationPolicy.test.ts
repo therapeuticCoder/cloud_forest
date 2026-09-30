@@ -1,47 +1,35 @@
 import { describe, expect, it, vi } from "vitest";
+import { resolveShellNavigation } from "./navigationPolicy";
 
-import { resolveNetworkFirst } from "./navigationPolicy";
-
-describe("service-worker navigation policy", () => {
-  it("uses a successful network response without reading the cache", async () => {
-    const fallback = vi.fn(async () => "cached shell");
-
+describe("service-worker shell navigation", () => {
+  it("opens a saved shell without contacting an unreachable host", async () => {
+    const network = vi.fn(() => new Promise<string>(() => undefined));
     await expect(
-      resolveNetworkFirst({
-        fallback,
-        network: async () => "network shell",
-        timeoutMs: 10,
+      resolveShellNavigation({
+        readCache: async () => "cached shell",
+        network,
       }),
-    ).resolves.toBe("network shell");
-    expect(fallback).not.toHaveBeenCalled();
+    ).resolves.toBe("cached shell");
+    expect(network).not.toHaveBeenCalled();
   });
 
-  it("uses the cached shell when navigation fails", async () => {
+  it("uses the network on a first visit without a saved shell", async () => {
     await expect(
-      resolveNetworkFirst({
-        fallback: async () => "cached shell",
+      resolveShellNavigation({
+        readCache: async () => undefined,
+        network: async () => "network shell",
+      }),
+    ).resolves.toBe("network shell");
+  });
+
+  it("does not invent a shell when neither storage nor the network has one", async () => {
+    await expect(
+      resolveShellNavigation({
+        readCache: async () => undefined,
         network: async () => {
           throw new Error("offline");
         },
-        timeoutMs: 10,
       }),
-    ).resolves.toBe("cached shell");
-  });
-
-  it("uses the cached shell when navigation does not settle promptly", async () => {
-    vi.useFakeTimers();
-
-    try {
-      const response = resolveNetworkFirst({
-        fallback: async () => "cached shell",
-        network: () => new Promise<string>(() => undefined),
-        timeoutMs: 10,
-      });
-
-      await vi.advanceTimersByTimeAsync(10);
-      await expect(response).resolves.toBe("cached shell");
-    } finally {
-      vi.useRealTimers();
-    }
+    ).rejects.toThrow("offline");
   });
 });

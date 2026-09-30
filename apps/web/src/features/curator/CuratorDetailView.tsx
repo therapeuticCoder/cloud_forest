@@ -27,6 +27,7 @@ type CuratorDetailViewProps = {
   activeCares: Care[];
   characterSubmission: { pending: boolean; error?: string };
   isOffline: boolean;
+  careActionsDisabled?: boolean;
   onBack: () => void;
   onBackToLayer: (
     layer: "holding" | "party" | "tribe",
@@ -171,6 +172,7 @@ export function CuratorDetailView({
   onBackToLayer,
   onBlockCharacter,
   isOffline,
+  careActionsDisabled = false,
   onBack,
   onDeleteCharacter,
   onEndConnection,
@@ -646,11 +648,29 @@ export function CuratorDetailView({
                       }
                       key={care.id}
                       minimized={false}
-                      onCommitToCare={onCommitToCare}
-                      onPass={onPass}
-                      onRecordCompleted={onRecordCompleted}
-                      onRecordNotCompleted={onRecordNotCompleted}
-                      onWithdraw={onWithdraw}
+                      onCommitToCare={
+                        isOffline || careActionsDisabled
+                          ? undefined
+                          : onCommitToCare
+                      }
+                      onPass={
+                        isOffline || careActionsDisabled ? undefined : onPass
+                      }
+                      onRecordCompleted={
+                        isOffline || careActionsDisabled
+                          ? undefined
+                          : onRecordCompleted
+                      }
+                      onRecordNotCompleted={
+                        isOffline || careActionsDisabled
+                          ? undefined
+                          : onRecordNotCompleted
+                      }
+                      onWithdraw={
+                        isOffline || careActionsDisabled
+                          ? undefined
+                          : onWithdraw
+                      }
                       care={care}
                       viewerId={viewerId}
                     />

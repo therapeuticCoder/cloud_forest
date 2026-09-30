@@ -251,27 +251,7 @@ function TimelineActivitySlot({
   );
 }
 
-export function TimelinePanel({
-  apiClient = timelineApiClient,
-  cares = [],
-  careError,
-  minimizedCareIds = noMinimizedCareIds,
-  onOpenCareDetails,
-  onCommitToCare,
-  onRecordCompleted,
-  onRecordNotCompleted,
-  onPass,
-  onSetCareMinimized,
-  onWithdraw,
-  onOfflineChange,
-  passableCareIds = noPassableCareIds,
-  passAnnouncement,
-  cacheOwnerId,
-  viewerId = "you",
-  offline = false,
-  postComposerOpen = false,
-  onClosePostComposer = () => undefined,
-}: {
+export type TimelinePanelProps = {
   apiClient?: TimelineApiClient;
   cares?: Care[];
   careError?: TimelineError;
@@ -291,8 +271,39 @@ export function TimelinePanel({
   offline?: boolean;
   postComposerOpen?: boolean;
   onClosePostComposer?: () => void;
+};
+
+export function TimelinePanel(props: TimelinePanelProps) {
+  const timelineItems = useTimelineItems(
+    props.apiClient ?? timelineApiClient,
+    props.cacheOwnerId,
+  );
+  return <TimelinePanelContent {...props} timelineItems={timelineItems} />;
+}
+
+export function TimelinePanelContent({
+  timelineItems,
+  apiClient = timelineApiClient,
+  cares = [],
+  careError,
+  minimizedCareIds = noMinimizedCareIds,
+  onOpenCareDetails,
+  onCommitToCare,
+  onRecordCompleted,
+  onRecordNotCompleted,
+  onPass,
+  onSetCareMinimized,
+  onWithdraw,
+  onOfflineChange,
+  passableCareIds = noPassableCareIds,
+  passAnnouncement,
+  viewerId = "you",
+  offline = false,
+  postComposerOpen = false,
+  onClosePostComposer = () => undefined,
+}: TimelinePanelProps & {
+  timelineItems: ReturnType<typeof useTimelineItems>;
 }) {
-  const timelineItems = useTimelineItems(apiClient, cacheOwnerId);
   const timelineIsOffline =
     offline ||
     (timelineItems.state.status === "success" && timelineItems.state.offline) ||
@@ -328,12 +339,12 @@ export function TimelinePanel({
   const careListingCardProps: CareListingCardProps = {
     minimizedCareIds,
     onOpenCareDetails,
-    onCommitToCare,
-    onRecordCompleted,
-    onRecordNotCompleted,
-    onPass,
+    onCommitToCare: timelineIsOffline ? undefined : onCommitToCare,
+    onRecordCompleted: timelineIsOffline ? undefined : onRecordCompleted,
+    onRecordNotCompleted: timelineIsOffline ? undefined : onRecordNotCompleted,
+    onPass: timelineIsOffline ? undefined : onPass,
     onSetCareMinimized,
-    onWithdraw,
+    onWithdraw: timelineIsOffline ? undefined : onWithdraw,
     passableCareIds,
     viewerId,
   };

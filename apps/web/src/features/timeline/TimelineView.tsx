@@ -2,9 +2,11 @@ import type { Care, CarePersonId } from "@/types/care";
 
 import {
   TimelinePanel,
+  TimelinePanelContent,
   type TimelineApiClient,
   type TimelineError,
 } from "./TimelinePanel";
+import type { useTimelineItems } from "./useTimelineItems";
 
 const noCareIds = new Set<string>();
 
@@ -25,11 +27,13 @@ export function TimelineView({
   viewerId = "you",
   cacheOwnerId,
   apiClient,
+  timelineItems,
   postComposerOpen = false,
   onClosePostComposer,
   offline = false,
 }: {
   apiClient?: TimelineApiClient;
+  timelineItems?: ReturnType<typeof useTimelineItems>;
   cares?: Care[];
   careError?: TimelineError;
   minimizedCareIds?: Set<string>;
@@ -49,29 +53,34 @@ export function TimelineView({
   postComposerOpen?: boolean;
   onClosePostComposer?: () => void;
 } = {}) {
+  const panelProps = {
+    apiClient,
+    cacheOwnerId,
+    careError,
+    cares,
+    minimizedCareIds,
+    offline,
+    onClosePostComposer,
+    onOpenCareDetails,
+    onCommitToCare,
+    onOfflineChange,
+    onPass,
+    onRecordCompleted,
+    onRecordNotCompleted,
+    onSetCareMinimized,
+    onWithdraw,
+    passAnnouncement,
+    passableCareIds,
+    postComposerOpen,
+    viewerId,
+  };
   return (
     <section aria-label="Timeline view" className="timeline-view">
-      <TimelinePanel
-        apiClient={apiClient}
-        cacheOwnerId={cacheOwnerId}
-        careError={careError}
-        cares={cares}
-        minimizedCareIds={minimizedCareIds}
-        offline={offline}
-        onClosePostComposer={onClosePostComposer}
-        onOpenCareDetails={onOpenCareDetails}
-        onCommitToCare={onCommitToCare}
-        onOfflineChange={onOfflineChange}
-        onPass={onPass}
-        onRecordCompleted={onRecordCompleted}
-        onRecordNotCompleted={onRecordNotCompleted}
-        onSetCareMinimized={onSetCareMinimized}
-        onWithdraw={onWithdraw}
-        passAnnouncement={passAnnouncement}
-        passableCareIds={passableCareIds}
-        postComposerOpen={postComposerOpen}
-        viewerId={viewerId}
-      />
+      {timelineItems ? (
+        <TimelinePanelContent {...panelProps} timelineItems={timelineItems} />
+      ) : (
+        <TimelinePanel {...panelProps} />
+      )}
     </section>
   );
 }

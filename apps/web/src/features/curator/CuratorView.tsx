@@ -42,6 +42,7 @@ type CuratorViewProps = {
   addWizardOpen: boolean;
   activeCares: Care[];
   careViewerId: CarePersonId;
+  careActionsDisabled?: boolean;
   characterSubmission: { pending: boolean; error?: string };
   curatedPeopleStatus: "loading" | "ready" | "error";
   curatedPeopleError?: string;
@@ -185,6 +186,7 @@ export function CuratorView({
   addWizardOpen,
   activeCares,
   careViewerId,
+  careActionsDisabled = false,
   characterSubmission,
   curatedPeopleCached,
   curatedPeopleError,
@@ -349,6 +351,7 @@ export function CuratorView({
   if (selection) {
     return (
       <CuratorDetailView
+        careActionsDisabled={careActionsDisabled}
         activeCares={activeCares}
         characterSubmission={characterSubmission}
         onBlockCharacter={onBlockCharacter}
@@ -399,7 +402,9 @@ export function CuratorView({
       </CuratorLayerSection>
       <CuratorLayerSection
         addDisabled={addDisabled || partyPeople.length >= 5}
-        careActionsDisabled={!partyHasConnection}
+        careActionsDisabled={
+          careActionsDisabled || !partyHasConnection || curatedPeopleOffline
+        }
         label="Party"
         nextLayer="Tribe"
         onAddCharacter={() => onAddCharacter("party")}
@@ -419,7 +424,9 @@ export function CuratorView({
       </CuratorLayerSection>
       <CuratorLayerSection
         addDisabled={addDisabled || tribePeople.length >= 100}
-        careActionsDisabled={!tribeHasConnection}
+        careActionsDisabled={
+          careActionsDisabled || !tribeHasConnection || curatedPeopleOffline
+        }
         label="Tribe"
         nextLayer="Guilds"
         onAddCharacter={() => onAddCharacter("tribe")}

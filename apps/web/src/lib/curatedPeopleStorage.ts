@@ -36,12 +36,6 @@ function isTimestamp(value: unknown) {
   return isString(value) && Number.isFinite(Date.parse(value));
 }
 
-function withoutPortrait(person: CuratedPersonRecord): CuratedPersonRecord {
-  const cachedPerson = { ...person };
-  delete cachedPerson.portraitUrl;
-  return cachedPerson;
-}
-
 function isCuratedPersonRecord(value: unknown): value is CuratedPersonRecord {
   if (!isRecord(value)) return false;
 
@@ -94,9 +88,7 @@ export function loadCuratedPeopleSnapshot(
     if (!storedValue) return undefined;
 
     const parsed: unknown = JSON.parse(storedValue);
-    return isStoredCuratedPeopleV1(parsed, ownerId)
-      ? parsed.people.map(withoutPortrait)
-      : undefined;
+    return isStoredCuratedPeopleV1(parsed, ownerId) ? parsed.people : undefined;
   } catch {
     return undefined;
   }
@@ -110,7 +102,7 @@ export function saveCuratedPeopleSnapshot(
     const stored: StoredCuratedPeopleV1 = {
       version: 1,
       ownerId,
-      people: people.map(withoutPortrait),
+      people: [...people],
     };
     getBrowserStorage()?.setItem(storageKey(ownerId), JSON.stringify(stored));
   } catch {

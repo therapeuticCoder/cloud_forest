@@ -6,13 +6,14 @@ import {
   type GetCuratedPersonsResponse,
   type GetCuratedPersonsResult,
 } from "@cloud-forest/api-client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { loadCuratedPeopleSnapshot } from "@/lib/curatedPeopleStorage";
 import {
-  clearCuratedPeopleSnapshot,
-  loadCuratedPeopleSnapshot,
-  saveCuratedPeopleSnapshot,
-} from "@/lib/curatedPeopleStorage";
+  loadDeviceRead,
+  saveDeviceRead,
+  reportExpiredDeviceSession,
+} from "@/lib/deviceReadStorage";
 import type { CuratorPerson } from "@/types/curator";
 
 export type CuratedPersonApiClient = Pick<
@@ -93,6 +94,7 @@ export function useCuratedPeople(
   enabled = true,
   ownerId = "",
 ) {
+  const requestSequenceRef = useRef(0);
   const [people, setPeople] = useState<CuratedPeopleState>(() => {
     const cachedPeople = ownerId
       ? loadCuratedPeopleSnapshot(ownerId)
@@ -102,15 +104,16 @@ export function useCuratedPeople(
           status: "ready",
           people: cachedPeople,
           source: "cache",
-          offline: false,
+          offline: true,
         }
       : { status: "loading", people: [], source: "none", offline: false };
   });
 
   const applyResult = useCallback(
-    (result: GetCuratedPersonsResult) => {
+    (result: GetCuratedPersonsResult, requestSequence: number) => {
+      if (requestSequence !== requestSequenceRef.current) return;
       if (result.ok) {
-        saveCuratedPeopleSnapshot(ownerId, result.value.data.people);
+        void saveDeviceRead(ownerId, "curator", result.value.data.people);
         setPeople({
           status: "ready",
           people: result.value.data.people,
@@ -121,32 +124,28 @@ export function useCuratedPeople(
         result.kind === "network" ||
         (result.kind === "unexpected-response" && result.status >= 500)
       ) {
-        const cachedPeople = ownerId
-          ? loadCuratedPeopleSnapshot(ownerId)
-          : undefined;
-        if (cachedPeople !== undefined) {
-          setPeople({
-            status: "ready",
-            people: cachedPeople,
-            source: "cache",
-            offline: true,
-          });
-          return;
-        }
-
-        setPeople({
-          status: "error",
-          people: [],
-          source: "none",
-          offline: true,
-          message: curationErrorMessage(result),
-        });
+        setPeople((current) =>
+          current.source !== "none"
+            ? {
+                status: "ready",
+                people: current.people,
+                source: "cache",
+                offline: true,
+              }
+            : {
+                status: "error",
+                people: [],
+                source: "none",
+                offline: true,
+                message: curationErrorMessage(result),
+              },
+        );
       } else {
         if (
           (result.kind === "http" || result.kind === "unexpected-response") &&
           result.status === 401
         ) {
-          clearCuratedPeopleSnapshot(ownerId);
+          reportExpiredDeviceSession(ownerId);
         }
         setPeople({
           status: "error",
@@ -166,6 +165,7 @@ export function useCuratedPeople(
   );
 
   const load = useCallback(async () => {
+    const requestSequence = ++requestSequenceRef.current;
     setPeople((current) => ({
       status: current.people.length > 0 ? "ready" : "loading",
       people: current.people,
@@ -173,26 +173,67 @@ export function useCuratedPeople(
       offline: current.offline,
     }));
     const result = await requestPeople();
-    applyResult(result);
+    applyResult(result, requestSequence);
     return result;
   }, [applyResult, requestPeople]);
 
   useEffect(() => {
-    if (!enabled) return;
     let active = true;
-    void requestPeople().then((result) => {
-      if (active) applyResult(result);
-    });
+    const refresh = async () => {
+      const attempt = ++requestSequenceRef.current;
+      const cached = await loadDeviceRead(ownerId, "curator");
+      if (!active || attempt !== requestSequenceRef.current) return;
+      if (cached !== undefined) {
+        setPeople((current) =>
+          current.source === "live"
+            ? current
+            : {
+                status: "ready",
+                people: cached,
+                source: "cache",
+                offline: true,
+              },
+        );
+      }
+      if (!enabled) {
+        if (cached === undefined)
+          setPeople({
+            status: "error",
+            people: [],
+            source: "none",
+            offline: true,
+            message: "No saved Curator on this device yet. Connect to load it.",
+          });
+        return;
+      }
+      const result = await requestPeople();
+      if (active) applyResult(result, attempt);
+    };
+    void refresh();
+    const handleRefresh = () => {
+      void refresh();
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") handleRefresh();
+    };
+    window.addEventListener("online", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+    document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       active = false;
+      requestSequenceRef.current += 1;
+      window.removeEventListener("online", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [applyResult, enabled, requestPeople]);
+  }, [applyResult, enabled, ownerId, requestPeople]);
 
   const add = useCallback(
     async (input: CuratedPersonInput) => {
+      const requestSequence = ++requestSequenceRef.current;
       const result = await apiClient.createCuratedPerson(input);
       if (result.ok) {
-        applyResult(result);
+        applyResult(result, requestSequence);
       }
       return result;
     },
@@ -204,12 +245,13 @@ export function useCuratedPeople(
       curatedPersonId: string,
       input: Parameters<CuratedPersonApiClient["updateCuratedPerson"]>[1],
     ) => {
+      const requestSequence = ++requestSequenceRef.current;
       const result = await apiClient.updateCuratedPerson(
         curatedPersonId,
         input,
       );
       if (result.ok) {
-        applyResult(result);
+        applyResult(result, requestSequence);
       }
       return result;
     },
@@ -221,12 +263,13 @@ export function useCuratedPeople(
       curatedPersonId: string,
       input: Parameters<CuratedPersonApiClient["deleteCuratedPerson"]>[1],
     ) => {
+      const requestSequence = ++requestSequenceRef.current;
       const result = await apiClient.deleteCuratedPerson(
         curatedPersonId,
         input,
       );
       if (result.ok) {
-        applyResult(result);
+        applyResult(result, requestSequence);
       }
       return result;
     },
