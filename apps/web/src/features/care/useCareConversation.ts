@@ -6,6 +6,8 @@ import {
   type CareConversationClient,
 } from "./careConversationClient";
 
+const emptyCounts: Record<string, number> = {};
+
 export function useVisibleCarePolling(
   load: () => Promise<void>,
   enabled: boolean,
@@ -85,7 +87,11 @@ export function useCareUnread(
       reportExpiredDeviceSession(ownerId);
   }, [client, enabled, ownerId]);
   useVisibleCarePolling(refresh, enabled, 30_000);
-  return { counts: state?.ownerId === ownerId ? state.counts : {}, refresh };
+  return {
+    counts: state?.ownerId === ownerId ? state.counts : emptyCounts,
+    eligibility: state?.ownerId === ownerId ? state.counts : undefined,
+    refresh,
+  };
 }
 
 export function useCareConversation({
@@ -116,6 +122,7 @@ export function useCareConversation({
   const sendInFlight = useRef(false);
   const readInFlight = useRef(false);
   const lastReadId = useRef<string | undefined>(undefined);
+  const unavailable = useRef(false);
   useEffect(() => {
     const requestSequence = sequence;
     mounted.current = true;
@@ -132,12 +139,17 @@ export function useCareConversation({
   );
   const handleFailure = useCallback(
     (result: { kind: string; status?: number }) => {
+      if (unavailable.current) return;
       setReachable(false);
       if (result.status === 401) {
+        unavailable.current = true;
+        sequence.current++;
         setMessages([]);
         setDraft("");
         reportExpiredDeviceSession(ownerId);
       } else if (result.kind === "http" && result.status === 404) {
+        unavailable.current = true;
+        sequence.current++;
         setMessages([]);
         setDraft("");
         onUnavailable();
@@ -149,7 +161,12 @@ export function useCareConversation({
     [onUnavailable, ownerId],
   );
   const refresh = useCallback(async () => {
-    if (!enabled || !navigator.onLine || document.visibilityState === "hidden")
+    if (
+      unavailable.current ||
+      !enabled ||
+      !navigator.onLine ||
+      document.visibilityState === "hidden"
+    )
       return;
     const request = ++sequence.current;
     const result = await client.getCareMessages({ careId });
@@ -169,6 +186,7 @@ export function useCareConversation({
   useEffect(() => {
     if (
       !enabled ||
+      unavailable.current ||
       !reachable ||
       !navigator.onLine ||
       document.visibilityState === "hidden" ||
@@ -204,6 +222,7 @@ export function useCareConversation({
   const send = async () => {
     if (
       !enabled ||
+      unavailable.current ||
       !reachable ||
       !navigator.onLine ||
       document.visibilityState === "hidden" ||
@@ -221,7 +240,7 @@ export function useCareConversation({
       { text: sentDraft },
     );
     sendInFlight.current = false;
-    if (!mounted.current) return;
+    if (!mounted.current || unavailable.current) return;
     setSending(false);
     if (!result.ok) {
       handleFailure(result);

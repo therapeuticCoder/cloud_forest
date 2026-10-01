@@ -11,6 +11,19 @@
     "/api/v1/cares": {
       "get": {
         "operationId": "getCaresV1",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-cloud-forest-care-conversations",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -531,6 +544,19 @@
       },
       "post": {
         "operationId": "createCareV1",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-cloud-forest-care-conversations",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1361,6 +1387,17 @@
               "minLength": 1,
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "x-cloud-forest-care-conversations",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2039,6 +2076,17 @@
               "minLength": 1,
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "x-cloud-forest-care-conversations",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2643,6 +2691,17 @@
             "schema": {
               "maxLength": 128,
               "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-cloud-forest-care-conversations",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1"
+              ],
               "type": "string"
             }
           }
@@ -4208,6 +4267,17 @@
               "minLength": 1,
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "x-cloud-forest-care-conversations",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4884,6 +4954,17 @@
             "schema": {
               "maxLength": 128,
               "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-cloud-forest-care-conversations",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1"
+              ],
               "type": "string"
             }
           }

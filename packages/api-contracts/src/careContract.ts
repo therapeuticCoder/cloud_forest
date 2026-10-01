@@ -143,6 +143,13 @@ export const createCareBodySchema = Type.Object(
   { additionalProperties: false },
 );
 
+// Installed clients validate Care strictly. They must opt in before a new field
+// is added to the response they already understand.
+export const careConversationHeader = "x-cloud-forest-care-conversations";
+export const careResponseHeadersSchema = Type.Object({
+  [careConversationHeader]: Type.Optional(Type.Literal("1")),
+});
+
 export const caresSuccessSchema = Type.Object(
   {
     apiVersion: Type.Literal(careApiVersion),

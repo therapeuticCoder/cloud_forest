@@ -530,7 +530,9 @@ export interface operations {
     readonly getCaresV1: {
         readonly parameters: {
             readonly query?: never;
-            readonly header?: never;
+            readonly header?: {
+                readonly "x-cloud-forest-care-conversations"?: "1";
+            };
             readonly path?: never;
             readonly cookie?: never;
         };
@@ -622,7 +624,9 @@ export interface operations {
     readonly createCareV1: {
         readonly parameters: {
             readonly query?: never;
-            readonly header?: never;
+            readonly header?: {
+                readonly "x-cloud-forest-care-conversations"?: "1";
+            };
             readonly path?: never;
             readonly cookie?: never;
         };
@@ -746,7 +750,9 @@ export interface operations {
     readonly claimCareV1: {
         readonly parameters: {
             readonly query?: never;
-            readonly header?: never;
+            readonly header?: {
+                readonly "x-cloud-forest-care-conversations"?: "1";
+            };
             readonly path: {
                 readonly careId: string;
             };
@@ -872,7 +878,9 @@ export interface operations {
     readonly completeCareV1: {
         readonly parameters: {
             readonly query?: never;
-            readonly header?: never;
+            readonly header?: {
+                readonly "x-cloud-forest-care-conversations"?: "1";
+            };
             readonly path: {
                 readonly careId: string;
             };
@@ -982,7 +990,9 @@ export interface operations {
     readonly recordCareGratitudeV1: {
         readonly parameters: {
             readonly query?: never;
-            readonly header?: never;
+            readonly header?: {
+                readonly "x-cloud-forest-care-conversations"?: "1";
+            };
             readonly path: {
                 readonly careId: string;
             };
@@ -1348,7 +1358,9 @@ export interface operations {
     readonly passCareV1: {
         readonly parameters: {
             readonly query?: never;
-            readonly header?: never;
+            readonly header?: {
+                readonly "x-cloud-forest-care-conversations"?: "1";
+            };
             readonly path: {
                 readonly careId: string;
             };
@@ -1474,7 +1486,9 @@ export interface operations {
     readonly withdrawCareV1: {
         readonly parameters: {
             readonly query?: never;
-            readonly header?: never;
+            readonly header?: {
+                readonly "x-cloud-forest-care-conversations"?: "1";
+            };
             readonly path: {
                 readonly careId: string;
             };

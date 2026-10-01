@@ -344,6 +344,9 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         method,
         headers: {
           accept: "application/json",
+          ...(path === "/api/v1/cares" || path.startsWith("/api/v1/cares/")
+            ? { "x-cloud-forest-care-conversations": "1" }
+            : {}),
           ...(body === undefined ? {} : { "content-type": "application/json" }),
         },
         credentials: "include",

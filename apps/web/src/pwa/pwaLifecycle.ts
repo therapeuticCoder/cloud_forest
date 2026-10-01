@@ -120,11 +120,16 @@ async function registerProductionWorker() {
   };
 
   announceWaitingUpdate();
-  registration.addEventListener("updatefound", () => {
+  const watchInstallingWorker = () => {
     registration.installing?.addEventListener("statechange", () => {
       announceWaitingUpdate();
     });
-  });
+    announceWaitingUpdate();
+  };
+  registration.addEventListener("updatefound", watchInstallingWorker);
+  // register() can resolve after updatefound. Observe that installer as well,
+  // otherwise an installed phone may never be offered the waiting update.
+  watchInstallingWorker();
 
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (reloadForUpdate) {
@@ -149,11 +154,17 @@ async function registerProductionWorker() {
     announceWaitingUpdate();
 
     if (navigator.onLine) {
-      void registration.update().then(announceWaitingUpdate);
+      void registration
+        .update()
+        .then(announceWaitingUpdate)
+        .catch(() => {
+          // The current shell remains usable if the host cannot be reached.
+        });
     }
   };
 
   window.setInterval(checkForUpdate, 60 * 60 * 1000);
+  window.addEventListener("online", checkForUpdate);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       checkForUpdate();

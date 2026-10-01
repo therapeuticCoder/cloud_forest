@@ -1,6 +1,8 @@
 import {
   careApiVersion,
   careClaimPath,
+  careConversationHeader,
+  careResponseHeadersSchema,
   careCompletePath,
   careErrorSchema,
   careGratitudePath,
@@ -43,6 +45,7 @@ function error(code: ErrorCode) {
 
 function toApiCare(
   care: Awaited<ReturnType<CareRepository["listVisible"]>>[number],
+  includeConversation: boolean,
 ) {
   return {
     id: care.id,
@@ -58,7 +61,9 @@ function toApiCare(
     audience:
       care.audience === "party" ? ("Party" as const) : ("Tribe" as const),
     status: care.status,
-    conversationAvailable: care.conversationAvailable ?? false,
+    ...(includeConversation
+      ? { conversationAvailable: care.conversationAvailable ?? false }
+      : {}),
     createdAt: care.createdAt.toISOString(),
     ...(care.claimedAt ? { claimedAt: care.claimedAt.toISOString() } : {}),
     ...(care.originatorCompletedAt
@@ -102,6 +107,10 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
   server,
   options,
 ) => {
+  server.addHook("onRequest", async (_request, reply) => {
+    reply.header("Cache-Control", "no-store");
+    reply.header("Vary", careConversationHeader);
+  });
   server.setErrorHandler((routeError, _request, reply) => {
     if (
       typeof routeError === "object" &&
@@ -116,11 +125,14 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
 
   const auth = async (request: Parameters<SessionResolver["resolve"]>[0]) =>
     options.sessionResolver.resolve(request);
-  const visibleCares = async (viewerUserId: string) => ({
+  const visibleCares = async (
+    viewerUserId: string,
+    request: Parameters<SessionResolver["resolve"]>[0],
+  ) => ({
     apiVersion: careApiVersion,
     data: {
-      cares: (await options.repository.listVisible(viewerUserId)).map(
-        toApiCare,
+      cares: (await options.repository.listVisible(viewerUserId)).map((care) =>
+        toApiCare(care, request.headers[careConversationHeader] === "1"),
       ),
     },
   });
@@ -131,13 +143,14 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
       schema: {
         operationId: "getCaresV1",
         tags: ["Care"],
+        headers: careResponseHeadersSchema,
         response: { 200: caresSuccessSchema, 401: careErrorSchema },
       },
     },
     async (request, reply) => {
       const current = await auth(request);
       if (!current) return reply.status(401).send(error("UNAUTHORIZED"));
-      return visibleCares(current.userId);
+      return visibleCares(current.userId, request);
     },
   );
 
@@ -147,6 +160,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
       schema: {
         operationId: "createCareV1",
         tags: ["Care"],
+        headers: careResponseHeadersSchema,
         body: createCareBodySchema,
         response: {
           200: caresSuccessSchema,
@@ -171,7 +185,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
         audience: request.body.audience === "Tribe" ? "tribe" : "party",
         now: new Date(),
       });
-      return visibleCares(current.userId);
+      return visibleCares(current.userId, request);
     },
   );
 
@@ -181,6 +195,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
       schema: {
         operationId: "passCareV1",
         tags: ["Care"],
+        headers: careResponseHeadersSchema,
         params: careParamsSchema,
         response: {
           200: caresSuccessSchema,
@@ -209,7 +224,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
             ),
           );
       }
-      return visibleCares(current.userId);
+      return visibleCares(current.userId, request);
     },
   );
 
@@ -219,6 +234,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
       schema: {
         operationId: "claimCareV1",
         tags: ["Care"],
+        headers: careResponseHeadersSchema,
         params: careParamsSchema,
         response: {
           200: caresSuccessSchema,
@@ -247,7 +263,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
             ),
           );
       }
-      return visibleCares(current.userId);
+      return visibleCares(current.userId, request);
     },
   );
 
@@ -257,6 +273,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
       schema: {
         operationId: "completeCareV1",
         tags: ["Care"],
+        headers: careResponseHeadersSchema,
         params: careParamsSchema,
         response: {
           200: caresSuccessSchema,
@@ -274,7 +291,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
         now: new Date(),
       });
       if (!result.ok) return reply.status(404).send(error("NOT_FOUND"));
-      return visibleCares(current.userId);
+      return visibleCares(current.userId, request);
     },
   );
 
@@ -284,6 +301,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
       schema: {
         operationId: "recordCareGratitudeV1",
         tags: ["Care"],
+        headers: careResponseHeadersSchema,
         params: careParamsSchema,
         body: createCareGratitudeBodySchema,
         response: {
@@ -313,7 +331,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
         }
         return reply.status(404).send(error("NOT_FOUND"));
       }
-      return visibleCares(current.userId);
+      return visibleCares(current.userId, request);
     },
   );
 
@@ -323,6 +341,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
       schema: {
         operationId: "withdrawCareV1",
         tags: ["Care"],
+        headers: careResponseHeadersSchema,
         params: careParamsSchema,
         body: createCareWithdrawalBodySchema,
         response: {
@@ -353,7 +372,7 @@ export const careRoutes: FastifyPluginAsyncTypebox<Options> = async (
             ),
           );
       }
-      return visibleCares(current.userId);
+      return visibleCares(current.userId, request);
     },
   );
 };

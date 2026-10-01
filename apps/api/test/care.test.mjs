@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { buildApi } from "../src/app.ts";
+import Compile from "typebox/compile";
+import { careSchema } from "@cloud-forest/api-contracts";
 
 const people = {
   "user-a": { personId: "person-a", displayName: "River" },
@@ -164,6 +166,54 @@ function createPayload(direction = "receive") {
     expiresIn: "1w",
   };
 }
+
+test("installed clients retain their Care response while current clients opt into server eligibility", async (t) => {
+  const repository = createRepository();
+  const listVisible = repository.listVisible;
+  repository.listVisible = async (viewer) =>
+    (await listVisible(viewer)).map((care) => ({
+      ...care,
+      conversationAvailable: care.status === "claimed",
+    }));
+  const server = serverFor(repository);
+  t.after(() => server.close());
+  const legacySchema = structuredClone(careSchema);
+  delete legacySchema.properties.conversationAvailable;
+  const legacyValidator = Compile(legacySchema);
+  const created = await server.inject({
+    method: "POST",
+    url: "/api/v1/cares",
+    headers: { cookie: "session=user-a" },
+    payload: createPayload(),
+  });
+  const careId = created.json().data.cares[0].id;
+  assert.equal(legacyValidator.Check(created.json().data.cares[0]), true);
+  await server.inject({
+    method: "POST",
+    url: `/api/v1/cares/${careId}/claim`,
+    headers: { cookie: "session=user-b" },
+  });
+  for (const viewer of ["user-a", "user-b"]) {
+    const legacy = await server.inject({
+      method: "GET",
+      url: "/api/v1/cares",
+      headers: { cookie: `session=${viewer}` },
+    });
+    assert.equal(legacyValidator.Check(legacy.json().data.cares[0]), true);
+    const current = await server.inject({
+      method: "GET",
+      url: "/api/v1/cares",
+      headers: {
+        cookie: `session=${viewer}`,
+        "x-cloud-forest-care-conversations": "1",
+      },
+    });
+    assert.equal(current.statusCode, 200);
+    assert.equal(current.json().data.cares[0].conversationAvailable, true);
+    assert.equal(legacyValidator.Check(current.json().data.cares[0]), false);
+    assert.equal(current.headers["cache-control"], "no-store");
+  }
+});
 
 test("the unified Care API preserves one identity through claim and completion", async (t) => {
   const repository = createRepository();

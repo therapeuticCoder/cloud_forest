@@ -45,7 +45,26 @@ export function CareConversations({
     scrollTop: number;
     scrollY: number;
   } | null>(null);
-  const { counts, refresh } = useCareUnread(ownerId, enabled, client);
+  const { counts, eligibility, refresh } = useCareUnread(
+    ownerId,
+    enabled,
+    client,
+  );
+  const lastEligibility = useRef(eligibility);
+  useEffect(() => {
+    if (!enabled || !eligibility || eligibility === lastEligibility.current)
+      return;
+    lastEligibility.current = eligibility;
+    const available = cares.filter(
+      (item) => item.status === "claimed" && item.conversationAvailable,
+    );
+    if (
+      available.length !== Object.keys(eligibility).length ||
+      available.some((item) => !(item.id in eligibility))
+    ) {
+      void onRefreshCares();
+    }
+  }, [cares, eligibility, enabled, onRefreshCares]);
   const care = cares.find(
     (item) =>
       item.id === careId &&

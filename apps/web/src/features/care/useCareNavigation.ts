@@ -73,7 +73,10 @@ export function useCareNavigation(
   useEffect(() => {
     if (!careDestination) return;
 
-    const handlePopState = () => {
+    const handlePopState = (event: PopStateEvent) => {
+      // Returning from a conversation leaves this destination in history.
+      // Window popstate listeners may run before the conversation's listener.
+      if (event.state?.careDestination === careDestination.kind) return;
       if (ignoreNextCarePopStateRef.current) {
         ignoreNextCarePopStateRef.current = false;
         return;

@@ -36,6 +36,8 @@ test("conversation client preserves credentials, encodes Care IDs and rejects ma
     ],
   );
   for (const [, init] of requests) assert.equal(init.credentials, "include");
+  for (const [, init] of requests)
+    assert.equal(init.headers["x-cloud-forest-care-conversations"], "1");
   const malformed = createApiClient({
     baseUrl: "",
     fetch: async () =>

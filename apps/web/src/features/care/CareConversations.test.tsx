@@ -111,6 +111,28 @@ afterEach(() => {
 });
 
 describe("Care conversations", () => {
+  it("refreshes Care when the server's eligible conversations change without depending on unread success for entry", async () => {
+    const api = client();
+    vi.mocked(api.getCareUnread).mockResolvedValue({
+      ok: true,
+      status: 200,
+      value: { apiVersion: "v1", data: { conversations: [] } },
+    });
+    const onRefreshCares = vi.fn().mockResolvedValue(undefined);
+    render(
+      <CareConversations
+        cares={[baseCare]}
+        ownerId="river-person"
+        enabled
+        onRefreshCares={onRefreshCares}
+        client={api}
+      >
+        <CareConversationEntry care={baseCare} />
+      </CareConversations>,
+    );
+    await waitFor(() => expect(onRefreshCares).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("button", { name: "Conversation" })).toBeVisible();
+  });
   for (const name of ["Party detail", "My Care", "Timeline detail"])
     for (const direction of ["give", "receive"] as const)
       for (const viewerId of ["empty-person", "river-person"]) {

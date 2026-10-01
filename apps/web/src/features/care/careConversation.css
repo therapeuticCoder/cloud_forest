@@ -23,18 +23,25 @@
 .care-conversation {
   position: fixed;
   inset: 0;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  z-index: 101;
+  height: 100dvh;
+  box-sizing: border-box;
   padding: max(1rem, env(safe-area-inset-top))
     max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-left));
   color: #f0f1e8;
-  background: var(--forest-pine);
-  overflow: auto;
+  overflow: hidden;
 }
-.care-conversation > * {
+.care-conversation__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+  padding: 1.25rem;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 2rem;
   width: 100%;
   max-width: 48rem;
   margin-inline: auto;
@@ -69,7 +76,8 @@
 }
 .care-conversation__messages {
   flex: 1;
-  min-height: 4rem;
+  min-height: 0;
+  overscroll-behavior: contain;
   overflow-y: auto;
   list-style: none;
   padding: 0;
@@ -79,10 +87,10 @@
   padding: 0.85rem;
   border: 1px solid #647b66;
   border-radius: 0.75rem;
-  background: #153e2c;
+  background: #ffffff08;
 }
 .care-conversation__messages li[data-own-message="true"] {
-  background: #244c38;
+  background: #ffffff10;
 }
 .care-conversation__messages li > div {
   display: flex;
@@ -111,10 +119,36 @@
   color: #f0f1e8;
   border: 1px solid #647b66;
   border-radius: 0.75rem;
-  background: #153e2c;
+  background: #ffffff08;
 }
 .care-conversation__composer > div {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.care-conversation .care-conversation__back {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  color: inherit;
+  background: #ffffff0a;
+}
+@media (max-width: 600px) {
+  .care-conversation {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .care-conversation__panel {
+    border: 0;
+    border-radius: 0;
+    padding: 1rem;
+  }
+  .care-conversation__composer textarea {
+    font-size: 1rem;
+  }
 }
