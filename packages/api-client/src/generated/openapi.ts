@@ -1898,6 +1898,7 @@ export interface operations {
                 readonly "application/json": {
                     readonly firstName: string;
                     readonly lastName: string;
+                    readonly mutationId?: string;
                     readonly nickname: string;
                     readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
                     readonly portraitUrl?: string;
@@ -2020,6 +2021,7 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly expectedVersion: number;
+                    readonly mutationId?: string;
                 };
             };
         };
@@ -2139,6 +2141,7 @@ export interface operations {
                     readonly expectedVersion: number;
                     readonly firstName: string;
                     readonly lastName: string;
+                    readonly mutationId?: string;
                     readonly nickname: string;
                     readonly placement: "party" | "tribe" | "guild" | "signal" | "holding";
                     readonly portraitUrl?: string;

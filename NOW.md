@@ -8,7 +8,7 @@ A coherent trusted-tester alpha for fewer than 100 people: private relationship 
 
 - Invited signup, username/password authentication, sessions, and account-to-person mapping are durable.
 - Private Characters live in Holding, Party, or Tribe. Mutual Connections, pairing by QR/link, relationship exit, blocking, and unblocking are durable. Pairing intent survives login and invited signup.
-- The production PWA opens its saved shell and identity before session validation. Owner-scoped IndexedDB snapshots preserve Curator portraits, Timeline, and Care/history, with background refresh after live authentication. Shared mutations require the server; offline Curator editing is the next increment.
+- The production PWA opens its saved shell and identity before session validation. Owner-scoped IndexedDB preserves Curator portraits, Timeline, and Care/history. Private Curator edits save on the device and synchronize serially after live authentication, reconnect, or foreground return, with a pending-change count beside the private editor’s Save button. Shared actions require the server.
 - Ordinary Party/Tribe Timeline posts are durable.
 - Give and Receive use one Care record, shared alpha catalog, and creation wizard. The catalog covers transportation, food, pet care, child care, urgent shelter, help at home, executive function support, and getting out of the house.
 - Care supports private passing, claiming, independent completion, private gratitude, Party-to-Tribe audience demotion, expiration, and compassionate withdrawal. Current Connection and placement remain authoritative for shared access.

@@ -17,6 +17,7 @@ export type CuratorPerson = {
   linkedUserId?: string | null;
   linkedPersonId?: string | null;
   version?: number;
+  syncStatus?: "pending" | "rejected";
 };
 
 export function hasActiveConnection(person: CuratorPerson) {
@@ -68,7 +69,7 @@ export type CharacterDraft = {
   relationshipTitle: string;
 };
 
-export type CharacterUpdate = {
+export type CharacterUpdate = Partial<{
   firstName: string;
   lastName: string;
   nickname: string;
@@ -76,4 +77,4 @@ export type CharacterUpdate = {
   privateDescription: string;
   portraitUrl?: string;
   relationshipShape: string;
-};
+}>;

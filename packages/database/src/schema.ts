@@ -643,5 +643,21 @@ export const signupCodes = pgTable(
   ],
 );
 
+export const curatorMutationReceipts = pgTable(
+  "curator_mutation_receipts",
+  {
+    ownerUserId: varchar("owner_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    mutationId: varchar("mutation_id", { length: 128 }).notNull(),
+    fingerprint: text("fingerprint").notNull(),
+    result: jsonb("result").$type<typeof curatedPersons.$inferSelect | null>(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.ownerUserId, table.mutationId] })],
+);
+
 export type TimelineItemRow = typeof timelineItems.$inferSelect;
 export type NewTimelineItemRow = typeof timelineItems.$inferInsert;

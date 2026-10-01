@@ -7322,6 +7322,11 @@
                     "minLength": 1,
                     "type": "string"
                   },
+                  "mutationId": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
                   "nickname": {
                     "maxLength": 200,
                     "minLength": 1,
@@ -7977,6 +7982,11 @@
                   "expectedVersion": {
                     "minimum": 1,
                     "type": "integer"
+                  },
+                  "mutationId": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -8582,6 +8592,11 @@
                   },
                   "lastName": {
                     "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "mutationId": {
+                    "maxLength": 128,
                     "minLength": 1,
                     "type": "string"
                   },

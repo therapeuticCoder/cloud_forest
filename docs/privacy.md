@@ -12,6 +12,7 @@ Cloud Forest treats private relationship curation as sensitive by default. The t
 - Private Care history and public/shared Timeline activity are separate projections. Private reasons and participant provenance must not leak into shared activity.
 - Client-side filtering, hidden controls, localStorage, mock perspective switches, and route state are presentation mechanisms, not security boundaries.
 - Saved device reads are scoped to the last signed-in owner. They may be stale while offline; live authentication and current server authorization remain necessary for shared actions. Authoritative session rejection, account changes, and sign-out clear that owner's saved reads.
+- Private Curator edits and portraits commit with their local projection in IndexedDB before the app reports success. Pending edits survive session rejection and sign-out, but remain inaccessible through the app until the same account signs in again. Connection placement affects server audiences and Care access only after synchronization succeeds; pairing, blocking, and disconnecting require a live session.
 
 ## Profiles and relationships
 

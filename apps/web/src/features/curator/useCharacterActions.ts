@@ -15,6 +15,7 @@ import {
 export function useCharacterActions(
   curated: ReturnType<typeof useCuratedPeople>,
   canEditCuratedPeople: boolean,
+  canChangeRelationships = canEditCuratedPeople,
 ) {
   const {
     update: updateCuratedPerson,
@@ -44,7 +45,7 @@ export function useCharacterActions(
     }
     setCharacterSubmission({ pending: false });
     const updatedPerson = result.value.data.people.find(
-      (candidate) => candidate.id === person.id,
+      (candidate) => candidate.id === result.value.data.changedPersonId,
     );
     return updatedPerson ? curatedPersonToCuratorPerson(updatedPerson) : null;
   };
@@ -54,14 +55,12 @@ export function useCharacterActions(
       setCharacterSubmission({
         pending: false,
         error:
-          "Your private Characters are unavailable right now. Try again when you’re back online.",
+          "Your device storage is unavailable. Try again when it is ready.",
       });
       return false;
     }
     setCharacterSubmission({ pending: true });
-    const result = await removeCuratedPerson(person.id, {
-      expectedVersion: person.version,
-    });
+    const result = await removeCuratedPerson(person.id);
     if (!result.ok) {
       setCharacterSubmission({
         pending: false,
@@ -77,7 +76,7 @@ export function useCharacterActions(
     person: CuratorPerson,
     deleteLocalCharacter: boolean,
   ) => {
-    if (!canEditCuratedPeople) {
+    if (!canChangeRelationships) {
       setCharacterSubmission({
         pending: false,
         error:
@@ -100,7 +99,7 @@ export function useCharacterActions(
   };
 
   const blockCharacter = async (person: CuratorPerson) => {
-    if (!canEditCuratedPeople) {
+    if (!canChangeRelationships) {
       setCharacterSubmission({
         pending: false,
         error:
@@ -121,7 +120,7 @@ export function useCharacterActions(
 
   const unblockCharacter = async (person: CuratorPerson) => {
     const blockedUserId = person.blockedUserId ?? person.linkedUserId;
-    if (!blockedUserId || !canEditCuratedPeople) {
+    if (!blockedUserId || !canChangeRelationships) {
       setCharacterSubmission({
         pending: false,
         error: "This relationship is no longer available.",

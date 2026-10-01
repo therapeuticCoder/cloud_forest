@@ -48,6 +48,9 @@ type CuratorViewProps = {
   curatedPeopleError?: string;
   curatedPeopleCached: boolean;
   curatedPeopleOffline: boolean;
+  curatorWritesDisabled?: boolean;
+  pendingChangeCount?: number;
+  personAliases?: Record<string, string>;
   initialSelection?: CuratorSelection | null;
   onAddCharacter: (
     destination: "holding" | "party" | "tribe",
@@ -192,6 +195,9 @@ export function CuratorView({
   curatedPeopleError,
   curatedPeopleOffline,
   curatedPeopleStatus,
+  curatorWritesDisabled = curatedPeopleOffline,
+  pendingChangeCount = 0,
+  personAliases = {},
   initialSelection,
   onAddCharacter,
   onActiveLayerChange,
@@ -231,7 +237,21 @@ export function CuratorView({
   const scrollPositionRef = useRef(0);
   const partyHasConnection = partyPeople.some(hasActiveConnection);
   const tribeHasConnection = tribePeople.some(hasActiveConnection);
-  const addDisabled = curatedPeopleOffline || curatedPeopleStatus !== "ready";
+  const addDisabled = curatorWritesDisabled || curatedPeopleStatus !== "ready";
+  const people = [
+    ...partyPeople,
+    ...tribePeople,
+    ...holdingPeople,
+    ...blockedPeople,
+  ];
+  const selectedPerson =
+    selection && "displayName" in selection.item
+      ? people.find(
+          (person) =>
+            person.id ===
+            (personAliases[selection.item.id] ?? selection.item.id),
+        )
+      : undefined;
 
   const updateSelection = useCallback(
     (nextSelection: CuratorSelection | null) => {
@@ -351,6 +371,10 @@ export function CuratorView({
   if (selection) {
     return (
       <CuratorDetailView
+        pendingChangeCount={pendingChangeCount}
+        key={selection.item.id}
+        currentPerson={selectedPerson}
+        privateWritesDisabled={curatorWritesDisabled || !selectedPerson}
         careActionsDisabled={careActionsDisabled}
         activeCares={activeCares}
         characterSubmission={characterSubmission}

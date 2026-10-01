@@ -200,3 +200,88 @@ test("curated Person API maps capacity, stale, and private deletion outcomes", a
   assert.equal(missing.statusCode, 404);
   assert.equal(missing.json().error.code, "NOT_FOUND");
 });
+
+test("Curator routes forward optional mutation identifiers with the trusted owner", async (t) => {
+  const seen = [];
+  const repository = createRepository();
+  for (const method of ["create", "update", "remove"]) {
+    const original = repository[method];
+    repository[method] = async (input) => {
+      seen.push(input);
+      return original(input);
+    };
+  }
+  const server = buildApi({
+    curatedPersonRepository: repository,
+    sessionResolver: {
+      async resolve() {
+        return { userId: "user-owner", personId: "canonical-owner" };
+      },
+      async logout() {},
+    },
+  });
+  t.after(() => server.close());
+  const fields = {
+    firstName: "Receipt",
+    lastName: "Tester",
+    nickname: "Receipt Tester",
+    relationshipShape: "Friend",
+    privateDescription: "Fictional",
+    placement: "holding",
+  };
+  for (const [method, url, payload] of [
+    [
+      "POST",
+      "/api/v1/curated-persons",
+      { ...fields, mutationId: "create-receipt" },
+    ],
+    [
+      "PATCH",
+      "/api/v1/curated-persons/curated-person-owner-1",
+      { ...fields, expectedVersion: 1, mutationId: "update-receipt" },
+    ],
+    [
+      "DELETE",
+      "/api/v1/curated-persons/curated-person-owner-1",
+      { expectedVersion: 1, mutationId: "delete-receipt" },
+    ],
+  ]) {
+    const response = await server.inject({ method, url, payload });
+    assert.equal(response.statusCode, 200);
+    assert.equal(seen.at(-1).mutationId, payload.mutationId);
+    assert.equal(seen.at(-1).ownerUserId, "user-owner");
+  }
+});
+
+test("a conflicting creation receipt uses the existing stale-write response", async (t) => {
+  const repository = createRepository();
+  repository.create = async () => ({
+    ok: false,
+    error: "stale-write-conflict",
+  });
+  const server = buildApi({
+    curatedPersonRepository: repository,
+    sessionResolver: {
+      async resolve() {
+        return { userId: "user-owner", personId: "canonical-owner" };
+      },
+      async logout() {},
+    },
+  });
+  t.after(() => server.close());
+  const response = await server.inject({
+    method: "POST",
+    url: "/api/v1/curated-persons",
+    payload: {
+      firstName: "Receipt",
+      lastName: "Tester",
+      nickname: "Receipt Tester",
+      relationshipShape: "Friend",
+      privateDescription: "Fictional",
+      placement: "holding",
+      mutationId: "conflicting-receipt",
+    },
+  });
+  assert.equal(response.statusCode, 409);
+  assert.equal(response.json().error.code, "STALE_WRITE_CONFLICT");
+});

@@ -14,6 +14,7 @@ export {
   personProfiles,
   partyMemberships,
   curatedPersons,
+  curatorMutationReceipts,
   connections,
   relationshipBlocks,
   connectionPairings,

@@ -8,12 +8,21 @@ import {
 } from "@cloud-forest/api-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { loadCuratedPeopleSnapshot } from "@/lib/curatedPeopleStorage";
 import {
-  loadDeviceRead,
-  saveDeviceRead,
+  deviceOwnerGeneration,
   reportExpiredDeviceSession,
+  loadDeviceRead,
 } from "@/lib/deviceReadStorage";
+import {
+  changeCuratorDevice,
+  enqueueCurator,
+  privateFields,
+  readCuratorDevice,
+  type CuratorOperation,
+  type CuratorDeviceState,
+  type CuratorFields,
+} from "@/lib/curatorOutbox";
+import { synchronizeCurator } from "./synchronizeCurator";
 import type { CuratorPerson } from "@/types/curator";
 
 export type CuratedPersonApiClient = Pick<
@@ -94,241 +103,318 @@ export function useCuratedPeople(
   enabled = true,
   ownerId = "",
 ) {
-  const requestSequenceRef = useRef(0);
-  const [people, setPeople] = useState<CuratedPeopleState>(() => {
-    const cachedPeople = ownerId
-      ? loadCuratedPeopleSnapshot(ownerId)
-      : undefined;
-    return cachedPeople !== undefined
-      ? {
-          status: "ready",
-          people: cachedPeople,
-          source: "cache",
-          offline: true,
-        }
-      : { status: "loading", people: [], source: "none", offline: false };
+  const [people, setPeople] = useState<CuratedPeopleState>({
+    status: "loading",
+    people: [],
+    source: "none",
+    offline: true,
   });
-
-  const applyResult = useCallback(
-    (result: GetCuratedPersonsResult, requestSequence: number) => {
-      if (requestSequence !== requestSequenceRef.current) return;
-      if (result.ok) {
-        void saveDeviceRead(ownerId, "curator", result.value.data.people);
-        setPeople({
-          status: "ready",
-          people: result.value.data.people,
-          source: "live",
-          offline: false,
-        });
-      } else if (
-        result.kind === "network" ||
-        (result.kind === "unexpected-response" && result.status >= 500)
-      ) {
-        setPeople((current) =>
-          current.source !== "none"
-            ? {
-                status: "ready",
-                people: current.people,
-                source: "cache",
-                offline: true,
-              }
-            : {
-                status: "error",
-                people: [],
-                source: "none",
-                offline: true,
-                message: curationErrorMessage(result),
-              },
-        );
-      } else {
-        if (
-          (result.kind === "http" || result.kind === "unexpected-response") &&
-          result.status === 401
-        ) {
-          reportExpiredDeviceSession(ownerId);
-        }
-        setPeople({
-          status: "error",
-          people: [],
-          source: "none",
-          offline: false,
-          message: curationErrorMessage(result),
-        });
-      }
+  const [operations, setOperations] = useState<CuratorOperation[]>([]);
+  const [deviceReady, setDeviceReady] = useState(false);
+  const [deviceError, setDeviceError] = useState<string>();
+  const [aliases, setAliases] = useState<Record<string, string>>({});
+  const requestSequence = useRef(0);
+  const deviceRevision = useRef(0);
+  const live = useRef(enabled);
+  const active = useRef(true);
+  useEffect(() => {
+    live.current = enabled;
+  }, [enabled]);
+  const publish = useCallback(
+    (state: CuratorDeviceState, offline?: boolean) => {
+      if (!active.current) return;
+      deviceRevision.current++;
+      setOperations(state.operations);
+      setAliases(state.aliases);
+      setDeviceReady(true);
+      setDeviceError(undefined);
+      setPeople((current) => ({
+        status: "ready",
+        people: state.people,
+        source: (offline ?? current.offline) ? "cache" : "live",
+        offline: offline ?? current.offline,
+      }));
     },
+    [],
+  );
+  const isLive = useCallback(
+    () =>
+      active.current &&
+      live.current &&
+      navigator.onLine &&
+      deviceOwnerGeneration(ownerId) !== null,
     [ownerId],
   );
-
-  const requestPeople = useCallback(
-    () => apiClient.getCuratedPersons(),
-    [apiClient],
+  const sync = useCallback(
+    () =>
+      synchronizeCurator(ownerId, apiClient, isLive, publish).catch((error) => {
+        if (active.current)
+          setDeviceError(
+            error instanceof Error
+              ? error.message
+              : "Could not save the synchronization result on this device.",
+          );
+      }),
+    [apiClient, isLive, ownerId, publish],
   );
-
   const load = useCallback(async () => {
-    const requestSequence = ++requestSequenceRef.current;
-    setPeople((current) => ({
-      status: current.people.length > 0 ? "ready" : "loading",
-      people: current.people,
-      source: current.people.length > 0 ? current.source : "none",
-      offline: current.offline,
-    }));
-    const result = await requestPeople();
-    applyResult(result, requestSequence);
-    return result;
-  }, [applyResult, requestPeople]);
-
-  useEffect(() => {
-    let active = true;
-    const refresh = async () => {
-      const attempt = ++requestSequenceRef.current;
+    const sequence = ++requestSequence.current;
+    const generation = deviceOwnerGeneration(ownerId);
+    const current = () =>
+      active.current &&
+      sequence === requestSequence.current &&
+      generation !== null &&
+      generation === deviceOwnerGeneration(ownerId);
+    try {
+      const saved = await readCuratorDevice(ownerId);
+      if (current()) publish(saved);
+    } catch (error) {
       const cached = await loadDeviceRead(ownerId, "curator");
-      if (!active || attempt !== requestSequenceRef.current) return;
-      if (cached !== undefined) {
-        setPeople((current) =>
-          current.source === "live"
-            ? current
-            : {
-                status: "ready",
-                people: cached,
-                source: "cache",
-                offline: true,
-              },
+      if (current()) {
+        setDeviceReady(false);
+        setDeviceError(
+          error instanceof Error
+            ? error.message
+            : "Device storage is unavailable.",
         );
-      }
-      if (!enabled) {
-        if (cached === undefined)
+        if (cached)
           setPeople({
-            status: "error",
-            people: [],
-            source: "none",
+            status: "ready",
+            people: cached,
+            source: "cache",
             offline: true,
-            message: "No saved Curator on this device yet. Connect to load it.",
           });
-        return;
       }
-      const result = await requestPeople();
-      if (active) applyResult(result, attempt);
+    }
+    if (!current()) return;
+    if (!isLive()) return;
+    const revision = deviceRevision.current;
+    const result = await apiClient.getCuratedPersons();
+    if (!isLive() || !current()) return result;
+    if (revision !== deviceRevision.current) return result;
+    if (result.ok) {
+      try {
+        const saved = await changeCuratorDevice(ownerId, (state) => {
+          if (current()) state.base = [...result.value.data.people];
+        });
+        if (!current()) return result;
+        publish(saved, false);
+        await sync();
+      } catch (error) {
+        if (current()) {
+          setDeviceReady(false);
+          setPeople({
+            status: "ready",
+            people: result.value.data.people,
+            source: "live",
+            offline: false,
+          });
+          setDeviceError(
+            error instanceof Error
+              ? error.message
+              : "Device storage is unavailable.",
+          );
+        }
+      }
+    } else if (result.kind !== "network" && result.status === 401)
+      reportExpiredDeviceSession(ownerId);
+    else
+      setPeople((current) => ({
+        ...current,
+        status: "ready",
+        source: "cache",
+        offline: true,
+      }));
+    return result;
+  }, [apiClient, isLive, ownerId, publish, sync]);
+  const invalidateRequests = useCallback(() => {
+    requestSequence.current++;
+  }, []);
+  useEffect(() => {
+    active.current = true;
+    void Promise.resolve().then(load);
+    const refresh = () => {
+      void load();
     };
-    void refresh();
-    const handleRefresh = () => {
-      void refresh();
+    const visible = () => {
+      if (document.visibilityState === "visible") refresh();
     };
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") handleRefresh();
-    };
-    window.addEventListener("online", handleRefresh);
-    window.addEventListener("focus", handleRefresh);
-    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("online", refresh);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", visible);
     return () => {
-      active = false;
-      requestSequenceRef.current += 1;
-      window.removeEventListener("online", handleRefresh);
-      window.removeEventListener("focus", handleRefresh);
-      document.removeEventListener("visibilitychange", handleVisibility);
+      active.current = false;
+      invalidateRequests();
+      window.removeEventListener("online", refresh);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", visible);
     };
-  }, [applyResult, enabled, ownerId, requestPeople]);
-
+  }, [load, enabled, invalidateRequests]);
+  const queue = useCallback(
+    async (
+      kind: CuratorOperation["kind"],
+      personId: string,
+      fields: Partial<CuratorFields>,
+    ): Promise<GetCuratedPersonsResult> => {
+      try {
+        const saved = await enqueueCurator(ownerId, kind, personId, fields);
+        publish(saved.state);
+        void sync();
+        return {
+          ok: true,
+          status: 200,
+          value: {
+            apiVersion: "v1",
+            data: {
+              people: saved.state.people,
+              changedPersonId: saved.personId,
+            },
+          },
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          kind: "http",
+          status: 400,
+          error: {
+            apiVersion: "v1",
+            error: {
+              code: "VALIDATION_ERROR",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Your device could not save this change.",
+            },
+          },
+        };
+      }
+    },
+    [ownerId, publish, sync],
+  );
   const add = useCallback(
-    async (input: CuratedPersonInput) => {
-      const requestSequence = ++requestSequenceRef.current;
-      const result = await apiClient.createCuratedPerson(input);
-      if (result.ok) {
-        applyResult(result, requestSequence);
-      }
-      return result;
-    },
-    [apiClient, applyResult],
+    (input: CuratedPersonInput) => queue("create", "", privateFields(input)),
+    [queue],
   );
-
   const update = useCallback(
-    async (
-      curatedPersonId: string,
-      input: Parameters<CuratedPersonApiClient["updateCuratedPerson"]>[1],
+    (
+      id: string,
+      input: Partial<CuratorFields> & { expectedVersion: number },
     ) => {
-      const requestSequence = ++requestSequenceRef.current;
-      const result = await apiClient.updateCuratedPerson(
-        curatedPersonId,
-        input,
-      );
-      if (result.ok) {
-        applyResult(result, requestSequence);
-      }
-      return result;
+      const fields = Object.fromEntries(
+        Object.entries(input).filter(([key]) => key !== "expectedVersion"),
+      ) as Partial<CuratorFields>;
+      return queue("update", id, fields);
     },
-    [apiClient, applyResult],
+    [queue],
   );
-
-  const remove = useCallback(
-    async (
-      curatedPersonId: string,
-      input: Parameters<CuratedPersonApiClient["deleteCuratedPerson"]>[1],
-    ) => {
-      const requestSequence = ++requestSequenceRef.current;
-      const result = await apiClient.deleteCuratedPerson(
-        curatedPersonId,
-        input,
+  const remove = useCallback((id: string) => queue("delete", id, {}), [queue]);
+  const retryOperation = async (id: string) => {
+    try {
+      publish(
+        await changeCuratorDevice(ownerId, (state) => {
+          const operation = state.operations.find(
+            (operation) => operation.id === id,
+          );
+          if (operation) {
+            operation.status = "pending";
+            operation.error = undefined;
+          }
+        }),
       );
-      if (result.ok) {
-        applyResult(result, requestSequence);
-      }
-      return result;
-    },
-    [apiClient, applyResult],
-  );
-
+      await sync();
+    } catch (error) {
+      setDeviceError(
+        error instanceof Error ? error.message : "Could not retry this change.",
+      );
+    }
+  };
+  const discardOperation = async (id: string) => {
+    try {
+      publish(
+        await changeCuratorDevice(ownerId, (state) => {
+          const operation = state.operations.find(
+            (operation) => operation.id === id,
+          );
+          state.operations = state.operations.filter(
+            (candidate) =>
+              candidate.id !== id &&
+              !(
+                operation?.kind === "create" &&
+                candidate.personId === operation.personId
+              ),
+          );
+        }),
+      );
+      await load();
+    } catch (error) {
+      setDeviceError(
+        error instanceof Error
+          ? error.message
+          : "Could not discard this change.",
+      );
+    }
+  };
+  const records = useMemo(() => {
+    return people.people.map((person) => {
+      const pending = operations.filter(
+        (operation) => operation.personId === person.id,
+      );
+      return {
+        ...curatedPersonToCuratorPerson(person),
+        syncStatus: pending.length
+          ? pending.some((operation) => operation.status === "rejected")
+            ? ("rejected" as const)
+            : ("pending" as const)
+          : undefined,
+      };
+    });
+  }, [people.people, operations]);
   const partyPeople = useMemo(
     () =>
-      people.people
-        .filter(
-          (person) =>
-            person.placement === "party" &&
-            person.relationshipState !== "blocked",
-        )
-        .map(curatedPersonToCuratorPerson),
-    [people.people],
+      records.filter(
+        (person) =>
+          person.placement === "party" &&
+          person.relationshipState !== "blocked",
+      ),
+    [records],
   );
-
   const tribePeople = useMemo(
     () =>
-      people.people
-        .filter(
-          (person) =>
-            person.placement === "tribe" &&
-            person.relationshipState !== "blocked",
-        )
-        .map(curatedPersonToCuratorPerson),
-    [people.people],
+      records.filter(
+        (person) =>
+          person.placement === "tribe" &&
+          person.relationshipState !== "blocked",
+      ),
+    [records],
   );
-
   const holdingPeople = useMemo(
     () =>
-      people.people
-        .filter(
-          (person) =>
-            person.placement === "holding" &&
-            person.relationshipState !== "blocked",
-        )
-        .map(curatedPersonToCuratorPerson),
-    [people.people],
+      records.filter(
+        (person) =>
+          person.placement === "holding" &&
+          person.relationshipState !== "blocked",
+      ),
+    [records],
   );
-
   const blockedPeople = useMemo(
-    () =>
-      people.people
-        .filter((person) => person.relationshipState === "blocked")
-        .map(curatedPersonToCuratorPerson),
-    [people.people],
+    () => records.filter((person) => person.relationshipState === "blocked"),
+    [records],
   );
-
   return {
     add,
-    blockedPeople,
-    holdingPeople,
-    load,
-    partyPeople,
-    remove,
-    people,
-    tribePeople,
     update,
+    remove,
+    load,
+    people,
+    operations,
+    aliases,
+    deviceReady,
+    deviceError,
+    retryOperation,
+    discardOperation,
+    partyPeople,
+    tribePeople,
+    holdingPeople,
+    blockedPeople,
   };
 }
