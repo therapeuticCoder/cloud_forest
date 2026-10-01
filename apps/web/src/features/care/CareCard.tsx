@@ -5,6 +5,7 @@ import type { Care, CarePersonId } from "@/types/care";
 import { getCareGratitudeStatement } from "@cloud-forest/domain";
 import { careCategoryName, careScheduleLabel } from "./carePresentation";
 import { CareLeaf } from "./CareLeaf";
+import { CareConversationEntry } from "./CareConversations";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -102,6 +103,7 @@ export function CareCard({
       </button>
     ) : isClaimed ? (
       <div className="care-card__outcome">
+        {presentation === "card" ? <CareConversationEntry care={care} /> : null}
         <p
           className="care-card__commitment"
           data-care-claim-status={care.id}

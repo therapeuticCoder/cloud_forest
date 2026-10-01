@@ -16,6 +16,7 @@ export function toCare(record: CareRecord): Care {
     sensitivities: record.sensitivities,
     audience: record.audience,
     status: record.status,
+    conversationAvailable: record.conversationAvailable ?? false,
     createdAt: record.createdAt,
     ...(record.claimedAt ? { claimedAt: record.claimedAt } : {}),
     ...(record.originatorCompletedAt

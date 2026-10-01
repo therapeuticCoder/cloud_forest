@@ -19,6 +19,7 @@ import { createInitials } from "@/lib/personPresentation";
 import type { Care, CarePersonId, CareStatus } from "@/types/care";
 import { careCategoryName, careScheduleLabel } from "./carePresentation";
 import "./careLeaf.css";
+import { CareConversationUnread } from "./CareConversations";
 
 const categoryIcons = {
   transportation: Car,
@@ -208,6 +209,7 @@ export function CareLeaf({
         {stateLabels[presentationStatus] ? (
           <p className="care-leaf__state">{stateLabels[presentationStatus]}</p>
         ) : null}
+        <CareConversationUnread care={care} />
         {presentationStatus === "expired" ? null : actions}
         {presentationControl}
       </div>

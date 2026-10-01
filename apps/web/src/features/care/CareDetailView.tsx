@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { getCareGratitudeStatement } from "@cloud-forest/domain";
 import type { Care, CarePersonId } from "@/types/care";
 import { careCategoryName, careScheduleLabel } from "./carePresentation";
+import { CareConversationEntry } from "./CareConversations";
 import {
   layerBackgrounds,
   layerOuterBackgrounds,
@@ -100,6 +101,7 @@ export function CareDetailView({
             </p>
           ) : null}
         </header>
+        {care ? <CareConversationEntry care={care} /> : null}
         {care ? (
           <dl className="care-destination__details care-detail__fields">
             {rows.map(([label, value]) => (

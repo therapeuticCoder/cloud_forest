@@ -51,6 +51,7 @@ export type Care = {
   sensitivities: string;
   audience: CareAudience;
   status: CareStatus;
+  conversationAvailable?: boolean;
   createdAt: string;
   claimedAt?: string;
   originatorCompletedAt?: string;

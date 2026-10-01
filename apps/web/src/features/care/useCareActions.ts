@@ -23,6 +23,7 @@ export function useCareActions(
   enabled = true,
 ) {
   const {
+    load: loadCares,
     claim: claimCare,
     complete: completeCare,
     create: createCare,
@@ -110,6 +111,7 @@ export function useCareActions(
   };
 
   return {
+    loadCares,
     caresState,
     claimCare,
     createCare,

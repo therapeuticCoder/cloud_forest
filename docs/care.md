@@ -91,6 +91,14 @@ Breaking or blocking a Connection during claimed Care immediately revokes the sh
 
 Current mutual consent outranks an earlier Care participant role.
 
+## Private conversations
+
+Claimed Care has one private plain-text conversation for its originator and claimant, in either Give or Receive direction. Both participants can enter it from Active Care in a Party member's detail, My Care, and Care details opened from Timeline. The server supplies conversation eligibility with the authorized Care record; unread counts only supply badges and do not determine whether an entry point appears.
+
+Messages show sender and time and allow up to 2,000 characters. Messages and unsent text stay in React memory on the device. Visible conversations refresh every 10 seconds, and unread counts refresh every 30 seconds while online. Sending requires a live connection; there are no attachments, editing, inbox, push notifications, or offline sending.
+
+One participant marking completion keeps the conversation available. Terminal completion, withdrawal, expiration, or orphaning deletes messages and read markers transactionally and removes the conversation and its entry points. Concurrent sending cannot recreate a closed conversation. Care history, gratitude, and apologies continue to follow the existing Care lifecycle.
+
 ## Alpha scope
 
 For 1.0-ALPHA, favor one complete, understandable shared Care path over a generalized Care platform. Preserve the accepted interaction semantics where useful, but do not carry forward browser-storage authority, fictional perspective switching, fixture-specific audience snapshots, or speculative hardening from the old prototype.

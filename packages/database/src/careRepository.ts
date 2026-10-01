@@ -15,6 +15,10 @@ import {
 
 import type { DatabaseClient } from "./client.ts";
 import {
+  currentCareConnection,
+  careConversationEligibility,
+} from "./careEligibility.ts";
+import {
   accountPeople,
   careGratitudes,
   carePasses,
@@ -48,6 +52,7 @@ export type CareRecord = {
   id: string;
   originatorUserId: string;
   participantUserId: string | null;
+  conversationAvailable: boolean;
   direction: CareDirection;
   category: CareCategoryId;
   subtype: string;
@@ -96,26 +101,6 @@ function orderedUsers(firstUserId: string, secondUserId: string) {
 
 function expiresAtFor(now: Date, expiresIn: CareExpiration) {
   return new Date(now.getTime() + careExpirationMs[expiresIn]);
-}
-
-function currentCareConnection(viewerUserId: string, careTable = cares) {
-  const currentConnection = sql`exists (
-    select 1 from ${connections}
-    where ${connections.firstUserId} = least(${careTable.originatorUserId}, ${viewerUserId})
-      and ${connections.secondUserId} = greatest(${careTable.originatorUserId}, ${viewerUserId})
-  )`;
-  const notBlocked = sql`not exists (
-    select 1 from ${relationshipBlocks}
-    where (${relationshipBlocks.blockerUserId} = ${careTable.originatorUserId} and ${relationshipBlocks.blockedUserId} = ${viewerUserId})
-       or (${relationshipBlocks.blockerUserId} = ${viewerUserId} and ${relationshipBlocks.blockedUserId} = ${careTable.originatorUserId})
-  )`;
-  const currentPlacement = sql`exists (
-    select 1 from ${curatedPersons}
-    where ${curatedPersons.ownerUserId} = ${careTable.originatorUserId}
-      and ${curatedPersons.linkedUserId} = ${viewerUserId}
-      and ${curatedPersons.placement} = ${careTable.audience}
-  )`;
-  return and(currentConnection, notBlocked, currentPlacement);
 }
 
 export function createCareRepository(database: DatabaseClient) {
@@ -420,9 +405,18 @@ export function createCareRepository(database: DatabaseClient) {
         )
         .orderBy(desc(cares.createdAt));
 
+      const eligibleConversations = await transaction
+        .select({ id: cares.id })
+        .from(cares)
+        .where(careConversationEligibility(viewerUserId));
+      const conversationIds = new Set(
+        eligibleConversations.map((care) => care.id),
+      );
+
       return rows.map(
         (row): CareRecord => ({
           id: row.id,
+          conversationAvailable: conversationIds.has(row.id),
           originatorUserId: row.originatorUserId,
           participantUserId: row.participantUserId,
           direction: row.direction,

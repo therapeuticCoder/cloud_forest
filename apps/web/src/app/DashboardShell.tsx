@@ -37,6 +37,7 @@ import { ClaimCareView } from "../features/care/ClaimCareView";
 import { CareGratitudeWizard } from "../features/care/CareGratitudeWizard";
 import { CareWithdrawalWizard } from "../features/care/CareWithdrawalWizard";
 import { MyCareView } from "../features/care/MyCareView";
+import { CareConversations } from "../features/care/CareConversations";
 import { useCareNavigation } from "../features/care/useCareNavigation";
 import {
   clearPendingConnectionPairing,
@@ -141,6 +142,7 @@ export function DashboardShell({
   } = useCareNavigation(setChromeHidden);
   const {
     caresState,
+    loadCares,
     claimCare,
     createCare,
     withdrawCare,
@@ -514,178 +516,295 @@ export function DashboardShell({
   }
 
   return (
-    <main
-      className="cloud-forest-app"
-      data-active-view={activeView}
-      data-curator-layer={
-        activeView === "curator" ? currentCuratorLayer : undefined
-      }
-      data-receive-open={receiveWizardOpen}
-      data-give-open={giveWizardOpen}
-      data-timeline-post-open={timelinePostComposerOpen}
-      data-care-destination={
-        careWithdrawal
-          ? "withdrawal"
-          : careGratitude
-            ? "gratitude"
-            : careDestination?.kind
-      }
+    <CareConversations
+      key={currentPersonId}
+      cares={caresState.cares}
+      ownerId={currentPersonId}
+      enabled={careActionsAvailable}
+      onRefreshCares={loadCares}
     >
-      <div
-        className="timeline-chrome timeline-chrome--top global-view-chrome"
-        data-hidden={chromeHidden}
-        onFocusCapture={revealChrome}
+      <main
+        className="cloud-forest-app"
+        data-active-view={activeView}
+        data-curator-layer={
+          activeView === "curator" ? currentCuratorLayer : undefined
+        }
+        data-receive-open={receiveWizardOpen}
+        data-give-open={giveWizardOpen}
+        data-timeline-post-open={timelinePostComposerOpen}
+        data-care-destination={
+          careWithdrawal
+            ? "withdrawal"
+            : careGratitude
+              ? "gratitude"
+              : careDestination?.kind
+        }
       >
-        <header className="party-header timeline-header">
-          <button
-            aria-label={
-              profileIsOffline ? "Open My Care (offline)" : "Open My Care"
-            }
-            className="party-self global-view-self"
-            data-my-care-trigger="timeline"
-            title={
-              profileIsOffline ? "Offline — showing cached data" : undefined
-            }
-            onClick={() =>
-              openCareDestination(
-                { kind: "my-care", initialTab: "profile" },
-                '[data-my-care-trigger="timeline"]',
-              )
-            }
-            type="button"
-          >
-            {profileIsOffline ? (
-              <CloudOff aria-hidden="true" className="size-7 text-amber-100" />
-            ) : (
-              <Portrait
-                initials={currentUser.initials}
-                personId={currentUser.id}
-                showInitials
-                small
-              />
-            )}
-          </button>
-          <h1>
-            {activeView === "timeline" ? "Timeline" : currentCuratorLayer}
-          </h1>
-          <div className="global-view-tools">
-            {activeView === "curator" && activeCuratorLayerCount ? (
-              <span
-                aria-label={`${currentCuratorLayer} count`}
-                className="global-view-layer-count"
-              >
-                {activeCuratorLayerCount}
-              </span>
-            ) : null}
-            <ViewSwitcher
-              activeView={activeView}
-              onViewChange={navigateToView}
-            />
-          </div>
-          {!receiveWizardOpen &&
-          !giveWizardOpen &&
-          activeView === "timeline" ? (
-            <div className="timeline-desktop-care-actions">
-              <PartyAction
-                disabled={!careActionsAvailable}
-                icon={Gift}
-                onClick={openGiveWizard}
-                tone="quiet"
-              >
-                Give
-              </PartyAction>
-              <PartyAction
-                disabled={!careActionsAvailable}
-                icon={HandHeart}
-                onClick={openReceiveWizard}
-                tone="quiet"
-              >
-                Receive
-              </PartyAction>
-            </div>
-          ) : null}
-        </header>
-      </div>
-      {receiveWizardOpen ? (
-        <CareWizard
-          direction="receive"
-          onCancel={() => setReceiveWizardOpen(false)}
-          onComplete={completeReceive}
-        />
-      ) : giveWizardOpen ? (
-        <CareWizard
-          direction="give"
-          onCancel={() => setGiveWizardOpen(false)}
-          onComplete={completeGive}
-        />
-      ) : (
-        <>
-          <div
-            aria-hidden={
-              careDestination || careGratitude || careWithdrawal
-                ? true
-                : undefined
-            }
-            inert={
-              careDestination || careGratitude || careWithdrawal
-                ? true
-                : undefined
-            }
-          >
-            {activeView === "curator" &&
-            !curated.deviceReady &&
-            curated.deviceError ? (
-              <div
-                role="alert"
-                className="mx-auto max-w-3xl px-4 py-3 text-sm text-amber-100"
-              >
-                <p>
-                  Editing is unavailable because this device could not save your
-                  Characters. Free some device storage or allow site storage,
-                  then retry.
-                </p>
-                <p className="mt-1">{curated.deviceError}</p>
-                <button
-                  type="button"
-                  className="mt-2 underline underline-offset-4"
-                  onClick={() => void loadCuratedPeople()}
+        <div
+          className="timeline-chrome timeline-chrome--top global-view-chrome"
+          data-hidden={chromeHidden}
+          onFocusCapture={revealChrome}
+        >
+          <header className="party-header timeline-header">
+            <button
+              aria-label={
+                profileIsOffline ? "Open My Care (offline)" : "Open My Care"
+              }
+              className="party-self global-view-self"
+              data-my-care-trigger="timeline"
+              title={
+                profileIsOffline ? "Offline — showing cached data" : undefined
+              }
+              onClick={() =>
+                openCareDestination(
+                  { kind: "my-care", initialTab: "profile" },
+                  '[data-my-care-trigger="timeline"]',
+                )
+              }
+              type="button"
+            >
+              {profileIsOffline ? (
+                <CloudOff
+                  aria-hidden="true"
+                  className="size-7 text-amber-100"
+                />
+              ) : (
+                <Portrait
+                  initials={currentUser.initials}
+                  personId={currentUser.id}
+                  showInitials
+                  small
+                />
+              )}
+            </button>
+            <h1>
+              {activeView === "timeline" ? "Timeline" : currentCuratorLayer}
+            </h1>
+            <div className="global-view-tools">
+              {activeView === "curator" && activeCuratorLayerCount ? (
+                <span
+                  aria-label={`${currentCuratorLayer} count`}
+                  className="global-view-layer-count"
                 >
-                  Retry device storage
-                </button>
+                  {activeCuratorLayerCount}
+                </span>
+              ) : null}
+              <ViewSwitcher
+                activeView={activeView}
+                onViewChange={navigateToView}
+              />
+            </div>
+            {!receiveWizardOpen &&
+            !giveWizardOpen &&
+            activeView === "timeline" ? (
+              <div className="timeline-desktop-care-actions">
+                <PartyAction
+                  disabled={!careActionsAvailable}
+                  icon={Gift}
+                  onClick={openGiveWizard}
+                  tone="quiet"
+                >
+                  Give
+                </PartyAction>
+                <PartyAction
+                  disabled={!careActionsAvailable}
+                  icon={HandHeart}
+                  onClick={openReceiveWizard}
+                  tone="quiet"
+                >
+                  Receive
+                </PartyAction>
               </div>
             ) : null}
-            {activeView === "timeline" ? (
-              <TimelineView
-                timelineItems={timelineItems}
-                cacheOwnerId={currentPersonId}
-                onOfflineChange={setTimelineApiOffline}
-                cares={durableCares}
-                careError={durableCareError}
-                offline={deviceIsOffline || caresState.offline}
-                postComposerOpen={timelinePostComposerOpen}
-                onClosePostComposer={closeTimelinePostComposer}
-                onOpenCareDetails={(care) =>
-                  openCareDestination(
-                    { kind: "detail", careId: care.id },
-                    `[data-care-detail-action="${care.id}"]`,
-                  )
-                }
-                onCommitToCare={
-                  careActionsAvailable
-                    ? (care) =>
-                        openCareDestination(
-                          { kind: "claim", care },
-                          `[data-care-claim-action="${care.id}"]`,
-                        )
-                    : undefined
-                }
+          </header>
+        </div>
+        {receiveWizardOpen ? (
+          <CareWizard
+            direction="receive"
+            onCancel={() => setReceiveWizardOpen(false)}
+            onComplete={completeReceive}
+          />
+        ) : giveWizardOpen ? (
+          <CareWizard
+            direction="give"
+            onCancel={() => setGiveWizardOpen(false)}
+            onComplete={completeGive}
+          />
+        ) : (
+          <>
+            <div
+              aria-hidden={
+                careDestination || careGratitude || careWithdrawal
+                  ? true
+                  : undefined
+              }
+              inert={
+                careDestination || careGratitude || careWithdrawal
+                  ? true
+                  : undefined
+              }
+            >
+              {activeView === "curator" &&
+              !curated.deviceReady &&
+              curated.deviceError ? (
+                <div
+                  role="alert"
+                  className="mx-auto max-w-3xl px-4 py-3 text-sm text-amber-100"
+                >
+                  <p>
+                    Editing is unavailable because this device could not save
+                    your Characters. Free some device storage or allow site
+                    storage, then retry.
+                  </p>
+                  <p className="mt-1">{curated.deviceError}</p>
+                  <button
+                    type="button"
+                    className="mt-2 underline underline-offset-4"
+                    onClick={() => void loadCuratedPeople()}
+                  >
+                    Retry device storage
+                  </button>
+                </div>
+              ) : null}
+              {activeView === "timeline" ? (
+                <TimelineView
+                  timelineItems={timelineItems}
+                  cacheOwnerId={currentPersonId}
+                  onOfflineChange={setTimelineApiOffline}
+                  cares={durableCares}
+                  careError={durableCareError}
+                  offline={deviceIsOffline || caresState.offline}
+                  postComposerOpen={timelinePostComposerOpen}
+                  onClosePostComposer={closeTimelinePostComposer}
+                  onOpenCareDetails={(care) =>
+                    openCareDestination(
+                      { kind: "detail", careId: care.id },
+                      `[data-care-detail-action="${care.id}"]`,
+                    )
+                  }
+                  onCommitToCare={
+                    careActionsAvailable
+                      ? (care) =>
+                          openCareDestination(
+                            { kind: "claim", care },
+                            `[data-care-claim-action="${care.id}"]`,
+                          )
+                      : undefined
+                  }
+                  onRecordCompleted={
+                    careActionsAvailable ? recordCareCompleted : undefined
+                  }
+                  onRecordNotCompleted={
+                    careActionsAvailable ? setCareWithdrawal : undefined
+                  }
+                  onPass={careActionsAvailable ? handlePassCare : undefined}
+                  onWithdraw={
+                    careActionsAvailable
+                      ? (careId) =>
+                          void withdrawCare(careId, {
+                            statementId: "meal-something-changed",
+                            message: "",
+                          })
+                      : undefined
+                  }
+                  viewerId={careViewerId}
+                  passableCareIds={passableCareIds}
+                  passAnnouncement={carePassAnnouncement}
+                />
+              ) : (
+                <CuratorView
+                  curatorWritesDisabled={!canEditCuratedPeople}
+                  pendingChangeCount={curated.operations.length}
+                  personAliases={curated.aliases}
+                  careActionsDisabled={!careActionsAvailable}
+                  addDestination={addDestination}
+                  addSubmission={addSubmission}
+                  addWizardOpen={addWizardOpen}
+                  activeCares={durableCares}
+                  careViewerId={careViewerId}
+                  characterSubmission={characterSubmission}
+                  curatedPeopleCached={curatedPeople.source === "cache"}
+                  curatedPeopleOffline={curatorIsOffline}
+                  curatedPeopleStatus={curatedPeople.status}
+                  curatedPeopleError={
+                    curatedPeople.status === "error"
+                      ? curatedPeople.message
+                      : undefined
+                  }
+                  initialSelection={curatorSelection}
+                  onAddCharacter={openAddWizard}
+                  onBlockCharacter={blockCharacter}
+                  onCancelAdd={() => setAddWizardOpen(false)}
+                  onCompleteAdd={completeAdd}
+                  onDeleteCharacter={deleteCharacter}
+                  onEndConnection={endConnection}
+                  onRetryCuratedPeople={() => void loadCuratedPeople()}
+                  onGive={openGiveWizard}
+                  onUpdateCharacter={updateCharacter}
+                  onActiveLayerChange={setActiveCuratorLayer}
+                  onSelectionChange={setCuratorSelection}
+                  onCommitToCare={(care) =>
+                    openCareDestination(
+                      { kind: "claim", care },
+                      `[data-care-claim-action="${care.id}"]`,
+                    )
+                  }
+                  onPass={handlePassCare}
+                  onRecordCompleted={recordCareCompleted}
+                  onRecordNotCompleted={setCareWithdrawal}
+                  onReceive={openReceiveWizard}
+                  onStartConnection={startConnection}
+                  onUnblockCharacter={unblockCharacter}
+                  onWithdraw={() => undefined}
+                  blockedPeople={blockedPeople}
+                  partyPeople={partyPeople}
+                  holdingPeople={holdingPeople}
+                  tribePeople={tribePeople}
+                />
+              )}
+            </div>
+            {careWithdrawal ? (
+              <CareWithdrawalWizard
+                onBack={() => setCareWithdrawal(null)}
+                onComplete={saveCareWithdrawal}
+                care={careWithdrawal}
+                viewerId={careViewerId}
+              />
+            ) : careGratitude ? (
+              <CareGratitudeWizard
+                onBack={skipCareGratitude}
+                onComplete={saveCareGratitude}
+                onSkip={skipCareGratitude}
+                care={careGratitude}
+              />
+            ) : careDestination?.kind === "detail" ? (
+              <CareDetailView
+                care={durableCares.find(
+                  (care) => care.id === careDestination.careId,
+                )}
+                onBack={backFromCareDestination}
+                viewerId={careViewerId}
+              />
+            ) : careDestination?.kind === "claim" ? (
+              <ClaimCareView
+                onBack={backFromCareDestination}
+                onConfirm={confirmCareClaim}
+                care={careDestination.care}
+              />
+            ) : careDestination?.kind === "my-care" ? (
+              <MyCareView
+                initialTab={careDestination.initialTab}
+                cares={caresState.cares}
+                viewerDisplayName={displayName}
+                onBack={backFromCareDestination}
+                isAdmin={role === "admin" && !deviceIsOffline}
+                onCreateSignupCode={onCreateSignupCode}
                 onRecordCompleted={
                   careActionsAvailable ? recordCareCompleted : undefined
                 }
                 onRecordNotCompleted={
                   careActionsAvailable ? setCareWithdrawal : undefined
                 }
-                onPass={careActionsAvailable ? handlePassCare : undefined}
                 onWithdraw={
                   careActionsAvailable
                     ? (careId) =>
@@ -695,143 +814,37 @@ export function DashboardShell({
                         })
                     : undefined
                 }
+                onSignOut={onSignOut}
                 viewerId={careViewerId}
-                passableCareIds={passableCareIds}
-                passAnnouncement={carePassAnnouncement}
+                signOutError={signOutError}
+                signingOut={signingOut}
               />
-            ) : (
-              <CuratorView
-                curatorWritesDisabled={!canEditCuratedPeople}
-                pendingChangeCount={curated.operations.length}
-                personAliases={curated.aliases}
-                careActionsDisabled={!careActionsAvailable}
-                addDestination={addDestination}
-                addSubmission={addSubmission}
-                addWizardOpen={addWizardOpen}
-                activeCares={durableCares}
-                careViewerId={careViewerId}
-                characterSubmission={characterSubmission}
-                curatedPeopleCached={curatedPeople.source === "cache"}
-                curatedPeopleOffline={curatorIsOffline}
-                curatedPeopleStatus={curatedPeople.status}
-                curatedPeopleError={
-                  curatedPeople.status === "error"
-                    ? curatedPeople.message
-                    : undefined
-                }
-                initialSelection={curatorSelection}
-                onAddCharacter={openAddWizard}
-                onBlockCharacter={blockCharacter}
-                onCancelAdd={() => setAddWizardOpen(false)}
-                onCompleteAdd={completeAdd}
-                onDeleteCharacter={deleteCharacter}
-                onEndConnection={endConnection}
-                onRetryCuratedPeople={() => void loadCuratedPeople()}
-                onGive={openGiveWizard}
-                onUpdateCharacter={updateCharacter}
-                onActiveLayerChange={setActiveCuratorLayer}
-                onSelectionChange={setCuratorSelection}
-                onCommitToCare={(care) =>
-                  openCareDestination(
-                    { kind: "claim", care },
-                    `[data-care-claim-action="${care.id}"]`,
-                  )
-                }
-                onPass={handlePassCare}
-                onRecordCompleted={recordCareCompleted}
-                onRecordNotCompleted={setCareWithdrawal}
-                onReceive={openReceiveWizard}
-                onStartConnection={startConnection}
-                onUnblockCharacter={unblockCharacter}
-                onWithdraw={() => undefined}
-                blockedPeople={blockedPeople}
-                partyPeople={partyPeople}
-                holdingPeople={holdingPeople}
-                tribePeople={tribePeople}
-              />
-            )}
+            ) : null}
+          </>
+        )}
+        {!receiveWizardOpen &&
+        !giveWizardOpen &&
+        !careDestination &&
+        !careGratitude &&
+        !careWithdrawal &&
+        activeView === "timeline" ? (
+          <div
+            className="timeline-chrome timeline-chrome--bottom"
+            data-hidden={chromeHidden}
+            onFocusCapture={revealChrome}
+          >
+            <PartyActions
+              careActionsDisabled={!careActionsAvailable}
+              writeDisabled={deviceIsOffline || timelineApiOffline}
+              activeView={activeView}
+              onAdd={() => openAddWizard("party")}
+              onGive={openGiveWizard}
+              onReceive={openReceiveWizard}
+              onWrite={openTimelinePostComposer}
+            />
           </div>
-          {careWithdrawal ? (
-            <CareWithdrawalWizard
-              onBack={() => setCareWithdrawal(null)}
-              onComplete={saveCareWithdrawal}
-              care={careWithdrawal}
-              viewerId={careViewerId}
-            />
-          ) : careGratitude ? (
-            <CareGratitudeWizard
-              onBack={skipCareGratitude}
-              onComplete={saveCareGratitude}
-              onSkip={skipCareGratitude}
-              care={careGratitude}
-            />
-          ) : careDestination?.kind === "detail" ? (
-            <CareDetailView
-              care={durableCares.find(
-                (care) => care.id === careDestination.careId,
-              )}
-              onBack={backFromCareDestination}
-              viewerId={careViewerId}
-            />
-          ) : careDestination?.kind === "claim" ? (
-            <ClaimCareView
-              onBack={backFromCareDestination}
-              onConfirm={confirmCareClaim}
-              care={careDestination.care}
-            />
-          ) : careDestination?.kind === "my-care" ? (
-            <MyCareView
-              initialTab={careDestination.initialTab}
-              cares={caresState.cares}
-              viewerDisplayName={displayName}
-              onBack={backFromCareDestination}
-              isAdmin={role === "admin" && !deviceIsOffline}
-              onCreateSignupCode={onCreateSignupCode}
-              onRecordCompleted={
-                careActionsAvailable ? recordCareCompleted : undefined
-              }
-              onRecordNotCompleted={
-                careActionsAvailable ? setCareWithdrawal : undefined
-              }
-              onWithdraw={
-                careActionsAvailable
-                  ? (careId) =>
-                      void withdrawCare(careId, {
-                        statementId: "meal-something-changed",
-                        message: "",
-                      })
-                  : undefined
-              }
-              onSignOut={onSignOut}
-              viewerId={careViewerId}
-              signOutError={signOutError}
-              signingOut={signingOut}
-            />
-          ) : null}
-        </>
-      )}
-      {!receiveWizardOpen &&
-      !giveWizardOpen &&
-      !careDestination &&
-      !careGratitude &&
-      !careWithdrawal &&
-      activeView === "timeline" ? (
-        <div
-          className="timeline-chrome timeline-chrome--bottom"
-          data-hidden={chromeHidden}
-          onFocusCapture={revealChrome}
-        >
-          <PartyActions
-            careActionsDisabled={!careActionsAvailable}
-            writeDisabled={deviceIsOffline || timelineApiOffline}
-            activeView={activeView}
-            onAdd={() => openAddWizard("party")}
-            onGive={openGiveWizard}
-            onReceive={openReceiveWizard}
-            onWrite={openTimelinePostComposer}
-          />
-        </div>
-      ) : null}
-    </main>
+        ) : null}
+      </main>
+    </CareConversations>
   );
 }

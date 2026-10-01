@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  bigint,
+  bigserial,
   check,
   index,
   integer,
@@ -661,3 +663,42 @@ export const curatorMutationReceipts = pgTable(
 
 export type TimelineItemRow = typeof timelineItems.$inferSelect;
 export type NewTimelineItemRow = typeof timelineItems.$inferInsert;
+
+export const careMessages = pgTable(
+  "care_messages",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    sequence: bigserial("sequence", { mode: "number" }).notNull(),
+    careId: varchar("care_id", { length: 128 })
+      .notNull()
+      .references(() => cares.id, { onDelete: "cascade" }),
+    senderUserId: varchar("sender_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    text: text("text").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index("care_messages_care_sequence_index").on(table.careId, table.sequence),
+    check(
+      "care_messages_text_length",
+      sql`char_length(btrim(${table.text})) between 1 and 2000`,
+    ),
+  ],
+);
+
+export const careMessageReads = pgTable(
+  "care_message_reads",
+  {
+    careId: varchar("care_id", { length: 128 })
+      .notNull()
+      .references(() => cares.id, { onDelete: "cascade" }),
+    readerUserId: varchar("reader_user_id", { length: 128 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lastReadSequence: bigint("last_read_sequence", { mode: "number" })
+      .notNull()
+      .default(0),
+  },
+  (table) => [primaryKey({ columns: [table.careId, table.readerUserId] })],
+);

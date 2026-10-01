@@ -218,6 +218,13 @@
       "when": 1790853894643,
       "tag": "0030_curator_mutation_receipts",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1790869972224,
+      "tag": "0031_care_conversations",
+      "breakpoints": true
     }
   ]
 }

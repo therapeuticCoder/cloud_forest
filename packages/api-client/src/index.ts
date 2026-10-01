@@ -2,6 +2,9 @@ import {
   isCuratedPersonErrorResponse,
   isCuratedPersonsSuccessResponse,
   isCareErrorResponse,
+  isCareMessagesResponse,
+  isCareUnreadResponse,
+  type CareErrorResponse,
   isCaresSuccessResponse,
   isCreateTimelinePostSuccessResponse,
   isGetTimelineItemsSuccessResponse,
@@ -228,7 +231,48 @@ export type GetCuratedPersonsResult = ApiResult<
   GetCuratedPersonsErrorResponse
 >;
 
+export type CareMessagesResponse = OperationResponseBody<
+  operations["getCareMessagesV1"],
+  200
+>;
+export type CareUnreadResponse = OperationResponseBody<
+  operations["getCareUnreadV1"],
+  200
+>;
+export type SendCareMessageInput =
+  operations["sendCareMessageV1"]["requestBody"]["content"]["application/json"];
+export type MarkCareMessagesReadInput =
+  operations["markCareMessagesReadV1"]["requestBody"]["content"]["application/json"];
+export type GetCareMessagesResult = ApiResult<
+  200,
+  CareMessagesResponse,
+  401 | 404,
+  CareErrorResponse
+>;
+export type GetCareUnreadResult = ApiResult<
+  200,
+  CareUnreadResponse,
+  401,
+  CareErrorResponse
+>;
+export type CareMessageActionResult = ApiResult<
+  204,
+  null,
+  400 | 401 | 404,
+  CareErrorResponse
+>;
+
 export interface ApiClient {
+  getCareMessages(parameters: CareParameters): Promise<GetCareMessagesResult>;
+  getCareUnread(): Promise<GetCareUnreadResult>;
+  sendCareMessage(
+    parameters: CareParameters,
+    input: SendCareMessageInput,
+  ): Promise<CareMessageActionResult>;
+  markCareMessagesRead(
+    parameters: CareParameters,
+    input: MarkCareMessagesReadInput,
+  ): Promise<CareMessageActionResult>;
   getHealth(): Promise<HealthResult>;
   getCurrentSession(): Promise<CurrentSessionResult>;
   logout(): Promise<LogoutResult>;
@@ -561,6 +605,49 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
       ) as WithdrawCareResult;
     },
 
+    async getCareMessages({ careId }) {
+      return parseCareConversationResponse(
+        await request(
+          "GET",
+          `/api/v1/cares/${encodeURIComponent(careId)}/messages`,
+        ),
+        200,
+        isCareMessagesResponse,
+        [401, 404] as const,
+      );
+    },
+    async getCareUnread() {
+      return parseCareConversationResponse(
+        await request("GET", "/api/v1/cares/unread"),
+        200,
+        isCareUnreadResponse,
+        [401] as const,
+      );
+    },
+    async sendCareMessage({ careId }, input) {
+      return parseCareConversationResponse(
+        await request(
+          "POST",
+          `/api/v1/cares/${encodeURIComponent(careId)}/messages`,
+          input,
+        ),
+        204,
+        isNoContent,
+        [400, 401, 404] as const,
+      );
+    },
+    async markCareMessagesRead({ careId }, input) {
+      return parseCareConversationResponse(
+        await request(
+          "POST",
+          `/api/v1/cares/${encodeURIComponent(careId)}/messages/read`,
+          input,
+        ),
+        204,
+        isNoContent,
+        [400, 401, 404] as const,
+      );
+    },
     async recordCareGratitude({ careId }, input) {
       return parseCaresResponse(
         await request(
@@ -684,6 +771,45 @@ function parseCaresResponse(
       error: result.body,
     };
   }
+  return {
+    ok: false,
+    kind: "unexpected-response",
+    status: result.status,
+    body: result.body,
+  };
+}
+
+function isNoContent(value: unknown): value is null {
+  return value === null;
+}
+
+function parseCareConversationResponse<
+  Value,
+  SuccessStatus extends number,
+  ErrorStatus extends number,
+>(
+  result: RawRequestResult,
+  successStatus: SuccessStatus,
+  validate: (value: unknown) => value is Value,
+  errorStatuses: readonly ErrorStatus[],
+):
+  | ApiSuccess<SuccessStatus, Value>
+  | ApiHttpError<ErrorStatus, CareErrorResponse>
+  | ApiNetworkError
+  | ApiUnexpectedResponse {
+  if (result.kind === "network") return result;
+  if (result.status === successStatus && validate(result.body))
+    return { ok: true, status: successStatus, value: result.body };
+  if (
+    errorStatuses.includes(result.status as ErrorStatus) &&
+    isCareErrorResponse(result.body)
+  )
+    return {
+      ok: false,
+      kind: "http",
+      status: result.status as ErrorStatus,
+      error: result.body,
+    };
   return {
     ok: false,
     kind: "unexpected-response",

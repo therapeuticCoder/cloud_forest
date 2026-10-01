@@ -63,6 +63,38 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/v1/cares/{careId}/messages": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getCareMessagesV1"];
+        readonly put?: never;
+        readonly post: operations["sendCareMessageV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/cares/{careId}/messages/read": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["markCareMessagesReadV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/v1/cares/{careId}/pass": {
         readonly parameters: {
             readonly query?: never;
@@ -89,6 +121,22 @@ export interface paths {
         readonly get?: never;
         readonly put?: never;
         readonly post: operations["withdrawCareV1"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/api/v1/cares/unread": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getCareUnreadV1"];
+        readonly put?: never;
+        readonly post?: never;
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -511,6 +559,7 @@ export interface operations {
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
+                                readonly conversationAvailable?: boolean;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
@@ -618,6 +667,7 @@ export interface operations {
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
+                                readonly conversationAvailable?: boolean;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
@@ -727,6 +777,7 @@ export interface operations {
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
+                                readonly conversationAvailable?: boolean;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
@@ -852,6 +903,7 @@ export interface operations {
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
+                                readonly conversationAvailable?: boolean;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
@@ -968,6 +1020,7 @@ export interface operations {
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
+                                readonly conversationAvailable?: boolean;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
@@ -1075,6 +1128,223 @@ export interface operations {
             };
         };
     };
+    readonly getCareMessagesV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly messages: readonly {
+                                readonly id: string;
+                                readonly sender: {
+                                    readonly displayName: string;
+                                    readonly personId: string;
+                                };
+                                /** Format: date-time */
+                                readonly sentAt: string;
+                                readonly text: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly sendCareMessageV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly text: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 204: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly markCareMessagesReadV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly careId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly throughMessageId: string;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Default Response */
+            readonly 204: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default Response */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
     readonly passCareV1: {
         readonly parameters: {
             readonly query?: never;
@@ -1109,6 +1379,7 @@ export interface operations {
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
+                                readonly conversationAvailable?: boolean;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
@@ -1241,6 +1512,7 @@ export interface operations {
                                 readonly claimedAt?: string;
                                 /** Format: date-time */
                                 readonly completedAt?: string;
+                                readonly conversationAvailable?: boolean;
                                 /** Format: date-time */
                                 readonly createdAt: string;
                                 readonly days: readonly ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
@@ -1316,6 +1588,51 @@ export interface operations {
             };
             /** @description Default Response */
             readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly error: {
+                            readonly code: "UNAUTHORIZED" | "NOT_FOUND" | "VALIDATION_ERROR" | "ALREADY_CLAIMED" | "ALREADY_RECORDED";
+                            readonly message: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    readonly getCareUnreadV1: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Default Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        /** @enum {string} */
+                        readonly apiVersion: "v1";
+                        readonly data: {
+                            readonly conversations: readonly {
+                                readonly careId: string;
+                                readonly unreadCount: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Default Response */
+            readonly 401: {
                 headers: {
                     readonly [name: string]: unknown;
                 };

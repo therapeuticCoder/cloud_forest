@@ -12,10 +12,10 @@ import {
   personProfiles,
 } from "../src/index.ts";
 
-const owner = "person-fictional-owner";
+const owner = "person-party-repository-test-owner";
 const members = Array.from(
   { length: 6 },
-  (_, index) => `person-fictional-member-${index + 1}`,
+  (_, index) => `person-party-repository-test-member-${index + 1}`,
 );
 const now = new Date("2026-09-06T18:00:00.000Z");
 const fixturePeople = [owner, ...members];

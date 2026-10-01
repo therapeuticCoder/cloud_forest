@@ -58,6 +58,7 @@ function toApiCare(
     audience:
       care.audience === "party" ? ("Party" as const) : ("Tribe" as const),
     status: care.status,
+    conversationAvailable: care.conversationAvailable ?? false,
     createdAt: care.createdAt.toISOString(),
     ...(care.claimedAt ? { claimedAt: care.claimedAt.toISOString() } : {}),
     ...(care.originatorCompletedAt

@@ -109,6 +109,7 @@ export const careSchema = Type.Object(
     sensitivities,
     audience: careAudience,
     status: careStatus,
+    conversationAvailable: Type.Optional(Type.Boolean()),
     createdAt: dateTime,
     claimedAt: Type.Optional(dateTime),
     originatorCompletedAt: Type.Optional(dateTime),

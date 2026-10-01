@@ -81,3 +81,8 @@ export {
   fictionalPartyPersonIds,
   seedFictionalPartyFixture,
 } from "./partyFixtures.ts";
+export { careMessages, careMessageReads } from "./schema.ts";
+export {
+  createCareConversationRepository,
+  type CareConversationRepository,
+} from "./careConversationRepository.ts";
