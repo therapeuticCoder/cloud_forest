@@ -13,6 +13,12 @@ import {
   isUnauthorizedResponse,
 } from "@cloud-forest/api-contracts";
 
+export {
+  isCaresSuccessResponse,
+  isCuratedPersonsSuccessResponse,
+  isGetTimelineItemsSuccessResponse,
+};
+
 import type { operations } from "./generated/openapi.ts";
 
 type JsonResponseBody<Response> = Response extends {

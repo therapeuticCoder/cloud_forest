@@ -160,6 +160,8 @@ test("database-backed Timeline and normal app path", async ({
       {
         data: {
           nickname: "Sol Arden",
+          firstName: "Sol",
+          lastName: "Arden",
           relationshipShape: "Closest friend",
           privateDescription: "always in my corner",
           placement: "holding",

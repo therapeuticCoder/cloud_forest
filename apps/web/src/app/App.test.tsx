@@ -223,7 +223,9 @@ describe("unified Care", () => {
     await renderAuthenticatedApp(client);
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole("button", { name: "Open My Care" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Open My Care" }),
+    );
     await user.click(screen.getByRole("tab", { name: "Receive" }));
 
     expect(

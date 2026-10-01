@@ -20,6 +20,7 @@ export function useCareActions(
   careApiClient: CareApiClient | undefined,
   careViewerId: string,
   refreshKey: string,
+  enabled = true,
 ) {
   const {
     claim: claimCare,
@@ -29,7 +30,7 @@ export function useCareActions(
     recordGratitude: recordCareGratitude,
     state: caresState,
     withdraw: withdrawCare,
-  } = useCares(careApiClient, refreshKey);
+  } = useCares(careApiClient, refreshKey, careViewerId, enabled);
   const [careGratitude, setCareGratitude] = useState<Care | null>(null);
   const [careWithdrawal, setCareWithdrawal] = useState<Care | null>(null);
   const [carePassAnnouncement, setCarePassAnnouncement] = useState<string>();
@@ -115,7 +116,14 @@ export function useCareActions(
     withdrawCare,
     careGratitude,
     careWithdrawal,
-    setCareWithdrawal,
+    setCareWithdrawal: (care: Care | null) => {
+      if (
+        care === null ||
+        (enabled && !caresState.offline && navigator.onLine)
+      ) {
+        setCareWithdrawal(care);
+      }
+    },
     carePassAnnouncement,
     handlePassCare,
     recordCareCompleted,

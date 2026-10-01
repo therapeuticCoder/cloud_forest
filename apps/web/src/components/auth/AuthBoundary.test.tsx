@@ -32,6 +32,36 @@ function unauthorizedSessionClient() {
 }
 
 describe("AuthBoundary", () => {
+  it("opens saved identity immediately while session confirmation is still pending", async () => {
+    localStorage.setItem(
+      "cloud-forest:session:v1",
+      JSON.stringify({
+        currentPersonId: "saved-owner",
+        displayName: "Saved Tester",
+        role: "user",
+      }),
+    );
+    const sessionClient = {
+      ...unauthorizedSessionClient(),
+      getCurrentSession: vi.fn(() => new Promise<never>(() => undefined)),
+    };
+    try {
+      render(<AuthBoundary sessionClient={sessionClient} />);
+      expect(
+        screen.getByRole("region", { name: "Timeline view" }),
+      ).toBeVisible();
+      expect(
+        screen.getByRole("button", { name: "Open My Care (offline)" }),
+      ).toBeVisible();
+      await waitFor(() =>
+        expect(sessionClient.getCurrentSession).toHaveBeenCalled(),
+      );
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    } finally {
+      localStorage.removeItem("cloud-forest:session:v1");
+    }
+  });
+
   beforeEach(() => {
     vi.spyOn(globalThis, "fetch").mockImplementation(
       async () =>

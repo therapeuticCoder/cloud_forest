@@ -8,7 +8,7 @@ A coherent trusted-tester alpha for fewer than 100 people: private relationship 
 
 - Invited signup, username/password authentication, sessions, and account-to-person mapping are durable.
 - Private Characters live in Holding, Party, or Tribe. Mutual Connections, pairing by QR/link, relationship exit, blocking, and unblocking are durable. Pairing intent survives login and invited signup.
-- The PWA supports bounded cached reads for session, Curator, and existing Timeline state. Shared mutations require the server.
+- The production PWA opens its saved shell and identity before session validation. Owner-scoped IndexedDB snapshots preserve Curator portraits, Timeline, and Care/history, with background refresh after live authentication. Shared mutations require the server; offline Curator editing is the next increment.
 - Ordinary Party/Tribe Timeline posts are durable.
 - Give and Receive use one Care record, shared alpha catalog, and creation wizard. The catalog covers transportation, food, pet care, child care, urgent shelter, help at home, executive function support, and getting out of the house.
 - Care supports private passing, claiming, independent completion, private gratitude, Party-to-Tribe audience demotion, expiration, and compassionate withdrawal. Current Connection and placement remain authoritative for shared access.
@@ -31,7 +31,7 @@ Use the existing alpha together with invited testers. Prioritize defects that in
 
 React Native / Expo remains a post-alpha direction. No native migration or speculative portability framework is part of this pass.
 
-Before release, bring the existing browser suite up to the current alpha contracts. Its Character-update setup omits required first/last names and receives HTTP 400 on both desktop and mobile, before reaching visual assertions. The full check and database integration tests pass; the approved Care visuals still need a working browser comparison and product-owner review.
+The browser fixture's Character-update setup now includes the required first/last names. The approved Care visuals still need a full browser comparison and product-owner review before release.
 
 ## Deliberately retained boundaries
 

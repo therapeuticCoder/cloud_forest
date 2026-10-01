@@ -11,6 +11,7 @@ Cloud Forest treats private relationship curation as sensitive by default. The t
 - Care access is checked against current Connection, current placement, block/revocation state, participant role, and lifecycle state.
 - Private Care history and public/shared Timeline activity are separate projections. Private reasons and participant provenance must not leak into shared activity.
 - Client-side filtering, hidden controls, localStorage, mock perspective switches, and route state are presentation mechanisms, not security boundaries.
+- Saved device reads are scoped to the last signed-in owner. They may be stale while offline; live authentication and current server authorization remain necessary for shared actions. Authoritative session rejection, account changes, and sign-out clear that owner's saved reads.
 
 ## Profiles and relationships
 

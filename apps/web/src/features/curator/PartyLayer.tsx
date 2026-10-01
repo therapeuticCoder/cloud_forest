@@ -204,6 +204,7 @@ export function PartyActions({
   activeView,
   addDisabled = false,
   careActionsDisabled = false,
+  writeDisabled = false,
   onAdd,
   onGive,
   onReceive,
@@ -212,6 +213,7 @@ export function PartyActions({
   activeView: "timeline" | "curator";
   addDisabled?: boolean;
   careActionsDisabled?: boolean;
+  writeDisabled?: boolean;
   onAdd?: () => void;
   onGive?: () => void;
   onReceive?: () => void;
@@ -222,7 +224,7 @@ export function PartyActions({
       <PartyAction
         icon={activeView === "timeline" ? PenLine : UserRoundPlus}
         onClick={activeView === "timeline" ? onWrite : onAdd}
-        disabled={activeView === "curator" && addDisabled}
+        disabled={activeView === "curator" ? addDisabled : writeDisabled}
         tone="primary"
       >
         {activeView === "timeline" ? "Write" : "Add"}

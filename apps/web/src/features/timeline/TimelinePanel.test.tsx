@@ -144,6 +144,9 @@ describe("TimelinePanel", () => {
     render(<TimelinePanel apiClient={apiClient} />);
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading Timeline");
+    await waitFor(() =>
+      expect(apiClient.getTimelineItems).toHaveBeenCalledWith(),
+    );
     resolveRequest?.({
       ok: true,
       status: 200,
