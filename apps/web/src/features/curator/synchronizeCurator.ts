@@ -34,10 +34,18 @@ export function synchronizeCurator(
     );
   const run = async () => {
     let conflicts = 0;
+    let conflictOperationId: string | undefined;
     while (isLive()) {
       const state = await changeCuratorDevice(owner);
-      const head = state.operations[0];
-      if (!head || head.status === "rejected") return;
+      // Retain rejected edits for correction without blocking later work.
+      const head = state.operations.find(
+        (operation) => operation.status === "pending",
+      );
+      if (!head) return;
+      if (head.id !== conflictOperationId) {
+        conflicts = 0;
+        conflictOperationId = head.id;
+      }
       if (!head.request) {
         const refreshed = await client.getCuratedPersons();
         if (!isLive()) return;
@@ -49,7 +57,9 @@ export function synchronizeCurator(
         }
         const prepared = await changeCuratorDevice(owner, (state) => {
           state.base = [...refreshed.value.data.people];
-          const operation = state.operations[0];
+          const operation = state.operations.find(
+            (operation) => operation.id === head.id,
+          );
           if (
             !operation ||
             operation.id !== head.id ||
@@ -161,7 +171,7 @@ export function synchronizeCurator(
               : "The server rejected this change. Correct it, retry, or discard it.";
         });
         publish(rejected);
-        if (!retry) return;
+        if (!retry) conflicts = 0;
       }
     }
   };

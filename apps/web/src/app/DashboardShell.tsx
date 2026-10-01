@@ -632,6 +632,28 @@ export function DashboardShell({
                 : undefined
             }
           >
+            {activeView === "curator" &&
+            !curated.deviceReady &&
+            curated.deviceError ? (
+              <div
+                role="alert"
+                className="mx-auto max-w-3xl px-4 py-3 text-sm text-amber-100"
+              >
+                <p>
+                  Editing is unavailable because this device could not save your
+                  Characters. Free some device storage or allow site storage,
+                  then retry.
+                </p>
+                <p className="mt-1">{curated.deviceError}</p>
+                <button
+                  type="button"
+                  className="mt-2 underline underline-offset-4"
+                  onClick={() => void loadCuratedPeople()}
+                >
+                  Retry device storage
+                </button>
+              </div>
+            ) : null}
             {activeView === "timeline" ? (
               <TimelineView
                 timelineItems={timelineItems}

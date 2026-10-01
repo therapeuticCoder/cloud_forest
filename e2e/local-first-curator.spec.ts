@@ -49,7 +49,7 @@ async function stored(page: Page, store: string, key: string) {
     { store, key },
   );
 }
-async function fixture(page: Page) {
+async function fixture(page: Page, deviceStorageAvailable = true) {
   const state = {
     unreachable: false,
     expired: false,
@@ -58,6 +58,7 @@ async function fixture(page: Page) {
     writes: [] as Record<string, unknown>[],
     loseAcknowledgement: false,
     rejectMove: false,
+    staleWrites: false,
   };
   const receipts = new Map<string, string | null>();
   await page.route("**/api/**", async (route) => {
@@ -91,6 +92,17 @@ async function fixture(page: Page) {
         const id = String(body.mutationId);
         if (receipts.has(id)) changedPersonId = receipts.get(id)!;
         else {
+          if (state.staleWrites && path.endsWith("/private-character"))
+            return route.fulfill({
+              status: 409,
+              json: {
+                apiVersion: "v1",
+                error: {
+                  code: "STALE_WRITE_CONFLICT",
+                  message: "This Character changed on another device.",
+                },
+              },
+            });
           if (state.rejectMove && body.placement === "tribe")
             return route.fulfill({
               status: 409,
@@ -149,9 +161,10 @@ async function fixture(page: Page) {
     });
   });
   await page.goto("/");
-  await expect
-    .poll(() => stored(page, "reads", `${owner}:curator`))
-    .toMatchObject({ value: [character] });
+  if (deviceStorageAvailable)
+    await expect
+      .poll(() => stored(page, "reads", `${owner}:curator`))
+      .toMatchObject({ value: [character] });
   await page.getByRole("button", { name: "Go to Curator" }).click();
   return state;
 }
@@ -471,6 +484,126 @@ test("a storage failure aborts the projection and queue without reporting succes
       value: [{ privateDescription: character.privateDescription }],
     });
   await expect.poll(() => stored(page, "curator-outbox", owner)).toEqual([]);
+  expect(state.writes).toEqual([]);
+});
+
+for (const rejection of [
+  "connected deletion",
+  "missing record",
+  "stale writes",
+]) {
+  test(`replay advances past a rejected ${rejection} and continues after restart`, async ({
+    page,
+  }) => {
+    const state = await fixture(page);
+    const second = { ...character, id: "second-character", nickname: "Robin" };
+    state.people.push(second);
+    if (rejection === "connected deletion")
+      state.people[0].relationshipState = "connected";
+    else if (rejection === "missing record") state.people.shift();
+    else state.staleWrites = true;
+    // Seed two durable offline edits before the next authenticated replay.
+    await page.evaluate(
+      async ({ owner, rejection }) => {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open("cloud-forest-device");
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const tx = db.transaction("curator-outbox", "readwrite");
+            tx.objectStore("curator-outbox").put(
+              [
+                {
+                  id: "rejected-change",
+                  personId: "private-character",
+                  kind:
+                    rejection === "connected deletion" ? "delete" : "update",
+                  fields: { privateDescription: "Rejected private edit" },
+                  label: "Casey",
+                  status: "pending",
+                },
+                {
+                  id: "later-change",
+                  personId: "second-character",
+                  kind: "update",
+                  fields: { privateDescription: "Later edit synchronizes" },
+                  label: "Robin",
+                  status: "pending",
+                },
+              ],
+              owner,
+            );
+            tx.oncomplete = () => resolve();
+            tx.onabort = tx.onerror = () => reject(tx.error);
+          });
+        } finally {
+          db.close();
+        }
+      },
+      { owner, rejection },
+    );
+    await refresh(page);
+    await expect
+      .poll(() => stored(page, "curator-outbox", owner))
+      .toMatchObject([{ id: "rejected-change", status: "rejected" }]);
+    expect(second.privateDescription).toBe("Later edit synchronizes");
+    expect(state.writes).toHaveLength(rejection === "stale writes" ? 4 : 1);
+    await page.reload();
+    await page.getByRole("button", { name: "Go to Curator" }).click();
+    await page.getByRole("button", { name: "Open Robin", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "Private note", exact: true })
+      .fill("Another edit after restart");
+    await page.getByRole("button", { name: "Save private details" }).click();
+    await expect
+      .poll(() => second.privateDescription)
+      .toBe("Another edit after restart");
+    await expect
+      .poll(() => stored(page, "curator-outbox", owner))
+      .toMatchObject([{ id: "rejected-change", status: "rejected" }]);
+  });
+}
+
+test("storage failures explain disabled editing and retry restores it", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    let fail = true;
+    window.addEventListener("restore-curator-storage", () => {
+      fail = false;
+    });
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (...args: Parameters<typeof put>) {
+      if (fail && this.name === "curator-outbox")
+        throw new DOMException("Storage is full", "QuotaExceededError");
+      return put.apply(this, args);
+    };
+  });
+  const state = await fixture(page, false);
+  const explanation = page
+    .getByRole("alert")
+    .filter({ hasText: "Editing is unavailable" });
+  await expect(explanation).toContainText(
+    "Free some device storage or allow site storage",
+  );
+  await expect(
+    page.getByRole("button", { name: "Add a Party member in slot 2" }),
+  ).toBeDisabled();
+  await openCharacter(page);
+  await expect(explanation).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save private details" }),
+  ).toBeDisabled();
+  await page.evaluate(() =>
+    window.dispatchEvent(new Event("restore-curator-storage")),
+  );
+  await page.getByRole("button", { name: "Retry device storage" }).click();
+  await expect(explanation).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Save private details" }),
+  ).toBeEnabled();
   expect(state.writes).toEqual([]);
 });
 
