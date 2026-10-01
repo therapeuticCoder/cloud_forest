@@ -382,6 +382,7 @@ export function CuratorView({
     >
       <CuratorLayerSection
         addDisabled={addDisabled || holdingPeople.length >= 5}
+        careActionsDisabled={careActionsDisabled}
         label="Holding"
         nextLayer="Party"
         onAddCharacter={() => onAddCharacter("holding")}
@@ -444,6 +445,7 @@ export function CuratorView({
       </CuratorLayerSection>
       <CuratorLayerSection
         addDisabled
+        careActionsDisabled={careActionsDisabled}
         label="Guilds"
         nextLayer="Signals"
         onAddCharacter={() => undefined}
