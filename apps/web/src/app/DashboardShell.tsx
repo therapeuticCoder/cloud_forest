@@ -176,9 +176,7 @@ export function DashboardShell({
     ? curatorSelectionLayerLabels[curatorSelection.layer]
     : activeCuratorLayer;
   const canEditCuratedPeople =
-    !curatorIsOffline &&
-    curatedPeople.status === "ready" &&
-    curatedPeople.source === "live";
+    curated.deviceReady && curatedPeople.status === "ready";
   const {
     characterSubmission,
     setCharacterSubmission,
@@ -187,7 +185,11 @@ export function DashboardShell({
     endConnection,
     blockCharacter,
     unblockCharacter,
-  } = useCharacterActions(curated, canEditCuratedPeople);
+  } = useCharacterActions(
+    curated,
+    canEditCuratedPeople,
+    !curatorIsOffline && !deviceIsOffline && curatedPeople.source === "live",
+  );
   const activeCuratorLayerCount =
     currentCuratorLayer === "Holding"
       ? `${holdingPeople.length}/5`
@@ -309,7 +311,8 @@ export function DashboardShell({
     if (!canEditCuratedPeople) {
       setAddSubmission({
         pending: false,
-        error: "Adding a Character requires a connection.",
+        error:
+          "Your device storage is unavailable. Try again when it is ready.",
       });
       return false;
     }
@@ -333,6 +336,12 @@ export function DashboardShell({
     return true;
   };
   const startConnection = async (person: CuratorPerson) => {
+    if (
+      deviceIsOffline ||
+      curatorIsOffline ||
+      person.id.startsWith("local-character-")
+    )
+      return;
     setCharacterSubmission({ pending: true });
     const result = await createConnectionPairing(person.id);
     if (!result.ok) {
@@ -623,6 +632,28 @@ export function DashboardShell({
                 : undefined
             }
           >
+            {activeView === "curator" &&
+            !curated.deviceReady &&
+            curated.deviceError ? (
+              <div
+                role="alert"
+                className="mx-auto max-w-3xl px-4 py-3 text-sm text-amber-100"
+              >
+                <p>
+                  Editing is unavailable because this device could not save your
+                  Characters. Free some device storage or allow site storage,
+                  then retry.
+                </p>
+                <p className="mt-1">{curated.deviceError}</p>
+                <button
+                  type="button"
+                  className="mt-2 underline underline-offset-4"
+                  onClick={() => void loadCuratedPeople()}
+                >
+                  Retry device storage
+                </button>
+              </div>
+            ) : null}
             {activeView === "timeline" ? (
               <TimelineView
                 timelineItems={timelineItems}
@@ -670,6 +701,9 @@ export function DashboardShell({
               />
             ) : (
               <CuratorView
+                curatorWritesDisabled={!canEditCuratedPeople}
+                pendingChangeCount={curated.operations.length}
+                personAliases={curated.aliases}
                 careActionsDisabled={!careActionsAvailable}
                 addDestination={addDestination}
                 addSubmission={addSubmission}

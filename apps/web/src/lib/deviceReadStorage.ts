@@ -29,16 +29,19 @@ const ownerGenerations = new Map<string, number>();
 const ownerPurges = new Map<string, Promise<void>>();
 let opening: Promise<IDBDatabase | undefined> | undefined;
 
-function openDatabase() {
+export function openDeviceDatabase() {
   opening ??= new Promise<IDBDatabase | undefined>((resolve) => {
     if (typeof indexedDB === "undefined") {
       resolve(undefined);
       return;
     }
     try {
-      const request = indexedDB.open(databaseName, 1);
+      const request = indexedDB.open(databaseName, 2);
       request.onupgradeneeded = () => {
-        request.result.createObjectStore(storeName);
+        if (!request.result.objectStoreNames.contains(storeName))
+          request.result.createObjectStore(storeName);
+        if (!request.result.objectStoreNames.contains("curator-outbox"))
+          request.result.createObjectStore("curator-outbox");
       };
       request.onsuccess = () => {
         const database = request.result;
@@ -55,6 +58,12 @@ function openDatabase() {
     }
   });
   return opening;
+}
+
+export function deviceOwnerGeneration(ownerId: string) {
+  return blockedOwners.has(ownerId)
+    ? null
+    : (ownerGenerations.get(ownerId) ?? 0);
 }
 
 function key(ownerId: string, collection: Collection) {
@@ -87,7 +96,7 @@ export async function saveDeviceRead<K extends Collection>(
 ): Promise<boolean> {
   if (!ownerId || blockedOwners.has(ownerId)) return false;
   const generation = ownerGenerations.get(ownerId);
-  const database = await openDatabase();
+  const database = await openDeviceDatabase();
   if (
     !database ||
     blockedOwners.has(ownerId) ||
@@ -118,7 +127,7 @@ export async function loadDeviceRead<K extends Collection>(
 ): Promise<ReadCollections[K] | undefined> {
   if (!ownerId || blockedOwners.has(ownerId)) return undefined;
   const generation = ownerGenerations.get(ownerId);
-  const database = await openDatabase();
+  const database = await openDeviceDatabase();
   const stored = database
     ? await new Promise<unknown>((resolve) => {
         try {
@@ -174,7 +183,7 @@ export async function loadDeviceRead<K extends Collection>(
 export async function clearDeviceRead(ownerId: string, collection: Collection) {
   if (collection === "curator") clearCuratedPeopleSnapshot(ownerId);
   if (collection === "timeline") clearTimelineItemSnapshot(ownerId);
-  const database = await openDatabase();
+  const database = await openDeviceDatabase();
   if (!database) return;
   await new Promise<void>((resolve) => {
     try {

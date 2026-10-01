@@ -52,7 +52,7 @@ async function savedCollection(page: Page, collection: string) {
   return page.evaluate(
     async ({ owner, collectionName }) => {
       const database = await new Promise<IDBDatabase>((resolve, reject) => {
-        const request = indexedDB.open("cloud-forest-device", 1);
+        const request = indexedDB.open("cloud-forest-device");
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });

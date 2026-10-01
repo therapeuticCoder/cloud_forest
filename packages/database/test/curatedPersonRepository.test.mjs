@@ -251,3 +251,83 @@ test("blocked Characters do not consume Party, Tribe, or Holding capacity", asyn
     true,
   );
 });
+
+test("Curator mutation receipts survive lost acknowledgements and scope retries to their owner", async (t) => {
+  const { database, pool } = createDatabaseClient(
+    getTestDatabaseUrl(process.env),
+  );
+  const repository = createCuratedPersonRepository(database);
+  t.after(async () => {
+    await removeFixture(database);
+    await pool.end();
+  });
+  await removeFixture(database);
+  await database.insert(users).values(
+    [owner, otherOwner].map((id) => ({
+      id,
+      name: "Receipt Tester",
+      email: `${id}@example.test`,
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  );
+  const creation = {
+    ...input("holding", "Receipt Tester"),
+    firstName: "Receipt",
+    lastName: "Tester",
+    mutationId: "creation-retry",
+  };
+  const [first, repeated] = await Promise.all([
+    repository.create(creation),
+    repository.create({ ...creation, now: new Date() }),
+  ]);
+  assert.equal(first.ok, true);
+  assert.deepEqual(repeated, first);
+  assert.equal((await repository.listOwned(owner)).length, 1);
+  const separate = await repository.create({
+    ...creation,
+    ownerUserId: otherOwner,
+  });
+  assert.equal(separate.ok, true);
+  assert.notEqual(separate.value.id, first.value.id);
+  const conflicting = await repository.create({
+    ...creation,
+    nickname: "Changed payload",
+  });
+  assert.deepEqual(conflicting, { ok: false, error: "stale-write-conflict" });
+  const edit = {
+    ...creation,
+    curatedPersonId: first.value.id,
+    expectedVersion: 1,
+    nickname: "Edited Tester",
+    mutationId: "edit-retry",
+  };
+  const edited = await repository.update(edit);
+  assert.equal(edited.ok, true);
+  assert.equal(edited.value.version, 2);
+  assert.deepEqual(
+    await repository.update({ ...edit, now: new Date() }),
+    edited,
+  );
+  assert.equal((await repository.listOwned(owner))[0].version, 2);
+  const deletion = {
+    ownerUserId: owner,
+    curatedPersonId: first.value.id,
+    expectedVersion: 2,
+    mutationId: "delete-retry",
+  };
+  assert.deepEqual(await repository.remove(deletion), {
+    ok: true,
+    value: null,
+  });
+  assert.deepEqual(await repository.remove(deletion), {
+    ok: true,
+    value: null,
+  });
+  assert.deepEqual(await repository.listOwned(owner), []);
+  assert.deepEqual(
+    await repository.update({ ...edit, mutationId: "missing-update" }),
+    { ok: false, error: "curated-person-not-found" },
+  );
+});

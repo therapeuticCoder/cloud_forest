@@ -27,6 +27,9 @@ type CuratorDetailViewProps = {
   activeCares: Care[];
   characterSubmission: { pending: boolean; error?: string };
   isOffline: boolean;
+  privateWritesDisabled?: boolean;
+  currentPerson?: CuratorPerson;
+  pendingChangeCount?: number;
   careActionsDisabled?: boolean;
   onBack: () => void;
   onBackToLayer: (
@@ -166,12 +169,38 @@ function isCharacterSelection(
   );
 }
 
+function editorDraft(
+  character: CuratorPerson,
+  fallback: "holding" | "party" | "tribe",
+) {
+  return {
+    firstName: character.firstName ?? "",
+    lastName: character.lastName ?? "",
+    nickname: character.nickname ?? character.displayName,
+    placement:
+      character.placement === "holding" ||
+      character.placement === "party" ||
+      character.placement === "tribe"
+        ? character.placement
+        : fallback,
+    privateDescription:
+      character.privateDescription ?? character.relationshipTitle,
+    portraitUrl: character.portraitUrl ?? "",
+    relationshipShape: editorRelationshipShape(
+      character.relationshipShape ?? character.relationshipNote,
+    ),
+  };
+}
+
 export function CuratorDetailView({
   activeCares,
   characterSubmission,
   onBackToLayer,
   onBlockCharacter,
   isOffline,
+  privateWritesDisabled = isOffline,
+  currentPerson,
+  pendingChangeCount = 0,
   careActionsDisabled = false,
   onBack,
   onDeleteCharacter,
@@ -191,27 +220,55 @@ export function CuratorDetailView({
   const isPerson = isCharacterSelection(selection);
   const initialCharacter =
     isPerson && selection.item.version !== undefined ? selection.item : null;
-  const [character, setCharacter] = useState(initialCharacter);
+  const [savedCharacter, setCharacter] = useState(initialCharacter);
+  const character =
+    savedCharacter && currentPerson
+      ? {
+          ...savedCharacter,
+          id: currentPerson.id,
+          version: currentPerson.version,
+          relationshipState: currentPerson.relationshipState,
+          linkedUserId: currentPerson.linkedUserId,
+          linkedPersonId: currentPerson.linkedPersonId,
+          blockedUserId: currentPerson.blockedUserId,
+          syncStatus: currentPerson.syncStatus,
+        }
+      : savedCharacter;
+  const [portraitError, setPortraitError] = useState<string>();
   const [confirmationAction, setConfirmationAction] =
     useState<keyof typeof relationshipConfirmationCopy>();
   const [showEndChoice, setShowEndChoice] = useState(false);
   const selectionName = character?.displayName ?? getSelectionName(selection);
   const [draft, setDraft] = useState(() =>
     character
-      ? {
-          firstName: character.firstName ?? "",
-          lastName: character.lastName ?? "",
-          nickname: character.nickname ?? character.displayName,
-          placement: selection.layer as "holding" | "party" | "tribe",
-          privateDescription:
-            character.privateDescription ?? character.relationshipTitle,
-          portraitUrl: character.portraitUrl,
-          relationshipShape: editorRelationshipShape(
-            character.relationshipShape ?? character.relationshipNote,
-          ),
-        }
+      ? editorDraft(character, selection.layer as "holding" | "party" | "tribe")
       : null,
   );
+  const draftBaseline = useRef(draft);
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled || !currentPerson || !draft || !draftBaseline.current)
+        return;
+      const fresh = editorDraft(currentPerson, draft.placement);
+      const next = { ...draft };
+      let changed = false;
+      for (const key of Object.keys(fresh) as (keyof typeof fresh)[]) {
+        if (
+          draft[key] === draftBaseline.current[key] &&
+          draft[key] !== fresh[key]
+        ) {
+          Object.assign(next, { [key]: fresh[key] });
+          Object.assign(draftBaseline.current, { [key]: fresh[key] });
+          changed = true;
+        }
+      }
+      if (changed) setDraft(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPerson, draft]);
   const activeLayer = character && draft ? draft.placement : selection.layer;
   const activeLayerTheme = layerThemeLabels[activeLayer];
   const controlStyle = layerControlStyles[activeLayer];
@@ -221,7 +278,7 @@ export function CuratorDetailView({
     ? `${layerLabels[activeLayer]} ${isBlocked ? "Blocked" : isConnected ? "Connection" : "Character"}`
     : layerLabels[activeLayer];
   const profileOwnerId = isPerson
-    ? (selection.item.linkedPersonId ?? undefined)
+    ? (character?.linkedPersonId ?? undefined)
     : undefined;
   const cares = useMemo(
     () =>
@@ -243,11 +300,43 @@ export function CuratorDetailView({
     placement: "holding" | "party" | "tribe" = draft?.placement ?? "holding",
   ) => {
     if (!character || !draft) return;
-    const saved = await onUpdateCharacter(character, { ...draft, placement });
+    const changes = Object.fromEntries(
+      Object.entries({ ...draft, placement }).filter(
+        ([key, value]) =>
+          value !==
+          draftBaseline.current?.[key as keyof NonNullable<typeof draft>],
+      ),
+    ) as CharacterUpdate;
+    const saved = await onUpdateCharacter(character, changes);
     if (saved) {
       setCharacter(saved);
-      setDraft((current) => (current ? { ...current, placement } : current));
+      const next = editorDraft(saved, placement);
+      setDraft(next);
+      draftBaseline.current = next;
     }
+  };
+
+  const choosePortrait = (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 1_400_000) {
+      setPortraitError("Choose an image smaller than 1.4 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        const portraitUrl = reader.result;
+        setDraft((current) =>
+          current ? { ...current, portraitUrl } : current,
+        );
+        setPortraitError(undefined);
+      }
+    };
+    reader.onerror = () =>
+      setPortraitError(
+        "Your device could not read this image. Try another image.",
+      );
+    reader.readAsDataURL(file);
   };
 
   const deleteCharacter = async () => {
@@ -342,7 +431,7 @@ export function CuratorDetailView({
           >
             <SelectionVisual
               initials={character?.initials}
-              portraitUrl={character?.portraitUrl}
+              portraitUrl={draft?.portraitUrl ?? character?.portraitUrl}
               selection={selection}
             />
           </div>
@@ -365,9 +454,42 @@ export function CuratorDetailView({
               </p>
               <div className="mt-4 grid gap-4">
                 <label className="grid gap-1.5 text-sm text-slate-300">
+                  Portrait
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={
+                      privateWritesDisabled || characterSubmission.pending
+                    }
+                    onChange={(event) =>
+                      choosePortrait(event.target.files?.[0])
+                    }
+                  />
+                </label>
+                {draft.portraitUrl ? (
+                  <Button
+                    variant="ghost"
+                    disabled={
+                      privateWritesDisabled || characterSubmission.pending
+                    }
+                    onClick={() =>
+                      setDraft((current) =>
+                        current ? { ...current, portraitUrl: "" } : current,
+                      )
+                    }
+                  >
+                    Remove portrait
+                  </Button>
+                ) : null}
+                {portraitError ? (
+                  <p className="text-sm text-rose-200" role="status">
+                    {portraitError}
+                  </p>
+                ) : null}
+                <label className="grid gap-1.5 text-sm text-slate-300">
                   First name
                   <input
-                    className={`rounded-lg border px-3 py-2 text-base ${controlStyle}`}
+                    className={`min-w-0 w-full rounded-lg border px-3 py-2 text-base ${controlStyle}`}
                     onChange={(event) =>
                       setDraft((current) =>
                         current
@@ -375,14 +497,14 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
-                    readOnly={isOffline}
+                    readOnly={privateWritesDisabled}
                     value={draft.firstName}
                   />
                 </label>
                 <label className="grid gap-1.5 text-sm text-slate-300">
                   Last name
                   <input
-                    className={`rounded-lg border px-3 py-2 text-base ${controlStyle}`}
+                    className={`min-w-0 w-full rounded-lg border px-3 py-2 text-base ${controlStyle}`}
                     onChange={(event) =>
                       setDraft((current) =>
                         current
@@ -390,14 +512,14 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
-                    readOnly={isOffline}
+                    readOnly={privateWritesDisabled}
                     value={draft.lastName}
                   />
                 </label>
                 <label className="grid gap-1.5 text-sm text-slate-300">
                   Nickname
                   <input
-                    className={`rounded-lg border px-3 py-2 text-base ${controlStyle}`}
+                    className={`min-w-0 w-full rounded-lg border px-3 py-2 text-base ${controlStyle}`}
                     onChange={(event) =>
                       setDraft((current) =>
                         current
@@ -405,14 +527,14 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
-                    readOnly={isOffline}
+                    readOnly={privateWritesDisabled}
                     value={draft.nickname}
                   />
                 </label>
                 <label className="grid gap-1.5 text-sm text-slate-300">
                   Relationship shape
                   <select
-                    className={`rounded-lg border px-3 py-2 text-base ${controlStyle}`}
+                    className={`min-w-0 w-full rounded-lg border px-3 py-2 text-base ${controlStyle}`}
                     onChange={(event) =>
                       setDraft((current) =>
                         current
@@ -423,7 +545,7 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
-                    disabled={isOffline}
+                    disabled={privateWritesDisabled}
                     value={draft.relationshipShape}
                   >
                     {characterRelationshipOptions.map((option) => (
@@ -436,7 +558,7 @@ export function CuratorDetailView({
                 <label className="grid gap-1.5 text-sm text-slate-300">
                   Private note
                   <textarea
-                    className={`min-h-24 rounded-lg border px-3 py-2 text-base ${controlStyle}`}
+                    className={`min-h-24 min-w-0 w-full rounded-lg border px-3 py-2 text-base ${controlStyle}`}
                     onChange={(event) =>
                       setDraft((current) =>
                         current
@@ -447,20 +569,22 @@ export function CuratorDetailView({
                           : current,
                       )
                     }
-                    readOnly={isOffline}
+                    readOnly={privateWritesDisabled}
                     value={draft.privateDescription}
                   />
                 </label>
                 {isOffline ? (
                   <p className="text-sm text-amber-100/80" role="status">
-                    This is cached relationship data. Character changes require
-                    a connection.
+                    Changes are saved locally and synchronize with the server
+                    when your connection is restored. You have{" "}
+                    {pendingChangeCount} pending{" "}
+                    {pendingChangeCount === 1 ? "change" : "changes"}.
                   </p>
                 ) : null}
                 <Button
                   className="bg-lime-200 text-slate-950 hover:bg-lime-100"
                   disabled={
-                    isOffline ||
+                    privateWritesDisabled ||
                     characterSubmission.pending ||
                     !draft.firstName.trim() ||
                     !draft.lastName.trim() ||
@@ -480,7 +604,7 @@ export function CuratorDetailView({
                         <Button
                           className="border border-lime-100/25 text-slate-100 hover:bg-lime-100/10"
                           disabled={
-                            isOffline ||
+                            privateWritesDisabled ||
                             characterSubmission.pending ||
                             draft.placement === placement
                           }
@@ -580,7 +704,9 @@ export function CuratorDetailView({
                       </Button>
                       <Button
                         className="text-rose-100 hover:bg-rose-100/10"
-                        disabled={isOffline || characterSubmission.pending}
+                        disabled={
+                          privateWritesDisabled || characterSubmission.pending
+                        }
                         onClick={requestDeleteCharacter}
                         type="button"
                         variant="ghost"
@@ -596,7 +722,11 @@ export function CuratorDetailView({
                       </p>
                       <Button
                         className="min-h-12 w-full bg-lime-200 text-base text-slate-950 hover:bg-lime-100"
-                        disabled={isOffline || characterSubmission.pending}
+                        disabled={
+                          isOffline ||
+                          characterSubmission.pending ||
+                          character.id.startsWith("local-character-")
+                        }
                         onClick={() => void onStartConnection(character)}
                         type="button"
                       >
@@ -605,7 +735,9 @@ export function CuratorDetailView({
                       </Button>
                       <Button
                         className="text-rose-100 hover:bg-rose-100/10"
-                        disabled={isOffline || characterSubmission.pending}
+                        disabled={
+                          privateWritesDisabled || characterSubmission.pending
+                        }
                         onClick={requestDeleteCharacter}
                         type="button"
                         variant="ghost"

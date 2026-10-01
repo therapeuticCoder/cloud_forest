@@ -11,6 +11,7 @@ const relationshipShape = Type.String({ minLength: 1, maxLength: 200 });
 const privateDescription = Type.String({ maxLength: 10_000 });
 const portraitUrl = Type.String({ maxLength: 2_000_000 });
 const version = Type.Integer({ minimum: 1 });
+const mutationId = Type.Optional(Type.String({ minLength: 1, maxLength: 128 }));
 
 export const curatedPersonPlacementSchema = Type.Union([
   Type.Literal("party"),
@@ -91,6 +92,7 @@ export const curatedPersonParamsSchema = Type.Object(
 );
 export const createCuratedPersonBodySchema = Type.Object(
   {
+    mutationId,
     firstName,
     lastName,
     nickname,
@@ -103,6 +105,7 @@ export const createCuratedPersonBodySchema = Type.Object(
 );
 export const updateCuratedPersonBodySchema = Type.Object(
   {
+    mutationId,
     firstName,
     lastName,
     nickname,
@@ -115,7 +118,7 @@ export const updateCuratedPersonBodySchema = Type.Object(
   { additionalProperties: false },
 );
 export const removeCuratedPersonBodySchema = Type.Object(
-  { expectedVersion: version },
+  { expectedVersion: version, mutationId },
   { additionalProperties: false },
 );
 export const endConnectionBodySchema = Type.Object(

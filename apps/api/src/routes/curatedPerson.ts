@@ -152,7 +152,8 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
           .status(
             result.error === "holding-capacity-exceeded" ||
               result.error === "party-capacity-exceeded" ||
-              result.error === "tribe-capacity-exceeded"
+              result.error === "tribe-capacity-exceeded" ||
+              result.error === "stale-write-conflict"
               ? 409
               : 404,
           )
@@ -164,7 +165,9 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
                   ? "PARTY_FULL"
                   : result.error === "tribe-capacity-exceeded"
                     ? "TRIBE_FULL"
-                    : "NOT_FOUND",
+                    : result.error === "stale-write-conflict"
+                      ? "STALE_WRITE_CONFLICT"
+                      : "NOT_FOUND",
             ),
           );
       }
@@ -229,6 +232,7 @@ export const curatedPersonRoutes: FastifyPluginAsyncTypebox<Options> = async (
         ownerUserId: current.userId,
         curatedPersonId: request.params.curatedPersonId,
         expectedVersion: request.body.expectedVersion,
+        mutationId: request.body.mutationId,
       });
       if (!result.ok) {
         const code =
