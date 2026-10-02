@@ -1,24 +1,63 @@
 .care-conversation-entry {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  min-height: 2.75rem;
-  margin-block: 0.75rem;
-  padding: 0.6rem 1rem;
-  border: 1px solid var(--forest-amber);
-  border-radius: 0.75rem;
-  color: var(--forest-amber);
-  background: var(--forest-pine);
+  min-height: 3rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(228, 236, 217, 0.3);
+  border-radius: 0.9rem;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.06);
+  font: inherit;
+  font-weight: 750;
   cursor: pointer;
 }
+.care-conversation-entry:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
 .care-conversation-entry svg {
+  flex-shrink: 0;
   width: 1.2rem;
   height: 1.2rem;
+}
+.care-card .care-conversation-entry {
+  width: 100%;
+  margin-top: 0.9rem;
+  border-color: rgba(8, 36, 25, 0.35);
+  color: var(--forest-ink);
+  background: rgba(255, 255, 255, 0.32);
+}
+.care-card .care-conversation-entry:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+.care-card .care-conversation-entry:focus-visible {
+  outline-color: var(--forest-pine);
+}
+.care-card__outcome > .care-conversation-entry + .care-card__commitment {
+  margin-top: 0;
+}
+.care-detail__panel > .care-conversation-entry {
+  width: 100%;
+  max-width: 36rem;
+  margin: 1.5rem auto 0;
 }
 .care-conversation-unread {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--forest-amber);
+}
+.care-conversation-entry .care-conversation-unread {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.care-card .care-conversation-entry .care-conversation-unread {
+  background: rgba(8, 36, 25, 0.08);
 }
 .care-conversation {
   position: fixed;
